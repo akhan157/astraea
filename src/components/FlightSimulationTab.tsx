@@ -325,7 +325,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                     )}
                   </div>
                   <div className="text-[10px] text-emerald-400 font-mono">
-                    {simResult.isLandingSafe ? '<= 20 J (CERTIFIED)' : 'HIGH IMPACT'}
+                    {simResult.isLandingSafe ? '<= 20 J (GATE PASS)' : 'EXCEEDS 20 J LIMIT'}
                   </div>
                 </div>
               </div>

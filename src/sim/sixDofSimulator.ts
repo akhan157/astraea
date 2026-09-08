@@ -79,7 +79,8 @@ export interface SixDofSimulationResult {
   landingDistance: number;        // total lateral drift from launch pad (m)
   landingVelocity: number;        // m/s
   landingKineticEnergy: number;   // Joules
-  isLandingSafe: boolean;         // <= 20 J
+  isLandingSafe: boolean;         // <= 20 J kinetic energy safety gate
+  isLandingVelocitySafe: boolean; // <= 6.0 m/s landing speed
   flightDuration: number;         // seconds
   events: SixDofEvent[];
   telemetry: SixDofTelemetryPoint[];
@@ -648,7 +649,8 @@ export function simulate6DofFlight(
     landingDistance: lateralLandingDrift,
     landingVelocity: landingSpeed,
     landingKineticEnergy,
-    isLandingSafe: landingKineticEnergy <= 20.0 || landingSpeed <= 6.0,
+    isLandingSafe: landingKineticEnergy <= 20.0,
+    isLandingVelocitySafe: landingSpeed <= 6.0,
     flightDuration: t,
     events,
     telemetry,

@@ -154,7 +154,7 @@ Astraea organizes its capabilities into **5 dedicated studio modes** accessible 
      6. **Ground Touchdown:** Landing velocity and **Kinetic Energy at Touchdown** check ($E = \frac{1}{2} m v^2 \le 20\text{ J}$ safety stamp).
 4. **Monte Carlo Dispersion Engine:**
    - **Fast Interactive Mode (Main Thread):** Runs $N = 50 - 100$ trajectory passes in $\sim 1\text{s}$ with Gaussian perturbation of wind azimuth ($\pm 15^\circ$), launch rail elevation ($\pm 1^\circ$), and motor impulse ($\pm 2\%$).
-   - **Deep Competition Mode (Web Workers):** Runs $N = 500 - 1000$ trajectory passes in the background, plotting a 2D landing scatter plot with 1-sigma ($68\%$) and 2-sigma ($95\%$) landing dispersion ellipses.
+   - **Deep Competition Mode (Web Workers):** Runs $N = 500 - 1000$ trajectory passes in the background, plotting a 2D landing scatter plot with 1-sigma ($39.3\%$), 2-sigma ($86.5\%$), and $95\%$ containment ($k = 2.45\sigma$) landing dispersion ellipses (using the bivariate Rayleigh/Chi-square $df=2$ distribution: $P = 1 - e^{-k^2/2}$).
 5. **Interactive Telemetry Dashboard:**
    - Altitude vs. Time curve.
    - Velocity vs. Time & Mach vs. Time curve.

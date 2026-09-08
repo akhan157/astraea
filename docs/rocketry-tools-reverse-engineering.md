@@ -62,7 +62,7 @@ In supersonic flight, air cannot signal upstream. Shock waves form at the nose t
      - Supersonic leading edge ($M \cos\Lambda_{le} > 1$): Attached oblique shock wave; double-wedge or diamond foils reduce wave drag by 60% over rounded foils.
   3. **Skin Friction ($C_{D,f}$):** Van Driest II compressible turbulent boundary layer formula accounting for kinetic aerodynamic heating:
      $$C_f = \frac{0.074}{\text{Re}^{1/5} \cdot \left(1 + \frac{\gamma - 1}{2} M^2\right)^{0.65}}$$
-  4. **Base Drag ($C_{D,base}$):** Subsonic base drag ($C_{D,base} \approx 0.12 - 0.15$) peaks near Mach 1.0 ($C_{D,base} \approx 0.35 - 0.40$), then drops off as $1/M^2$ at high supersonic speeds. Boattail transitions reduce base area and directly cut base drag by 30–50%.
+  4. **Base Drag ($C_{D,base}$):** Subsonic base drag ($C_{D,base} \approx 0.12 + 0.13 M^2$) peaks at Mach 1.0 ($C_{D,base} \approx 0.38$), then decays smoothly as $0.38 / M^{1.2}$ in supersonic expansion. Boattail transitions reduce base area and directly cut base drag by 30–50%.
 
 ### 2.3 RASAero File Formats
 - **Input Geometry (`.cdx1`):** Plaintext ASCII format with structured blocks for stages, body tubes, nosecone parameters (shape, length, base diameter), transitions, and fin geometries.
@@ -92,7 +92,7 @@ One of RockSim Pro's most valued features is the **Fin Flutter Speed Calculator*
 
 The calculation is derived from **NACA Technical Note 4197** ("Summary of Flutter Experiences as a Guide to the Preliminary Design of Lifting Surfaces on Missiles"):
 
-$$V_f = a \cdot \sqrt{\frac{G}{\frac{1.337 \cdot \text{AR}^3 \cdot (P/P_0) \cdot (\lambda + 1)}{2 \cdot (t/c)^3 \cdot (\text{AR} + 2)}}}$$
+$$V_f = a \cdot \sqrt{\frac{2 \cdot G \cdot (t/c)^3 \cdot (\text{AR} + 2)}{1.337 \cdot \text{AR}^3 \cdot P_{\text{ambient}} \cdot (\lambda + 1)}}$$
 
 **Parameters:**
 - $V_f$: Critical flutter velocity ($\text{m/s}$). (Flight speed must remain below $V_f$ with a safety factor $\ge 1.25$).
@@ -105,7 +105,7 @@ $$V_f = a \cdot \sqrt{\frac{G}{\frac{1.337 \cdot \text{AR}^3 \cdot (P/P_0) \cdot
   - Balsa: $G \approx 0.15 \times 10^9 \text{ Pa}$
 - $\text{AR}$: Fin aspect ratio:
   $$\text{AR} = \frac{s^2}{A_{fin}} = \frac{2s}{c_r + c_t}$$
-- $\lambda$: Taper ratio:
+- $P_{\text{ambient}}$: Static atmospheric pressure at flight altitude ($101325 \text{ Pa}$ at sea level).
   $$\lambda = \frac{c_t}{c_r}$$
 - $t/c$: Thickness-to-chord ratio ($t / c_r$).
 - $P/P_0$: Static atmospheric pressure ratio at altitude ($P / 101325 \text{ Pa}$).

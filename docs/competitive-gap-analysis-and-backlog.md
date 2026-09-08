@@ -27,7 +27,7 @@
 | **Trajectory** | Numerical Trajectory Integration | OpenRocket, RocketPy | Euler-Cromer ODE integrator | **IMPLEMENTED** |
 | **Trajectory** | ISA 1976 Standard Atmosphere ($h \to \rho, a, P$) | RocketPy | Troposphere & Stratosphere models | **IMPLEMENTED** |
 | **Trajectory** | Collegiate Safety Gates (Rail $v \ge 15$, KE $\le 20\text{J}$) | None (Teams calculate manually) | Automated badge validation in Flight Sim | **IMPLEMENTED** |
-| **Trajectory** | 6-DOF Quaternion Rigorous Kinematics | RocketPy | Python sidecar solver integration | *Planned (Phase 2)* |
+| **Trajectory** | 6-DOF Quaternion Rigorous Kinematics | RocketPy | Euler-Poinsot rigid-body dynamics in `src/sim/sixDofSimulator.ts` | **IMPLEMENTED** |
 | **Trajectory** | Real-World Weather Soundings (NOAA/GFS) | RocketPy | Open-Meteo REST API integration | *Planned (Phase 2)* |
 | **Trajectory** | Monte Carlo Dispersion Ellipses | RocketPy | Statistical parameter perturbation runs | *Planned (Phase 2)* |
 | **File Formats** | OpenRocket (`.ork`) Import / Export | OpenRocket | Client-side JSZip + fast-xml-parser | **IMPLEMENTED** |
