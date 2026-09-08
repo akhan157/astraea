@@ -118,3 +118,30 @@ Engineers waste dozens of hours manually transcribing dimensions, weights, and t
 | Licensing conflicts (GPL OpenRocket code) | Medium | Keep Astraea modular (MIT or Apache-2.0 core); interact with OpenRocket exclusively via file formats (`.ork`) and clean-room parsers rather than direct Java linking. |
 | Heavy CAD divergence (SolidWorks mismatch) | Medium | Support STEP/OML outer mold line export and provide a clear mass-override field per component so physical scale readings always take precedence. |
 | Inaccurate supersonic aerodynamics | Low | Provide clean export of OML geometry to RASAero format, with a dedicated tab to import RASAero $C_d$ tables back into the RocketPy flight solver. |
+
+---
+
+## 6. Engineering Review Decisions (2026-09-08)
+
+### Core Architecture & State Model
+1. **SSOT Vehicle Spec:** Normalized Axial Component Tree in versioned JSON (`src/core/types.ts`). Pure projection functions decouple the physics data model from WebGL rendering.
+2. **Real-Time Stability Solver:** Client-side pure TypeScript Barrowman solver (`src/aero/barrowman.ts`) providing sub-millisecond, 60fps CP/CG updates while dragging CAD sliders.
+3. **OpenRocket Ingestion:** Client-side pure TypeScript parser (`src/formats/orkParser.ts`) using `jszip` and `fast-xml-parser` for instant drag-and-drop with zero backend dependencies.
+4. **State Management:** Zustand store (`src/store/rocketStore.ts`) with granular property selectors, non-React 3D render subscriptions, and immutable undo/redo history.
+5. **3D Performance:** In-place `BufferGeometry` updates and shared materials to eliminate garbage collection frame stutter during slider manipulation.
+
+---
+
+## GSTACK REVIEW REPORT
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | SKIPPED | User opted for Builder Mode & direct engineering lock |
+| Codex Review | `/codex review` | Independent 2nd opinion | 0 | SKIPPED | Not requested |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | CLEAR | 0 open issues, 4 decisions locked, test plan published |
+| Design Review | `/plan-design-review` | UI/UX gaps | 0 | DEFERRED | To be run after initial Phase 1 canvas scaffold |
+| DX Review | `/plan-devex-review` | Developer experience gaps | 0 | DEFERRED | Standard Vite+Vitest pipeline adopted |
+
+- **VERDICT:** ENG CLEARED — ready to implement Phase 1.
+
+NO UNRESOLVED DECISIONS
