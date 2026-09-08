@@ -101,7 +101,7 @@ Astraea organizes its capabilities into **5 dedicated studio modes** accessible 
      - Nosecone wave drag based on fineness ratio and shape (Von Kármán Sears-Haack minimal drag vs. Conical shock).
      - Fin wave drag via Ackeret supersonic linear theory adjusted for leading-edge sweep angle and airfoil cross-section (double-wedge vs. rounded).
    - **Base Drag ($C_{D,base}$):**
-     - Subsonic base suction peaking at Mach 1.0 ($C_D \approx 0.38$), dropping off supersonically ($1/M^{1.1}$).
+     - Subsonic base suction peaking at Mach 1.0 ($C_D \approx 0.38$), decaying smoothly as $0.38 / M^{1.2}$ in supersonic expansion.
      - **Motor Plume Reduction:** 60% reduction in base drag during powered motor burn ($C_{D,base,power-on} \approx 0.38 \cdot C_{D,base,power-off}$).
      - **Boattail Reduction Factor:** Base area reduction cutting base drag proportional to $(d_{base} / d_{body})^2$.
    - **Protuberance Drag:** Boundary-layer immersed parasitic drag for cylindrical launch lugs and aerodynamic airfoil rail buttons:
@@ -276,3 +276,121 @@ Astraea enforces automated verification across all computational layers:
    - Live Barrowman & high-Mach aerodynamic curve evaluation runs in **$< 10\text{ms}$**.
    - 6-DOF numerical flight trajectory simulation runs in **$< 50\text{ms}$**.
    - Fast Monte Carlo dispersion (100 runs) executes in **$< 1.5\text{s}$**.
+
+---
+
+## 5. Technical Contract 1: Verified 6-DOF Adaptive Integrator Specification
+
+### 5.1 State Vector & Frame Definitions
+Astraea defines one canonical state vector $\mathbf{x}(t)$ in 3D Euclidean space:
+$$\mathbf{x}(t) = \begin{bmatrix} \mathbf{r}_N(t) \\ \mathbf{v}_N(t) \\ \mathbf{q}_{NB}(t) \\ \boldsymbol{\omega}_B(t) \end{bmatrix} \in \mathbb{R}^3 \times \mathbb{R}^3 \times \mathbb{H}_1 \times \mathbb{R}^3$$
+
+- **Navigation Frame ($N$):** Local tangent inertial navigation frame: $+X_N$ East, $+Y_N$ Up (Vertical Altitude AGL), $+Z_N$ North.
+- **Body Frame ($B$):** Origin at instantaneous Center of Mass ($\mathbf{r}_{CG}(t)$). $+Y_B$ aligned with vehicle longitudinal axis (pointing toward nosecone tip), $+X_B$ lateral pitch axis (coplanar with fin 1), $+Z_B$ lateral yaw axis completing right-handed triad.
+- **Attitude Quaternion ($\mathbf{q}_{NB}$):** Unit quaternion rotating vectors from body frame $B$ into navigation frame $N$:
+  $$\mathbf{v}_N = \mathbf{R}_{NB}(\mathbf{q}_{NB}) \cdot \mathbf{v}_B$$
+
+### 5.2 Equations of Motion
+For rigid-body motion with instantaneous vehicle mass $m(t)$ and diagonal inertia tensor $\mathbf{I}_B(t) = \text{diag}(I_{xx}, I_{yy}, I_{zz})$:
+
+$$\dot{\mathbf{r}}_N = \mathbf{v}_N$$
+$$\dot{\mathbf{v}}_N = \frac{1}{m(t)} \mathbf{R}_{NB} \mathbf{F}_B + \mathbf{g}_N$$
+$$\dot{\mathbf{q}}_{NB} = \frac{1}{2} \mathbf{q}_{NB} \otimes [0, \boldsymbol{\omega}_B]^T$$
+$$\dot{\boldsymbol{\omega}}_B = \mathbf{I}_B(t)^{-1} \left[ \mathbf{M}_B - \boldsymbol{\omega}_B \times (\mathbf{I}_B(t) \boldsymbol{\omega}_B) \right]$$
+
+### 5.3 Numerical Integrator: Adaptive Dormand-Prince RK54
+- **Integrator:** Embedded Runge-Kutta 5(4) with continuous 4th-order dense output.
+- **Tolerances:** Independent absolute tolerances:
+  - Position: $\text{atol}_{\mathbf{r}} = 10^{-3}\text{ m}$
+  - Velocity: $\text{atol}_{\mathbf{v}} = 10^{-2}\text{ m/s}$
+  - Attitude: $\text{atol}_{\mathbf{q}} = 10^{-5}$
+  - Angular Rate: $\text{atol}_{\boldsymbol{\omega}} = 10^{-3}\text{ rad/s}$
+- **Quaternion Normalization:** Renormalize $\|\mathbf{q}_{NB}\| = 1$ at every accepted step. Measure error using geodesic rotation angle $\Delta \theta = 2 \arccos(|q_1 \cdot q_2|)$, never raw Euclidean subtraction.
+- **Dense-Output Event Root-Finding:** Continuous interpolation for exact event localization:
+  - $t_{\text{rail}}$: Distance along rail $s(t) - L_{\text{rail}} = 0$
+  - $t_{\text{burnout}}$: $t - t_{\text{burn}} = 0$
+  - $t_{\text{apogee}}$: Vertical velocity zero-crossing $v_{N,y}(t) = 0$
+  - $t_{\text{main}}$: Main deploy altitude $r_{N,y}(t) - h_{\text{main}} = 0$
+  - $t_{\text{touchdown}}$: Ground contact $r_{N,y}(t) = 0$
+- **Discontinuous Forcing Reset:** Stop and restart integrator at state transitions (rail exit, staging, motor burnout, parachute bloom) to prevent numerical stiffness.
+
+---
+
+## 6. Technical Contract 2: Unified Air-Relative Loads & Aerodynamic Validity API
+
+### 6.1 Flow State Evaluation
+All aerodynamic models consume a single, synchronized `FlowState`:
+$$\mathbf{v}_{\text{air}, N} = \mathbf{v}_N - \mathbf{w}_N(\mathbf{r}_N, t)$$
+$$\mathbf{v}_{\text{air}, B} = \mathbf{R}_{NB}^T \cdot \mathbf{v}_{\text{air}, N}$$
+$$V = \|\mathbf{v}_{\text{air}, B}\|, \quad \bar{q} = \frac{1}{2} \rho(h) V^2, \quad M = \frac{V}{a(h)}, \quad Re = \frac{\rho(h) V L_{\text{ref}}}{\mu(h)}$$
+$$\alpha = \text{atan2}(v_{\text{air}, B, z}, v_{\text{air}, B, y}), \quad \beta = \text{atan2}\left(v_{\text{air}, B, x}, \sqrt{v_{\text{air}, B, y}^2 + v_{\text{air}, B, z}^2}\right)$$
+
+### 6.2 Load Assembly & Moment Transformation
+Aerodynamic forces and moments are assembled about the vehicle's instantaneous Center of Mass:
+$$\mathbf{F}_B = \bar{q} S_{\text{ref}} \begin{bmatrix} C_X(\beta, M) \\ -C_D(\alpha, \beta, M) \\ C_Z(\alpha, M) \end{bmatrix}$$
+$$\mathbf{M}_{\text{CG}} = \mathbf{M}_{\text{ref}} + (\mathbf{r}_{\text{ref}} - \mathbf{r}_{\text{CG}}(t)) \times \mathbf{F}_B + \mathbf{M}_{\text{damping}}$$
+
+Where aerodynamic pitch and yaw damping moments are evaluated with rate derivatives:
+$$M_{\text{pitch, damp}} = \bar{q} S_{\text{ref}} L_{\text{ref}} \left[ C_{m_q}(M) \frac{q_B L_{\text{ref}}}{2V} \right]$$
+$$M_{\text{yaw, damp}} = \bar{q} S_{\text{ref}} L_{\text{ref}} \left[ C_{n_r}(M) \frac{r_B L_{\text{ref}}}{2V} \right]$$
+$$M_{\text{roll, cant}} = \bar{q} S_{\text{ref}} d_{\text{ref}} \left[ C_{l,\delta} \delta_{\text{cant}} + C_{l_p}(M) \frac{p_B d_{\text{ref}}}{2V} \right]$$
+
+### 6.3 Aerodynamic Validity Classifications
+Every aerodynamic evaluation returns a strict operational domain classification:
+- `VALID`: Flow parameters within validated physics envelope ($M \le 4.0, \alpha \le 15^\circ$).
+- `EXTRAPOLATED`: Flow parameters exceed nominal test envelope ($15^\circ < \alpha \le 30^\circ$ or $4.0 < M \le 6.0$). Emits simulation warning.
+- `UNSUPPORTED`: Unphysical conditions ($\alpha > 30^\circ$ or negative pressure). Strict mode halts simulation with error.
+
+---
+
+## 7. Technical Contract 3: Reproducible Ensemble Runner & Uncertainty Quantification
+
+### 7.1 Scenario Definition Schema
+An uncertainty ensemble is fully specified by an immutable `scenario.json`:
+```json
+{
+  "scenarioVersion": "1.0.0",
+  "vehicleSpecPath": "rocket.astraea.json",
+  "motorSpecPath": "aerotech_k550w.eng",
+  "randomSeed": 42,
+  "sampleCount": 500,
+  "samplingMethod": "latin_hypercube",
+  "uncertainParameters": {
+    "windSpeedSurface": { "distribution": "weibull", "shape": 2.1, "scale": 4.5 },
+    "windAzimuthDeg": { "distribution": "uniform", "min": 0, "max": 360 },
+    "railElevationDeg": { "distribution": "gaussian", "mean": 85.0, "std": 0.5 },
+    "motorTotalImpulseMultiplier": { "distribution": "gaussian", "mean": 1.0, "std": 0.015 },
+    "surfaceRoughnessMicrons": { "distribution": "lognormal", "mean": 5.0, "std": 1.2 }
+  },
+  "safetyLimits": {
+    "minRailExitVelocity": 15.0,
+    "maxLandingKineticEnergy": 20.0,
+    "maxLandingDriftRadius": 1500.0
+  }
+}
+```
+
+### 7.2 Bivariate 2D Landing Dispersion Ellipse Mathematics
+For the resulting 2D landing coordinates $(x_i, z_i)$ (East, North), Astraea computes the bivariate covariance matrix $\mathbf{\Sigma} \in \mathbb{R}^{2 \times 2}$.
+
+In a 2D bivariate Gaussian distribution, the cumulative containment probability inside ellipse $(\mathbf{r} - \boldsymbol{\mu})^T \mathbf{\Sigma}^{-1} (\mathbf{r} - \boldsymbol{\mu}) \le k^2$ is governed by the 2-DOF Chi-square distribution:
+$$P(k) = 1 - e^{-k^2 / 2}$$
+
+Astraea rigorously draws and labels containment boundaries:
+- **$k = 1.000\sigma \implies 39.3\%$ probability**
+- **$k = 1.414\sigma \implies 63.2\%$ probability**
+- **$k = 2.000\sigma \implies 86.5\%$ probability**
+- **$k = 2.448\sigma \implies 95.0\%$ probability** *(Official Spaceport America Cup / NASA Student Launch Safety Gate)*
+- **$k = 3.035\sigma \implies 99.0\%$ probability**
+
+Limit exceedance probabilities $\hat{P}_j = \frac{1}{N} \sum \mathbf{1}[g_j(\mathbf{y}_i) > 0]$ are reported with Wilson score binomial confidence intervals.
+
+---
+
+## 8. Verification & Validation (V&V) Acceptance Matrix
+
+To achieve full engineering certification, Astraea enforces strict analytical benchmarks:
+1. **Vacuum Ballistic Benchmark:** Neglecting aero and thrust, integrated trajectory matches closed-form parabolic coordinates $y(t) = v_0 t - \frac{1}{2} g t^2$ within $\le 10^{-4}\text{ m}$.
+2. **Torque-Free Asymmetric Rigid-Body Rotation:** Over 100 characteristic rotation cycles, total mechanical energy drift $\frac{|\Delta E|}{E_0} \le 10^{-6}$ and angular momentum vector error $\frac{\|\Delta \mathbf{L}\|}{L_0} \le 10^{-6}$.
+3. **Quaternion Antipodal Invariance:** Initial orientation $\mathbf{q}$ and $-\mathbf{q}$ produce mathematically identical trajectories.
+4. **Event Localization Accuracy:** Dense-output root-finding resolves exact apogee and rail departure timestamps to within $\le 10^{-5}\text{ s}$.
