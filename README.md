@@ -31,9 +31,9 @@ Read the full architecture and engineering roadmap in [docs/Astraea-design-doc.m
 
 ## 🛠️ Roadmap
 
-- [ ] **Phase 1: 3D Rocket Assembly Canvas** (Tauri + React + Three.js / WebGL parametric airframe, fins, nosecone, transitions)
-- [ ] **Phase 2: OpenRocket (`.ork`) & RockSim (`.rkt`) File Adapters** (Load and export existing community designs)
-- [ ] **Phase 3: Headless RocketPy Simulation Engine** (6-DOF flight dynamics, wind profiles, and 3D dispersion plots)
+- [x] **Phase 1: 3D Rocket Assembly Canvas** (React + Three.js / WebGL parametric airframe, fins, nosecone, transitions, live Barrowman & high-Mach aero)
+- [x] **Phase 1.5: File Interoperability & 6-DOF Dynamics** (OpenRocket `.ork` & RockSim `.rkt` adapters, NACA TN 4197 fin flutter, 6-DOF quaternion flight engine)
+- [ ] **Phase 2: Headless Python Sidecar & Multi-Solver Integration** (RocketPy weather soundings & NASA CEA propellant thermochemistry)
 - [ ] **Phase 4: Recovery Subsystem & Dual-Compartment Packing** (Coupler shoulder offset, black powder charge sizing)
 - [ ] **Phase 5: Closed-Loop Flight Evidence Ingestion** (Overlay altimeter telemetry against predicted flight curves)
 
@@ -41,4 +41,4 @@ Read the full architecture and engineering roadmap in [docs/Astraea-design-doc.m
 
 ## 📄 License
 
-Apache License 2.0 (or MIT). See `LICENSE` for details.
+Apache License 2.0. See `LICENSE` for details.

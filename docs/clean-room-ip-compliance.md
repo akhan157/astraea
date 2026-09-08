@@ -60,4 +60,4 @@ Competition rocketry teams require the ability to open their existing repositori
 
 ## 5. Summary Conclusion
 
-Astraea is 100% legally shielded. Its implementation of aerospace physics relies exclusively on public-domain NASA/NACA/USAF government research. Its file adapters operate strictly within established interoperability fair-use doctrine. By building from first principles with modern web standards, Astraea delivers high fidelity without IP risk.
+Astraea maintains an auditable clean-room provenance trail. Its implementation of aerospace physics relies on unclassified, public-domain scientific literature published by NASA, NACA, and the U.S. Air Force. Its file adapters operate strictly within established statutory interoperability fair-use doctrine (17 U.S.C. § 1201(f)). By engineering independently from first principles using modern web standards, Astraea achieves high technical fidelity with rigorous IP risk mitigation.

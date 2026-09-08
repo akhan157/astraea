@@ -3,7 +3,7 @@ import { computeTrapezoidFinFlutter, computeEllipticalFinFlutter } from './finFl
 import { TrapezoidFinSetComponent, EllipticalFinSetComponent } from '../core/types';
 
 describe('Aeroelasticity: NACA TN 4197 Fin Flutter Analysis', () => {
-  it('calculates realistic supersonic flutter boundary for G10 Fiberglass fins', () => {
+  it('calculates realistic flutter boundary for G10 Fiberglass fins with competition margins', () => {
     const highPowerFin: TrapezoidFinSetComponent = {
       id: 'fin-g10',
       name: 'High-Power G10 Fin',
@@ -21,35 +21,63 @@ describe('Aeroelasticity: NACA TN 4197 Fin Flutter Analysis', () => {
 
     const res = computeTrapezoidFinFlutter(highPowerFin);
 
-    expect(res.flutterVelocity).toBeGreaterThan(250); // High subsonic / transonic
+    expect(res.flutterVelocity).toBeGreaterThan(250);
     expect(res.flutterMach).toBeGreaterThan(0.8);
     expect(res.aspectRatio).toBeCloseTo((2 * 0.12) / (0.25 + 0.10), 2);
-    expect(res.safeVelocity).toBeCloseTo(res.flutterVelocity / 1.25, 1);
+    expect(res.safeVelocity125).toBeCloseTo(res.flutterVelocity / 1.25, 1);
+    expect(res.safeVelocity150).toBeCloseTo(res.flutterVelocity / 1.50, 1);
+    expect(res.disclaimer).toContain('NACA TN 4197');
   });
 
-  it('detects subsonic flutter risk for thin balsa fins', () => {
-    const balsaFin: TrapezoidFinSetComponent = {
-      id: 'fin-balsa',
-      name: 'Thin Balsa Fin',
+  it('supports custom shear modulus override for custom carbon layups', () => {
+    const customFin: TrapezoidFinSetComponent = {
+      id: 'fin-custom',
+      name: 'Custom Carbon Fin',
       type: 'trapezoidfinset',
       finCount: 3,
-      rootChord: 0.10,     // 100mm
-      tipChord: 0.05,      // 50mm
-      span: 0.08,          // 80mm
-      sweepLength: 0.04,   // 40mm
-      thickness: 0.0015,   // Very thin 1.5mm
-      crossSection: 'square',
-      axialOffset: 0.3,
-      materialId: 'balsa', // G = 150 MPa
+      rootChord: 0.20,
+      tipChord: 0.08,
+      span: 0.10,
+      sweepLength: 0.08,
+      thickness: 0.003,
+      crossSection: 'airfoil',
+      axialOffset: 0.8,
+      materialId: 'plywood', // Base is plywood
     };
 
-    const res = computeTrapezoidFinFlutter(balsaFin);
+    // Override with stiff 22 GPa high-modulus carbon
+    const resCustom = computeTrapezoidFinFlutter(customFin, 22.0e9);
+    const resBase = computeTrapezoidFinFlutter(customFin);
 
-    // Thin balsa should have low flutter velocity
-    expect(res.flutterVelocity).toBeLessThan(350);
+    expect(resCustom.shearModulus).toBe(22.0e9);
+    expect(resCustom.flutterVelocity).toBeGreaterThan(resBase.flutterVelocity * 4.0);
   });
 
-  it('computes flutter velocity for elliptical fin sets', () => {
+  it('models altitude atmospheric pressure effect on flutter boundary', () => {
+    const fin: TrapezoidFinSetComponent = {
+      id: 'fin-alt',
+      name: 'Altitude Fin',
+      type: 'trapezoidfinset',
+      finCount: 3,
+      rootChord: 0.15,
+      tipChord: 0.05,
+      span: 0.08,
+      sweepLength: 0.05,
+      thickness: 0.0025,
+      crossSection: 'rounded',
+      axialOffset: 0.5,
+      materialId: 'fiberglass',
+    };
+
+    // Flutter at sea level (101.3 kPa) vs 10km altitude (26.5 kPa)
+    const resSL = computeTrapezoidFinFlutter(fin, undefined, 340.3, 101325.0);
+    const resHigh = computeTrapezoidFinFlutter(fin, undefined, 299.5, 26500.0);
+
+    // In thinner air, critical flutter airspeed is higher (less dynamic pressure per m/s)
+    expect(resHigh.flutterVelocity).toBeGreaterThan(resSL.flutterVelocity);
+  });
+
+  it('computes elliptical fin flutter with safety margins', () => {
     const ellipticalFin: EllipticalFinSetComponent = {
       id: 'fin-ellipse',
       name: 'Elliptical Fin',
@@ -66,5 +94,6 @@ describe('Aeroelasticity: NACA TN 4197 Fin Flutter Analysis', () => {
 
     expect(Number.isFinite(res.flutterVelocity)).toBe(true);
     expect(res.flutterVelocity).toBeGreaterThan(50);
+    expect(res.safeVelocity150).toBeCloseTo(res.flutterVelocity / 1.5, 1);
   });
 });

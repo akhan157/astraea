@@ -110,31 +110,37 @@ export function computeTrapezoidFinAero(
     cna1 = (2.0 * Math.PI * Math.pow(s / dref, 2)) / denom;
   }
 
-  // Fin-body interference factor: K_fb = 1 + R / (s + R)
-  // Fin-body mutual interference (Rogers Modified Barrowman method / RASAero II):
-  // K_fb: Fin in presence of body = 1 + R / (s + R)
+  // Fin-body mutual interference (Rogers Modified Barrowman / NACA Report 1307):
+  // 1. K_fb: Fin in presence of body = 1 + R / (s + R)
   const kfb = 1.0 + r / (s + r);
-  // K_bf: Body lift induced in presence of fins = (R / (s + R))^2 * (1 + s / R)
+  // 2. K_bf: Body lift induced in presence of fins = (R / (s + R))^2 * (1 + s / R)
   const kbf = r > 0 ? Math.pow(r / (s + r), 2) * (1.0 + s / r) : 0;
-  const kTotal = kfb + kbf;
 
-  // Multi-fin configuration: for N=3 or N=4, CNa_fins = (N/2) * (CNa)1 * K_total
-  const cna = kTotal * (n / 2.0) * cna1;
+  const cna_fb = kfb * (n / 2.0) * cna1;
+  const cna_bf = kbf * (n / 2.0) * cna1;
+  const cna = cna_fb + cna_bf;
 
-  // Center of pressure of trapezoidal fin
-  // x_cp = x_le + m*(cr + 2*ct) / (3*(cr + ct)) + (1/6)*[cr + ct - (cr*ct)/(cr + ct)]
-  let cpOffset = 0;
+  // Center of pressure of isolated trapezoidal fin (NACA TM X-67216):
+  // x_cp,fin = x_le + m*(cr + 2*ct) / (3*(cr + ct)) + (1/6)*[cr + ct - (cr*ct)/(cr + ct)]
+  let finCpOffset = 0;
   if (chordSum > 0) {
     const term1 = (m * (cr + 2.0 * ct)) / (3.0 * chordSum);
     const term2 = (1.0 / 6.0) * (chordSum - (cr * ct) / chordSum);
-    cpOffset = term1 + term2;
+    finCpOffset = term1 + term2;
   } else {
-    cpOffset = cr / 2.0;
+    finCpOffset = cr / 2.0;
   }
+  const cp_fin = axialStart + finCpOffset;
 
-  return { cna, cp: axialStart + cpOffset };
+  // Center of pressure of body lift induced by fins (NACA Report 1307 / Rogers):
+  // Acts along the body cylinder adjacent to the fin root chord at ~0.45 * cr
+  const cp_body = axialStart + 0.45 * cr;
+
+  // Combined center of pressure weighted by normal force contributions:
+  const cp = cna > 0 ? (cna_fb * cp_fin + cna_bf * cp_body) / cna : cp_fin;
+
+  return { cna, cp };
 }
-
 /**
  * Calculates elliptical fin set CNa and CP
  */
@@ -158,18 +164,21 @@ export function computeEllipticalFinAero(
   const denom = 1.0 + Math.sqrt(1.0 + Math.pow((2.0 * lf) / chordSum, 2));
   const cna1 = (2.0 * Math.PI * Math.pow(s / dref, 2)) / denom;
 
-  // Rogers Modified Barrowman interference factors:
+  // Rogers Modified Barrowman interference factors (NACA Report 1307):
   const kfb = 1.0 + r / (s + r);
   const kbf = r > 0 ? Math.pow(r / (s + r), 2) * (1.0 + s / r) : 0;
-  const kTotal = kfb + kbf;
-  const cna = kTotal * (n / 2.0) * cna1;
+
+  const cna_fb = kfb * (n / 2.0) * cna1;
+  const cna_bf = kbf * (n / 2.0) * cna1;
+  const cna = cna_fb + cna_bf;
 
   // Centroid of quarter-ellipse is (4 / (3*pi)) * cr
-  const cpOffset = (4.0 / (3.0 * Math.PI)) * cr;
+  const cp_fin = axialStart + (4.0 / (3.0 * Math.PI)) * cr;
+  const cp_body = axialStart + 0.45 * cr;
+  const cp = cna > 0 ? (cna_fb * cp_fin + cna_bf * cp_body) / cna : cp_fin;
 
-  return { cna, cp: axialStart + cpOffset };
+  return { cna, cp };
 }
-
 /**
  * Complete Barrowman stability evaluation for an entire rocket assembly.
  */

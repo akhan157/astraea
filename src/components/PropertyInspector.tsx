@@ -424,9 +424,14 @@ const TrapezoidFinControls: React.FC<ControlProps<TrapezoidFinSetComponent>> = (
           </span>
         </div>
         <div className="flex justify-between text-zinc-400">
-          <span>Safe Velocity (1.25x SF):</span>
-          <span className="text-cyan-400 font-bold">{flutter.safeVelocity.toFixed(0)} m/s</span>
+          <span>Safe Speed (1.25x / 1.50x SF):</span>
+          <span className="text-cyan-400 font-bold">
+            {flutter.safeVelocity125.toFixed(0)} / {flutter.safeVelocity150.toFixed(0)} m/s
+          </span>
         </div>
+        <p className="text-[9px] text-zinc-500 font-sans leading-tight pt-1 border-t border-zinc-800/60">
+          * Preliminary NACA TN 4197 boundary. Joint compliance & composite weave require physical testing.
+        </p>
       </div>
     <div>
       <label className="text-[11px] font-medium text-zinc-400 mb-1 block">Fin Count</label>
@@ -542,9 +547,14 @@ const EllipticalFinControls: React.FC<ControlProps<EllipticalFinSetComponent>> =
           </span>
         </div>
         <div className="flex justify-between text-zinc-400">
-          <span>Safe Velocity (1.25x SF):</span>
-          <span className="text-cyan-400 font-bold">{flutter.safeVelocity.toFixed(0)} m/s</span>
+          <span>Safe Speed (1.25x / 1.50x SF):</span>
+          <span className="text-cyan-400 font-bold">
+            {flutter.safeVelocity125.toFixed(0)} / {flutter.safeVelocity150.toFixed(0)} m/s
+          </span>
         </div>
+        <p className="text-[9px] text-zinc-500 font-sans leading-tight pt-1 border-t border-zinc-800/60">
+          * Preliminary NACA TN 4197 boundary. Joint compliance & composite weave require physical testing.
+        </p>
       </div>
     <div>
       <label className="text-[11px] font-medium text-zinc-400 mb-1 block">Fin Count</label>

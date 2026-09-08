@@ -31,25 +31,50 @@ export interface AeroCurveResult {
 /**
  * Atmospheric standard properties at sea level (ISA 1976)
  */
-const RHO_SEA_LEVEL = 1.225; // kg/m^3
-const VISCOSITY_AIR = 1.789e-5; // Pa*s
 const SPEED_OF_SOUND_SL = 340.29; // m/s
 
 /**
  * Van Driest II compressible turbulent skin friction coefficient (Cf)
- * Maps compressible turbulent boundary layer data onto incompressible law of the wall.
+ * Reference: E. R. Van Driest, "The Problem of Aerodynamic Heating", Aeronautical Engineering Review, 1956.
+ *
+ * Accounts for turbulent boundary layer compressibility, adiabatic wall recovery,
+ * Sutherland's viscosity scaling with altitude, and surface roughness limits (k_s).
  */
-export function computeCompressibleSkinFriction(mach: number, length: number, velocity: number): number {
+export function computeCompressibleSkinFriction(
+  mach: number,
+  length: number,
+  velocity: number,
+  altitudeASL: number = 0,
+  surfaceRoughnessMicrons: number = 5.0
+): number {
   const v = Math.max(1, velocity);
-  const reynolds = Math.max(1000, (RHO_SEA_LEVEL * v * length) / VISCOSITY_AIR);
+  const L = Math.max(0.05, length);
+
+  // Atmospheric properties at altitude
+  const T0 = 288.15;
+  const h = Math.max(0, altitudeASL);
+  const T = Math.max(216.65, T0 - 0.0065 * Math.min(11000, h));
+  const P = 101325.0 * Math.pow(T / T0, 5.2561);
+  const rho = P / (287.05 * T);
+  const mu = (1.458e-6 * Math.pow(T, 1.5)) / (T + 110.4);
+
+  const reynolds = Math.max(1000, (rho * v * L) / mu);
+
+  // Surface roughness Reynolds cutoff (Schlichting sand-grain criteria)
+  const ks = Math.max(0.1e-6, surfaceRoughnessMicrons * 1e-6);
+  const reynoldsCutoff = 51.0 * Math.pow(ks / L, -1.039);
+  const effectiveReynolds = Math.min(reynolds, Math.max(1000, reynoldsCutoff));
 
   // Incompressible turbulent skin friction via Schlichting formula
-  const cfIncompressible = 0.074 / Math.pow(reynolds, 0.2);
+  const cfIncompressible = 0.455 / Math.pow(Math.log10(effectiveReynolds), 2.58);
 
-  // Van Driest II compressibility correction factor
-  // Cf_comp = Cf_incomp / (1 + 0.15 * M^2)^0.58
-  const compressibilityFactor = Math.pow(1.0 + 0.15 * Math.pow(mach, 2), 0.58);
-  return cfIncompressible / compressibilityFactor;
+  // Van Driest II compressibility transformation factor for adiabatic wall
+  // m_param = sqrt( (gamma-1)/2 * M^2 / (1 + r * (gamma-1)/2 * M^2) ) with r = 0.89
+  const mTerm = 0.2 * mach * mach;
+  const mParam = Math.sqrt(mTerm / (1.0 + 0.89 * mTerm));
+  const fc = mParam > 0.001 ? Math.pow(Math.asin(mParam) / mParam, 2) : 1.0;
+
+  return cfIncompressible / fc;
 }
 
 /**
@@ -125,23 +150,30 @@ export function computeBaseDrag(
   bodyDiameter: number,
   isMotorBurning: boolean = false
 ): number {
-  // Boattail area reduction factor: (d_base / d_body)^2
   const boattailFactor = Math.pow(baseDiameter / Math.max(0.01, bodyDiameter), 2);
 
   let baseCd = 0;
   if (mach < 0.8) {
     baseCd = 0.12 + 0.13 * Math.pow(mach, 2);
-  } else if (mach >= 0.8 && mach <= 1.1) {
-    // Transonic base drag peak near Mach 1
-    const t = (mach - 0.8) / 0.3;
-    baseCd = 0.20 + 0.18 * (3 * t * t - 2 * t * t * t);
+  } else if (mach >= 0.8 && mach <= 1.2) {
+    // Smooth C1 transition across transonic barrier from M=0.8 to M=1.2 peaking at M=1.0 (Cd=0.38)
+    const cd08 = 0.12 + 0.13 * 0.64; // 0.2032
+    const cd12 = 0.38 / Math.pow(1.2, 1.2); // ~0.306
+    const peakCd = 0.38;
+
+    if (mach <= 1.0) {
+      const t = (mach - 0.8) / 0.2;
+      baseCd = cd08 + (peakCd - cd08) * (3 * t * t - 2 * t * t * t);
+    } else {
+      const t = (mach - 1.0) / 0.2;
+      baseCd = peakCd - (peakCd - cd12) * (3 * t * t - 2 * t * t * t);
+    }
   } else {
-    // Supersonic expansion base pressure drop: Cd_base ~ 0.38 / M
-    baseCd = Math.min(0.38, 0.38 / Math.pow(mach, 1.1));
+    // Supersonic expansion base pressure drop (decaying smoothly as 1 / M^1.2)
+    baseCd = 0.38 / Math.pow(mach, 1.2);
   }
 
-  // Power-on plume effect: Rocket exhaust plume fills the base recirculation zone,
-  // reducing base suction drag by ~60%
+  // Motor plume power-on effect: ~62% drop during burn
   const plumeReduction = isMotorBurning ? 0.38 : 1.0;
 
   return baseCd * boattailFactor * plumeReduction;

@@ -1,90 +1,98 @@
 /**
- * Astraea Aeroelasticity Engine: Fin Flutter Velocity Calculator
- * Derived from NACA Technical Note 4197:
+ * Astraea Aeroelasticity Engine: Fin Flutter Boundary Calculator
+ * Reference: NACA Technical Note 4197:
  * "Summary of Flutter Experiences as a Guide to the Preliminary Design of Lifting Surfaces on Missiles"
  *
- * Used to predict the critical flutter speed (V_f) where aeroelastic coupling
- * between bending and torsional modes causes catastrophic fin structural failure.
+ * Predicts the critical flutter velocity (V_f) where aeroelastic coupling between
+ * bending and torsional modes induces catastrophic fin flutter failure.
+ *
+ * NOTE: NACA TN 4197 provides preliminary design guidance. It assumes isotropic homogeneous
+ * material properties and rigid root attachment. A safety factor of at least 1.5x is recommended
+ * for competition high-power rocketry flights.
  */
 
 import { TrapezoidFinSetComponent, EllipticalFinSetComponent } from '../core/types';
 
 export interface FinFlutterAnalysis {
-  flutterVelocity: number;        // m/s (critical velocity)
-  flutterMach: number;            // Mach number at sea level (a = 343 m/s)
-  aspectRatio: number;            // Fin aspect ratio AR = s^2 / S_fin
-  taperRatio: number;             // Tip chord / Root chord
-  shearModulus: number;           // Material shear modulus G in Pascals
+  flutterVelocity: number;        // m/s (critical flutter velocity)
+  flutterMach: number;            // Mach number at reference altitude
+  aspectRatio: number;            // AR = 2*s / (cr + ct)
+  taperRatio: number;             // lambda = ct / cr
+  shearModulus: number;           // G in Pascals
   thicknessToChord: number;       // t / cr
-  isFlutterRiskSubsonic: boolean; // Flutter speed < 340 m/s
-  safeVelocity: number;           // V_safe with 1.25 safety factor (V_f / 1.25)
+  isFlutterRiskSubsonic: boolean; // V_f < local speed of sound
+  safeVelocity125: number;        // V_f / 1.25 (minimal margin)
+  safeVelocity150: number;        // V_f / 1.50 (recommended competition margin)
+  disclaimer: string;
 }
 
 /**
  * Standard material shear modulus (G) catalog in Pascals (N/m^2)
+ * Sourced from MIL-HDBK-5 and composite structural testing literature.
  */
 export const MATERIAL_SHEAR_MODULI: Record<string, number> = {
   aluminum: 26.0e9,       // 26 GPa (6061-T6 Aluminum)
-  fiberglass: 4.1e9,      // 4.1 GPa (G10 Garolite / FR4)
-  carbonfiber: 18.0e9,    // 18.0 GPa (Quasi-isotropic carbon fiber composite)
+  fiberglass: 4.1e9,      // 4.1 GPa (G10 Garolite / FR4 woven composite)
+  carbonfiber: 18.0e9,    // 18.0 GPa (Quasi-isotropic 0/90/+-45 carbon fiber laminate)
   plywood: 0.6e9,         // 600 MPa (Aircraft Birch Plywood)
   balsa: 0.15e9,          // 150 MPa (Balsa wood)
   pla_3dprint: 1.2e9,     // 1.2 GPa (3D printed PLA 100% infill)
   abs_3dprint: 0.9e9,     // 900 MPa (3D printed ABS)
   petg_3dprint: 1.0e9,    // 1.0 GPa (3D printed PETG)
-  cardboard: 0.3e9,       // 300 MPa (Heavy cardboard / Kraft)
+  cardboard: 0.3e9,       // 300 MPa (Heavy Kraft cardboard)
 };
 
+const FLUTTER_DISCLAIMER =
+  'Preliminary design estimate based on NACA TN 4197. Assumes isotropic shear modulus and rigid root attachment. Composite layups and flexible fin joints require physical ground vibration / pull testing. Maintain >= 1.5x safety factor.';
+
 /**
- * Computes critical flutter velocity (V_f) for a trapezoidal fin set using NACA TN 4197
+ * Computes critical flutter velocity (V_f) for a trapezoidal fin set
  *
- * Formula:
- * V_f = a * sqrt( G / ( [1.337 * AR^3 * (P/P0) * (lambda + 1)] / [2 * (t/c)^3 * (AR + 2)] ) )
+ * NACA TN 4197 Equation 18:
+ * V_f = a * sqrt( [2 * G * (t/c)^3 * (AR + 2)] / [1.337 * AR^3 * P_ambient * (lambda + 1)] )
  *
  * @param comp Trapezoid fin set component
- * @param materialId Material identifier for shear modulus lookup
- * @param speedOfSound Local speed of sound in m/s (default: 343 m/s at sea level)
- * @param pressureRatio Ratio of static pressure to sea level P/P0 (default: 1.0)
+ * @param customShearModulus Optional user-defined shear modulus in Pascals
+ * @param speedOfSound Local speed of sound in m/s (default 340.3 m/s)
+ * @param ambientPressure Local static atmospheric pressure in Pascals (default 101325 Pa)
  */
 export function computeTrapezoidFinFlutter(
   comp: TrapezoidFinSetComponent,
-  materialId?: string,
-  speedOfSound: number = 343.0,
-  pressureRatio: number = 1.0
+  customShearModulus?: number,
+  speedOfSound: number = 340.3,
+  ambientPressure: number = 101325.0
 ): FinFlutterAnalysis {
-  const cr = comp.rootChord;
-  const ct = comp.tipChord;
-  const s = comp.span;
+  const cr = Math.max(0.005, comp.rootChord);
+  const ct = Math.max(0.001, comp.tipChord);
+  const s = Math.max(0.005, comp.span);
   const t = Math.max(0.0005, comp.thickness);
 
-  const matKey = materialId || comp.materialId;
-  const G = MATERIAL_SHEAR_MODULI[matKey] || MATERIAL_SHEAR_MODULI.plywood;
+  const G = customShearModulus && customShearModulus > 0
+    ? customShearModulus
+    : MATERIAL_SHEAR_MODULI[comp.materialId] || MATERIAL_SHEAR_MODULI.plywood;
 
   // Aspect Ratio: AR = s^2 / A_fin = 2*s / (cr + ct)
-  const chordSum = Math.max(0.001, cr + ct);
+  const chordSum = cr + ct;
   const AR = (2.0 * s) / chordSum;
 
   // Taper ratio: lambda = ct / cr
-  const lambda = cr > 0 ? ct / cr : 1.0;
+  const lambda = ct / cr;
 
   // Thickness to chord ratio: t / cr
-  const tOverC = cr > 0 ? t / cr : 0.05;
+  const tOverC = t / cr;
 
-  // NACA TN 4197 Flutter Boundary Equation (Equation 18):
-  // V_f = a * sqrt( [2 * G * (t/c)^3 * (AR + 2)] / [1.337 * AR^3 * P_ambient * (lambda + 1)] )
-  const ambientPressure = 101325.0 * Math.max(0.01, pressureRatio); // Pa
-
+  // Dimensionally consistent NACA TN 4197 Equation 18
+  // Numerator has units of Pa (G), Denominator has units of Pa (ambientPressure) -> Dimensionless inside sqrt
   const numerator = 2.0 * G * Math.pow(tOverC, 3) * (AR + 2.0);
-  const denominator = 1.337 * Math.pow(AR, 3) * ambientPressure * (lambda + 1.0);
+  const denominator = 1.337 * Math.pow(AR, 3) * Math.max(100, ambientPressure) * (lambda + 1.0);
 
   let vf = 1000;
   if (denominator > 0 && numerator > 0) {
     vf = speedOfSound * Math.sqrt(numerator / denominator);
   }
-  // Cap non-physical infinity
+
   const flutterVelocity = Number.isFinite(vf) ? Math.max(10, vf) : 2000;
   const flutterMach = flutterVelocity / speedOfSound;
-  const safeVelocity = flutterVelocity / 1.25;
 
   return {
     flutterVelocity,
@@ -94,7 +102,9 @@ export function computeTrapezoidFinFlutter(
     shearModulus: G,
     thicknessToChord: tOverC,
     isFlutterRiskSubsonic: flutterMach < 1.0,
-    safeVelocity,
+    safeVelocity125: flutterVelocity / 1.25,
+    safeVelocity150: flutterVelocity / 1.50,
+    disclaimer: FLUTTER_DISCLAIMER,
   };
 }
 
@@ -103,34 +113,34 @@ export function computeTrapezoidFinFlutter(
  */
 export function computeEllipticalFinFlutter(
   comp: EllipticalFinSetComponent,
-  materialId?: string,
-  speedOfSound: number = 343.0,
-  pressureRatio: number = 1.0
+  customShearModulus?: number,
+  speedOfSound: number = 340.3,
+  ambientPressure: number = 101325.0
 ): FinFlutterAnalysis {
-  const cr = comp.rootChord;
-  const s = comp.span;
+  const cr = Math.max(0.005, comp.rootChord);
+  const s = Math.max(0.005, comp.span);
   const t = Math.max(0.0005, comp.thickness);
 
-  const matKey = materialId || comp.materialId;
-  const G = MATERIAL_SHEAR_MODULI[matKey] || MATERIAL_SHEAR_MODULI.plywood;
+  const G = customShearModulus && customShearModulus > 0
+    ? customShearModulus
+    : MATERIAL_SHEAR_MODULI[comp.materialId] || MATERIAL_SHEAR_MODULI.plywood;
 
-  // Area of quarter-ellipse = (pi / 4) * cr * s
-  // Aspect Ratio: AR = s^2 / Area = (4 / pi) * (s / cr)
-  const AR = (4.0 / Math.PI) * (s / Math.max(0.001, cr));
-  const lambda = 0.05; // Effective taper ratio for ellipse
-  const tOverC = cr > 0 ? t / cr : 0.05;
+  // Quarter-ellipse aspect ratio: AR = s^2 / ((pi/4) * cr * s) = (4 / pi) * (s / cr)
+  const AR = (4.0 / Math.PI) * (s / cr);
+  // Elliptical effective taper ratio ~ 0.05
+  const lambda = 0.05;
+  const tOverC = t / cr;
 
-  const ambientPressure = 101325.0 * Math.max(0.01, pressureRatio);
   const numerator = 2.0 * G * Math.pow(tOverC, 3) * (AR + 2.0);
-  const denominator = 1.337 * Math.pow(AR, 3) * ambientPressure * (lambda + 1.0);
+  const denominator = 1.337 * Math.pow(AR, 3) * Math.max(100, ambientPressure) * (lambda + 1.0);
 
   let vf = 1000;
   if (denominator > 0 && numerator > 0) {
     vf = speedOfSound * Math.sqrt(numerator / denominator);
   }
+
   const flutterVelocity = Number.isFinite(vf) ? Math.max(10, vf) : 2000;
   const flutterMach = flutterVelocity / speedOfSound;
-  const safeVelocity = flutterVelocity / 1.25;
 
   return {
     flutterVelocity,
@@ -140,6 +150,8 @@ export function computeEllipticalFinFlutter(
     shearModulus: G,
     thicknessToChord: tOverC,
     isFlutterRiskSubsonic: flutterMach < 1.0,
-    safeVelocity,
+    safeVelocity125: flutterVelocity / 1.25,
+    safeVelocity150: flutterVelocity / 1.50,
+    disclaimer: FLUTTER_DISCLAIMER,
   };
 }
