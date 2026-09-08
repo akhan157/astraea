@@ -14,9 +14,14 @@ import {
   RotateCw,
   FolderOpen,
   FileCode,
+  Flame,
 } from 'lucide-react';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  onOpenSim?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onOpenSim }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const vehicle = useRocketStore((s) => s.vehicle);
@@ -151,6 +156,17 @@ export const Header: React.FC = () => {
       </div>
 
       {/* Right Action Buttons */}
+        {onOpenSim && (
+          <button
+            onClick={onOpenSim}
+            className="px-3 py-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 text-xs font-semibold rounded-lg border border-amber-500/40 transition flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
+            title="Run 6-DOF Flight Trajectory Simulation & High-Mach Aerodynamic Analysis"
+          >
+            <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30" />
+            <span>Flight Sim</span>
+          </button>
+        )}
+
       <div className="flex items-center gap-2">
         <input
           ref={fileInputRef}

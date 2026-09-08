@@ -9,6 +9,7 @@ import { ComponentTree } from './components/ComponentTree';
 import { RocketCanvas } from './viewport/RocketCanvas';
 import { MetricHUD } from './components/MetricHUD';
 import { PropertyInspector } from './components/PropertyInspector';
+import { FlightSimulationTab } from './components/FlightSimulationTab';
 import { useRocketStore } from './store/rocketStore';
 import { parseOrkFile } from './formats/orkParser';
 import { parseRktString } from './formats/rktParser';
@@ -21,6 +22,7 @@ export const App: React.FC = () => {
   const setViewMode = useRocketStore((s) => s.setViewMode);
 
   const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [isSimOpen, setIsSimOpen] = useState(false);
 
   // Global Keyboard Shortcuts
   useEffect(() => {
@@ -99,7 +101,7 @@ export const App: React.FC = () => {
       onDrop={handleDrop}
     >
       {/* Top Header Bar */}
-      <Header />
+      <Header onOpenSim={() => setIsSimOpen(true)} />
 
       {/* Main Workstation Layout */}
       <div className="flex-1 flex overflow-hidden relative">
@@ -124,6 +126,9 @@ export const App: React.FC = () => {
           <p className="text-sm text-cyan-300/80 mt-1">Direct client-side file parsing and instant 3D CAD reconstruction</p>
         </div>
       )}
+
+      {/* 6-DOF Flight Simulation & Transonic Aero Dashboard Modal */}
+      <FlightSimulationTab isOpen={isSimOpen} onClose={() => setIsSimOpen(false)} />
     </div>
   );
 };
