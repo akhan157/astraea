@@ -6,6 +6,7 @@
 import React, { useRef } from 'react';
 import { useRocketStore, PRESETS } from '../store/rocketStore';
 import { parseOrkFile, exportToOrk } from '../formats/orkParser';
+import { parseRktString } from '../formats/rktParser';
 import {
   Upload,
   Download,
@@ -32,7 +33,11 @@ export const Header: React.FC = () => {
 
     try {
       const buffer = await file.arrayBuffer();
-      if (file.name.endsWith('.json')) {
+      if (file.name.endsWith('.rkt')) {
+        const text = new TextDecoder().decode(buffer);
+        const imported = parseRktString(text);
+        setVehicle(imported);
+      } else if (file.name.endsWith('.json')) {
         const text = new TextDecoder().decode(buffer);
         const parsed = JSON.parse(text);
         setVehicle(parsed);
@@ -150,7 +155,7 @@ export const Header: React.FC = () => {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".ork,.json"
+          accept=".ork,.rkt,.json"
           onChange={handleFileUpload}
           className="hidden"
         />
@@ -158,10 +163,10 @@ export const Header: React.FC = () => {
         <button
           onClick={() => fileInputRef.current?.click()}
           className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-700 transition flex items-center gap-1.5 shadow-sm"
-          title="Import OpenRocket (.ork) or Astraea JSON"
+          title="Import OpenRocket (.ork), RockSim (.rkt), or Astraea JSON"
         >
           <Upload className="w-3.5 h-3.5 text-zinc-400" />
-          <span className="hidden sm:inline">Import .ork</span>
+          <span className="hidden sm:inline">Import .ork / .rkt</span>
         </button>
 
         <div className="flex items-center rounded-lg border border-cyan-500/30 overflow-hidden shadow-sm">

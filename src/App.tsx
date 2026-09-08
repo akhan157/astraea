@@ -11,6 +11,7 @@ import { MetricHUD } from './components/MetricHUD';
 import { PropertyInspector } from './components/PropertyInspector';
 import { useRocketStore } from './store/rocketStore';
 import { parseOrkFile } from './formats/orkParser';
+import { parseRktString } from './formats/rktParser';
 import { UploadCloud } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -73,7 +74,11 @@ export const App: React.FC = () => {
 
     try {
       const buffer = await file.arrayBuffer();
-      if (file.name.endsWith('.json')) {
+      if (file.name.endsWith('.rkt')) {
+        const text = new TextDecoder().decode(buffer);
+        const imported = parseRktString(text);
+        setVehicle(imported);
+      } else if (file.name.endsWith('.json')) {
         const text = new TextDecoder().decode(buffer);
         const parsed = JSON.parse(text);
         setVehicle(parsed);
@@ -115,8 +120,8 @@ export const App: React.FC = () => {
       {isDraggingFile && (
         <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-md border-4 border-dashed border-cyan-400 z-50 flex flex-col items-center justify-center pointer-events-none">
           <UploadCloud className="w-16 h-16 text-cyan-400 animate-bounce mb-4" />
-          <h2 className="text-2xl font-bold text-white tracking-tight">Drop OpenRocket (.ork) or Astraea JSON</h2>
-          <p className="text-sm text-cyan-300/80 mt-1">Direct client-side archive extraction and 3D reconstruction</p>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Drop OpenRocket (.ork), RockSim (.rkt), or Astraea JSON</h2>
+          <p className="text-sm text-cyan-300/80 mt-1">Direct client-side file parsing and instant 3D CAD reconstruction</p>
         </div>
       )}
     </div>

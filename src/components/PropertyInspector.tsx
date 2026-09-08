@@ -17,7 +17,8 @@ import {
   ParachuteComponent,
   MassComponent,
 } from '../core/types';
-import { Sliders, Activity } from 'lucide-react';
+import { Sliders, Activity, Gauge } from 'lucide-react';
+import { computeTrapezoidFinFlutter, computeEllipticalFinFlutter } from '../aero/finFlutter';
 
 const COLOR_PRESETS = [
   '#ffffff', // White
@@ -394,8 +395,39 @@ const TransitionControls: React.FC<ControlProps<TransitionComponent>> = ({ comp,
   </div>
 );
 
-const TrapezoidFinControls: React.FC<ControlProps<TrapezoidFinSetComponent>> = ({ comp, onChange }) => (
-  <div className="space-y-3">
+const TrapezoidFinControls: React.FC<ControlProps<TrapezoidFinSetComponent>> = ({ comp, onChange }) => {
+  const flutter = computeTrapezoidFinFlutter(comp);
+
+  return (
+    <div className="space-y-3">
+      {/* NACA TN 4197 Fin Flutter Boundary Card */}
+      <div className="p-3 bg-zinc-950/70 rounded-xl border border-zinc-800/80 space-y-1.5 font-mono text-[11px]">
+        <div className="flex items-center justify-between">
+          <span className="text-zinc-300 font-sans font-semibold flex items-center gap-1.5">
+            <Gauge className="w-3.5 h-3.5 text-amber-400" />
+            <span>Flutter Limit (NACA 4197)</span>
+          </span>
+          <span
+            className={`px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase ${
+              flutter.isFlutterRiskSubsonic
+                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+            }`}
+          >
+            {flutter.isFlutterRiskSubsonic ? 'Subsonic Risk' : 'Flutter Safe'}
+          </span>
+        </div>
+        <div className="flex justify-between text-zinc-400">
+          <span>Critical Speed (V_f):</span>
+          <span className="text-zinc-100 font-bold">
+            {flutter.flutterVelocity.toFixed(0)} m/s (M {flutter.flutterMach.toFixed(2)})
+          </span>
+        </div>
+        <div className="flex justify-between text-zinc-400">
+          <span>Safe Velocity (1.25x SF):</span>
+          <span className="text-cyan-400 font-bold">{flutter.safeVelocity.toFixed(0)} m/s</span>
+        </div>
+      </div>
     <div>
       <label className="text-[11px] font-medium text-zinc-400 mb-1 block">Fin Count</label>
       <div className="grid grid-cols-3 gap-1.5">
@@ -477,11 +509,43 @@ const TrapezoidFinControls: React.FC<ControlProps<TrapezoidFinSetComponent>> = (
       max={2000}
       onChange={(axialOffset) => onChange({ axialOffset })}
     />
-  </div>
-);
+    </div>
+  );
+};
 
-const EllipticalFinControls: React.FC<ControlProps<EllipticalFinSetComponent>> = ({ comp, onChange }) => (
-  <div className="space-y-3">
+const EllipticalFinControls: React.FC<ControlProps<EllipticalFinSetComponent>> = ({ comp, onChange }) => {
+  const flutter = computeEllipticalFinFlutter(comp);
+
+  return (
+    <div className="space-y-3">
+      {/* NACA TN 4197 Fin Flutter Boundary Card */}
+      <div className="p-3 bg-zinc-950/70 rounded-xl border border-zinc-800/80 space-y-1.5 font-mono text-[11px]">
+        <div className="flex items-center justify-between">
+          <span className="text-zinc-300 font-sans font-semibold flex items-center gap-1.5">
+            <Gauge className="w-3.5 h-3.5 text-amber-400" />
+            <span>Flutter Limit (NACA 4197)</span>
+          </span>
+          <span
+            className={`px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase ${
+              flutter.isFlutterRiskSubsonic
+                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+            }`}
+          >
+            {flutter.isFlutterRiskSubsonic ? 'Subsonic Risk' : 'Flutter Safe'}
+          </span>
+        </div>
+        <div className="flex justify-between text-zinc-400">
+          <span>Critical Speed (V_f):</span>
+          <span className="text-zinc-100 font-bold">
+            {flutter.flutterVelocity.toFixed(0)} m/s (M {flutter.flutterMach.toFixed(2)})
+          </span>
+        </div>
+        <div className="flex justify-between text-zinc-400">
+          <span>Safe Velocity (1.25x SF):</span>
+          <span className="text-cyan-400 font-bold">{flutter.safeVelocity.toFixed(0)} m/s</span>
+        </div>
+      </div>
     <div>
       <label className="text-[11px] font-medium text-zinc-400 mb-1 block">Fin Count</label>
       <div className="grid grid-cols-3 gap-1.5">
@@ -533,8 +597,9 @@ const EllipticalFinControls: React.FC<ControlProps<EllipticalFinSetComponent>> =
       max={2000}
       onChange={(axialOffset) => onChange({ axialOffset })}
     />
-  </div>
-);
+    </div>
+  );
+};
 
 const ParachuteControls: React.FC<ControlProps<ParachuteComponent>> = ({ comp, onChange }) => (
   <div className="space-y-3">

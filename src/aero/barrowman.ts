@@ -111,10 +111,15 @@ export function computeTrapezoidFinAero(
   }
 
   // Fin-body interference factor: K_fb = 1 + R / (s + R)
+  // Fin-body mutual interference (Rogers Modified Barrowman method / RASAero II):
+  // K_fb: Fin in presence of body = 1 + R / (s + R)
   const kfb = 1.0 + r / (s + r);
+  // K_bf: Body lift induced in presence of fins = (R / (s + R))^2 * (1 + s / R)
+  const kbf = r > 0 ? Math.pow(r / (s + r), 2) * (1.0 + s / r) : 0;
+  const kTotal = kfb + kbf;
 
-  // Multi-fin configuration: for N=3 or N=4, CNa_fins = (N/2) * (CNa)1
-  const cna = kfb * (n / 2.0) * cna1;
+  // Multi-fin configuration: for N=3 or N=4, CNa_fins = (N/2) * (CNa)1 * K_total
+  const cna = kTotal * (n / 2.0) * cna1;
 
   // Center of pressure of trapezoidal fin
   // x_cp = x_le + m*(cr + 2*ct) / (3*(cr + ct)) + (1/6)*[cr + ct - (cr*ct)/(cr + ct)]
@@ -153,8 +158,11 @@ export function computeEllipticalFinAero(
   const denom = 1.0 + Math.sqrt(1.0 + Math.pow((2.0 * lf) / chordSum, 2));
   const cna1 = (2.0 * Math.PI * Math.pow(s / dref, 2)) / denom;
 
+  // Rogers Modified Barrowman interference factors:
   const kfb = 1.0 + r / (s + r);
-  const cna = kfb * (n / 2.0) * cna1;
+  const kbf = r > 0 ? Math.pow(r / (s + r), 2) * (1.0 + s / r) : 0;
+  const kTotal = kfb + kbf;
+  const cna = kTotal * (n / 2.0) * cna1;
 
   // Centroid of quarter-ellipse is (4 / (3*pi)) * cr
   const cpOffset = (4.0 / (3.0 * Math.PI)) * cr;
