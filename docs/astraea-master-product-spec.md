@@ -285,7 +285,7 @@ Astraea enforces automated verification across all computational layers:
 Astraea defines one canonical state vector $\mathbf{x}(t)$ in 3D Euclidean space:
 $$\mathbf{x}(t) = \begin{bmatrix} \mathbf{r}_N(t) \\ \mathbf{v}_N(t) \\ \mathbf{q}_{NB}(t) \\ \boldsymbol{\omega}_B(t) \end{bmatrix} \in \mathbb{R}^3 \times \mathbb{R}^3 \times \mathbb{H}_1 \times \mathbb{R}^3$$
 
-- **Navigation Frame ($N$):** Local tangent inertial navigation frame: $+X_N$ East, $+Y_N$ Up (Vertical Altitude AGL), $+Z_N$ North.
+- **Navigation Frame ($N$):** Standard right-handed East-North-Up (ENU) tangent inertial frame: $+X_N$ East, $+Y_N$ North, $+Z_N$ Up (Altitude AGL). (Three.js WebGL viewport maps $+Z_N$ to viewport $+Y$ for visual vertical alignment).
 - **Body Frame ($B$):** Origin at instantaneous Center of Mass ($\mathbf{r}_{CG}(t)$). $+Y_B$ aligned with vehicle longitudinal axis (pointing toward nosecone tip), $+X_B$ lateral pitch axis (coplanar with fin 1), $+Z_B$ lateral yaw axis completing right-handed triad.
 - **Attitude Quaternion ($\mathbf{q}_{NB}$):** Unit quaternion rotating vectors from body frame $B$ into navigation frame $N$:
   $$\mathbf{v}_N = \mathbf{R}_{NB}(\mathbf{q}_{NB}) \cdot \mathbf{v}_B$$
@@ -403,11 +403,11 @@ To achieve full engineering certification, Astraea enforces strict analytical be
 At stage separation timestamp $t_{\text{stage}}$, the vehicle is decomposed into two distinct, coupled dynamic bodies:
 $$\mathbf{x}_{\text{sustainer}}(t) = [\mathbf{r}_1, \mathbf{v}_1, \mathbf{q}_1, \boldsymbol{\omega}_1]^T, \quad \mathbf{x}_{\text{booster}}(t) = [\mathbf{r}_2, \mathbf{v}_2, \mathbf{q}_2, \boldsymbol{\omega}_2]^T$$
 
-1. **Kinetic Separation Impulse ($J_{\text{sep}}$):**
-   Applied along separation unit normal $\hat{\mathbf{n}}$ with moment offsets $\mathbf{r}_{\text{offset}, 1}$ and $\mathbf{r}_{\text{offset}, 2}$ from the respective Centers of Mass:
-   $$\mathbf{v}_1(t^+) = \mathbf{v}(t^-) + \frac{J_{\text{sep}}}{m_1} \hat{\mathbf{n}}, \quad \mathbf{v}_2(t^+) = \mathbf{v}(t^-) - \frac{J_{\text{sep}}}{m_2} \hat{\mathbf{n}}$$
-   $$\boldsymbol{\omega}_1(t^+) = \boldsymbol{\omega}(t^-) + \mathbf{I}_1^{-1} \left( \mathbf{r}_{\text{offset}, 1} \times J_{\text{sep}} \hat{\mathbf{n}} \right)$$
-   $$\boldsymbol{\omega}_2(t^+) = \boldsymbol{\omega}(t^-) - \mathbf{I}_2^{-1} \left( \mathbf{r}_{\text{offset}, 2} \times J_{\text{sep}} \hat{\mathbf{n}} \right)$$
+1. **Kinetic Separation Impulse ($J_{\text{sep}}$) & Kinematic Translation:**
+   Accounting for pre-separation rotational velocity from child center-of-mass offset $\boldsymbol{\rho}_i^B$ from parent CG:
+   $$\mathbf{r}_i^N = \mathbf{r}_P^N + \mathbf{R}_{NB} \boldsymbol{\rho}_i^B$$
+   $$\mathbf{v}_i^{N,+} = \mathbf{v}_P^{N,-} + \mathbf{R}_{NB} (\boldsymbol{\omega}_P^{B,-} \times \boldsymbol{\rho}_i^B) + \frac{\mathbf{J}_i^N}{m_i}$$
+   $$\boldsymbol{\omega}_i^{B,+} = \boldsymbol{\omega}_P^{B,-} + \mathbf{I}_i^{-1} \left( \mathbf{r}_{\text{offset}, i} \times \mathbf{J}_i^B \right)$$
 
 2. **Momentum Conservation Invariant:**
    In the absence of external aerodynamic forces, the separation event strictly conserves linear and angular momentum about the system center of mass:
@@ -422,14 +422,14 @@ $$\mathbf{x}_{\text{sustainer}}(t) = [\mathbf{r}_1, \mathbf{v}_1, \mathbf{q}_1, 
 Launch rail departure is modeled as a progressive multi-contact constraint with forward button ($x_{\text{fwd}}$) and aft button ($x_{\text{aft}}$):
 1. **Phase 1 (Dual-Button Constrained):** Both buttons in rail guide channel ($s < L_{\text{rail}} - (x_{\text{aft}} - x_{\text{fwd}})$). 1-DOF constrained along rail vector; rotational rates $\boldsymbol{\omega} = \mathbf{0}$.
 2. **Phase 2 (Tip-Off Pivot Phase):** Forward button exits rail at $s = L_{\text{rail}} - \Delta x_{\text{buttons}}$. Aft button remains pinned in the channel acting as a physical fulcrum! Crosswind $w_{\text{cross}}$ induces an unbalanced tip-off pitching torque about the aft button:
-   $$M_{\text{tip-off}} = F_{N, \text{crosswind}} \cdot (x_{\text{aft}} - x_{cp}) - m g \sin(\theta_{\text{rail}}) \cdot (x_{\text{aft}} - x_{cg})$$
-   $$\ddot{\theta}_{\text{tip-off}} = \frac{M_{\text{tip-off}}}{I_{yy} + m (x_{\text{aft}} - x_{cg})^2}$$
+   $$M_{\text{tip-off}} = F_{N, \text{crosswind}} \cdot (x_{\text{aft}} - x_{cp}) - m g \cos(\theta_{\text{rail}}) \cdot (x_{\text{aft}} - x_{cg})$$
+   $$\ddot{\theta}_{\text{tip-off}} = \frac{M_{\text{tip-off}}}{I_{\text{pitch}} + m (x_{\text{aft}} - x_{cg})^2}$$
    Induces an exit pitch rate $\dot{\theta}_{\text{exit}}$ that biases the initial post-rail trajectory.
 3. **Phase 3 (Free 6-DOF Flight):** Aft button clears rail at $s = L_{\text{rail}}$. Full 6-DOF equations of motion take over.
 
 ### 9.3 Roll-Pitch Resonance & Roll Lock-In (`FD-RES-001`)
 Fin cant angle $\delta_{\text{cant}}$ induces roll spin rate $p(t)$. As vehicle accelerates, vehicle pitch natural frequency varies with dynamic pressure:
-$$\omega_n(t) = \sqrt{\frac{C_{N\alpha}(t) \cdot \bar{q}(t) \cdot S_{\text{ref}} \cdot (x_{cp}(t) - x_{cg}(t))}{I_{yy}(t)}}$$
+$$\omega_n(t) = \sqrt{\frac{C_{N\alpha}(t) \cdot \bar{q}(t) \cdot S_{\text{ref}} \cdot (x_{cp}(t) - x_{cg}(t))}{I_{\text{pitch}}(t)}}$$
 
 When roll rate crosses natural pitch frequency ($p(t) \approx \omega_n(t)$), asymmetric fin or mass moments induce **Pitch-Roll Resonance (Roll Lock-In)**, driving angle of attack to extreme angles ($> 20^\circ$).
 Astraea calculates the **Resonance Avoidance Margin**:
@@ -539,6 +539,6 @@ Provides human-readable, domain-specific semantic diffs between any two git comm
 │   └── Static Stability Margin: 1.56 cal -> 1.84 cal (+0.28 cal increase)
 └── Flight Dynamics (Aerotech K550W):
     ├── Predicted Apogee: 1,842m -> 1,795m (-47m / -154 ft penalty)
-    ├── Rail Exit Velocity: 24.8 m/s -> 24.2 m/s (NASA SL 80 ft/s PASSED)
+    ├── Rail Exit Velocity: 23.8 m/s -> 25.1 m/s (NASA SL 80 ft/s [24.38 m/s] PASSED)
     └── Fin Flutter Speed: 348 m/s -> 382 m/s (+9.8% structural safety boost)
 ```
