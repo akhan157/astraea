@@ -394,3 +394,151 @@ To achieve full engineering certification, Astraea enforces strict analytical be
 2. **Torque-Free Asymmetric Rigid-Body Rotation:** Over 100 characteristic rotation cycles, total mechanical energy drift $\frac{|\Delta E|}{E_0} \le 10^{-6}$ and angular momentum vector error $\frac{\|\Delta \mathbf{L}\|}{L_0} \le 10^{-6}$.
 3. **Quaternion Antipodal Invariance:** Initial orientation $\mathbf{q}$ and $-\mathbf{q}$ produce mathematically identical trajectories.
 4. **Event Localization Accuracy:** Dense-output root-finding resolves exact apogee and rail departure timestamps to within $\le 10^{-5}\text{ s}$.
+
+---
+
+## 9. Technical Contract 4: Advanced Multi-Body Separation, Rail Tip-Off & Roll Resonance
+
+### 9.1 Multi-Stage Staging Separation Dynamics (`FD-SEP-001`)
+At stage separation timestamp $t_{\text{stage}}$, the vehicle is decomposed into two distinct, coupled dynamic bodies:
+$$\mathbf{x}_{\text{sustainer}}(t) = [\mathbf{r}_1, \mathbf{v}_1, \mathbf{q}_1, \boldsymbol{\omega}_1]^T, \quad \mathbf{x}_{\text{booster}}(t) = [\mathbf{r}_2, \mathbf{v}_2, \mathbf{q}_2, \boldsymbol{\omega}_2]^T$$
+
+1. **Kinetic Separation Impulse ($J_{\text{sep}}$):**
+   Applied along separation unit normal $\hat{\mathbf{n}}$ with moment offsets $\mathbf{r}_{\text{offset}, 1}$ and $\mathbf{r}_{\text{offset}, 2}$ from the respective Centers of Mass:
+   $$\mathbf{v}_1(t^+) = \mathbf{v}(t^-) + \frac{J_{\text{sep}}}{m_1} \hat{\mathbf{n}}, \quad \mathbf{v}_2(t^+) = \mathbf{v}(t^-) - \frac{J_{\text{sep}}}{m_2} \hat{\mathbf{n}}$$
+   $$\boldsymbol{\omega}_1(t^+) = \boldsymbol{\omega}(t^-) + \mathbf{I}_1^{-1} \left( \mathbf{r}_{\text{offset}, 1} \times J_{\text{sep}} \hat{\mathbf{n}} \right)$$
+   $$\boldsymbol{\omega}_2(t^+) = \boldsymbol{\omega}(t^-) - \mathbf{I}_2^{-1} \left( \mathbf{r}_{\text{offset}, 2} \times J_{\text{sep}} \hat{\mathbf{n}} \right)$$
+
+2. **Momentum Conservation Invariant:**
+   In the absence of external aerodynamic forces, the separation event strictly conserves linear and angular momentum about the system center of mass:
+   $$\Delta \mathbf{P}_{\text{total}} = m_1 \mathbf{v}_1(t^+) + m_2 \mathbf{v}_2(t^+) - (m_1 + m_2) \mathbf{v}(t^-) = \mathbf{0} \quad (\text{tolerance } \le 10^{-7}\text{ N}\cdot\text{s})$$
+
+3. **Recontact & Collision Detection:**
+   Evaluates relative displacement along the separation vector accounting for booster residual motor thrust tail-off ($F_{\text{tail-off}}(t)$) and differential aerodynamic drag:
+   $$d_{\text{rel}}(t) = (\mathbf{r}_1(t) - \mathbf{r}_2(t)) \cdot \hat{\mathbf{n}} > 0 \quad \forall t \in [t_{\text{stage}}, t_{\text{stage}} + 2.0\text{s}]$$
+   If $d_{\text{rel}}(t) \le 0$, Astraea emits a **Recontact / Stage Collision Hazard Warning**.
+
+### 9.2 Launch Rail Multi-Point Tip-Off Dynamics (`FD-TIP-001`)
+Launch rail departure is modeled as a progressive multi-contact constraint with forward button ($x_{\text{fwd}}$) and aft button ($x_{\text{aft}}$):
+1. **Phase 1 (Dual-Button Constrained):** Both buttons in rail guide channel ($s < L_{\text{rail}} - (x_{\text{aft}} - x_{\text{fwd}})$). 1-DOF constrained along rail vector; rotational rates $\boldsymbol{\omega} = \mathbf{0}$.
+2. **Phase 2 (Tip-Off Pivot Phase):** Forward button exits rail at $s = L_{\text{rail}} - \Delta x_{\text{buttons}}$. Aft button remains pinned in the channel acting as a physical fulcrum! Crosswind $w_{\text{cross}}$ induces an unbalanced tip-off pitching torque about the aft button:
+   $$M_{\text{tip-off}} = F_{N, \text{crosswind}} \cdot (x_{\text{aft}} - x_{cp}) - m g \sin(\theta_{\text{rail}}) \cdot (x_{\text{aft}} - x_{cg})$$
+   $$\ddot{\theta}_{\text{tip-off}} = \frac{M_{\text{tip-off}}}{I_{yy} + m (x_{\text{aft}} - x_{cg})^2}$$
+   Induces an exit pitch rate $\dot{\theta}_{\text{exit}}$ that biases the initial post-rail trajectory.
+3. **Phase 3 (Free 6-DOF Flight):** Aft button clears rail at $s = L_{\text{rail}}$. Full 6-DOF equations of motion take over.
+
+### 9.3 Roll-Pitch Resonance & Roll Lock-In (`FD-RES-001`)
+Fin cant angle $\delta_{\text{cant}}$ induces roll spin rate $p(t)$. As vehicle accelerates, vehicle pitch natural frequency varies with dynamic pressure:
+$$\omega_n(t) = \sqrt{\frac{C_{N\alpha}(t) \cdot \bar{q}(t) \cdot S_{\text{ref}} \cdot (x_{cp}(t) - x_{cg}(t))}{I_{yy}(t)}}$$
+
+When roll rate crosses natural pitch frequency ($p(t) \approx \omega_n(t)$), asymmetric fin or mass moments induce **Pitch-Roll Resonance (Roll Lock-In)**, driving angle of attack to extreme angles ($> 20^\circ$).
+Astraea calculates the **Resonance Avoidance Margin**:
+$$\text{RAM}(t) = \frac{|p(t) - \omega_n(t)|}{\omega_n(t)}$$
+Flags a critical hazard if $\text{RAM}(t) < 0.20$ while dynamic pressure $\bar{q} > 5,000\text{ Pa}$.
+
+### 9.4 Parachute Inflation Dynamics & Opening Shock Loads (`FD-SHK-001`)
+Canopy opening is modeled via the **Pflanz Ballistic Method**:
+1. **Canopy Inflation Time ($t_f$):**
+   $$t_f = \frac{n_c \cdot D_0}{V_0} \quad (n_c \approx 8.0 \text{ for conical ribbon, } 12.0 \text{ for flat circular})$$
+2. **Pflanz Ballistic Coefficient ($A$):**
+   $$A = \frac{2 \cdot m_{\text{suspended}}}{\rho \cdot S_0 \cdot C_D \cdot V_0 \cdot t_f}$$
+3. **Opening Shock Factor ($C_x$):**
+   $$C_x = 1.0 + \frac{1.45}{A + 0.35}$$
+4. **Peak Opening Shock Force ($F_{\text{shock}}$):**
+   $$F_{\text{shock}} = C_x \cdot \left(\frac{1}{2} \rho V_0^2\right) \cdot S_0 \cdot C_D$$
+   Verifies that $F_{\text{shock}}$ does not exceed the certified proof load of recovery harnesses, shock cords, and forged eye-bolts with structural safety factor $\ge 2.0$.
+
+---
+
+## 10. Technical Contract 5: Avionics, Sensor Physics & Hardware Protocols
+
+### 10.1 Geodetic Coordinate & Altitude Datums (`AV-DAT-001`)
+Rigorous transformations between coordinate datums:
+- **WGS84 Ellipsoidal:** Geodetic Latitude $\phi$, Longitude $\lambda$, Ellipsoidal Height $h_{\text{ellips}}$.
+- **Mean Sea Level (MSL):** Corrected with EGM96 Geoid Undulation model $N(\phi, \lambda)$:
+  $$h_{\text{MSL}} = h_{\text{ellips}} - N(\phi, \lambda)$$
+- **Above Ground Level (AGL):** Referenced to launch site terrain elevation $h_{\text{pad}}$:
+  $$h_{\text{AGL}} = h_{\text{MSL}} - h_{\text{pad}}$$
+
+### 10.2 Sensor Specific Force & IMU Physics (`AV-SEN-001`)
+1. **Specific Force Formulation:**
+   Accelerometers measure specific force $\mathbf{f}_B$, not kinematic acceleration:
+   $$\mathbf{f}_B = \mathbf{a}_B - \mathbf{R}_{NB}^T \mathbf{g}_N + \boldsymbol{\omega}_B \times (\boldsymbol{\omega}_B \times \mathbf{r}_{\text{IMU}}) + \dot{\boldsymbol{\omega}}_B \times \mathbf{r}_{\text{IMU}}$$
+   where $\mathbf{r}_{\text{IMU}}$ is the lever-arm offset vector from the vehicle Center of Mass.
+2. **Static Port Transonic Pressure Depression:**
+   Barometric altimeters experience transonic port depression:
+   $$P_{\text{port}} = P_{\text{ambient}} + C_{p, \text{port}} \cdot \left(\frac{1}{2} \rho V^2\right)$$
+   where $C_{p, \text{port}} \approx -0.18$ across Mach 0.85–1.15, causing false apogee barometric spikes ("Mach dip"). Astraea models altimeter Mach-inhibit timers.
+
+### 10.3 Supported Altimeter Compatibility Contracts (`AV-DEV-001`)
+Native, verified binary and CSV decoders for dominant competition flight computers:
+- **AltOS:** TeleMetrum, EasyMini, TeleMega (`.eeprom` binary hex dumps and standard CSV).
+- **FlightSketch:** FlightSketch Mini, FlightSketch Comp (BLE stream & CSV time-series).
+- **Featherweight:** Raven 3/4, Blue Raven (multi-channel 100g accel, 16g accel, and baro CSV).
+- **PerfectFlite:** StratoLogger CF, FireFly (direct EEPROM text dumps).
+
+---
+
+## 11. Technical Contract 6: Recovery Pyrotechnics & Temperature-Derated Shear Hardware
+
+### 11.1 Temperature-Derated Shear Pin Mechanics (`PY-SHR-001`)
+High-power competition rockets experience aerodynamic boundary layer skin friction heating:
+$$T_{\text{recovery}} = T_{\text{ambient}} \cdot \left( 1 + 0.89 \cdot \frac{\gamma - 1}{2} M^2 \right)$$
+
+Nylon shear pins (2-56 and 4-40) exhibit temperature-dependent shear strength degradation:
+$$\tau_{\text{shear}}(T) = \tau_{\text{nominal}} \cdot \left[ 1.0 - 0.0042 \cdot (T - 20^\circ\text{C}) \right]$$
+- **2-56 Nylon Shear Pin:** Nominal $155\text{ N}$ ($35\text{ lbf}$) at $20^\circ\text{C}$; drops to $125\text{ N}$ ($28\text{ lbf}$) at $65^\circ\text{C}$.
+- **4-40 Nylon Shear Pin:** Nominal $310\text{ N}$ ($70\text{ lbf}$) at $20^\circ\text{C}$; drops to $251\text{ N}$ ($56\text{ lbf}$) at $65^\circ\text{C}$.
+
+### 11.2 Redundant Dual-Deployment State Machine (`PY-RED-001`)
+Astraea models dual-altimeter pyrotechnic redundancy states:
+1. **Primary Apogee Event:** Fires at vertical velocity zero-crossing ($v_y = 0\text{ m/s}$).
+2. **Backup Apogee Event:** Fires at $t_{\text{primary}} + 1.5\text{s}$ or when barometric altitude drops $\ge 50\text{m}$ below detected peak.
+3. **Primary Main Chute Event:** Fires at configured $h_{\text{main}}$ (e.g. $250\text{m}$ AGL).
+4. **Backup Main Chute Event:** Fires at $h_{\text{main}} - 50\text{m}$ (e.g. $200\text{m}$ AGL).
+5. **Black Powder Separation Charge Pressure Sizing:**
+   $$P_{\text{target}} = \frac{N_{\text{pins}} \cdot F_{\text{shear}}(T) \cdot SF + F_{\text{friction}}}{A_{\text{bulkhead}}}$$
+   $$m_{\text{BP}} = \frac{P_{\text{target}} \cdot V_{\text{bay}}}{R_{\text{gas}} \cdot T_{\text{flame}}} \quad (R_{\text{gas}} = 280\text{ J/(kg}\cdot\text{K)}, \, T_{\text{flame}} = 1750\text{ K})$$
+   Enforces safety factor $SF \in [1.75, 2.25]$ to guarantee separation without airframe rupture.
+
+---
+
+## 12. Technical Contract 7: Competition Verification Engines & Git Semantic Diffs
+
+### 12.1 Automated Collegiate Competition Verification Profiles (`CP-PRF-001`)
+Astraea includes built-in verification rule engines for major collegiate competitions:
+
+1. **NASA Student Launch Competition Profile:**
+   - Target Altitude: Configurable target (e.g. 4,500 ft AGL).
+   - Rail Departure Safety: $v_{\text{exit}} \ge 80\text{ ft/s}$ ($24.4\text{ m/s}$) on specified launch rail.
+   - Touchdown Kinetic Energy Limit: $\le 75\text{ ft}\cdot\text{lbf}$ ($101.7\text{ J}$) for every separated section.
+   - Parachute Drift Limit: Must land within $2,500\text{ ft}$ radius of launch pad under $20\text{ mph}$ wind.
+   - Dual-Altimeter Redundancy: Verified dual independent power and deployment charges.
+
+2. **Spaceport America Cup (ESRA) Competition Profile:**
+   - Categories: 10,000 ft and 30,000 ft AGL (COTS Solid / Hybrid / Liquid).
+   - 95% Landing Containment Ellipse ($k = 2.45\sigma$) must fall entirely within the designated range boundary.
+   - Launch Rail Departure Velocity: $\ge 100\text{ ft/s}$ ($30.5\text{ m/s}$) for high-power entries.
+   - Minimum Static Stability Margin: $\ge 1.5$ calibers at rail exit.
+
+3. **EuRoC (European Rocketry Challenge) Profile:**
+   - Metric safety gates (3 km and 9 km categories).
+   - Maximum descent velocity: $\le 9\text{ m/s}$ under main parachute.
+
+### 12.2 Git-Backed Semantic Engineering Diffs (`CP-DIF-001`)
+Provides human-readable, domain-specific semantic diffs between any two git commits of a `.astraea.json` vehicle:
+```text
+[ASTRAEA SEMANTIC DIFF] commit 3f8a1b -> commit 9e2c4d
+├── Airframe Geometry:
+│   └── FinSet "Aft Delta": Span increased 140mm -> 160mm (+14.3%)
+├── Mass Properties:
+│   ├── Total Dry Mass: 8.42 kg -> 8.68 kg (+260 g)
+│   └── Center of Gravity (CG): 1.482m -> 1.504m aft (+22 mm rearward drift)
+├── Stability & Aero:
+│   ├── Center of Pressure (CP): 1.720m -> 1.785m aft (+65 mm)
+│   └── Static Stability Margin: 1.56 cal -> 1.84 cal (+0.28 cal increase)
+└── Flight Dynamics (Aerotech K550W):
+    ├── Predicted Apogee: 1,842m -> 1,795m (-47m / -154 ft penalty)
+    ├── Rail Exit Velocity: 24.8 m/s -> 24.2 m/s (NASA SL 80 ft/s PASSED)
+    └── Fin Flutter Speed: 348 m/s -> 382 m/s (+9.8% structural safety boost)
+```
