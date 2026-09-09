@@ -160,7 +160,7 @@ export function integrateRigidStep(
   });
 
   const L0 = loadsAt ? loadsAt(startTime, s) : loads;
-  validateStateAndLoads(s, L0, dt);
+  if (loadsAt) validateStateAndLoads(s, L0, dt); // entry already validated `loads`; only factory output needs re-check
   const d1 = deriv(s, L0, startTime);
   const tHalf = startTime + dt / 2;
   const tFull = startTime + dt;

@@ -425,6 +425,26 @@ describe('VV-007 Production Solver Linkage', () => {
     });
     expect(Math.abs(res.apogeeAltitude - res2.apogeeAltitude)).toBeLessThanOrEqual(1e-6);
   });
+
+  it('off-vertical launch yields physically consistent East drift sign (adapter sanity)', () => {
+    // Launch aimed due EAST (railAzimuthDeg = 90 => +X_N East) with no wind.
+    // The proper-rotation display map flips East via -x; a mirrored adapter
+    // would place the landing on the WRONG side of the pad. Verify the drift
+    // magnitude is finite and that the launch direction manifest at least one
+    // nonzero lateral coordinate with the expected East-polarity on X.
+    const res = simulate6DofFlight(PRESET_ESTES_ALPHA, CERTIFIED_MOTORS.estes_c6, {
+      railLength: 1.0,
+      railElevationDeg: 80.0,      // 10 deg off vertical
+      railAzimuthDeg: 90.0,        // aim due East
+      windSpeedSurface: 0.0,
+      mainDeployAltitudeAGL: 250,
+      finCantAngleDeg: 0.0,
+    });
+
+    expect(res.landingPosition.x).toBeGreaterThan(0.01); // East drift positive (not mirrored)
+    expect(Number.isFinite(res.landingDistance)).toBe(true);
+    expect(res.apogeeAltitude).toBeGreaterThan(30);
+  });
 });
 
 // ---------------------------------------------------------------------------
