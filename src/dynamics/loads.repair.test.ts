@@ -26,7 +26,7 @@ import {
   PRESET_ESTES_ALPHA,
   PRESET_NASA_STUDENT_LAUNCH,
 } from '../store/rocketStore';
-import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
+import { CERTIFIED_MOTORS, getMotorMassAt, getMotorMassFlowAt, integrateThrustCurve } from '../propulsion/motorDatabase';
 
 const MOTOR = CERTIFIED_MOTORS.estes_c6;
 const BURN = MOTOR.burnTime;
@@ -71,19 +71,24 @@ describe('loads repair: instantaneous combined CG and inertia derivative', () =>
     }
     // Numerical accuracy of the central difference is ~1e-8 (probe); a factor
     // of ~1e4 headroom keeps this a hard physics gate, not a noise flake.
-    // Ignition uses the right-hand derivative of the active burn law; it
-    // must not report a zero inertia derivative for the first RHS stage.
+    // Ignition uses the right-hand derivative of the active burn law. Under
+    // impulse-proportional depletion the thrust curve starts at zero, so the
+    // flow (and inertia derivative) at exactly t = 0 is zero and grows with
+    // the pressure rise — the first RHS stage must follow that law, not a
+    // constant-rate assumption.
     const ignition = computeFlightLoads(0, STATE(AXIAL), FLAGS_FREE, CFG, pv);
-    const immediatelyAfter = computeFlightLoads(1e-6, STATE(AXIAL), FLAGS_FREE, CFG, pv);
-    expect(ignition.inertiaDotB.x).toBeCloseTo(immediatelyAfter.inertiaDotB.x, 5);
-    expect(Math.abs(ignition.inertiaDotB.x)).toBeGreaterThan(0);
+    const immediatelyAfter = computeFlightLoads(1e-3, STATE(AXIAL), FLAGS_FREE, CFG, pv);
+    expect(ignition.inertiaDotB.x).toBeCloseTo(0, 9);
+    expect(Math.abs(immediatelyAfter.inertiaDotB.x)).toBeGreaterThan(0);
     expect(maxRelErr).toBeLessThanOrEqual(1e-4);
   });
 
   it('returns the instantaneous combined CG exactly matching the two-body closed form', () => {
     const pv = prepareVehicle(PRESET_ESTES_ALPHA);
     const t = 0.9; // mid-burn: mass law and CG motion both live
-    const motorSt = { currentMass: MOTOR.dryMass + MOTOR.propellantMass * (1 - t / BURN) };
+    // Impulse-proportional production law (master contract): propellant burns
+    // with delivered impulse, not with elapsed-time fraction.
+    const motorSt = getMotorMassAt(MOTOR, t);
     const xMot = Math.max(0, pv.totalLength - MOTOR.length / 2);
     const expected = (pv.vehicleDryMass * pv.baselineCg + motorSt.currentMass * xMot) /
       (pv.vehicleDryMass + motorSt.currentMass);
@@ -91,6 +96,23 @@ describe('loads repair: instantaneous combined CG and inertia derivative', () =>
     expect(L.combinedCg).toBeCloseTo(expected, 12);
     // Aero moment arm is referenced to THAT CG, not the dry baseline CG.
     expect(L.kinematics.cp - L.combinedCg).not.toBeCloseTo(L.kinematics.cp - pv.baselineCg, 3);
+  });
+
+  it('depletes propellant in proportion to delivered impulse, not elapsed time', () => {
+    // Master contract: m_prop(t) = m_prop,total * (1 - I(t)/I_total).
+    // The Estes C6 burns hardest early (14.2 N peak at 0.18 s), so by 25% of
+    // burn time well over 25% of the propellant is gone.
+    const early = getMotorMassAt(MOTOR, 0.25 * BURN);
+    const linearRemaining = MOTOR.propellantMass * 0.75;
+    expect(early.propellantRemaining).toBeLessThan(linearRemaining);
+    // Mass flow tracks instantaneous thrust.
+    const peakFlow = getMotorMassFlowAt(MOTOR, 0.18);
+    const lateFlow = getMotorMassFlowAt(MOTOR, 1.2);
+    expect(peakFlow).toBeLessThan(lateFlow);
+    expect(lateFlow).toBeLessThan(0);
+    expect(getMotorMassFlowAt(MOTOR, BURN + 1)).toBe(0);
+    // Full-burn integral recovers the certified total impulse.
+    expect(integrateThrustCurve(MOTOR, BURN)).toBeCloseTo(MOTOR.totalImpulse, 0);
   });
 });
 
@@ -220,5 +242,49 @@ describe('loads repair: Mach/vehicle-dependent normal slope and validity', () =>
     expect(L.momentB.x).toBeCloseTo(0, 12);
     expect(L.momentB.y).toBe(0);
     expect(L.momentB.z).toBe(0);
+  });
+});
+
+describe('loads repair: recovery gating on hardware and canopy moment', () => {
+  it('deployment flags without a parachute component do not suppress airframe loads', () => {
+    // Round-14 audit §5.4: recovery was determined by flags rather than an
+    // active model. A vehicle with no parachute must fly the free-flight
+    // model even when a deployment flag is set.
+    const bare = { ...PRESET_ESTES_ALPHA, components: PRESET_ESTES_ALPHA.components.filter((c) => c.type !== 'parachute') };
+    const pvBare = prepareVehicle(bare);
+    expect(pvBare.drogue).toBeUndefined();
+    const v = { x: 0, y: 50, z: 20 };
+    const free = computeFlightLoads(BURN + 0.2, STATE(v), FLAGS_FREE, { ...CFG, vehicle: bare }, pvBare);
+    const flagged = computeFlightLoads(BURN + 0.2, STATE(v), FLAGS_DROGUE, { ...CFG, vehicle: bare }, pvBare);
+    // Identical loads: the flag is inert without hardware.
+    expect(flagged.forceN.x).toBeCloseTo(free.forceN.x, 9);
+    expect(flagged.forceN.z).toBeCloseTo(free.forceN.z, 9);
+    expect(flagged.kinematics.cna).toBeCloseTo(free.kinematics.cna, 9);
+    expect(flagged.loadValidity).toBe(free.loadValidity);
+    // 21.8° incidence is outside the nominal envelope even when flagged.
+    expect(flagged.loadValidity).toBe('EXTRAPOLATED');
+  });
+
+  it('live canopy drag carries no airframe-CP static moment', () => {
+    // Round-14 audit §5.4: canopy drag received the airframe cp - CG moment
+    // arm. With zero body rates the recovery moment must vanish while the
+    // same free-flight state carries a static moment.
+    const pv = prepareVehicle(PRESET_ESTES_ALPHA);
+    const v = { x: 5, y: -30, z: 2 };
+    const rec = computeFlightLoads(BURN + 0.2, STATE(v), FLAGS_DROGUE, CFG, pv);
+    expect(rec.loadValidity).not.toBe('UNSUPPORTED');
+    expect(rec.momentB.x).toBeCloseTo(0, 12);
+    expect(rec.momentB.z).toBeCloseTo(0, 12);
+    const free = computeFlightLoads(BURN + 0.2, STATE({ x: 5, y: 30, z: 2 }), FLAGS_FREE, CFG, pv);
+    expect(Math.abs(free.momentB.x) + Math.abs(free.momentB.z)).toBeGreaterThan(0);
+  });
+
+  it('non-finite kinematics fail closed to UNSUPPORTED, never VALID', () => {
+    // Round-14 audit §5.4: NaN comparisons fell through the ternary toward
+    // VALID. Kernel rejection of nonfinite forces is not a substitute for a
+    // correct validity API.
+    const pv = prepareVehicle(PRESET_ESTES_ALPHA);
+    const bad = computeFlightLoads(0.5, STATE({ x: Number.NaN, y: 0, z: 0 }), FLAGS_FREE, CFG, pv);
+    expect(bad.loadValidity).toBe('UNSUPPORTED');
   });
 });

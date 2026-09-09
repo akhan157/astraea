@@ -24,7 +24,7 @@
  */
 
 import { RocketVehicle, ParachuteComponent } from '../core/types';
-import { MotorSpec, getMotorThrustAt, getMotorMassAt } from '../propulsion/motorDatabase';
+import { MotorSpec, getMotorThrustAt, getMotorMassAt, getMotorMassFlowAt } from '../propulsion/motorDatabase';
 import { computeAerodynamicCurves } from '../aero/transonicAero';
 import { computeRocketStability } from '../aero/barrowman';
 import { getAtmosphereAt } from '../sim/flightSimulator';
@@ -217,8 +217,8 @@ export function computeFlightLoads(
 
   // ------------------------------------------------------------------
   // Instantaneous combined CG and mass properties (audit §3.5).
-  // Production mass law IS getMotorMassAt: a piecewise-linear depletion
-  // (dryMass + propellantMass*(1 - t/burnTime)) on the burn interval. The
+  // Production mass law IS getMotorMassAt: impulse-proportional depletion
+  // (m_prop(t) = m_prop,total * (1 - I(t)/I_total)) on the burn interval. The
   // body-frame origin is the instantaneous combined CG ("contract §1.2
   // body frame origin at instantaneous Center of Mass"):
   //   x_c(t) = (m_d x_d + m_m(t) x_m) / (m_d + m_m(t))
@@ -246,8 +246,8 @@ export function computeFlightLoads(
   const Izz = Iyy;
 
   // ---------------- inertiaDot from the SAME mass law -----------------
-  // Differentiating getMotorMassAt on the right-hand burn interval:
-  //   dm/dt = -m_prop / t_burn   for 0 <= t < burnTime; 0 afterward
+  // Differentiating the impulse-proportional depletion (master contract):
+  //   dm/dt = -m_prop,total * F(t) / I_total   for 0 <= t < burnTime; 0 after
   // and, because the combined CG moves as the motor drains:
   //   d(x_c)/dt = (dm/dt) * m_d * (x_m - x_d) / (m_d + m_m)^2
   // with d_d = x_d - x_c, d_m = x_m - x_c both satisfying d(d)/dt = -d(x_c)/dt:
@@ -256,10 +256,7 @@ export function computeFlightLoads(
   // (the audit §3.5 factor-of-two defect came from "2 dm d^2" at CONSTANT
   //  offset — here the offset moves, so both terms of the product rule appear
   //  exactly once and the reference motion is included).
-  const dmDt =
-    tStage >= 0 && tStage < cfg.motor.burnTime
-      ? -cfg.motor.propellantMass / cfg.motor.burnTime
-      : 0.0;
+  const dmDt = getMotorMassFlowAt(cfg.motor, tStage);
   const dIyy_mot_c_dt = ((3 * mRad * mRad + mLen * mLen) / 12) * dmDt;
   const xCDot = (dmDt * mDry * (xMot - xDry)) / (mass * mass);
   const dDryDot = -xCDot;
@@ -288,10 +285,15 @@ export function computeFlightLoads(
   let cd = aero.totalCd;
   const cp = aero.cp;
   let effArea = pv.refArea;
-  if (flags.mainDeployed && pv.mainChute) {
+  // Recovery is LIVE only when a canopy exists AND its deployment flag is set
+  // (audit §5.4): flags alone must never suppress airframe loads on a vehicle
+  // with no parachute component.
+  const drogueLive = flags.drogueDeployed && pv.drogue !== undefined;
+  const mainLive = flags.mainDeployed && pv.mainChute !== undefined;
+  if (mainLive && pv.mainChute) {
     effArea = (Math.PI / 4) * Math.pow(pv.mainChute.diameter, 2);
     cd = pv.mainChute.cd || 1.5;
-  } else if (flags.drogueDeployed && pv.drogue) {
+  } else if (drogueLive && pv.drogue) {
     effArea = (Math.PI / 4) * Math.pow(pv.drogue.diameter, 2);
     cd = pv.drogue.cd || 0.8;
   }
@@ -299,15 +301,19 @@ export function computeFlightLoads(
   // Validity belongs to the ACTIVE aerodynamic model. Free-flight slender-
   // body loads are nominal only through M=4 and 15° total incidence; the
   // transition envelope ends at M=6 or 30°. Recovery uses the canopy drag
-  // model, so body incidence is not a validity input while a chute is live.
-  const recovery = flags.drogueDeployed || flags.mainDeployed;
+  // model (constant canopy CD, declared empirical, same Mach clamps), so body
+  // incidence is not a validity input while a chute is live. Non-finite
+  // kinematics fail closed: NaN comparisons must never fall through to VALID.
+  const recovery = drogueLive || mainLive;
   const incidenceForValidity = recovery ? 0 : alphaTotalDeg;
   let loadValidity: LoadValidity =
-    mach > 6.0 || incidenceForValidity > 30.0
+    !Number.isFinite(mach) || !Number.isFinite(incidenceForValidity) || !Number.isFinite(airspeed)
       ? 'UNSUPPORTED'
-      : mach > 4.0 || incidenceForValidity > 15.0
-        ? 'EXTRAPOLATED'
-        : 'VALID';
+      : mach > 6.0 || incidenceForValidity > 30.0
+        ? 'UNSUPPORTED'
+        : mach > 4.0 || incidenceForValidity > 15.0
+          ? 'EXTRAPOLATED'
+          : 'VALID';
 
   // Wind-axis -> body transform (audit §3.6): the COMPLETE drag vector
   //   F_D,B = -D * v_air,B / |v_air,B|
@@ -359,8 +365,11 @@ export function computeFlightLoads(
   forceBodyN.z -= mass * 9.80665;
 
   // Static aero moment arm from the INSTANTANEOUS combined CG (audit §3.5) —
-  // never from the dry baseline CG.
-  const dStatic = cp - xC;
+  // never from the dry baseline CG. Under a live recovery canopy the drag
+  // acts through the suspension lines, NOT the airframe pressure center, so
+  // the cp-based static moment is zero there (audit §5.4: assigning the
+  // airframe CP moment to canopy drag is unphysical); rate damping remains.
+  const dStatic = recovery ? 0 : cp - xC;
   const roll = st.w.y;
   const pitch = st.w.x;
   const yaw = st.w.z;

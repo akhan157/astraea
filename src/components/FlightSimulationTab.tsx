@@ -41,6 +41,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
   const [mainDeployAlt, setMainDeployAlt] = useState<number>(250); // meters AGL
   const [simResult, setSimResult] = useState<SixDofSimulationResult | null>(null);
   const [lastRunInputKey, setLastRunInputKey] = useState<string | null>(null);
+  const [simError, setSimError] = useState<string | null>(null);
 
   const activeMotor: MotorSpec = CERTIFIED_MOTORS[selectedMotorId] || CERTIFIED_MOTORS.estes_c6;
 
@@ -116,19 +117,28 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
       previouslyFocused?.focus();
     };
   }, [isOpen, onClose]);
-
   const handleRunSimulation = () => {
-    const res = simulate6DofFlight(vehicle, activeMotor, {
-      railLength,
-      railElevationDeg: railElevation,
-      railAzimuthDeg: railAzimuth,
-      windSpeedSurface: windSpeed,
-      windAzimuthDeg: windAzimuth,
-      finCantAngleDeg: finCant,
-      mainDeployAltitudeAGL: mainDeployAlt,
-    });
-    setSimResult(res);
-    setLastRunInputKey(simulationInputKey);
+    // Fail-closed rerun (audit §7): a throwing rerun clears the previous
+    // result and records the failure — stale SAFE/PASS output must never
+    // survive a failed synchronous rerun.
+    try {
+      const res = simulate6DofFlight(vehicle, activeMotor, {
+        railLength,
+        railElevationDeg: railElevation,
+        railAzimuthDeg: railAzimuth,
+        windSpeedSurface: windSpeed,
+        windAzimuthDeg: windAzimuth,
+        finCantAngleDeg: finCant,
+        mainDeployAltitudeAGL: mainDeployAlt,
+      });
+      setSimError(null);
+      setSimResult(res);
+      setLastRunInputKey(simulationInputKey);
+    } catch (err) {
+      setSimResult(null);
+      setLastRunInputKey(null);
+      setSimError(err instanceof Error ? err.message : String(err));
+    }
   };
 
   if (!isOpen) return null;
@@ -345,6 +355,14 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
           </div>
 
           {/* Simulation Output KPIs */}
+          {simError && (
+            <div
+              className="p-3 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-xs font-mono"
+              role="alert"
+            >
+              Simulation failed: {simError}. Previous results were cleared — no stale output is shown.
+            </div>
+          )}
           {simResult && (
             <div className="space-y-6 animate-in fade-in duration-300">
               {/* Outcome, model validity, and freshness are independent (§2.6). */}
@@ -437,14 +455,16 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   <div className="text-[10px] text-zinc-500 uppercase font-semibold">Rail Exit Velocity</div>
                   <div className="text-lg font-bold font-mono text-zinc-100 mt-1 flex items-center gap-1">
                     {simResult.railExitVelocity.toFixed(1)} m/s
-                    {simResult.isRailExitSafe ? (
+                    {simResult.isRailExitSafe && !resultsAreStale ? (
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     ) : (
                       <AlertTriangle className="w-4 h-4 text-amber-400" />
                     )}
                   </div>
                   <div className="text-[10px] text-emerald-400 font-mono">
-                    {simResult.isRailExitSafe ? '>= 15 m/s (SAFE)' : 'LOW CLEARANCE'}
+                    {simResult.validity !== 'PASS' || resultsAreStale
+                      ? 'UNVERIFIED · not certifiable'
+                      : simResult.isRailExitSafe ? '>= 15 m/s (SAFE)' : 'LOW CLEARANCE'}
                   </div>
                 </div>
 
@@ -454,7 +474,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                     {simResult.weathercockAngleDeg.toFixed(1)}°
                   </div>
                   <div className="text-[10px] text-zinc-400 font-mono">
-                    Turn into wind
+                    Total incidence at rail exit
                   </div>
                 </div>
 
@@ -472,14 +492,16 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   <div className="text-[10px] text-zinc-500 uppercase font-semibold">Touchdown Energy</div>
                   <div className="text-lg font-bold font-mono text-zinc-100 mt-1 flex items-center gap-1">
                     {simResult.landingKineticEnergy.toFixed(1)} J
-                    {simResult.isLandingSafe ? (
+                    {simResult.isLandingSafe && !resultsAreStale ? (
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     ) : (
                       <AlertTriangle className="w-4 h-4 text-rose-400" />
                     )}
                   </div>
                   <div className="text-[10px] text-emerald-400 font-mono">
-                    {simResult.isLandingSafe ? '<= 20 J (GATE PASS)' : 'EXCEEDS 20 J LIMIT'}
+                    {simResult.validity !== 'PASS' || resultsAreStale
+                      ? 'UNVERIFIED · not certifiable'
+                      : simResult.isLandingSafe ? '<= 20 J (GATE PASS)' : 'EXCEEDS 20 J LIMIT'}
                   </div>
                 </div>
               </div>

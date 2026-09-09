@@ -181,7 +181,57 @@ export function getMotorThrustAt(motor: MotorSpec, t: number): number {
 }
 
 /**
- * Calculates current motor mass and propellant remaining at time t
+ * Authoritative total impulse (N*s) for the depletion law below: the certified
+ * motor totalImpulse when positive and finite, else the thrust-curve integral.
+ */
+export function getMotorImpulseTotal(motor: MotorSpec): number {
+  if (Number.isFinite(motor.totalImpulse) && motor.totalImpulse > 0) return motor.totalImpulse;
+  return integrateThrustCurve(motor, motor.burnTime);
+}
+
+/**
+ * Trapezoidal integral of the piecewise-linear thrust curve over [0, t]
+ * (clamped to the burn interval). The curve endpoints are zero thrust, so no
+ * endpoint extrapolation is needed.
+ */
+export function integrateThrustCurve(motor: MotorSpec, t: number): number {
+  const curve = motor.thrustCurve;
+  if (!Array.isArray(curve) || curve.length < 2) return 0;
+  const end = Math.min(Math.max(t, 0), motor.burnTime);
+  let impulse = 0;
+  for (let i = 0; i < curve.length - 1; i++) {
+    const a = curve[i];
+    const b = curve[i + 1];
+    if (end <= a.time) break;
+    const segEnd = Math.min(end, b.time);
+    if (segEnd <= a.time) continue;
+    const f = (segEnd - a.time) / Math.max(1e-12, b.time - a.time);
+    const thrustEnd = a.thrust + f * (b.thrust - a.thrust);
+    impulse += 0.5 * (a.thrust + thrustEnd) * (segEnd - a.time);
+  }
+  return impulse;
+}
+
+/**
+ * Instantaneous propellant mass-flow rate (kg/s, nonpositive) from the master
+ * impulse-proportional law: dm/dt = -m_prop,total * F(t) / I_total. Zero
+ * outside the burn interval.
+ */
+export function getMotorMassFlowAt(motor: MotorSpec, t: number): number {
+  if (!(t >= 0) || t >= motor.burnTime) return 0;
+  const total = getMotorImpulseTotal(motor);
+  if (!Number.isFinite(total) || total <= 0) {
+    return -motor.propellantMass / Math.max(1e-12, motor.burnTime);
+  }
+  return -motor.propellantMass * getMotorThrustAt(motor, t) / total;
+}
+
+/**
+ * Current motor mass and propellant remaining at time t (master-spec
+ * impulse-proportional depletion: propellant burns in proportion to delivered
+ * impulse, m_prop(t) = m_prop,total * (1 - I(t)/I_total), never the
+ * constant-rate time fraction). Falls back to the linear time fraction only
+ * when no positive authoritative impulse exists.
  */
 export function getMotorMassAt(motor: MotorSpec, t: number): { currentMass: number; propellantRemaining: number } {
   if (t <= 0) {
@@ -192,9 +242,16 @@ export function getMotorMassAt(motor: MotorSpec, t: number): { currentMass: numb
     return { currentMass: motor.dryMass, propellantRemaining: 0 };
   }
 
-  // Linear burn fraction approximation over time
-  const burnFraction = Math.min(1.0, t / motor.burnTime);
-  const propellantRemaining = motor.propellantMass * (1.0 - burnFraction);
+  const total = getMotorImpulseTotal(motor);
+  let propellantRemaining: number;
+  if (Number.isFinite(total) && total > 0) {
+    const delivered = integrateThrustCurve(motor, t);
+    propellantRemaining = motor.propellantMass * Math.min(1, Math.max(0, 1 - delivered / total));
+  } else {
+    // No authoritative impulse: linear time fraction (documented fallback).
+    const burnFraction = Math.min(1.0, t / motor.burnTime);
+    propellantRemaining = motor.propellantMass * (1.0 - burnFraction);
+  }
   const currentMass = motor.dryMass + propellantRemaining;
 
   return { currentMass, propellantRemaining };

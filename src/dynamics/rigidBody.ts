@@ -81,7 +81,9 @@ export function validateStateAndLoads(s: RigidState, loads: Loads, dt: number): 
     Number.isFinite(s.q.w) && Number.isFinite(s.q.x) && Number.isFinite(s.q.y) && Number.isFinite(s.q.z) &&
     Number.isFinite(loads.forceN.x) && Number.isFinite(loads.forceN.y) && Number.isFinite(loads.forceN.z) &&
     Number.isFinite(loads.momentB.x) && Number.isFinite(loads.momentB.y) && Number.isFinite(loads.momentB.z) &&
-    Number.isFinite(loads.inertiaB.x) && Number.isFinite(loads.inertiaB.y) && Number.isFinite(loads.inertiaB.z);
+    Number.isFinite(loads.inertiaB.x) && Number.isFinite(loads.inertiaB.y) && Number.isFinite(loads.inertiaB.z) &&
+    (loads.inertiaDotB === undefined ||
+      (Number.isFinite(loads.inertiaDotB.x) && Number.isFinite(loads.inertiaDotB.y) && Number.isFinite(loads.inertiaDotB.z)));
   if (!finite) throw new Error('strict rigid-body kernel: non-finite state or load component');
   if (!(loads.mass > 0 && Number.isFinite(loads.mass))) throw new Error('strict rigid-body kernel: mass must be positive and finite');
   if (!(dt > 0 && Number.isFinite(dt))) throw new Error('strict rigid-body kernel: dt must be positive and finite');
@@ -485,9 +487,20 @@ export function integrateRigidAdaptive(
     dw: angularAcceleration(st.w, L.momentB, L.inertiaB, L.inertiaDotB),
   });
 
-  while (t < tEnd - 1e-12) {
+  while (t < tEnd) {
+    if (steps + rejected >= MAX_ADAPT_TRIALS) {
+      throw new Error('adaptive integrator: exceeded total trial limit');
+    }
     // Actual trial size: bounded by step control, maxStep, and remaining span.
-    const h = Math.min(dt, maxStep, tEnd - t);
+    // When the remaining span binds, the trial lands EXACTLY on tEnd (t + h can
+    // round one ulp past — or short of — the endpoint); otherwise the trial
+    // must advance t in finite arithmetic or the request is rejected.
+    const remaining = tEnd - t;
+    const h = Math.min(dt, maxStep, remaining);
+    const nextTime = h >= remaining ? tEnd : t + h;
+    if (!Number.isFinite(nextTime) || nextTime <= t) {
+      throw new Error('adaptive integrator: trial cannot make representable progress');
+    }
     // Representable-progress floor: below this, t + h cannot advance t in
     // floating point, so a rejection landing here can never converge.
     const floor = Number.EPSILON * Math.max(1, Math.abs(t), Math.abs(tEnd));
@@ -528,6 +541,7 @@ export function integrateRigidAdaptive(
           w: { x: base.w.x + ww.x, y: base.w.y + ww.y, z: base.w.z + ww.z },
         };
       }
+      validateAcceptedState(sti);
       const L = loadsAt(ti, sti);
       validateLoads(L);
       ks.push(deriv(sti, L));
@@ -621,7 +635,7 @@ export function integrateRigidAdaptive(
       // candidate, so the dense bracket's endpoint derivative is free.
       dense.push({ t0: t, h, y0: yPrev, f0: ks[0], y1, f1: ks[6] });
       s = y1;
-      t += h;
+      t = nextTime;
       steps++;
       rejectStreak = 0;
       // Step control ON THE ACTUAL TRIAL h (not an unclipped dt), bounded by
@@ -649,11 +663,6 @@ export function integrateRigidAdaptive(
       dt = dtNew;
     }
 
-    if (steps + rejected > MAX_ADAPT_TRIALS) {
-      throw new Error(
-        'adaptive integrator: exceeded ' + MAX_ADAPT_TRIALS + ' total trials; integration did not terminate'
-      );
-    }
   }
 
   return { state: s, finalTime: t, steps, rejectedSteps: rejected, dense };

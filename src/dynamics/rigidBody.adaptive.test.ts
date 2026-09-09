@@ -311,9 +311,136 @@ describe('Adaptive DP5(4) — repaired attitude error + bounded rejection', () =
       const tm = d.t0 + 0.37 * d.h;
       expect(quatNorm(denseOutputAt(spin.dense, tm).q)).toBeCloseTo(1, 8);
     }
-
     // Out-of-span queries are rejected (strict kernel contract).
     expect(() => denseOutputAt(res.dense, -0.1)).toThrow(/outside integration span/);
     expect(() => denseOutputAt(res.dense, tEnd + 1)).toThrow(/outside integration span/);
+  });
+
+  it('7. tiny positive intervals reach the exact endpoint; unrepresentable progress is rejected', () => {
+    // Round-14 audit 4.2: a valid call over [0, 5e-13] previously returned
+    // zero steps with finalTime = 0. Every positive residual interval must
+    // either reach the endpoint or reject explicitly.
+    const tiny = integrateRigidAdaptive(spinState(), () => IDENTITY_LOADS, 0, 5e-13, {
+      r: 1e-3, v: 1e-5, q: 1e-9, w: 1e-9,
+    }, 0.05, 0.005);
+    expect(tiny.steps).toBeGreaterThanOrEqual(1);
+    expect(tiny.finalTime).toBe(5e-13);
+    expect(tiny.dense[tiny.dense.length - 1].t0 + tiny.dense[tiny.dense.length - 1].h).toBe(5e-13);
+
+    // A span below the ulp at the base time is not a positive interval in
+    // finite arithmetic at all (1e9 + 4e-8 === 1e9 as doubles): entry
+    // validation rejects it as tEnd <= t0 rather than returning zero steps.
+    expect(1e9 + 4e-8).toBe(1e9);
+    expect(() =>
+      integrateRigidAdaptive(spinState(), () => IDENTITY_LOADS, 1e9, 1e9 + 4e-8, {
+        r: 1e-3, v: 1e-5, q: 1e-9, w: 1e-9,
+      }, 0.05, 0.005)
+    ).toThrow(/tEnd/);
+    // A step-control trial that cannot advance t in finite arithmetic is
+    // rejected: ulp(1e9) ~ 1.2e-7, so a 1e-9 trial size is stuck.
+    expect(() =>
+      integrateRigidAdaptive(spinState(), () => IDENTITY_LOADS, 1e9, 1e9 + 1.0, {
+        r: 1e-3, v: 1e-5, q: 1e-9, w: 1e-9,
+      }, 1e-9, 1e-9)
+    ).toThrow(/representable progress/);
+  });
+  it('8. every stage state exposed to loadsAt is finite with unit attitude', () => {
+    // Round-14 audit 4.3: nonfinite position/velocity/rate must never reach a
+    // consumer before later error/output checks reject the propagation.
+    const seen: RigidState[] = [];
+    integrateRigidAdaptive(
+      spinState(),
+      (_t, st) => {
+        seen.push(st);
+        return IDENTITY_LOADS;
+      },
+      0,
+      0.3,
+      { r: 1e-6, v: 1e-9, q: 1e-9, w: 1e-9 },
+      0.05,
+      0.01
+    );
+    expect(seen.length).toBeGreaterThan(7);
+    for (const st of seen) {
+      for (const c of [st.r.x, st.r.y, st.r.z, st.v.x, st.v.y, st.v.z, st.w.x, st.w.y, st.w.z]) {
+        expect(Number.isFinite(c)).toBe(true);
+      }
+      expect(quatNorm(st.q)).toBeCloseTo(1, 12);
+    }
+  });
+
+  it('9. fixed-kernel and adaptive validators reject non-finite inertiaDotB', () => {
+    // Round-14 audit 4.3: the fixed RK4 validator omitted inertiaDotB
+    // finiteness; both kernels must enforce it identically.
+    const badDot: Loads = {
+      forceN: { x: 0, y: 0, z: 0 },
+      momentB: { x: 0, y: 0, z: 0 },
+      inertiaB: { x: 1, y: 1, z: 1 },
+      inertiaDotB: { x: Number.NaN, y: 0, z: 0 },
+      mass: 1.0,
+    };
+    expect(() => integrateRigidStep(spinState(), badDot, 0.01)).toThrow(/non-finite/);
+    expect(() =>
+      integrateRigidAdaptive(spinState(), () => badDot, 0, 0.1, {
+        r: 1e-6, v: 1e-9, q: 1e-9, w: 1e-9,
+      }, 0.05, 0.01)
+    ).toThrow(/non-finite/);
+    // Stage-conditional corruption is caught at the corrupting stage.
+    expect(() =>
+      integrateRigidAdaptive(spinState(), (_t, _st) => (_t > 0.05 ? badDot : IDENTITY_LOADS), 0, 0.2, {
+        r: 1e-6, v: 1e-9, q: 1e-9, w: 1e-9,
+      }, 0.05, 0.01)
+    ).toThrow(/non-finite/);
+  });
+
+  it('10. dense output converges superlinearly on nonlinear dynamics with an event root', () => {
+    // Round-14 audit 4.4: linear reproduction does not establish nonlinear
+    // interior convergence or event timing. Damped dynamics r' = v, v' = -v
+    // have the closed form r(t) = 1 - e^-t, v(t) = e^-t; tightening the
+    // tolerance 100x (1e-6 -> 1e-8) must shrink the worst interior dense error
+    // by well over 10x (theory ~40x for an O(h^4) interpolant on an O(h^5)
+    // controlled trajectory).
+    const decay = (_t: number, st: RigidState): Loads => ({
+      forceN: { x: -st.v.x, y: -st.v.y, z: -st.v.z },
+      momentB: { x: 0, y: 0, z: 0 },
+      inertiaB: { x: 1, y: 1, z: 1 },
+      mass: 1.0,
+    });
+    const decay0: RigidState = {
+      r: { x: 0, y: 0, z: 0 },
+      v: { x: 1, y: 0, z: 0 },
+      q: { w: 1, x: 0, y: 0, z: 0 },
+      w: { x: 0, y: 0, z: 0 },
+    };
+    const worstInterior = (tolRV: number): number => {
+      const res = integrateRigidAdaptive(decay0, decay, 0, 2.0,
+        { r: tolRV, v: tolRV, q: 1e-9, w: 1e-9 }, 0.5, 0.05);
+      let worst = 0;
+      for (const d of res.dense) {
+        for (const f of [0.25, 0.5, 0.75]) {
+          const tm = d.t0 + f * d.h;
+          const ds = denseOutputAt(res.dense, tm);
+          worst = Math.max(worst, Math.abs(ds.r.x - (1 - Math.exp(-tm))), Math.abs(ds.v.x - Math.exp(-tm)));
+        }
+      }
+      return worst;
+    };
+    const coarse = worstInterior(1e-6);
+    const fine = worstInterior(1e-8);
+    expect(coarse).toBeGreaterThan(0);
+    expect(fine).toBeLessThan(coarse);
+    expect(coarse / fine).toBeGreaterThan(10);
+    // Event timing on the approximate trajectory: bisecting the dense output
+    // for r(t) = 0.5 localizes t = ln 2 to the bisection tolerance.
+    const res = integrateRigidAdaptive(decay0, decay, 0, 2.0,
+      { r: 1e-10, v: 1e-10, q: 1e-9, w: 1e-9 }, 0.5, 0.05);
+    let a = 0;
+    let b = 2.0;
+    for (let i = 0; i < 60; i++) {
+      const mid = (a + b) / 2;
+      if (denseOutputAt(res.dense, mid).r.x >= 0.5) b = mid;
+      else a = mid;
+    }
+    expect((a + b) / 2).toBeCloseTo(Math.LN2, 4);
   });
 });
