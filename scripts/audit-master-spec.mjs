@@ -2,41 +2,50 @@ import fs from 'fs';
 
 async function main() {
   const masterSpec = fs.readFileSync('docs/astraea-master-product-spec.md', 'utf-8');
+  const physContract = fs.readFileSync('docs/astraea-normative-physical-contract.md', 'utf-8');
   const vvBench = fs.readFileSync('src/sim/vv-benchmarks.test.ts', 'utf-8');
+  const kernel = fs.readFileSync('src/dynamics/rigidBody.ts', 'utf-8');
 
   const prompt = `You are Astra, Principal Aerospace Systems Architect and Chief Systems Engineer.
 You are running natively as opencodex/gpt-6-astra (native).
 
-We have executed every corrective gate you required in the fifth-round audit. SUITE STATUS: 42/42 tests pass.
+We implemented your decisive demand from round 6 verbatim:
+> "Make the production implementation—not a parallel reference implementation—the subject of the analytical acceptance tests."
 
-=== WHAT WAS FIXED PER YOUR EXACT FINDINGS ===
+WHAT CHANGED:
+1. NEW PRODUCTION KERNEL src/dynamics/rigidBody.ts: single authoritative integrateRigidStep() (fixed-step RK4, ADDITIVE normalized quaternion update, per-stage additive quaternion advancement addQ). Position/velocity (ENU), body angular velocity (x=pitch, y=roll, z=yaw), diagonal inertia (x=pitch, y=roll, z=yaw).
+2. BOTH the production flight simulator (src/sim/sixDofSimulator.ts) AND the verification benchmarks now IMPORT that same kernel. There is NO test-local integrator anymore—integrateStep() in the benchmarks is a thin THREE-type adapter over production integrateRigidStep().
+3. The production simulator's fixed-step Euler-Cromer loop was REPLACED by a call to integrateRigidStep() with correct ENU/axis/inertia mapping. This also FIXED a latent production Euler-equation bug where roll moment was divided by transverse inertia.
+4. VV-001 through VV-003, VV-005 now all drive production integrateRigidStep().
 
-[Gate B - benchmark observables]
-1. QUATERNION RK4 INTEGRATION CORRECTED: Stages now advance q0 + h*k additively, final update is normalize(q + h/6*(k1+2k2+2k3+k4)). Verified standalone: old multiply() path produced a 180-degree rotate for a 1-rad step; additive produces the correct angle.
-2. VV-002 now checks the INERTIAL ANGULAR-MOMENTUM VECTOR difference ||L_f - L_0|| / ||L_0|| over the full 100-rotation interval with max-drift sampling (not magnitude drift).
-3. VV-003 now applies BODY-FRAME forces rotated through the tested quaternion, with a discriminative liveness guard proving the coupling is live; q and -q trajectories must coincide to 1e-9.
-4. VV-004 now evaluates REAL production aerodynamics: getAtmosphereAt() + computeAerodynamicCurves() + Cd interpolation + assemble(0.5 rho V^2 A Cd), asserting load invariance under uniform frame translation AND liveness (load > 0.1 N).
-5. VV-006 now includes: (a) analytic apogee zero-cross to 1e-5s, (b) NON-LINEAR descending-altitude quadratic root (main-deploy alt crossing) to 1e-5s via dense-output Newton refinement, (c) rail-exit ascending-direction-filtered crossing.
+4. VV-002 now asserts the inertial angular-momentum VECTOR difference ||L_f-L_0||/||L_0|| <= 1e-6 (not magnitude) with max-drift sampling.
+5. VV-003 applies BODY-frame force rotated through the tested quaternion plus a discriminative liveness guard: it compares a forced run against a ZERO-FORCE run at the same initial velocity and demands drift > 1e-3 m, so a coupling that is not actually attitude-driven fails.
+6. VV-005 conserves linear+angular momentum about the fixed origin under on-axis, off-axis, non-identity-attitude, and transverse-separation-impulse cases using STRICTLY body-frame impulse algebra (R_NB I w spin term + rho x m v orbital term) with equal-and-opposite impulses at a common contact point.
+7. VV-006 includes non-linear descending-altitude quadratic-root localization and rail-exit (ascending direction filter) to 1e-5 s.
 
-[Gate B5 - staging]
-6. VV-005 now exercises THREE cases: on-axis contact + identity attitude; off-axis contact + non-identity attitude; lateral contact + transverse separation normal. Internal equal-opposite impulse pairs at a common contact point conserve total linear AND angular momentum about the fixed origin to <= 1e-6 relative.
+VERIFICATION: 42/42 tests pass, production build clean.
 
-[Gate A - production linkage]
-7. VV-007 imports and executes the PRODUCTION simulate6DofFlight() from src/sim/sixDofSimulator.ts with the real Estes Alpha + certified Estes C6 motor: asserts finite, physically-bounded outputs (apogee 0-1000m, maxMach < 1.5), and exact run-to-run determinism (apogee repeatability <= 1e-6).
+
+=== NORMATIVE PHYSICAL CONTRACT (authored per your Gate C) ===
+${physContract}
 
 === MASTER PRODUCT SPECIFICATION ===
 ${masterSpec}
 
-=== EXECUTABLE V&V SUITE SOURCE ===
+=== PRODUCTION KERNEL (src/dynamics/rigidBody.ts) ===
+${kernel}
+
+=== EXECUTABLE V&V SUITE (drives production kernel) ===
 ${vvBench}
 
-Perform your rigorous sixth-round engineering audit:
-1. Updated Executive Quality Score (1-10) for the spec with production-linked executable evidence (previously 5.5/10).
-2. Verify Gates A and B2-B6 closures are mathematically/physically correct.
-3. Explicit list: what remains (if anything) before you score 8.5+/10.
-4. Final build-readiness verdict.`;
+Perform your rigorous seventh-round engineering audit:
+1. Updated Executive Quality Score (1-10) (previously 5.8/10) given that the analytical benchmarks now exercise the PRODUCTION integrator kernel directly.
+2. Confirm whether Gate A (production-path analytical benchmarks) is now genuinely closed.
+3. Verify the kernel's quaternion/RK4/inertia-axis algebra and the ENU/axis mapping used by the simulator are correct.
+4. Explicit remaining gaps (if any) before you score 8.5+/10.
+5. Final build-readiness verdict.`;
 
-  console.log("Querying native Astra (gpt-6-astra) for 6th-round audit...");
+  console.log("Querying native Astra (gpt-6-astra) for 7th-round audit...");
 
   const res = await fetch("http://127.0.0.1:10100/v1/chat/completions", {
     method: "POST",
@@ -59,11 +68,12 @@ Perform your rigorous sixth-round engineering audit:
     console.error("Error from OpenCodex:", res.status, errText);
     process.exit(1);
   }
-
+  fs.writeFileSync('scripts/astra-round7-audit.json', await res.text(), 'utf-8');
   const data = await res.json();
   const critique = data.choices[0].message.content;
-  console.log("\n=== ASTRA SIXTH-ROUND AUDIT REPORT ===\n");
+  console.log("\n=== ASTRA SEVENTH-ROUND AUDIT REPORT ===\n");
   console.log(critique);
+  fs.writeFileSync('docs/astra-seventh-round-audit.md', critique, 'utf-8');
 }
 
 main().catch(err => {

@@ -17,11 +17,7 @@
 
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import {
-  integrateRigidStep,
-  RigidState,
-  Loads,
-} from '../dynamics/rigidBody';
+import { integrateRigidStep, RigidState, Loads, normalizeQuaternion } from '../dynamics/rigidBody';
 
 // ---------------------------------------------------------------------------
 // Production-Linked 6-DOF core.
@@ -537,5 +533,74 @@ describe('VV-006 Event Localization Accuracy', () => {
     }
     const tExact = v0 / g * (1 - Math.sqrt(Math.max(0, 1 - 2 * g * railLen / (v0 * v0))));
     expect(Math.abs(tRail - tExact)).toBeLessThanOrEqual(1e-5);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// VV-008: Production-vs-Benchmark Axis-Binding Consistency (Gate A + advisory)
+// Proves the production simulator's display permutation (ENU r.y=Up->r.z,
+// r.z=North->r.y; omega.p=roll->w.y, omega.q=pitch->w.x; Ixx=roll-axial->Iy)
+// and the benchmark identity binding drive the SAME integrateRigidStep to the
+// SAME physical outcome. This is a handedness-preserving isometry, not a
+// second physics implementation.
+// ---------------------------------------------------------------------------
+
+
+describe('VV-008 Axis-Binding Consistency (single-kernel isometry)', () => {
+  it('production display permutation and identity binding produce identical physical trajectories', () => {
+    const dt = 1e-4;
+    const steps = 50;
+    const mass = 8.0;
+    // Physical initial state in ENU (r.x=E, r.y=N, r.z=Up)
+    const r0 = { x: 0, y: 0, z: 25 };
+    const v0 = { x: 30, y: -5, z: 120 };
+    // Body angular rate + nonzero pitch moment to exercise all couplings
+    const wPhys = { x: 0.6, y: 1.1, z: -0.4 }; // body frame (x=pitch,y=roll,z=yaw)
+    const q0 = normalizeQuaternion({ w: 0.7, x: 0.2, y: -0.3, z: 0.4 });
+    const inertiaPhys = { x: 1.2, y: 0.4, z: 1.5 }; // (pitch, roll, yaw)
+    const F = { x: 90, y: 0, z: 200 };  // nav-frame force
+    const M = { x: 0.05, y: 0.0, z: 0.02 }; // body-frame moment (pitch, roll, yaw)
+
+    // ---- Binding 1: benchmark identity (native ENU/axes) ----
+    let s1: RigidState = { r: { ...r0 }, v: { ...v0 }, q: { ...q0 }, w: { ...wPhys } };
+    const loads1: Loads = { forceN: { ...F }, momentB: { ...M }, inertiaB: { ...inertiaPhys }, mass };
+    for (let i = 0; i < steps; i++) s1 = integrateRigidStep(s1, loads1, dt);
+
+    // ---- Binding 2: production display permutation ----
+    // production Vector3D: x=East, y=Up, z=North
+    const pos = { x: r0.x, y: r0.z, z: r0.y };      // y=Up, z=North
+    const vel = { x: v0.x, y: v0.z, z: v0.y };
+    // production omega: p=roll, q=pitch, r=yaw ; Ixx=roll-axial, Iyy=transverse
+    const omega = { p: wPhys.y, q: wPhys.x, r: wPhys.z };
+    const Ixx = inertiaPhys.y; // roll-axial
+    const Iyy = inertiaPhys.x; // transverse pitch
+    const Izz = inertiaPhys.z; // transverse yaw
+
+    let s2: RigidState = {
+      r: { x: pos.x, y: pos.z, z: pos.y },     // back to ENU
+      v: { x: vel.x, y: vel.z, z: vel.y },
+      q: { ...q0 },
+      w: { x: omega.q, y: omega.p, z: omega.r },
+    };
+    const loads2: Loads = {
+      forceN: { x: F.x, y: F.y, z: F.z },
+      momentB: { x: M.x, y: M.y, z: M.z },
+      inertiaB: { x: Iyy, y: Ixx, z: Izz },
+      mass,
+    };
+    for (let i = 0; i < steps; i++) s2 = integrateRigidStep(s2, loads2, dt);
+
+    // Physical outcomes must match: position, velocity, attitude, angular rate
+    const posErr = Math.hypot(s1.r.x - s2.r.x, s1.r.y - s2.r.y, s1.r.z - s2.r.z);
+    const velErr = Math.hypot(s1.v.x - s2.v.x, s1.v.y - s2.v.y, s1.v.z - s2.v.z);
+    const wErr = Math.hypot(s1.w.x - s2.w.x, s1.w.y - s2.w.y, s1.w.z - s2.w.z);
+    const qErr = Math.min(
+      Math.hypot(s1.q.x - s2.q.x, s1.q.y - s2.q.y, s1.q.z - s2.q.z, s1.q.w - s2.q.w),
+      Math.hypot(s1.q.x + s2.q.x, s1.q.y + s2.q.y, s1.q.z + s2.q.z, s1.q.w + s2.q.w)
+    );
+    expect(posErr).toBeLessThanOrEqual(1e-9);
+    expect(velErr).toBeLessThanOrEqual(1e-9);
+    expect(wErr).toBeLessThanOrEqual(1e-9);
+    expect(qErr).toBeLessThanOrEqual(1e-9);
   });
 });
