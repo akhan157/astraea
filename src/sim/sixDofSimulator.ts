@@ -83,7 +83,8 @@ export interface SixDofSimulationResult {
   landingKineticEnergy: number;   // Joules
   isLandingSafe: boolean;         // <= 20 J kinetic energy safety gate
   isLandingVelocitySafe: boolean; // <= 6.0 m/s landing speed
-  flightDuration: number;         // seconds
+  terminated: boolean;            // true only on actual ground touchdown
+  landingMass: number;            // actual retained mass at landing (kg)
   events: SixDofEvent[];
   telemetry: SixDofTelemetryPoint[];
 }
@@ -434,15 +435,18 @@ export function simulate6DofFlight(
     const rollTorque = qInf * refArea * rBody * Math.sin(finCantRad) * 4.0;
 
     const momentBody = {
-      // Pitch moment around X_b: restoring torque + pitch damping
-      x: (staticMarginMeters * aeroForceBody.z) - pitchDampingTorque,
+      // Pitch moment around X_b: (r_cp - r_cg) x F_body.x-component
+      // With d = x_cp - x_cg > 0 (CP aft of CG under nose-forward convention),
+      // r_cp - r_cg = (0, -d, 0)_B, so M_x = -d * F_body.z
+      x: -(staticMarginMeters * aeroForceBody.z) - pitchDampingTorque,
       // Roll moment around Y_b: fin cant roll torque - roll damping
       y: rollTorque - rollDampingTorque,
-      // Yaw moment around Z_b: restoring torque + yaw damping
-      z: (-staticMarginMeters * aeroForceBody.x) - yawDampingTorque,
+      // Yaw moment around Z_b: M_z = d * F_body.x
+      z: (staticMarginMeters * aeroForceBody.x) - yawDampingTorque,
     };
 
     // Linear Acceleration in World Frame
+    let constrainedForceN: Vector3D = { x: totalForceWorld.x, y: totalForceWorld.y, z: totalForceWorld.z };
     let accelWorld: Vector3D = {
       x: totalForceWorld.x / totalMass,
       y: totalForceWorld.y / totalMass,
@@ -467,9 +471,23 @@ export function simulate6DofFlight(
           z: forwardAccel * railVector.z,
         };
 
+        // Track rail-constrained net force for the kernel (P0-1: the
+        // constrained force, not the free-body force, must drive translation)
+        constrainedForceN = {
+          x: forwardAccel * totalMass * railVector.x,
+          y: forwardAccel * totalMass * railVector.y,
+          z: forwardAccel * totalMass * railVector.z,
+        };
+
+        // Suppress rotations on rail
         omega = { p: 0, q: 0, r: 0 };
         q = normalizeQuaternion(initialQ);
       }
+    }
+
+    if (eventState.hasLeftRail) {
+      // Free flight: unconstrained
+      constrainedForceN = { x: totalForceWorld.x, y: totalForceWorld.y, z: totalForceWorld.z };
     }
 
     const scalarAccel = Math.sqrt(accelWorld.x * accelWorld.x + accelWorld.y * accelWorld.y + accelWorld.z * accelWorld.z);
@@ -577,7 +595,6 @@ export function simulate6DofFlight(
       });
     }
 
-    // Numerical State Integration via production rigid-body kernel (NORMATIVE).
     // IDENTITY mapping: kernel is frame-agnostic Cartesian RK4 operating in the
     // simulator's display frame {x: East, y: Up, z: North}. r/v/forceN/quaternion
     // pass through unchanged so body->nav attitude coupling stays consistent.
@@ -592,7 +609,7 @@ export function simulate6DofFlight(
         w: simOmegaToKernel(omega),
       },
       {
-        forceN: { x: totalForceWorld.x, y: totalForceWorld.y, z: totalForceWorld.z },
+        forceN: { x: constrainedForceN.x, y: constrainedForceN.y, z: constrainedForceN.z },
         momentB: { x: momentBody.x, y: momentBody.y, z: momentBody.z },
         inertiaB: simInertiaToKernel({ x: Ixx, y: Iyy, z: Izz }),
         mass: totalMass,
@@ -613,11 +630,15 @@ export function simulate6DofFlight(
 
     t += dt;
   }
-
+  // Landing metrics: use ACTUAL retained mass at touchdown (dry vehicle +
+  // remaining motor hardware), not the liftoff dry mass. Only meaningful
+  // when the simulation actually terminated via touchdown (not timeout).
   const landingSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
-  const landingKineticEnergy = 0.5 * vehicleDryMass * Math.pow(landingSpeed, 2);
+  const motorStateAtLanding = getMotorMassAt(motor, t);
+  const landingMass = vehicleDryMass + motorStateAtLanding.currentMass;
+  const landingKineticEnergy = 0.5 * landingMass * Math.pow(landingSpeed, 2);
   const lateralLandingDrift = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
-
+  const terminated = eventState.touchedDown;
   return {
     apogeeAltitude: maxAltitude,
     apogeeTime,
@@ -635,8 +656,10 @@ export function simulate6DofFlight(
     landingDistance: lateralLandingDrift,
     landingVelocity: landingSpeed,
     landingKineticEnergy,
-    isLandingSafe: landingKineticEnergy <= 20.0,
-    isLandingVelocitySafe: landingSpeed <= 6.0,
+    isLandingSafe: terminated && landingKineticEnergy <= 20.0,
+    isLandingVelocitySafe: terminated && landingSpeed <= 6.0,
+    terminated,
+    landingMass,
     flightDuration: t,
     events,
     telemetry,

@@ -4,6 +4,8 @@ async function main() {
   const masterSpec = fs.readFileSync('docs/astraea-master-product-spec.md', 'utf-8');
   const physContract = fs.readFileSync('docs/astraea-normative-physical-contract.md', 'utf-8');
   const vvBench = fs.readFileSync('src/sim/vv-benchmarks.test.ts', 'utf-8');
+  const simSource = fs.readFileSync('src/sim/sixDofSimulator.ts', 'utf-8');
+  const eventsSource = fs.readFileSync('src/dynamics/events.ts', 'utf-8');
   const kernel = fs.readFileSync('src/dynamics/rigidBody.ts', 'utf-8');
 
   const prompt = `You are Astra, Principal Aerospace Systems Architect and Chief Systems Engineer.
@@ -53,17 +55,23 @@ ${masterSpec}
 === PRODUCTION KERNEL (src/dynamics/rigidBody.ts) ===
 ${kernel}
 
+=== PRODUCTION FLIGHT SIMULATOR (src/sim/sixDofSimulator.ts — identity frame mapping, event FSM wiring) ===
+${simSource}
+
+=== PRODUCTION EVENT FSM (src/dynamics/events.ts) ===
+${eventsSource}
+
 === EXECUTABLE V&V SUITE (drives production kernel) ===
 ${vvBench}
 
-Perform your rigorous seventh-round engineering audit:
+Perform your rigorous round-11 engineering audit:
 1. Updated Executive Quality Score (1-10) (previously 5.8/10) given that the analytical benchmarks now exercise the PRODUCTION integrator kernel directly.
 2. Confirm whether Gate A (production-path analytical benchmarks) is now genuinely closed.
 3. Verify the kernel's quaternion/RK4/inertia-axis algebra and the ENU/axis mapping used by the simulator are correct.
-4. Explicit remaining gaps (if any) before you score 8.5+/10.
+4. Explicit remaining gaps (if any) before you score 8.5+/10. NOTE: the FULL production simulator and events source are now supplied above — please audit their actual wiring, not just the kernel.
 5. Final build-readiness verdict.`;
 
-  console.log("Querying native Astra (gpt-6-astra) for 7th-round audit...");
+  console.log("Querying native Astra (gpt-6-astra) for round-11 audit...");
 
   const res = await fetch("http://127.0.0.1:10100/v1/chat/completions", {
     method: "POST",
@@ -87,12 +95,12 @@ Perform your rigorous seventh-round engineering audit:
     process.exit(1);
   }
   const raw = await res.text();
-  fs.writeFileSync('scripts/astra-round7-audit.json', raw, 'utf-8');
+  fs.writeFileSync('scripts/astra-round11-audit.json', raw, 'utf-8');
   const data = JSON.parse(raw);
   const critique = data.choices[0].message.content;
-  console.log("\n=== ASTRA SEVENTH-ROUND AUDIT REPORT ===\n");
+  console.log("\n=== ASTRA ROUND-11 AUDIT REPORT ===\n");
   console.log(critique);
-  fs.writeFileSync('docs/astra-seventh-round-audit.md', critique, 'utf-8');
+  fs.writeFileSync('docs/astra-round11-audit.md', critique, 'utf-8');
 }
 
 main().catch(err => {
