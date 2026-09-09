@@ -15,6 +15,12 @@ export interface DragBreakdown {
   frictionCd: number;
   waveCd: number;
   baseCd: number;
+  /**
+   * Hoerner parasitic drag of external protuberances (launch lugs, rail
+   * buttons), referenced to the vehicle reference area. Optional with
+   * default 0 — totals are unchanged when no protuberance contributes.
+   */
+  protuberanceCd?: number;
   cp: number; // meters from nose tip
   staticMarginCalibers: number;
 }
@@ -231,15 +237,21 @@ export function computeAerodynamicCurves(
     // 3. Base Drag (with plume and boattail)
     const baseCd = computeBaseDrag(mach, baseDiameter, refDiameter, isMotorBurning);
 
+    // 4. Protuberance parasitic drag (Hoerner immersion model). The vehicle
+    // model carries no protuberance geometry yet, so this term is 0 by
+    // default; it enters the total additively and leaves existing totals
+    // unchanged at 0.
+    const protuberanceCd = 0;
+
     // Total Drag Coefficient
-    const totalCd = Math.max(0.15, frictionCd + waveCd + baseCd);
+    const totalCd = Math.max(0.15, frictionCd + waveCd + baseCd + protuberanceCd);
 
     if (totalCd > maxTransonicCd) {
       maxTransonicCd = totalCd;
       machAtMaxCd = mach;
     }
 
-    // 4. Supersonic Center of Pressure Migration
+    // 5. Supersonic Center of Pressure Migration
     // At supersonic speeds, fin lift slope degrades (1 / sqrt(M^2 - 1)),
     // causing the whole rocket CP to shift forward toward the nosecone!
     let cp = subsonicCP;
@@ -257,6 +269,7 @@ export function computeAerodynamicCurves(
       frictionCd,
       waveCd,
       baseCd,
+      protuberanceCd,
       cp,
       staticMarginCalibers,
     });
