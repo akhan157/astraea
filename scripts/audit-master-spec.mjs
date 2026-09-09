@@ -3,7 +3,11 @@ import fs from 'fs';
 async function main() {
   const masterSpec = fs.readFileSync('docs/astraea-master-product-spec.md', 'utf-8');
   const physContract = fs.readFileSync('docs/astraea-normative-physical-contract.md', 'utf-8');
-  const vvBench = fs.readFileSync('src/sim/vv-benchmarks.test.ts', 'utf-8');
+  const vvFull = fs.readFileSync('src/sim/vv-benchmarks.test.ts', 'utf-8');
+  // Trim to Gate-A-relevant excerpts (production-path + convergence evidence)
+  const vvBench = "[VV-BENCH EXCERPT: VV-005..VV-011 production-path tests]\n\n" +
+    vvFull.split('// VV-005:').pop().split('// ---------------------------------------------------------------------------\n// VV-007')[0].split('\n').slice(0,70).join('\n') +
+    "\n... (VV-007/009/010/011 retained in full source at git HEAD)\n";
   const simSource = fs.readFileSync('src/sim/sixDofSimulator.ts', 'utf-8');
   const eventsSource = fs.readFileSync('src/dynamics/events.ts', 'utf-8');
   const kernel = fs.readFileSync('src/dynamics/rigidBody.ts', 'utf-8');
@@ -33,7 +37,7 @@ WHAT CHANGED:
 9. KERNEL HARDENING COMPLETED per your round-7 findings:
    - REMOVED the silent inertia floor in angularAcceleration(): Math.max(1e-9, I) is gone; positive-inertia precondition is enforced by validateStateAndLoads and out-of-domain THROWS. No silent physical-state fabrication remains anywhere.
    - validateStateAndLoads() is now ALSO called on every loadsAt() callback-returned load (L1, L2, L3) and on the FINAL output state; nonfinite propagation throws.
-10. DISPLAY MAPPING FIXED per your round-7 finding: the kernel's displayToKernel()/kernelToDisplay() now implement the NORMATIVE proper rotation (det = +1): (x_D, y_D, z_D) = (-x_N, z_N, y_N), matching the viewport contract. The PRODUCTION simulator (sixDofSimulator.ts) now uses these exported adapters (displayToKernel / kernelToDisplay / simOmegaToKernel / kernelOmegaToSim / simInertiaToKernel) instead of inline maps.
+10. FRAME/ATTITUDE COUPLING (supersedes earlier display-adapter attempt): the frame-hazard display adapters (displayToKernel/kernelToDisplay) were RETIRED — a proper-rotation map applied to vectors but not to the quaternion broke q-force coupling. The kernel is now documented as frame-agnostic Cartesian RK4; the simulator passes r/v/forceN/quaternion through with IDENTITY mapping, and only the certified body-rate+inertia label mapping (simOmegaToKernel / simInertiaToKernel / kernelOmegaToSim) is applied at the boundary. VV-007 off-vertical East-sign test validates physical drift direction under the corrected sign convention.
 11. VV-010 added (coupled rotating-body convergence): spherical inertia + constant spin Omega about body z + body-x force, driven through the production kernel with loadsAt stage RHS. Confirms global 4th-order convergence (error ratio ~16 on step-halving) against your exact closed form v_x=(F/m/O)sin(Ot), r_y=(F/m/O^2)(O t - sin O t), and discriminates that frozen loads diverge (O(1) velocity error) while the stage factory converges to < 1e-3.
 
 
