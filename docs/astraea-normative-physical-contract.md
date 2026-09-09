@@ -9,14 +9,28 @@
 ## 1. Coordinate Frames (NORMATIVE)
 
 ### 1.1 Navigation Frame (N)
-Right-handed **East-North-Up (ENU)** local tangent frame:
+Right-handed **East-North-Up (ENU)** canonical navigation frame (external/geographic):
 - $+X_N$: East
 - $+Y_N$: North
 - $+Z_N$: Up (altitude above local reference)
 
-Handedness: $\hat{X} \times \hat{Y} = \hat{Z}$ (right-handed). This supersedes any earlier East-Up-North declaration.
+Handedness: $\hat{X} \times \hat{Y} = \hat{Z}$ (right-handed).
 
-**Viewport mapping (Three.js WebGL):** renderer maps $+Z_N$ (Up) to viewport $+Y$, $+X_N$ to viewport $-X$ (into/out of screen as configured), preserving orientation (no raw axis swap that breaks handedness; apply a proper reflection-free rotation).
+**Viewport mapping (Three.js WebGL):** renderer maps $+Z_N$ (Up) to viewport $+Y$, $+X_N$ to viewport $-X$ (or a proper symmetric rotation), preserving orientation. All navigation/external I/O and telemetry interchange use ENU.
+
+### 1.1b ENGINE INTERNAL FRAME (NORMATIVE — supersedes 1.1 for the numeric engine)
+The 6-DOF numeric engine (rigidBody kernel + sixDofSimulator + loads assembly) operates in a declared **right-handed display frame** with components stored as PhysicalChannel = East, Up, North:
+- $x_E$: East
+- $y_U$: Up (altitude AGL — engine's primary altitude channel)
+- $z_N$: North
+
+This is a right-handed Cartesian system where the **Up axis is mapped to the engine's `y` channel**; the geographic East/Up/North labeling is a declared storage relabel, NOT a left-handed geometrical construction. Cross products, quaternion algebra, and rotation matrices are all evaluated in this right-handed storage frame, so all numerical identities hold.
+
+- Gravity acts along $-y_U$.
+- Wind vector returned by `getWindVectorAt` is expressed in this frame.
+- Events (rail, apogee, main, touchdown), telemetry `altitude`, and landing coordinates all use $y_U$ as the vertical channel.
+
+**Renderer boundary (NORMATIVE):** the viewport converts engine store `(x_E, y_U, z_N)` to Three.js world `(x, y, z)` via an explicit deterministic composition — the engine channel labels ARE already the renderer's axes, so the web UI consumes them directly; any external ENU consumer must apply the documented fixed permutation $E \mapsto X_N$, $U \mapsto Z_N$, $N \mapsto Y_N$.
 
 ### 1.2 Body Frame (B)
 Right-handed body frame with origin at instantaneous Center of Mass:
