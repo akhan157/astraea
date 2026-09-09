@@ -104,13 +104,35 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'scripts/emit-benchmark-metadata.cjs',
   'package.json',
 ]);
-
 // Fixed mandatory legacy inventory (Round-16 audit §7.4): source-relative
 // completeness lets a deleted suite pass silently. These 14 VV suites must
 // exist in source AND execute green — deletion from either fails.
 const REQUIRED_VV_IDS = Object.freeze(
   ['001', '002', '003', '004', '005', '006', '007', '009', '010', '011', '012', '013', '014', '015']
 );
+// Fixed collected-file inventory (Round-18 audit §9.4): the executed set is
+// closed. Every listed file must be collected AND execute with its source
+// case count intact; any executed *.test.* file outside this list is an
+// unacknowledged suite and fails certification. Adding a legitimate suite
+// requires updating this inventory explicitly — never silently.
+const FIXED_TEST_FILE_INVENTORY = Object.freeze([
+  'src/sim/vv-benchmarks.test.ts',
+  'src/dynamics/rigidBody.adaptive.test.ts',
+  'src/dynamics/loads.repair.test.ts',
+  'src/sim/event-restart.test.ts',
+  'src/sim/sixDofSimulator.test.ts',
+  'src/propulsion/motorDatabase.test.ts',
+  'src/core/mass.test.ts',
+  'src/components/FlightSimulationTab.test.tsx',
+  'src/aero/barrowman.test.ts',
+  'src/aero/finFlutter.test.ts',
+  'src/aero/transonicAero.test.ts',
+  'src/sim/flightSimulator.test.ts',
+  'src/formats/orkParser.test.ts',
+  'src/formats/rktParser.test.ts',
+  'src/store/rocketStore.test.ts',
+  'scripts/emit-benchmark-metadata.test.cjs',
+]);
 const HASHED_INFORMATIONAL_FILES = Object.freeze([
   'pnpm-lock.yaml',
   'package-lock.json',
@@ -583,6 +605,10 @@ function computeEvidence(opts = {}) {
   for (const [name, rec] of Object.entries(installed.packages)) {
     if (rec.found && rec.conformant === false) {
       missing.push(`dependencies: installed ${name}@${rec.installed} does not satisfy declared range ${rec.declared}`);
+    } else if (rec.found && rec.conformant === null) {
+      // Exotic range shapes are unverifiable conformance evidence, not a
+      // documented skip (audit §9.5): pin to a ^/~/exact range instead.
+      missing.push(`dependencies: ${name} declares exotic range ${rec.declared} (installed ${rec.installed}) — conformance unverifiable`);
     }
   }
 
@@ -603,6 +629,16 @@ function computeEvidence(opts = {}) {
       if (!(rel in gateSourcesPre)) gateSourcesPre[rel] = readSourcePre(rel);
     }
   }
+  // Single-snapshot analysis (audit §9.5): the fixed inventory sources and
+  // the solver-config sources are captured here too — every downstream
+  // analysis reads these strings, never a post-execution re-read.
+  const inventorySourcesPre = {};
+  for (const rel of FIXED_TEST_FILE_INVENTORY) {
+    if (!(rel in inventorySourcesPre)) inventorySourcesPre[rel] = readSourcePre(rel);
+  }
+  const SOLVER_CONFIG_FILES = ['src/dynamics/rigidBody.ts', 'src/dynamics/loads.ts', 'src/sim/sixDofSimulator.ts'];
+  const solverSourcesPre = {};
+  for (const rel of SOLVER_CONFIG_FILES) solverSourcesPre[rel] = readSourcePre(rel);
   // --- pre-execution source binding -------------------------------------------
   const preHashes = hashCited();
 
@@ -637,6 +673,41 @@ function computeEvidence(opts = {}) {
       const unexecuted = tc.skipped + tc.pending + tc.todo + tc.disabled;
       if (f.status !== 'passed' || tc.failed > 0 || tc.unknown > 0 || unexecuted > 0) {
         missing.push(`tests: ${f.path} did not cleanly pass (status=${f.status}, passed=${tc.passed}/${tc.total}, failed=${tc.failed}, unknown=${tc.unknown}, unexecuted=${unexecuted})`);
+      }
+      if (!Number.isFinite(f.durationMs) || f.durationMs < 0) {
+        missing.push(`tests: ${f.path} reports nonfinite duration — measured timing evidence incoherent`);
+      }
+    }
+    // Fixed collected inventory (audit §9.4): the executed set is closed.
+    // Every inventory file must be collected with its PRE-execution source
+    // case count intact; any executed *.test.* file outside the inventory is
+    // unacknowledged evidence.
+    const TEST_FILE_RE = /\.test\.[cm]?[jt]sx?$/;
+    const inventoryHit = new Set();
+    for (const f of parsed.files) {
+      const match = FIXED_TEST_FILE_INVENTORY.find((rel) => f.path === rel || f.path.endsWith(`/${rel}`));
+      if (TEST_FILE_RE.test(f.path) && !match) {
+        missing.push(`tests: ${f.path} executed but is outside the fixed test-file inventory — unacknowledged suite fails certification`);
+        continue;
+      }
+      if (match) {
+        inventoryHit.add(match);
+        const preSource = inventorySourcesPre[match] ?? null;
+        if (preSource === null) {
+          missing.push(`tests: inventory file ${match} missing or unreadable in the pre-execution snapshot`);
+        } else {
+          const sourceCount = countSourceAssertions(preSource);
+          if (sourceCount === 0) {
+            missing.push(`tests: inventory file ${match} declares zero test cases in source — an empty source proves nothing`);
+          } else if (sourceCount !== f.testCases.total) {
+            missing.push(`tests: inventory file ${match} test-case-count mismatch (executed ${f.testCases.total} vs source ${sourceCount})`);
+          }
+        }
+      }
+    }
+    for (const rel of FIXED_TEST_FILE_INVENTORY) {
+      if (!inventoryHit.has(rel)) {
+        missing.push(`tests: inventory file ${rel} not collected — silent suite retirement fails certification`);
       }
     }
     // Duplicate case identities indicate sharded/double-collected execution.
@@ -811,12 +882,57 @@ function computeEvidence(opts = {}) {
     gateDetails[gate] = { passed: reasons.length === 0, required, requiredFiles, reasons };
     for (const reason of reasons) missing.push(`${gate}: ${reason}`);
   }
+  // Single-snapshot solver analysis: the solver description derives from the
+  // PRE-execution captures only. Unreadable pre-captures are missing evidence.
+  const solverPreRead = (rel) => {
+    if (!(rel in solverSourcesPre) || solverSourcesPre[rel] === null) throw new Error(`missing ${rel}`);
+    return solverSourcesPre[rel];
+  };
+  const solver = extractSolverConfig(solverPreRead);
+  if (!solver.available) missing.push('evidence: solver-config sources unreadable in the pre-execution snapshot');
 
-  const gateCoverage = Object.fromEntries(Object.entries(gateDetails).map(([g, d]) => [g, d.passed]));
-
-  // --- hashes: post-execution cited-file integrity --------------------------
+  // Measured-residuals sidecar (audit §9.5): an optional instrumented-run
+  // artifact the emitter INGESTS rather than ignores. Strictly validated —
+  // a malformed sidecar is incoherent evidence. Absence keeps the honest
+  // unmeasurable label on passing-assertion values.
+  const sidecarRel = opts.residualsSidecar ?? 'scripts/astraea-residuals.json';
+  let residualsSidecar;
+  if (exists(sidecarRel)) {
+    let sidecarBytes = null;
+    let sidecarJson = null;
+    let sidecarError = null;
+    try {
+      sidecarBytes = readBytes(sidecarRel);
+      sidecarJson = JSON.parse(Buffer.isBuffer(sidecarBytes) ? sidecarBytes.toString('utf-8') : String(sidecarBytes));
+    } catch (e) {
+      sidecarError = e instanceof Error ? e.message : String(e);
+    }
+    const records = sidecarJson !== null && typeof sidecarJson === 'object' && Array.isArray(sidecarJson.records)
+      ? sidecarJson.records
+      : null;
+    const valid = records !== null && records.length > 0 && records.every((r) =>
+      r !== null && typeof r === 'object' &&
+      typeof r.suite === 'string' && r.suite.length > 0 &&
+      typeof r.case === 'string' && r.case.length > 0 &&
+      typeof r.value === 'number' && Number.isFinite(r.value));
+    if (!valid) {
+      missing.push(`evidence: residuals sidecar ${sidecarRel} present but invalid ${sidecarError ? `(${sidecarError}) ` : ''}— expected {records:[{suite,case,value:finite}]}, non-empty`);
+      residualsSidecar = { present: true, valid: false, path: sidecarRel, error: sidecarError };
+    } else {
+      residualsSidecar = {
+        present: true,
+        valid: true,
+        path: sidecarRel,
+        sha256: sha256Hex(sidecarBytes),
+        records: records.map((r) => ({ suite: r.suite, case: r.case, value: r.value })),
+      };
+    }
+  } else {
+    residualsSidecar = { present: false, note: 'no residuals sidecar — passing-assertion values are unmeasurable from the vitest JSON reporter' };
+  }
   // postHashes were bound to preHashes above; publish the post-execution
   // snapshot (the tree state the tests actually ran against).
+  const gateCoverage = Object.fromEntries(Object.entries(gateDetails).map(([g, d]) => [g, d.passed]));
   const fileHashes = postHashes;
   for (const rel of HASHED_REQUIRED_FILES) {
     if (fileHashes[rel] === null) missing.push(`evidence: ${rel} missing — cannot hash cited source`);
@@ -850,7 +966,8 @@ function computeEvidence(opts = {}) {
       measuredFrom: 'node_modules/<pkg>/package.json (on-disk installed manifests)',
       lockfile,
     },
-    solver: extractSolverConfig(readFile),
+    solver,
+    residualsSidecar,
     verification: {
       buildPass: build.ok,
       buildExitCode: build.exitCode,
@@ -907,6 +1024,7 @@ module.exports = {
   computeEvidence,
   GATE_REQUIREMENTS,
   GATE_FILE_REQUIREMENTS,
+  FIXED_TEST_FILE_INVENTORY,
   HASHED_REQUIRED_FILES,
   extractSourceSuites,
   extractVvSuiteSlices,

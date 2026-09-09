@@ -54,6 +54,9 @@ describe('FlightSimulationTab safety presentation', () => {
     expect(screen.getByText(/CURRENT · inputs match run/)).toBeTruthy();
     // Exactly one outcome badge renders.
     expect(screen.getByText(/PASS ·|UNKNOWN ·|FAIL ·/)).toBeTruthy();
+    // The run manifest names the motor/rail/wind inputs behind the results.
+    expect(screen.getByText(/Run manifest/)).toBeTruthy();
+    expect(screen.getByText(/motor /)).toBeTruthy();
   }, 90000);
 
   it('ties safety presentation decisively to the certified context', async () => {
@@ -96,8 +99,10 @@ describe('FlightSimulationTab safety presentation', () => {
     const alert = await screen.findByRole('alert', undefined, { timeout: 15000 });
     expect(alert.textContent).toMatch(/simulated engine failure/);
     // The failed-run record carries the input snapshot for reproduction.
-    expect(alert.textContent).toMatch(/motor=/);
     expect(alert.textContent).toMatch(/rail=/);
+    // The machine-readable record carries the full input snapshot as JSON.
+    expect(alert.textContent).toMatch(/"railLength"/);
+    expect(alert.textContent).toMatch(/"designation"/);
     // No stale result surface survives: no outcome badges, no KPIs.
     expect(document.body.textContent?.includes('Flight Status')).toBe(false);
   }, 90000);

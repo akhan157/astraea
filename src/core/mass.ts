@@ -58,23 +58,36 @@ function axialOffsetOf(comp: { axialOffset?: unknown }, id: string): number {
  * Calculates mass and CG for a nosecone
  */
 function computeNoseconeMass(comp: NoseconeComponent, materialDensity: number): { mass: number; localCG: number } {
-  // Geometry validates BEFORE any override branch (audit §5.4): an override
-  // replaces mass, never structural integrity for the axial chain.
+  // Geometry validates BEFORE any override branch (audit §5.4/Round-18): an
+  // override replaces mass, never structural integrity for the axial chain.
+  // A present-but-invalid override (NaN/±Inf/nonpositive) throws rather than
+  // falling through or returning unphysical mass.
   requireFinitePositive(comp.length, 'nosecone length');
   requireFinitePositive(comp.baseDiameter, 'nosecone baseDiameter');
   if (comp.cgOverride !== undefined && !Number.isFinite(comp.cgOverride)) {
     throw new Error(`vehicle geometry: nosecone cgOverride must be finite (got ${comp.cgOverride})`);
   }
-  if (comp.massOverride !== undefined && comp.massOverride > 0) {
+  if (comp.massOverride !== undefined && !(comp.massOverride > 0 && Number.isFinite(comp.massOverride))) {
+    throw new Error(`vehicle geometry: nosecone massOverride must be finite and positive (got ${comp.massOverride})`);
+  }
+  if (comp.isHollow) {
+    const wall = comp.wallThickness;
+    if (!Number.isFinite(wall) || !(wall > 0) || !(wall < comp.baseDiameter / 2)) {
+      throw new Error(`vehicle geometry: hollow nosecone needs 0 < wallThickness < radius (got ${wall})`);
+    }
+  }
+  if (comp.massOverride !== undefined) {
     const cg = comp.cgOverride !== undefined ? comp.cgOverride : comp.length * 0.55;
     return { mass: comp.massOverride, localCG: cg };
   }
 
   const r = comp.baseDiameter / 2;
   const l = comp.length;
-  // Centroids measured from the component FRONT (tip), matching the axial
-  // chain datum (globalCG = axialStart + localCG). A uniform solid cone has
-  // its centroid at 3L/4 from the tip — never 2L/3 (the conical CP station).
+  // (3L/4); paraboloid volume ½πR²L is exact with centroid 2L/3 from the tip
+  // (∫x·x dx/∫x dx over the solid of y² ∝ x). Ogive/von Kármán/elliptical
+  // fractions below are documented engineering approximations for those
+  // profiles — not exact centroids — and are excluded from certified
+  // mass-property claims (see runManifest.unsupportedScope).
   let volume: number;
   let centroidFrac: number;
 
@@ -90,7 +103,7 @@ function computeNoseconeMass(comp: NoseconeComponent, materialDensity: number): 
       break;
     case 'parabolic':
       volume = 0.5 * Math.PI * r * r * l;
-      centroidFrac = 0.5;
+      centroidFrac = 2 / 3;
       break;
     case 'vonkarman':
     case 'elliptical':
@@ -110,10 +123,6 @@ function computeNoseconeMass(comp: NoseconeComponent, materialDensity: number): 
     if (!Number.isFinite(wall) || !(wall > 0) || !(wall < r)) {
       throw new Error(`vehicle geometry: hollow nosecone needs 0 < wallThickness < radius (got ${wall} vs r=${r})`);
     }
-    // Hollow shell = outer solid minus a similar inner cavity seated at the
-    // base: the cavity centroid sits at (l - lInner) + frac*lInner from the
-    // tip, so the shell centroid moves forward of the solid value. Keeping
-    // the outer centroid (the old behavior) is a demonstrable CG error.
     const rInner = r - wall;
     const lInner = l - wall;
     if (!(lInner > 0)) {
@@ -137,16 +146,19 @@ function computeNoseconeMass(comp: NoseconeComponent, materialDensity: number): 
  * Calculates mass and CG for a hollow body tube
  */
 function computeBodyTubeMass(comp: BodyTubeComponent, materialDensity: number): { mass: number; localCG: number } {
-  if (comp.massOverride !== undefined && comp.massOverride > 0) {
-    return { mass: comp.massOverride, localCG: comp.cgOverride !== undefined ? comp.cgOverride : comp.length / 2 };
-  }
-
   requireFinitePositive(comp.length, 'bodytube length');
   requireFinitePositive(comp.outerDiameter, 'bodytube outerDiameter');
+  if (comp.cgOverride !== undefined && !Number.isFinite(comp.cgOverride)) {
+    throw new Error(`vehicle geometry: bodytube cgOverride must be finite (got ${comp.cgOverride})`);
+  }
+  if (comp.massOverride !== undefined && !(comp.massOverride > 0 && Number.isFinite(comp.massOverride))) {
+    throw new Error(`vehicle geometry: bodytube massOverride must be finite and positive (got ${comp.massOverride})`);
+  }
   const rOuter = comp.outerDiameter / 2;
   // An absent inner diameter selects the default thin wall; a PRESENT one
   // must be finite and nonnegative (audit §5.4) — NaN/negative values must
-  // never silently become a default wall. Zero/negative wall always throws.
+  // never silently become a default wall. Zero/negative wall always throws,
+  // even under a mass override (audit Round-18 §10).
   let rInner: number;
   if (comp.innerDiameter === undefined || comp.innerDiameter === null) {
     rInner = Math.max(0, rOuter - 0.0015);
@@ -159,6 +171,9 @@ function computeBodyTubeMass(comp: BodyTubeComponent, materialDensity: number): 
   if (!(rInner < rOuter)) {
     throw new Error(`vehicle geometry: bodytube innerDiameter must leave positive wall (got ${comp.innerDiameter} vs outer ${comp.outerDiameter})`);
   }
+  if (comp.massOverride !== undefined) {
+    return { mass: comp.massOverride, localCG: comp.cgOverride !== undefined ? comp.cgOverride : comp.length / 2 };
+  }
   const crossSectionArea = Math.PI * (rOuter * rOuter - rInner * rInner);
   const volume = crossSectionArea * comp.length;
   const tubeMass = volume * materialDensity;
@@ -170,10 +185,6 @@ function computeBodyTubeMass(comp: BodyTubeComponent, materialDensity: number): 
  * Calculates mass and CG for a conical transition (shoulder/boattail)
  */
 function computeTransitionMass(comp: TransitionComponent, materialDensity: number): { mass: number; localCG: number } {
-  if (comp.massOverride !== undefined && comp.massOverride > 0) {
-    return { mass: comp.massOverride, localCG: comp.cgOverride !== undefined ? comp.cgOverride : comp.length / 2 };
-  }
-
   requireFinitePositive(comp.length, 'transition length');
   if (!Number.isFinite(comp.foreDiameter) || comp.foreDiameter < 0) {
     throw new Error(`vehicle geometry: transition foreDiameter must be finite and nonnegative (got ${comp.foreDiameter})`);
@@ -183,6 +194,15 @@ function computeTransitionMass(comp: TransitionComponent, materialDensity: numbe
   }
   if (!(comp.foreDiameter > 0 || comp.aftDiameter > 0)) {
     throw new Error('vehicle geometry: transition needs a positive diameter');
+  }
+  if (comp.cgOverride !== undefined && !Number.isFinite(comp.cgOverride)) {
+    throw new Error(`vehicle geometry: transition cgOverride must be finite (got ${comp.cgOverride})`);
+  }
+  if (comp.massOverride !== undefined && !(comp.massOverride > 0 && Number.isFinite(comp.massOverride))) {
+    throw new Error(`vehicle geometry: transition massOverride must be finite and positive (got ${comp.massOverride})`);
+  }
+  if (comp.massOverride !== undefined) {
+    return { mass: comp.massOverride, localCG: comp.cgOverride !== undefined ? comp.cgOverride : comp.length / 2 };
   }
   const r1 = comp.foreDiameter / 2;
   const r2 = comp.aftDiameter / 2;
@@ -224,10 +244,6 @@ function computeTransitionMass(comp: TransitionComponent, materialDensity: numbe
  * Calculates mass and CG for trapezoidal fin set
  */
 function computeTrapezoidFinMass(comp: TrapezoidFinSetComponent, materialDensity: number): { mass: number; localCG: number } {
-  if (comp.massOverride !== undefined && comp.massOverride > 0) {
-    return { mass: comp.massOverride, localCG: comp.cgOverride !== undefined ? comp.cgOverride : comp.rootChord / 2 };
-  }
-
   // Longitudinal CG of trapezoid relative to root leading edge
   const cr = comp.rootChord;
   const ct = comp.tipChord;
@@ -244,6 +260,15 @@ function computeTrapezoidFinMass(comp: TrapezoidFinSetComponent, materialDensity
   if (!Number.isFinite(s) || s < 0) {
     throw new Error(`vehicle geometry: fin sweepLength must be finite and nonnegative (got ${s})`);
   }
+  if (comp.cgOverride !== undefined && !Number.isFinite(comp.cgOverride)) {
+    throw new Error(`vehicle geometry: fin cgOverride must be finite (got ${comp.cgOverride})`);
+  }
+  if (comp.massOverride !== undefined && !(comp.massOverride > 0 && Number.isFinite(comp.massOverride))) {
+    throw new Error(`vehicle geometry: fin massOverride must be finite and positive (got ${comp.massOverride})`);
+  }
+  if (comp.massOverride !== undefined) {
+    return { mass: comp.massOverride, localCG: comp.cgOverride !== undefined ? comp.cgOverride : comp.rootChord / 2 };
+  }
   const finArea = 0.5 * (cr + ct) * comp.span;
   const volume = finArea * comp.thickness * comp.finCount;
   const mass = volume * materialDensity;
@@ -258,16 +283,21 @@ function computeTrapezoidFinMass(comp: TrapezoidFinSetComponent, materialDensity
  * Calculates mass and CG for elliptical fin set
  */
 function computeEllipticalFinMass(comp: EllipticalFinSetComponent, materialDensity: number): { mass: number; localCG: number } {
-  if (comp.massOverride !== undefined && comp.massOverride > 0) {
-    return { mass: comp.massOverride, localCG: comp.cgOverride !== undefined ? comp.cgOverride : comp.rootChord / 2 };
-  }
-
   // Quarter ellipse area = (pi / 4) * rootChord * span
   requireFinitePositive(comp.rootChord, 'fin rootChord');
   requireFinitePositive(comp.span, 'fin span');
   requireFinitePositive(comp.thickness, 'fin thickness');
   if (!Number.isInteger(comp.finCount) || comp.finCount < 1) {
     throw new Error(`vehicle geometry: finCount must be a positive integer (got ${comp.finCount})`);
+  }
+  if (comp.cgOverride !== undefined && !Number.isFinite(comp.cgOverride)) {
+    throw new Error(`vehicle geometry: fin cgOverride must be finite (got ${comp.cgOverride})`);
+  }
+  if (comp.massOverride !== undefined && !(comp.massOverride > 0 && Number.isFinite(comp.massOverride))) {
+    throw new Error(`vehicle geometry: fin massOverride must be finite and positive (got ${comp.massOverride})`);
+  }
+  if (comp.massOverride !== undefined) {
+    return { mass: comp.massOverride, localCG: comp.cgOverride !== undefined ? comp.cgOverride : comp.rootChord / 2 };
   }
   const finArea = (Math.PI / 4) * comp.rootChord * comp.span;
   const volume = finArea * comp.thickness * comp.finCount;
@@ -289,6 +319,15 @@ export function aggregateVehicleMass(vehicle: RocketVehicle): VehicleMassRollup 
   if (!vehicle || !Array.isArray(vehicle.components) || vehicle.components.length === 0) {
     throw new Error('vehicle geometry: vehicle has no components — mass rollup is undefined');
   }
+  // Duplicate component identities and unknown component types fail closed
+  // (audit Round-18 §10): silent zero-mass fallthrough is not a rollup.
+  const seenIds = new Set<string>();
+  for (const comp of vehicle.components) {
+    if (seenIds.has(comp.id)) {
+      throw new Error(`vehicle geometry: duplicate component id '${comp.id}'`);
+    }
+    seenIds.add(comp.id);
+  }
   for (const comp of vehicle.components) {
     const material = STANDARD_MATERIALS[comp.materialId];
     if (!material) {
@@ -303,6 +342,9 @@ export function aggregateVehicleMass(vehicle: RocketVehicle): VehicleMassRollup 
     let localCG = 0;
     let axialStart = currentAxialX;
     let length = 0;
+    // Runtime probes for the unknown-component default arm below.
+    const rawKind: unknown = typeof comp === 'object' && comp !== null && 'type' in comp ? comp.type : undefined;
+    const rawId: unknown = typeof comp === 'object' && comp !== null && 'id' in comp ? comp.id : undefined;
 
     switch (comp.type) {
       case 'nosecone': {
@@ -380,6 +422,10 @@ export function aggregateVehicleMass(vehicle: RocketVehicle): VehicleMassRollup 
         localCG = length / 2;
         axialStart = lastBodyTubeStart + axialOffsetOf(comp, comp.id);
         break;
+      }
+
+      default: {
+        throw new Error(`vehicle geometry: unknown component type '${String(rawKind)}' (id '${String(rawId)}')`);
       }
     }
 

@@ -285,3 +285,68 @@ describe('loads repair: recovery gating on hardware and canopy moment', () => {
     expect(bad.loadValidity).toBe('UNSUPPORTED');
   });
 });
+
+describe('loads repair: explicit motor-mount assignment (Round-18 audit §4.5)', () => {
+  it('resolves the flagged mount and rejects ambiguity', () => {
+    const pv = prepareVehicle(PRESET_ESTES_ALPHA, MOTOR);
+    // Estes Alpha mount is the single body tube ending at totalLength.
+    expect(pv.motorAftStationFromNose).toBeCloseTo(pv.totalLength, 12);
+    // Two flagged mounts (Alpha has one tube; duplicate it) must throw.
+    const twin = {
+      ...PRESET_ESTES_ALPHA,
+      components: [
+        ...PRESET_ESTES_ALPHA.components,
+        { ...PRESET_ESTES_ALPHA.components[1], id: 'alpha-bt-2' },
+      ],
+    };
+    expect(() => prepareVehicle(twin, MOTOR)).toThrow(/assignment must be unique/);
+  });
+
+  it('rejects bore misfit, solid mounts, and impossible placement', () => {
+    const fat = { ...MOTOR, diameter: 0.05 };
+    expect(() => prepareVehicle(PRESET_ESTES_ALPHA, fat)).toThrow(/exceeds mount.*bore/);
+    const solidMount = {
+      ...PRESET_ESTES_ALPHA,
+      components: PRESET_ESTES_ALPHA.components.map((c) =>
+        c.type === 'bodytube' ? { ...c, innerDiameter: 0 } : c
+      ),
+    };
+    expect(() => prepareVehicle(solidMount, MOTOR)).toThrow(/no bore/);
+    // A motor longer than the vehicle hangs its forward end off the nose.
+    const longMotor = { ...MOTOR, length: 10.0 };
+    const pv = prepareVehicle(PRESET_ESTES_ALPHA, MOTOR);
+    expect(() => computeFlightLoads(0.5, STATE({ x: 0, y: 50, z: 0 }), FLAGS_FREE, { ...CFG, motor: longMotor }, pv)).toThrow(
+      /forward end/
+    );
+  });
+
+  it('falls back to the aft end without an assigned mount', () => {
+    const unflagged = {
+      ...PRESET_ESTES_ALPHA,
+      components: PRESET_ESTES_ALPHA.components.map((c) =>
+        c.type === 'bodytube' ? { ...c, isMotorMount: false } : c
+      ),
+    };
+    const pv = prepareVehicle(unflagged, MOTOR);
+    expect(pv.motorAftStationFromNose).toBeCloseTo(pv.totalLength, 12);
+  });
+});
+
+describe('loads repair: fin-specific supersonic response (Round-18 audit §5.2)', () => {
+  it('degrades only fins supersonically and reweights CP from forces', () => {
+    const pv = prepareVehicle(PRESET_ESTES_ALPHA, MOTOR);
+    expect(pv.cnaBody + pv.cnaFins).toBeCloseTo(pv.cna0, 12);
+    expect(pv.cnaFins).toBeGreaterThan(0);
+    const st = (vy: number) => STATE({ x: 0, y: vy, z: 0 });
+    const lo = computeFlightLoads(0.5, st(170), FLAGS_FREE, CFG, pv);
+    const hi = computeFlightLoads(0.5, st(850), FLAGS_FREE, CFG, pv);
+    // Subsonic identity: full Barrowman slope, force-weighted CP.
+    expect(lo.kinematics.cna).toBeCloseTo(pv.cna0, 9);
+    // Supersonic: nose/body slope retained (floor), fins degraded (ceiling).
+    expect(hi.kinematics.cna).toBeGreaterThanOrEqual(pv.cnaBody);
+    expect(hi.kinematics.cna).toBeLessThan(pv.cna0);
+    // CP migrates forward as aft-fin effectiveness degrades — recomputed
+    // from degraded force weights, never an independent prescribed shift.
+    expect(hi.kinematics.cp).toBeLessThan(lo.kinematics.cp);
+  });
+});

@@ -145,3 +145,40 @@ describe('motor record validation: fail-closed generic handling (Round-17 audit 
     expect(() => getMotorMassAt(empty, 0.5)).toThrow(/no finite positive impulse/);
   });
 });
+
+describe('motor query and peak hardening (Round-18 audit §4.2)', () => {
+  it('rejects nonfinite query times instead of reading zero', () => {
+    const m = CERTIFIED_MOTORS.estes_c6;
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      expect(() => getMotorThrustAt(m, bad)).toThrow(/time must be finite/);
+      expect(() => getMotorMassFlowAt(m, bad)).toThrow(/time must be finite/);
+      expect(() => getMotorMassAt(m, bad)).toThrow(/time must be finite/);
+      expect(() => integrateThrustCurve(m, bad)).toThrow(/time must be finite/);
+    }
+  });
+
+  it('rejects positive-infinite delivered impulse', () => {
+    const base = CERTIFIED_MOTORS.estes_c6;
+    const overflowing = {
+      ...base,
+      id: 'test-overflow',
+      burnTime: 10,
+      totalImpulse: 1e308,
+      avgThrust: 1e307,
+      maxThrust: 1e308,
+      thrustCurve: [
+        { time: 0, thrust: 0 },
+        { time: 5, thrust: 1e308 },
+        { time: 10, thrust: 0 },
+      ],
+    };
+    expect(() => validateMotorSpec(overflowing)).toThrow(/no finite positive impulse/);
+  });
+
+  it('locks tabulated peak to declared maxThrust on bundled records', () => {
+    for (const m of MOTORS) {
+      const peak = Math.max(...m.thrustCurve.map((p) => p.thrust));
+      expect(peak).toBe(m.maxThrust);
+    }
+  });
+});

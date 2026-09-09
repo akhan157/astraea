@@ -43,6 +43,9 @@ export interface Loads {
   inertiaB: Vec3;    // diagonal principal inertias (x=pitch, y=roll, z=yaw), kg*m^2
   inertiaDotB?: Vec3; // d(inertiaB)/dt (kg*m^2/s) — variable-inertia term (Gate 3)
   mass: number;      // kg
+  /** Optional active-model validity report, folded transactionally by drivers
+   *  (absent means the callback does not classify — counted as VALID). */
+  loadValidity?: StageValidity;
 }
 
 /**
@@ -434,7 +437,7 @@ function validateLoads(L: Loads): void {
 
 /** Read the optional active-model validity reported by a loads callback. */
 function stageValidityOf(L: Loads): StageValidity {
-  const v = (L as Partial<{ loadValidity: StageValidity }>).loadValidity;
+  const v = L.loadValidity;
   return v === 'UNSUPPORTED' || v === 'EXTRAPOLATED' || v === 'VALID' ? v : 'VALID';
 }
 

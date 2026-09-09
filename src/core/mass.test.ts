@@ -145,4 +145,34 @@ describe('Mass fidelity: cone centroid, hollowing, and fail-closed geometry (Rou
       components: [coneVehicle().components[0], badChute],
     })).toThrow(/diameter.*finite and positive/);
   });
+
+  it('validates geometry before mass overrides and rejects bad identities', () => {
+    expect(() => aggregateVehicleMass({
+      id: 'over', name: 'Over', version: '1.0', author: 'Test',
+      components: [{
+        id: 'bt', name: 'Tube', type: 'bodytube', length: 0.5,
+        outerDiameter: 0.05, innerDiameter: 0.05, materialId: 'cardboard',
+        massOverride: 0.4,
+      }],
+    })).toThrow(/positive wall/);
+    // Nonpositive/NaN overrides throw rather than falling through.
+    expect(() => aggregateVehicleMass(coneVehicle({ massOverride: 0 }))).toThrow(/massOverride must be finite and positive/);
+    // Duplicate component identities throw.
+    const dup = coneVehicle();
+    expect(() => aggregateVehicleMass({
+      ...dup, components: [dup.components[0], dup.components[0]],
+    })).toThrow(/duplicate component id/);
+    // Unknown component types throw instead of rolling up zero mass.
+    // Untyped runtime input by design: the cast documents the test's intent
+    // to feed a shape outside the static union.
+    const mystery = { id: 'x', name: 'X', type: 'warpdrive', materialId: 'cardboard' } as unknown as RocketVehicle['components'][number];
+    expect(() => aggregateVehicleMass({
+      ...dup, components: [mystery],
+    })).toThrow(/unknown component type/);
+  });
+
+  it('places the paraboloid centroid at 2L/3 from the tip', () => {
+    const rollup = aggregateVehicleMass(coneVehicle({ shape: 'parabolic' }));
+    expect(rollup.components[0].localCG).toBeCloseTo((2 / 3) * 0.2, 12);
+  });
 });

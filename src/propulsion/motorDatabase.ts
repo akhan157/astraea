@@ -179,6 +179,8 @@ export function validateMotorSpec(motor: MotorSpec): void {
   nonNeg(motor.dryMass, 'dryMass');
   nonNeg(motor.totalMass, 'totalMass');
   nonNeg(motor.totalImpulse, 'totalImpulse');
+  nonNeg(motor.avgThrust, 'avgThrust');
+  nonNeg(motor.maxThrust, 'maxThrust');
   const wetErr = Math.abs(motor.totalMass - (motor.dryMass + motor.propellantMass));
   if (wetErr > 1e-9 * Math.max(1e-12, motor.totalMass)) {
     throw new Error(`motor validation: ${what} wet/dry/propellant identity violated (total ${motor.totalMass} vs dry+prop ${motor.dryMass + motor.propellantMass})`);
@@ -199,14 +201,22 @@ export function validateMotorSpec(motor: MotorSpec): void {
   if (curve[0].time !== 0) {
     throw new Error(`motor validation: ${what} thrust curve must start at t=0`);
   }
-  if (Math.abs(curve[curve.length - 1].time - motor.burnTime) > 1e-9 * Math.max(1, motor.burnTime)) {
-    throw new Error(`motor validation: ${what} thrust curve must end at burnTime`);
+  if (curve[curve.length - 1].time !== motor.burnTime) {
+    throw new Error(`motor validation: ${what} thrust curve must end exactly at burnTime`);
   }
   if (curve[0].thrust !== 0 || curve[curve.length - 1].thrust !== 0) {
     throw new Error(`motor validation: ${what} thrust curve endpoints must be zero (mass-flow continuity)`);
   }
-  if (!(integrateThrustCurve(motor, motor.burnTime) > 0)) {
-    throw new Error(`motor validation: ${what} thrust curve delivers no impulse`);
+  // Finite positive integral (audit §4.2): `> 0` alone admits +Infinity.
+  const deliveredTotal = integrateThrustCurve(motor, motor.burnTime);
+  if (!Number.isFinite(deliveredTotal) || !(deliveredTotal > 0)) {
+    throw new Error(`motor validation: ${what} thrust curve delivers no finite positive impulse`);
+  }
+  // Curve peak consistency: the tabulated peak cannot exceed the declared
+  // maximum thrust (all bundled records match exactly).
+  const peak = Math.max(...curve.map((p) => p.thrust));
+  if (!(peak <= motor.maxThrust)) {
+    throw new Error(`motor validation: ${what} curve peak ${peak} N exceeds maxThrust ${motor.maxThrust} N`);
   }
 }
 
@@ -214,6 +224,9 @@ export function validateMotorSpec(motor: MotorSpec): void {
  * Returns instantaneous motor thrust at time t via linear interpolation
  */
 export function getMotorThrustAt(motor: MotorSpec, t: number): number {
+  // Nonfinite query times throw (audit §4.2): NaN must never silently read
+  // as zero thrust (and zero flow) under a VALID-looking query.
+  if (!Number.isFinite(t)) throw new Error('motor query: time must be finite');
   if (t <= 0 || t >= motor.burnTime) return 0;
 
   const curve = motor.thrustCurve;
@@ -256,6 +269,7 @@ export function getMotorImpulseTotal(motor: MotorSpec): number {
  * endpoint extrapolation is needed.
  */
 export function integrateThrustCurve(motor: MotorSpec, t: number): number {
+  if (!Number.isFinite(t)) throw new Error('motor query: time must be finite');
   const curve = motor.thrustCurve;
   if (!Array.isArray(curve) || curve.length < 2) return 0;
   const end = Math.min(Math.max(t, 0), motor.burnTime);
@@ -266,7 +280,10 @@ export function integrateThrustCurve(motor: MotorSpec, t: number): number {
     if (end <= a.time) break;
     const segEnd = Math.min(end, b.time);
     if (segEnd <= a.time) continue;
-    const f = (segEnd - a.time) / Math.max(1e-12, b.time - a.time);
+    // Exact segment duration (audit §4.2): validated records carry strictly
+    // increasing times, so no epsilon floor distorts short segments — the
+    // thrust interpolation's `dt <= 0` guard and this quotient agree.
+    const f = (segEnd - a.time) / (b.time - a.time);
     const thrustEnd = a.thrust + f * (b.thrust - a.thrust);
     impulse += 0.5 * (a.thrust + thrustEnd) * (segEnd - a.time);
   }
@@ -280,6 +297,7 @@ export function integrateThrustCurve(motor: MotorSpec, t: number): number {
  * the unsaturated interior (the denominator IS the curve integral).
  */
 export function getMotorMassFlowAt(motor: MotorSpec, t: number): number {
+  if (!Number.isFinite(t)) throw new Error('motor query: time must be finite');
   if (!(t >= 0) || t >= motor.burnTime) return 0;
   // getMotorImpulseTotal throws on degenerate curves: no silent linear rate.
   const total = getMotorImpulseTotal(motor);
@@ -295,8 +313,12 @@ export function getMotorMassFlowAt(motor: MotorSpec, t: number): number {
  * against floating-point overshoot at the boundary.
  */
 export function getMotorMassAt(motor: MotorSpec, t: number): { currentMass: number; propellantRemaining: number } {
+  if (!Number.isFinite(t)) throw new Error('motor query: time must be finite');
   if (t <= 0) {
     return { currentMass: motor.totalMass, propellantRemaining: motor.propellantMass };
+  }
+  if (t >= motor.burnTime) {
+    return { currentMass: motor.dryMass, propellantRemaining: 0 };
   }
 
   const total = getMotorImpulseTotal(motor);

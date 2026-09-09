@@ -42,8 +42,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
   const [mainDeployAlt, setMainDeployAlt] = useState<number>(250); // meters AGL
   const [simResult, setSimResult] = useState<SixDofSimulationResult | null>(null);
   const [lastRunInputKey, setLastRunInputKey] = useState<string | null>(null);
-  const [simError, setSimError] = useState<{ message: string; inputs: string; at: string } | null>(null);
-
+  const [simError, setSimError] = useState<{ message: string; inputs: string; snapshot: string; at: string } | null>(null);
   const activeMotor: MotorSpec = CERTIFIED_MOTORS[selectedMotorId] || CERTIFIED_MOTORS.estes_c6;
 
   const simulationInputKey = useMemo(
@@ -156,6 +155,21 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
     );
     return parts.join(' ');
   };
+  // Full machine-readable failed-run record (audit §8.9): the complete
+  // vehicle geometry, motor record, and options as JSON for reproduction.
+  // Guarded per section so snapshot construction never masks the failure.
+  const snapshotRunInputs = (): string => {
+    const snap: Record<string, unknown> = {};
+    try { snap.vehicle = vehicle; } catch { snap.vehicle = '<unreadable>'; }
+    try { snap.motor = activeMotor; } catch { snap.motor = '<unreadable>'; }
+    snap.options = {
+      railLength, railElevationDeg: railElevation, railAzimuthDeg: railAzimuth,
+      windSpeedSurface: windSpeed, windAzimuthDeg: windAzimuth,
+      finCantAngleDeg: finCant, mainDeployAltitudeAGL: mainDeployAlt,
+    };
+    try { snap.dryMassKg = aggregateVehicleMass(vehicle).totalMass; } catch { snap.dryMassKg = '<error>'; }
+    return JSON.stringify(snap);
+  };
   const handleRunSimulation = () => {
     // Fail-closed rerun (audit §8): a throwing rerun clears the previous
     // result and records a reproducible failed-run record — message, full
@@ -181,6 +195,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
       setSimError({
         message: err instanceof Error ? err.message : String(err),
         inputs: inputSummary,
+        snapshot: snapshotRunInputs(),
         at: new Date().toISOString(),
       });
     }
@@ -406,10 +421,27 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
               role="alert"
             >
               Simulation failed at {simError.at}: {simError.message}. Inputs: {simError.inputs}. Previous results were cleared — no stale output is shown.
+              <details className="mt-2">
+                <summary className="cursor-pointer text-rose-200 hover:text-rose-100">Full input snapshot (JSON, for reproduction)</summary>
+                <pre className="mt-1 p-2 bg-zinc-950/80 rounded-lg overflow-x-auto text-[10px] text-zinc-300 whitespace-pre-wrap break-all">{simError.snapshot}</pre>
+              </details>
             </div>
           )}
           {simResult && (
             <div className="space-y-6 animate-in fade-in duration-300">
+              {/* Run manifest: the input snapshot these results were computed
+                  from (audit §8.9). Values reflect current controls; results
+                  are only trustworthy while the FRESH badge holds. */}
+              <div className="px-3 py-2 bg-zinc-950/60 rounded-xl border border-zinc-800 text-[10px] font-mono text-zinc-400 flex flex-wrap gap-x-4 gap-y-1">
+                <span className="uppercase font-semibold text-zinc-500">Run manifest</span>
+                <span>motor {activeMotor.designation}</span>
+                <span>rail {railLength.toFixed(1)} m @ {railElevation.toFixed(1)}°/{railAzimuth.toFixed(0)}°</span>
+                <span>wind {windSpeed.toFixed(1)} m/s @ {windAzimuth.toFixed(0)}°</span>
+                <span>cant {finCant.toFixed(1)}° main {mainDeployAlt.toFixed(0)} m</span>
+                <span className={resultsAreStale ? 'text-amber-400' : 'text-emerald-400'}>
+                  {resultsAreStale ? 'STALE — inputs changed since run' : 'FRESH — matches current inputs'}
+                </span>
+              </div>
               {/* Outcome, model validity, and freshness are independent (§2.6). */}
               <div
                 className="min-h-9 p-3 bg-zinc-950/80 rounded-xl border border-zinc-700 flex flex-wrap items-center gap-2"
@@ -465,11 +497,11 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   );
                 })()}
                 {(() => {
-                  // The envelope badge must agree with final validity AND the
-                  // run context: abnormal termination and stale inputs also
-                  // withdraw the in-domain presentation (audit §8).
+                  // The envelope badge requires final validity PASS explicitly
+                  // (audit §8): coherence of related fields is not a substitute
+                  // for the validity verdict itself.
                   const domainOk =
-                    simResult.enveloped && !simResult.offNominalExcursion &&
+                    simResult.validity === 'PASS' && simResult.enveloped && !simResult.offNominalExcursion &&
                     simResult.touchdownNominal && simResult.terminated && !resultsAreStale;
                   return (
                     <span
@@ -550,6 +582,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   </div>
                   <div className="text-[10px] text-zinc-400 font-mono">
                     [{simResult.landingPosition.x.toFixed(0)}E, {simResult.landingPosition.y.toFixed(0)}N]
+                    {!simResult.terminated ? ' · NO TOUCHDOWN, end-of-run position' : ''}
                   </div>
                 </div>
 
@@ -564,9 +597,11 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                     )}
                   </div>
                   <div className="text-[10px] text-emerald-400 font-mono">
-                    {simResult.validity !== 'PASS' || resultsAreStale
-                      ? 'UNVERIFIED · not certifiable'
-                      : simResult.isLandingSafe ? '<= 20 J (screening met)' : 'EXCEEDS 20 J LIMIT'}
+                    {!simResult.terminated
+                      ? 'NO TOUCHDOWN · end-of-run energy, not a touchdown metric'
+                      : simResult.validity !== 'PASS' || resultsAreStale
+                        ? 'UNVERIFIED · not certifiable'
+                        : simResult.isLandingSafe ? '<= 20 J (screening met)' : 'EXCEEDS 20 J LIMIT'}
                   </div>
                 </div>
               </div>

@@ -157,8 +157,13 @@ function baseFixture(over = {}) {
     'src/core/mass.test.ts': "describe('mass fidelity', () => { it('places the cone centroid', () => {}); });\n",
     'src/components/FlightSimulationTab.test.tsx': "describe('safety presentation', () => { it('renders badges', () => {}); });\n",
     'src/aero/transonicAero.test.ts': "describe('aero curves', () => { it('tabulates drag', () => {}); });\n",
-    'vite.config.ts': 'export default {};\n',
-    'tsconfig.json': '{}',
+    'src/aero/barrowman.test.ts': "describe('stability analysis', () => { it('places the neutral point', () => {}); });\n",
+    'src/aero/finFlutter.test.ts': "describe('fin flutter', () => { it('bounds divergence velocity', () => {}); });\n",
+    'src/sim/flightSimulator.test.ts': "describe('legacy simulator', () => { it('propagates descent', () => {}); });\n",
+    'src/formats/orkParser.test.ts': "describe('ork format', () => { it('parses components', () => {}); });\n",
+    'src/formats/rktParser.test.ts': "describe('rkt format', () => { it('parses motors', () => {}); });\n",
+    'src/store/rocketStore.test.ts': "describe('vehicle store', () => { it('holds presets', () => {}); });\n",
+    'scripts/emit-benchmark-metadata.test.cjs': "describe('emitter evidence', () => { it('fails closed', () => {}); });\n",
     ...over,
   };
   for (const k of Object.keys(files)) {
@@ -206,6 +211,13 @@ function makeVitestJson({
     'src/core/mass.test.ts',
     'src/components/FlightSimulationTab.test.tsx',
     'src/aero/transonicAero.test.ts',
+    'src/aero/barrowman.test.ts',
+    'src/aero/finFlutter.test.ts',
+    'src/sim/flightSimulator.test.ts',
+    'src/formats/orkParser.test.ts',
+    'src/formats/rktParser.test.ts',
+    'src/store/rocketStore.test.ts',
+    'scripts/emit-benchmark-metadata.test.cjs',
   ];
   const fileResults = acceptanceFiles
     .filter((rel) => !omitFile.includes(rel))
@@ -535,13 +547,13 @@ t('vitest per-file totals parsed from assertionResults, not f.assertions', () =>
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
-  assert.equal(parsed.files.length, 9);
+  assert.equal(parsed.files.length, 16);
   const vvFile = parsed.files.find((file) => file.file === 'vv-benchmarks.test.ts');
   assert.equal(vvFile.testCases.total, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.passed, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.failed, 0);
   assert.equal(vvFile.testCases.unknown, 0);
-  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 8);
+  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 15);
 });
 
 t('vitest JSON unparseable => certification fails', () => {
@@ -740,7 +752,98 @@ t('new acceptance suites are required and hashed', () => {
   assert.equal(dropped.evidence.verification.gateCoverage.GATE_1R_LOADS_ASSEMBLY, false);
 });
 
-// ---------------------------------------------------------------------------
+t('executed file outside the fixed inventory fails certification', () => {
+  const root = baseFixture({
+    'src/sim/sneaky.test.ts': "describe('sneaky', () => { it('runs', () => {}); });\n",
+  });
+  const json = makeVitestJson();
+  json.testResults.push({
+    assertionResults: [{ ancestorTitles: ['sneaky'], fullName: 'sneaky runs', status: 'passed', title: 'runs', duration: 1, failureMessages: [], meta: {}, tags: [], benchmarks: [] }],
+    status: 'passed',
+    message: '',
+    startTime: 0,
+    endTime: 1,
+    name: 'C:/repo/src/sim/sneaky.test.ts',
+  });
+  json.numTotalTests += 1;
+  json.numPassedTests += 1;
+  json.numTotalTestSuites += 1;
+  json.numPassedTestSuites += 1;
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('sneaky.test.ts') && m.includes('outside the fixed test-file inventory')), `missing: ${missing}`);
+});
+
+t('inventory file missing from collection fails certification', () => {
+  const root = baseFixture();
+  const { passed: ok, missing } = computeEvidence(
+    ctx(root, { vitestJson: makeVitestJson({ omitFile: ['src/store/rocketStore.test.ts'] }) })
+  );
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('src/store/rocketStore.test.ts') && m.includes('not collected')), `missing: ${missing}`);
+});
+
+t('inventory source/executed count mismatch fails certification', () => {
+  const root = baseFixture({
+    'src/store/rocketStore.test.ts': "describe('vehicle store', () => { it('holds presets', () => {}); it('holds materials', () => {}); });\n",
+  });
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('src/store/rocketStore.test.ts') && m.includes('test-case-count mismatch')), `missing: ${missing}`);
+});
+
+t('empty inventory source fails certification', () => {
+  const root = baseFixture({ 'src/store/rocketStore.test.ts': '// retired suite\n' });
+  const json = makeVitestJson({ omitFile: ['src/store/rocketStore.test.ts'] });
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('src/store/rocketStore.test.ts')), `missing: ${missing}`);
+});
+
+t('exotic declared range fails certification', () => {
+  const root = baseFixture({
+    'package.json': JSON.stringify({ name: 'x', dependencies: { three: '>=0.185.1 <1.0.0' } }, null, 2),
+  });
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('three') && m.includes('exotic range')), `missing: ${missing}`);
+});
+
+t('nonfinite file duration fails certification', () => {
+  const root = baseFixture();
+  const json = makeVitestJson();
+  const target = json.testResults.find((r) => r.name.endsWith('transonicAero.test.ts'));
+  target.assertionResults[0].duration = NaN; // typeof NaN is 'number': sums to a NaN aggregate
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('transonicAero.test.ts') && m.includes('nonfinite duration')), `missing: ${missing}`);
+});
+
+t('residuals sidecar: valid ingested, malformed fails, absent labeled', () => {
+  const records = [{ suite: 'VV-014', case: 'terminates stationary', value: 1e-9 }];
+  const good = baseFixture({ 'scripts/astraea-residuals.json': JSON.stringify({ records }) });
+  const goodRes = computeEvidence(ctx(good, { vitestJson: makeVitestJson() }));
+  assert.equal(goodRes.passed, true, `missing: ${JSON.stringify(goodRes.missing)}`);
+  assert.equal(goodRes.evidence.residualsSidecar.present, true);
+  assert.equal(goodRes.evidence.residualsSidecar.valid, true);
+  assert.match(goodRes.evidence.residualsSidecar.sha256, /^[0-9a-f]{64}$/);
+  assert.deepEqual(goodRes.evidence.residualsSidecar.records, records);
+  const bad = baseFixture({ 'scripts/astraea-residuals.json': JSON.stringify({ records: [{ suite: 'VV-014', case: 'x', value: 'NaN!' }] }) });
+  const badRes = computeEvidence(ctx(bad, { vitestJson: makeVitestJson() }));
+  assert.equal(badRes.passed, false);
+  assert.ok(badRes.missing.some((m) => m.includes('residuals sidecar') && m.includes('invalid')), `missing: ${badRes.missing}`);
+  const absent = baseFixture();
+  const absentRes = computeEvidence(ctx(absent, { vitestJson: makeVitestJson() }));
+  assert.equal(absentRes.passed, true, `missing: ${JSON.stringify(absentRes.missing)}`);
+  assert.equal(absentRes.evidence.residualsSidecar.present, false);
+});
+
+t('unreadable solver pre-capture fails certification', () => {
+  const root = baseFixture({ 'src/dynamics/loads.ts': null });
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('solver-config sources unreadable')), `missing: ${missing}`);
+});
 // Runners
 // ---------------------------------------------------------------------------
 
