@@ -137,6 +137,9 @@ export function integrateRigidStep(
   t0?: number
 ): RigidState {
   validateStateAndLoads(s, loads, dt);
+  if (!Number.isFinite(t0 ?? 0)) {
+    throw new Error('strict rigid-body kernel: t0 must be finite');
+  }
   const startTime = t0 ?? 0;
 
   const accelFor = (L: Loads): Vec3 => ({
@@ -157,6 +160,7 @@ export function integrateRigidStep(
   });
 
   const L0 = loadsAt ? loadsAt(startTime, s) : loads;
+  validateStateAndLoads(s, L0, dt);
   const d1 = deriv(s, L0, startTime);
   const tHalf = startTime + dt / 2;
   const tFull = startTime + dt;

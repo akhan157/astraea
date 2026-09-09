@@ -27,7 +27,15 @@ WHAT CHANGED:
    - ADDED stage-dependent RHS: integrateRigidStep() now accepts an optional loadsAt(tStage, state) factory; when provided, force/moment/mass/inertia are RE-EVALUATED at every RK4 stage state and time, restoring 4th-order accuracy for attitude- and time-dependent forcing. When omitted, loads are frozen (constant-force class only, documented).
    - ADDED strict validation: normalizeQuaternion() THROWS on degenerate (|q|~0) or nonfinite quaternions instead of fabricating identity; validateStateAndLoads() rejects nonfinite state/load components, nonpositive or nonfinite mass, nonpositive dt, and nonpositive principal inertias. No silent physical-state fabrication remains.
 
-VERIFICATION: 44/44 tests pass, production build clean. VV-009 added: pure-roll and pure-pitch inertia-coupling discrimination (kernel axis isolation). The tautological VV-008 frame test was REMOVED per your guidance; kernel is documented as frame-agnostic Cartesian RK4 (ENU in, forceN in nav frame), with exported production adapters displayToKernel/kernelToDisplay/simOmegaToKernel/simInertiaToKernel provided for the flight simulator.
+
+9. KERNEL HARDENING COMPLETED per your round-7 findings:
+   - REMOVED the silent inertia floor in angularAcceleration(): Math.max(1e-9, I) is gone; positive-inertia precondition is enforced by validateStateAndLoads and out-of-domain THROWS. No silent physical-state fabrication remains anywhere.
+   - validateStateAndLoads() is now ALSO called on every loadsAt() callback-returned load (L1, L2, L3) and on the FINAL output state; nonfinite propagation throws.
+10. DISPLAY MAPPING FIXED per your round-7 finding: the kernel's displayToKernel()/kernelToDisplay() now implement the NORMATIVE proper rotation (det = +1): (x_D, y_D, z_D) = (-x_N, z_N, y_N), matching the viewport contract. The PRODUCTION simulator (sixDofSimulator.ts) now uses these exported adapters (displayToKernel / kernelToDisplay / simOmegaToKernel / kernelOmegaToSim / simInertiaToKernel) instead of inline maps.
+11. VV-010 added (coupled rotating-body convergence): spherical inertia + constant spin Omega about body z + body-x force, driven through the production kernel with loadsAt stage RHS. Confirms global 4th-order convergence (error ratio ~16 on step-halving) against your exact closed form v_x=(F/m/O)sin(Ot), r_y=(F/m/O^2)(O t - sin O t), and discriminates that frozen loads diverge (O(1) velocity error) while the stage factory converges to < 1e-3.
+
+VERIFICATION: 46/46 tests pass, production build clean.
+ VV-009 added; VV-010 added: pure-roll and pure-pitch inertia-coupling discrimination (kernel axis isolation). The tautological VV-008 frame test was REMOVED per your guidance; kernel is documented as frame-agnostic Cartesian RK4 (ENU in, forceN in nav frame), with exported production adapters displayToKernel/kernelToDisplay/simOmegaToKernel/simInertiaToKernel provided for the flight simulator.
 
 
 
