@@ -461,11 +461,20 @@ describe('production event policy: refined selection, root ties, base contact (R
   });
 
   it('never serves a dependent transition ahead of an earlier rail/burnout root', () => {
-    // Apogee chord-first, but a rail root refines earlier: rail must go first
-    // so its prerequisite is committed before apogee applies.
+    // Apogee selection key (max refined/chord) exceeds the earlier rail root:
+    // rail goes first so its prerequisite commits before apogee applies.
     expect(selectNextCandidate(['APOGEE_DROGUE', 'RAIL_EXIT'], [0.4, 0.3])).toBe(1);
-    // Dependent candidates keep FSM order among themselves.
+    // Dependent ties break by FSM priority: apogee before main.
     expect(selectNextCandidate(['APOGEE_DROGUE', 'MAIN_DEPLOY'], [0.4, 0.4])).toBe(0);
+    // A dependent physical root before its chord time still waits for the
+    // actionable time: burnout at 1.0 precedes apogee actionable at 1.0.
+    expect(selectNextCandidate(['APOGEE_DROGUE', 'MOTOR_BURNOUT'], [1.0, 1.0])).toBe(1);
+  });
+
+  it('defers already-satisfied dependents to chord ties at committed roots', () => {
+    // A deferred MAIN (predicate already true at the base) carries +∞: it
+    // must not outrun its own APOGEE, which refines to the true peak.
+    expect(selectNextCandidate(['APOGEE_DROGUE', 'MAIN_DEPLOY'], [6.19, Number.POSITIVE_INFINITY])).toBe(0);
   });
 
   it('evaluates FSM-simultaneous ties at the committed root state', () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { aggregateVehicleMass } from './mass';
-import { RocketVehicle, NoseconeComponent } from './types';
+import { RocketVehicle, NoseconeComponent, TrapezoidFinSetComponent, ParachuteComponent } from './types';
 
 describe('Mass and CG Aggregator', () => {
   const baseRocket: RocketVehicle = {
@@ -103,6 +103,8 @@ describe('Mass fidelity: cone centroid, hollowing, and fail-closed geometry (Rou
   it('rejects nonpositive/nonfinite structural dimensions instead of clamping nominal', () => {
     expect(() => aggregateVehicleMass(coneVehicle({ length: 0 }))).toThrow(/finite and positive/);
     expect(() => aggregateVehicleMass(coneVehicle({ baseDiameter: -0.01 }))).toThrow(/finite and positive/);
+    expect(() => aggregateVehicleMass(coneVehicle({ wallThickness: -0.001, isHollow: true }))).toThrow(/wallThickness/);
+    expect(() => aggregateVehicleMass(coneVehicle({ wallThickness: 0.05, isHollow: true }))).toThrow(/wallThickness/);
     expect(() => aggregateVehicleMass({
       id: 'bad', name: 'Bad', version: '1.0', author: 'Test',
       components: [{
@@ -113,5 +115,34 @@ describe('Mass fidelity: cone centroid, hollowing, and fail-closed geometry (Rou
     expect(() => aggregateVehicleMass({
       id: 'empty', name: 'Empty', version: '1.0', author: 'Test', components: [],
     })).toThrow(/no components/);
+  });
+
+  it('rejects unknown materials, NaN offsets, and invalid fins/chutes', () => {
+    const nanFin: TrapezoidFinSetComponent = {
+      id: 'f', name: 'Fins', type: 'trapezoidfinset', finCount: 3,
+      rootChord: 0.07, tipChord: 0.028, span: 0.051, sweepLength: 0.038,
+      thickness: 0.002, crossSection: 'rounded', materialId: 'balsa', axialOffset: Number.NaN,
+    };
+    expect(() => aggregateVehicleMass({
+      id: 'nanoff', name: 'NanOff', version: '1.0', author: 'Test',
+      components: [coneVehicle().components[0], nanFin],
+    })).toThrow(/axialOffset must be finite/);
+    const badFin: TrapezoidFinSetComponent = {
+      id: 'f', name: 'Fins', type: 'trapezoidfinset', finCount: 0,
+      rootChord: 0.07, tipChord: 0.028, span: 0.051, sweepLength: 0.038,
+      thickness: 0.002, crossSection: 'rounded', materialId: 'balsa', axialOffset: 0.2,
+    };
+    expect(() => aggregateVehicleMass({
+      id: 'badfin', name: 'BadFin', version: '1.0', author: 'Test',
+      components: [coneVehicle().components[0], badFin],
+    })).toThrow(/finCount must be a positive integer/);
+    const badChute: ParachuteComponent = {
+      id: 'p', name: 'Chute', type: 'parachute', mass: 0.008,
+      diameter: -0.3, cd: 0.8, materialId: 'cardboard', axialOffset: 0.05,
+    };
+    expect(() => aggregateVehicleMass({
+      id: 'badchute', name: 'BadChute', version: '1.0', author: 'Test',
+      components: [coneVehicle().components[0], badChute],
+    })).toThrow(/diameter.*finite and positive/);
   });
 });

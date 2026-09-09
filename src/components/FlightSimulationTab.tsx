@@ -7,6 +7,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useRocketStore } from '../store/rocketStore';
 import { CERTIFIED_MOTORS, MotorSpec } from '../propulsion/motorDatabase';
+import { aggregateVehicleMass } from '../core/mass';
 import { simulate6DofFlight, SixDofSimulationResult } from '../sim/sixDofSimulator';
 import { computeAerodynamicCurves } from '../aero/transonicAero';
 import {
@@ -72,9 +73,14 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
   );
   const resultsAreStale = simResult !== null && lastRunInputKey !== simulationInputKey;
 
-  // Precompute high-Mach aerodynamic curve
+  // Precompute high-Mach aerodynamic curve. Render-time failures must not
+  // crash the surface (audit §8): a throwing preview degrades to a message.
   const aeroCurves = useMemo(() => {
-    return computeAerodynamicCurves(vehicle, false, 30);
+    try {
+      return { ok: true as const, value: computeAerodynamicCurves(vehicle, false, 30) };
+    } catch (err) {
+      return { ok: false as const, message: err instanceof Error ? err.message : String(err) };
+    }
   }, [vehicle]);
 
   useEffect(() => {
@@ -117,14 +123,45 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
       previouslyFocused?.focus();
     };
   }, [isOpen, onClose]);
+  // Reproducible failed-run input snapshot (audit §8): vehicle identity and
+  // dry mass, full motor record, and every simulation option. Never throws:
+  // each probe is individually guarded so snapshot construction cannot mask
+  // the original simulation failure.
+  const describeRunInputs = (): string => {
+    const parts: string[] = [];
+    try {
+      parts.push(`vehicle=${vehicle.id}:${vehicle.name}`);
+      parts.push(`components=${vehicle.components.length}`);
+    } catch {
+      parts.push('vehicle=<unreadable>');
+    }
+    try {
+      parts.push(`dryMassKg=${aggregateVehicleMass(vehicle).totalMass.toFixed(4)}`);
+    } catch (err) {
+      parts.push(`dryMassKg=<error:${err instanceof Error ? err.message : String(err)}>`);
+    }
+    try {
+      parts.push(
+        `motor=${activeMotor.designation}[${activeMotor.id}] ` +
+        `impulse=${activeMotor.totalImpulse}Ns burn=${activeMotor.burnTime}s ` +
+        `prop=${activeMotor.propellantMass}kg wet=${activeMotor.totalMass}kg dry=${activeMotor.dryMass}kg ` +
+        `dia=${activeMotor.diameter}m len=${activeMotor.length}m`
+      );
+    } catch {
+      parts.push('motor=<unreadable>');
+    }
+    parts.push(
+      `rail=${railLength}m@${railElevation}deg/${railAzimuth}deg ` +
+      `wind=${windSpeed}m/s@${windAzimuth}deg cant=${finCant}deg mainAlt=${mainDeployAlt}m`
+    );
+    return parts.join(' ');
+  };
   const handleRunSimulation = () => {
     // Fail-closed rerun (audit §8): a throwing rerun clears the previous
-    // result and records a reproducible failed-run record (message, inputs,
-    // timestamp) — stale SAFE/PASS output must never survive a failed
-    // synchronous rerun.
-    const inputSummary =
-      `motor=${activeMotor.designation} rail=${railLength}m@${railElevation}°/${railAzimuth}° ` +
-      `wind=${windSpeed}m/s@${windAzimuth}° cant=${finCant}° mainAlt=${mainDeployAlt}m`;
+    // result and records a reproducible failed-run record — message, full
+    // input snapshot (vehicle geometry/mass, motor data, options), and
+    // timestamp. Stale SAFE/PASS output must never survive a failed rerun.
+    const inputSummary = describeRunInputs();
     try {
       const res = simulate6DofFlight(vehicle, activeMotor, {
         railLength,
@@ -401,9 +438,11 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                         ? {
                             c: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
                             icon: <AlertTriangle className="w-3.5 h-3.5" />,
-                            label: simResult.touchdownNominal
-                              ? 'UNKNOWN · outside validated model'
-                              : 'UNKNOWN · abnormal termination, outside model',
+                            label: !simResult.terminated
+                              ? 'UNKNOWN · no touchdown, outside model'
+                              : simResult.touchdownNominal
+                                ? 'UNKNOWN · outside validated model'
+                                : 'UNKNOWN · abnormal impact, outside model',
                           }
                         : v === 'FAIL'
                           ? {
@@ -426,10 +465,12 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   );
                 })()}
                 {(() => {
-                  // The envelope badge must agree with final validity: a macro
-                  // envelope pass coexisting with stage excursions or
-                  // extrapolation previously showed green VALID beside UNKNOWN.
-                  const domainOk = simResult.enveloped && !simResult.offNominalExcursion;
+                  // The envelope badge must agree with final validity AND the
+                  // run context: abnormal termination and stale inputs also
+                  // withdraw the in-domain presentation (audit §8).
+                  const domainOk =
+                    simResult.enveloped && !simResult.offNominalExcursion &&
+                    simResult.touchdownNominal && simResult.terminated && !resultsAreStale;
                   return (
                     <span
                       className={`text-[10px] px-2 py-1 rounded border font-mono ${
@@ -488,7 +529,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   <div className="text-[10px] text-emerald-400 font-mono">
                     {simResult.validity !== 'PASS' || resultsAreStale
                       ? 'UNVERIFIED · not certifiable'
-                      : simResult.isRailExitSafe ? '>= 15 m/s (SAFE)' : 'LOW CLEARANCE'}
+                      : simResult.isRailExitSafe ? '>= 15 m/s (screening met)' : 'LOW CLEARANCE'}
                   </div>
                 </div>
 
@@ -525,7 +566,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   <div className="text-[10px] text-emerald-400 font-mono">
                     {simResult.validity !== 'PASS' || resultsAreStale
                       ? 'UNVERIFIED · not certifiable'
-                      : simResult.isLandingSafe ? '<= 20 J (GATE PASS)' : 'EXCEEDS 20 J LIMIT'}
+                      : simResult.isLandingSafe ? '<= 20 J (screening met)' : 'EXCEEDS 20 J LIMIT'}
                   </div>
                 </div>
               </div>
@@ -596,8 +637,15 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                       <line x1="40" y1="10" x2="40" y2="120" stroke="#3f3f46" />
 
                       {(() => {
-                        const curves = aeroCurves.dragCurves;
-                        const maxCd = Math.max(0.8, aeroCurves.maxTransonicCd * 1.15);
+                        if (!aeroCurves.ok) {
+                          return (
+                            <text x="45" y="70" fill="#71717a" fontSize="9" fontFamily="monospace">
+                              Aero preview unavailable: {aeroCurves.message}
+                            </text>
+                          );
+                        }
+                        const curves = aeroCurves.value.dragCurves;
+                        const maxCd = Math.max(0.8, aeroCurves.value.maxTransonicCd * 1.15);
                         const pathD = curves
                           .map((d, i) => {
                             const x = 40 + (d.mach / 4.0) * 350;

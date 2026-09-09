@@ -70,11 +70,11 @@ const GATE_REQUIREMENTS = Object.freeze({
 // not discriminate. A gate cannot pass unless each required file was present,
 // executed in full, and passed with its source test-case count intact.
 const GATE_FILE_REQUIREMENTS = Object.freeze({
-  GATE_1R_LOADS_ASSEMBLY: ['src/dynamics/loads.repair.test.ts'],
+  GATE_1R_LOADS_ASSEMBLY: ['src/dynamics/loads.repair.test.ts', 'src/core/mass.test.ts'],
   GATE_2_ADAPTIVE_INTEGRATOR: ['src/dynamics/rigidBody.adaptive.test.ts'],
-  GATE_3_VARIABLE_INERTIA: ['src/dynamics/loads.repair.test.ts'],
+  GATE_3_VARIABLE_INERTIA: ['src/dynamics/loads.repair.test.ts', 'src/propulsion/motorDatabase.test.ts'],
   GATE_4_P0_5_EVENT_LOCALIZATION: ['src/sim/event-restart.test.ts'],
-  GATE_4_PRODUCTION_CONTRACTS: ['src/sim/sixDofSimulator.test.ts'],
+  GATE_4_PRODUCTION_CONTRACTS: ['src/sim/sixDofSimulator.test.ts', 'src/components/FlightSimulationTab.test.tsx'],
 });
 
 // Files whose integrity the artifact cites (sha256). Missing required files
@@ -85,6 +85,10 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/dynamics/loads.repair.test.ts',
   'src/sim/event-restart.test.ts',
   'src/sim/sixDofSimulator.test.ts',
+  'src/propulsion/motorDatabase.test.ts',
+  'src/core/mass.test.ts',
+  'src/components/FlightSimulationTab.test.tsx',
+  'scripts/emit-benchmark-metadata.test.cjs',
   'src/dynamics/rigidBody.ts',
   'src/dynamics/loads.ts',
   'src/dynamics/events.ts',
@@ -385,6 +389,44 @@ function extractObservedNumbers(messages) {
 
 // --- dependency measurement -------------------------------------------------
 
+/** Minimal caret/exact range conformance (audit §9.5): installed versions
+ *  must satisfy the declared manifest range. Returns true/false for
+ *  parseable `^`/`~`/exact ranges, null when the range shape is exotic
+ *  (skipped with documentation, never assumed conformant-or-violated). */
+function satisfiesDeclaredRange(declared, installed) {
+  if (typeof declared !== 'string' || typeof installed !== 'string') return null;
+  const parse = (v) => {
+    const m = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(v.trim());
+    return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
+  };
+  const cmp = (a, b) => (a[0] - b[0]) || (a[1] - b[1]) || (a[2] - b[2]);
+  const d = declared.trim();
+  const at = (prefix) => (d.startsWith(prefix) ? parse(d.slice(prefix.length)) : null);
+  let low = null;
+  let high = null; // exclusive upper bound
+  if (at('^')) {
+    low = at('^');
+    if (!low) return null;
+    high = low[0] > 0 ? [low[0] + 1, 0, 0] : low[1] > 0 ? [0, low[1] + 1, 0] : [0, 0, low[2] + 1];
+  } else if (at('~')) {
+    low = at('~');
+    if (!low) return null;
+    high = [low[0], low[1] + 1, 0];
+  } else {
+    // Exact numeric version only; anything else is exotic (documented skip).
+    if (!/^=?\d+\.\d+\.\d+$/.test(d)) return null;
+    low = parse(d.replace(/^=/, ''));
+    if (!low) return null;
+    high = null;
+  }
+  const inst = parse(installed);
+  if (!inst) return null;
+  if (cmp(inst, low) < 0) return false;
+  if (high && cmp(inst, high) >= 0) return false;
+  if (!high && cmp(inst, low) !== 0) return false;
+  return true;
+}
+
 /** Measure installed versions from node_modules/<pkg>/package.json on disk. */
 function measureInstalledDeps(root, declared, existsFn, readJsonFn) {
   const packages = {};
@@ -405,7 +447,8 @@ function measureInstalledDeps(root, declared, existsFn, readJsonFn) {
       /* not installed or unreadable */
     }
     if (!found) complete = false;
-    packages[name] = { declared: declared[name], installed, found };
+    const conformant = found ? satisfiesDeclaredRange(declared[name], installed) : null;
+    packages[name] = { declared: declared[name], installed, found, conformant };
   }
   return { packages, complete };
 }
@@ -537,7 +580,29 @@ function computeEvidence(opts = {}) {
   };
   if (!lockfile.present) missing.push('dependencies: no lockfile present (pnpm-lock.yaml or package-lock.json required for reproducible installs)');
   if (!installed.complete) missing.push('dependencies: declared package(s) missing from node_modules (installed measurement incomplete)');
+  for (const [name, rec] of Object.entries(installed.packages)) {
+    if (rec.found && rec.conformant === false) {
+      missing.push(`dependencies: installed ${name}@${rec.installed} does not satisfy declared range ${rec.declared}`);
+    }
+  }
 
+  // Source analysis binds to the PRE-execution snapshot (audit §9.5): the
+  // inventory, slices, tolerance literals, and gate-file counts below all
+  // derive from these strings, never from post-execution reads.
+  const readSourcePre = (rel) => {
+    try {
+      return readFile(rel);
+    } catch {
+      return null;
+    }
+  };
+  const benchSourcePre = readSourcePre('src/sim/vv-benchmarks.test.ts');
+  const gateSourcesPre = {};
+  for (const files of Object.values(GATE_FILE_REQUIREMENTS)) {
+    for (const rel of files) {
+      if (!(rel in gateSourcesPre)) gateSourcesPre[rel] = readSourcePre(rel);
+    }
+  }
   // --- pre-execution source binding -------------------------------------------
   const preHashes = hashCited();
 
@@ -557,13 +622,17 @@ function computeEvidence(opts = {}) {
   if (parsed && parsed.totals.testCasesUnknown > 0) missing.push(`tests: ${parsed.totals.testCasesUnknown} test case(s) with unknown status — unrecognized evidence`);
   if (parsed) {
     // Every collected file is mandatory preparation evidence: a file that did
-    // not cleanly pass (failed, unknown, or unexecuted cases, unrecognized
-    // status) fails certification even when no gate names it (audit §7.4).
+    // not cleanly pass (failed, unknown, unexecuted, or EMPTY cases,
+    // unrecognized status) fails certification even when no gate names it.
+    // An executed file with zero cases proves nothing (audit §9.4).
     for (const f of parsed.files) {
       const tc = f.testCases;
       if (tc.unknown > 0) missing.push(`tests: ${f.path} reports ${tc.unknown} unknown-status result(s)`);
       if (!['passed', 'failed', 'skipped', 'todo', 'pending'].includes(f.status)) {
         missing.push(`tests: ${f.path} file status '${f.status}' is not a recognized outcome`);
+      }
+      if (tc.total === 0) {
+        missing.push(`tests: ${f.path} executed zero test cases — an empty file proves nothing`);
       }
       const unexecuted = tc.skipped + tc.pending + tc.todo + tc.disabled;
       if (f.status !== 'passed' || tc.failed > 0 || tc.unknown > 0 || unexecuted > 0) {
@@ -583,11 +652,21 @@ function computeEvidence(opts = {}) {
     // summed per-file results; disagreement means the evidence is incoherent.
     const rep = testRun.json;
     if (rep && typeof rep === 'object') {
+      // Required aggregate counters must be present and finite (audit §9.4):
+      // missing or nonfinite counters are incoherent evidence, not green.
+      for (const key of ['numTotalTests', 'numPassedTests', 'numFailedTests']) {
+        if (!Number.isFinite(rep[key])) {
+          missing.push(`tests: reporter aggregate ${key} is missing or nonfinite — evidence incoherent`);
+        }
+      }
       if (Number.isFinite(rep.numTotalTests) && rep.numTotalTests !== parsed.totals.testCasesTotal) {
         missing.push(`tests: reporter numTotalTests (${rep.numTotalTests}) disagrees with summed file results (${parsed.totals.testCasesTotal})`);
       }
       if (Number.isFinite(rep.numFailedTests) && rep.numFailedTests !== parsed.totals.testCasesFailed) {
         missing.push(`tests: reporter numFailedTests (${rep.numFailedTests}) disagrees with summed file results (${parsed.totals.testCasesFailed})`);
+      }
+      if (Number.isFinite(rep.numPassedTests) && rep.numPassedTests !== parsed.totals.testCasesPassed) {
+        missing.push(`tests: reporter numPassedTests (${rep.numPassedTests}) disagrees with summed file results (${parsed.totals.testCasesPassed})`);
       }
       // numTotalTestSuites counts describe-blocks (including nested/file-level),
       // not files — incomparable with filesTotal. The honest check is a sanity
@@ -633,12 +712,8 @@ function computeEvidence(opts = {}) {
   }
 
   // --- VV suite evidence: source inventory x executed results -----------------
-  let benchSource = null;
-  try {
-    benchSource = readFile('src/sim/vv-benchmarks.test.ts');
-  } catch {
-    benchSource = null;
-  }
+  // All source strings below are the PRE-execution captures (audit §9.5).
+  const benchSource = benchSourcePre;
   if (!benchSource) missing.push('evidence: src/sim/vv-benchmarks.test.ts missing or unreadable');
   const sourceSuites = extractSourceSuites(benchSource ?? '');
   const suiteSlices = extractVvSuiteSlices(benchSource ?? '');
@@ -662,7 +737,7 @@ function computeEvidence(opts = {}) {
       tolerancesDeclared: rec ? tolerances.bounds : null,
       decimalDigitsDeclared: rec ? tolerances.digits : null,
       observedValues: rec ? rec.observedValues : [],
-      measuredNote: 'durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages',
+      measuredNote: 'durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared',
       failures: rec ? rec.failures : [],
       gateEvidence: Object.keys(GATE_REQUIREMENTS).filter((g) => GATE_REQUIREMENTS[g].includes(s.id)),
     };
@@ -670,8 +745,7 @@ function computeEvidence(opts = {}) {
 
   // --- legacy-suite completeness: fixed mandatory inventory -------------------
   // Source-relative completeness lets a deleted suite pass silently. Every
-  // REQUIRED_VV_IDS entry must exist in source AND execute green; any extra
-  // source suite is held to the same bar.
+  // REQUIRED_VV_IDS entry must exist in source AND execute green.
   for (const id of REQUIRED_VV_IDS) {
     if (!sourceSuites.includes(id)) {
       missing.push(`evidence: mandatory VV-${id} missing from source — silent suite retirement fails certification`);
@@ -711,13 +785,13 @@ function computeEvidence(opts = {}) {
 
     const requiredFiles = GATE_FILE_REQUIREMENTS[gate] ?? [];
     for (const rel of requiredFiles) {
-      let sourceCount = 0;
-      try {
-        sourceCount = countSourceAssertions(readFile(rel));
-      } catch {
+      // Counted from the PRE-execution capture (audit §9.5), never a post run.
+      const preSource = gateSourcesPre[rel] ?? null;
+      if (preSource === null) {
         reasons.push(`required acceptance file ${rel} missing or unreadable`);
         continue;
       }
+      const sourceCount = countSourceAssertions(preSource);
       const suffix = `/${rel}`;
       const file = parsed?.files.find((entry) => entry.path === rel || entry.path.endsWith(suffix));
       if (!file) {
@@ -839,8 +913,8 @@ module.exports = {
   parseVitestJson,
   vvSuiteRecordsFromJson,
   measureInstalledDeps,
+  satisfiesDeclaredRange,
   verifyArtifactSelfHash,
-  sha256Hex,
 };
 
 if (require.main === module) {

@@ -17,6 +17,7 @@ import {
   getMotorThrustAt,
   getMotorImpulseTotal,
   integrateThrustCurve,
+  validateMotorSpec,
 } from './motorDatabase';
 
 const MOTORS = Object.values(CERTIFIED_MOTORS);
@@ -114,5 +115,33 @@ describe('motor depletion: exact identities for every certified motor', () => {
       const spread = Math.abs(integrateThrustCurve(m, m.burnTime) - m.totalImpulse) / m.totalImpulse;
       expect(spread).toBeLessThanOrEqual(0.12);
     }
+  });
+});
+
+describe('motor record validation: fail-closed generic handling (Round-17 audit §5.2)', () => {
+  it('accepts every bundled certified motor', () => {
+    for (const m of MOTORS) {
+      expect(() => validateMotorSpec(m)).not.toThrow();
+    }
+  });
+
+  it('rejects degenerate and inconsistent records instead of degrading silently', () => {
+    const base = CERTIFIED_MOTORS.estes_c6;
+    expect(() => validateMotorSpec({ ...base, thrustCurve: [] })).toThrow(/at least two points/);
+    expect(() => validateMotorSpec({ ...base, thrustCurve: [{ time: 0, thrust: 0 }] })).toThrow(/at least two points/);
+    const unordered = [...base.thrustCurve];
+    unordered[2] = { ...unordered[2], time: unordered[1].time };
+    expect(() => validateMotorSpec({ ...base, thrustCurve: unordered })).toThrow(/strictly increase/);
+    const negThrust = base.thrustCurve.map((p, i) => (i === 3 ? { ...p, thrust: -1 } : p));
+    expect(() => validateMotorSpec({ ...base, thrustCurve: negThrust })).toThrow(/nonnegative thrust/);
+    const hotEnd = base.thrustCurve.map((p, i, arr) => (i === arr.length - 1 ? { ...p, thrust: 0.5 } : p));
+    expect(() => validateMotorSpec({ ...base, thrustCurve: hotEnd })).toThrow(/endpoints must be zero/);
+    expect(() => validateMotorSpec({ ...base, totalMass: base.dryMass })).toThrow(/identity violated/);
+    expect(() => validateMotorSpec({ ...base, burnTime: -2 })).toThrow(/burnTime/);
+    // Degenerate curves throw at use, never degrade to a jump:
+    // an empty curve with a positive nameplate still cannot deplete.
+    const empty = { ...base, thrustCurve: [] as { time: number; thrust: number }[] };
+    expect(() => getMotorImpulseTotal(empty)).toThrow(/no finite positive impulse/);
+    expect(() => getMotorMassAt(empty, 0.5)).toThrow(/no finite positive impulse/);
   });
 });

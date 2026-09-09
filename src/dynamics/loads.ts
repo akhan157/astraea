@@ -23,7 +23,7 @@
  *  - damping moments vanish at zero airspeed (no Math.max(1, V) floor).
  */
 
-import { RocketVehicle, ParachuteComponent } from '../core/types';
+import { RocketVehicle, ParachuteComponent, BodyTubeComponent } from '../core/types';
 import { MotorSpec, getMotorThrustAt, getMotorMassAt, getMotorMassFlowAt } from '../propulsion/motorDatabase';
 import { computeAerodynamicCurves } from '../aero/transonicAero';
 import { computeRocketStability } from '../aero/barrowman';
@@ -32,6 +32,7 @@ import { aggregateVehicleMass } from '../core/mass';
 import {
   Vec3,
   Loads,
+  StageValidity,
   quaternionToMatrix,
   rotateBodyToWorld,
   rotateWorldToBody,
@@ -113,7 +114,7 @@ export interface PreparedVehicle {
   aeroCoasting: ReturnType<typeof computeAerodynamicCurves>;
 }
 
-export function prepareVehicle(vehicle: RocketVehicle): PreparedVehicle {
+export function prepareVehicle(vehicle: RocketVehicle, motor?: MotorSpec): PreparedVehicle {
   const massRollup = aggregateVehicleMass(vehicle);
   const totalLength = massRollup.totalLength;
   const refDiameter = massRollup.referenceDiameter;
@@ -136,7 +137,7 @@ export function prepareVehicle(vehicle: RocketVehicle): PreparedVehicle {
     Iyy_dry,
     baselineCg: massRollup.cg,
     cna0: computeRocketStability(vehicle).totalCNa,
-    motorAftStationFromNose: resolveMotorCentroid(vehicle, massRollup),
+    motorAftStationFromNose: resolveMotorCentroid(vehicle, massRollup, motor),
     drogue: parachutes[0],
     mainChute: parachutes.length > 1 ? parachutes[1] : parachutes[0],
     aeroPowered: computeAerodynamicCurves(vehicle, true, 25),
@@ -145,23 +146,45 @@ export function prepareVehicle(vehicle: RocketVehicle): PreparedVehicle {
 }
 
 /**
- * Motor aft-end station from the nose (m). A body tube flagged
- * `isMotorMount` seats the motor at its aft end; without an assigned mount
- * the motor is assumed at the vehicle aft end (documented fallback).
+ * Motor aft-end station from the nose (m) with explicit hardware assignment
+ * (audit §5.5). Exactly one flagged motor-mount tube may exist: zero mounts
+ * select the documented vehicle-aft-end fallback; two or more throw
+ * (ambiguity). With a motor supplied, bore fit (motor diameter within mount
+ * inner diameter) and retention (at least half the motor length overlaps the
+ * mount) are enforced — incompatible hardware throws instead of simulating
+ * an impossible placement.
  */
 function resolveMotorCentroid(
   vehicle: RocketVehicle,
-  massRollup: { totalLength: number; components: { id: string; axialStart: number; length: number }[] }
+  massRollup: { totalLength: number; components: { id: string; axialStart: number; length: number }[] },
+  motor?: MotorSpec
 ): number {
-  const mount = vehicle.components.find((c) => c.type === 'bodytube' && c.isMotorMount);
-  if (mount) {
-    const rec = massRollup.components.find((r) => r.id === mount.id);
-    if (rec) {
-      const mountEnd = rec.axialStart + rec.length;
-      return mountEnd; // refined with motor length at the call site
+  const mounts = vehicle.components.filter((c): c is BodyTubeComponent => c.type === 'bodytube' && c.isMotorMount === true);
+  if (mounts.length > 1) {
+    throw new Error(
+      `prepareVehicle: ${mounts.length} motor mounts flagged (${mounts.map((m) => m.id).join(', ')}) — assignment must be unique`
+    );
+  }
+  const mount = mounts[0];
+  if (!mount) return massRollup.totalLength; // aft-end fallback (refined at the call site)
+  const rec = massRollup.components.find((r) => r.id === mount.id);
+  if (!rec) throw new Error(`prepareVehicle: mount '${mount.id}' has no mass-rollup record`);
+  const mountEnd = rec.axialStart + rec.length;
+  if (motor) {
+    const bore = mount.innerDiameter > 0 ? mount.innerDiameter : mount.outerDiameter;
+    if (!(motor.diameter <= bore)) {
+      throw new Error(
+        `prepareVehicle: motor diameter ${motor.diameter} m exceeds mount '${mount.id}' bore ${bore} m`
+      );
+    }
+    const overlap = Math.min(motor.length, rec.length);
+    if (!(overlap >= 0.5 * motor.length)) {
+      throw new Error(
+        `prepareVehicle: motor length ${motor.length} m is not retained by mount '${mount.id}' (overlap ${overlap} m < 50%)`
+      );
     }
   }
-  return massRollup.totalLength; // aft-end fallback (refined at the call site)
+  return mountEnd; // refined with motor length at the call site
 }
 
 function aeroAtMach(
@@ -189,6 +212,12 @@ function aeroAtMach(
   return { totalCd: last.totalCd, cp: last.cp };
 }
 
+/** Load-level validity classification (master spec §9.3.1 flow validity).
+ *  `VALID`: aero table Mach ∈ [0,4]; `EXTRAPOLATED`: 4 < M ≤ 6 (table clamped
+ *  at the supersonic endpoint); `UNSUPPORTED`: M > 6. An out-of-domain load is
+ *  never silently claimed nominal. This is the kernel StageValidity union:
+ *  the adaptive integrator folds per-step reports transactionally. */
+export type LoadValidity = StageValidity;
 /**
  * Vehicle/Mach-dependent normal-force slope (audit §3.6): the Barrowman
  * whole-vehicle CNα is the subsonic slender-body value. Above Mach 1 the fin
@@ -200,12 +229,6 @@ function normalSlopeAtMach(mach: number, cna0: number): number {
   if (!Number.isFinite(mach) || mach <= 1.0) return cna0;
   return cna0 * Math.min(1.0, 1.0 / Math.sqrt(mach * mach - 1.0));
 }
-
-/** Load-level validity classification (master spec §9.3.1 flow validity).
- *  `VALID`: aero table Mach ∈ [0,4]; `EXTRAPOLATED`: 4 < M ≤ 6 (table clamped
- *  at the supersonic endpoint); `UNSUPPORTED`: M > 6. An out-of-domain load is
- *  never silently claimed nominal. */
-export type LoadValidity = 'VALID' | 'EXTRAPOLATED' | 'UNSUPPORTED';
 
 export interface FlightLoadsDetail extends Loads {
   /** Gate-3 variable-inertia derivative; the production assembly always
@@ -243,6 +266,15 @@ export function computeFlightLoads(
   cfg: LoadsAssemblyConfig,
   pv: PreparedVehicle
 ): FlightLoadsDetail {
+  if (!Number.isFinite(tStage)) {
+    throw new Error('loads assembly: stage time must be finite');
+  }
+  // Discrete configuration inputs fail closed by throwing (audit §6.3): a NaN
+  // fin cant would otherwise corrupt the roll moment under a VALID flag.
+  // Trajectory-state inputs fail closed through the validity classifier.
+  if (!Number.isFinite(cfg.finCantRad) || !Number.isFinite(cfg.windSpeedSurface) || !Number.isFinite(cfg.windAzimuthDeg)) {
+    throw new Error('loads assembly: wind/cant configuration must be finite');
+  }
   const altASL = cfg.launchAltitudeASL + st.r.z;
   const atmos = getAtmosphereAt(altASL);
   const powered = tStage < cfg.motor.burnTime;
@@ -264,7 +296,12 @@ export function computeFlightLoads(
   const mass = mDry + mMot;
   const mRad = cfg.motor.diameter / 2;
   const mLen = cfg.motor.length;
-  const xMot = Math.max(0.0, pv.motorAftStationFromNose - mLen / 2); // motor centroid: half a motor length forward of the mount/vehicle aft end
+  // Motor centroid half a motor length forward of the mount/vehicle aft end.
+  // A negative station is an impossible placement, never a clamped zero.
+  const xMot = pv.motorAftStationFromNose - mLen / 2;
+  if (!(xMot >= 0)) {
+    throw new Error(`loads assembly: motor centroid station ${xMot} m is impossible (mount station ${pv.motorAftStationFromNose} m, motor length ${mLen} m)`);
+  }
   const xDry = pv.baselineCg;                            // dry vehicle CG, m from nose
   const xC = (mDry * xDry + mMot * xMot) / mass;         // instantaneous combined CG
   const dDry = xDry - xC; // signed axial offsets -> combined CG
@@ -352,7 +389,7 @@ export function computeFlightLoads(
     Number.isFinite(st.w.x) && Number.isFinite(st.w.y) && Number.isFinite(st.w.z) &&
     Number.isFinite(st.q.w) && Number.isFinite(st.q.x) && Number.isFinite(st.q.y) && Number.isFinite(st.q.z);
   let loadValidity: LoadValidity =
-    !statesFinite || !Number.isFinite(mach) || !Number.isFinite(incidenceForValidity) || !Number.isFinite(airspeed)
+    !statesFinite || !Number.isFinite(cfg.launchAltitudeASL) || !Number.isFinite(mach) || !Number.isFinite(incidenceForValidity) || !Number.isFinite(airspeed)
       ? 'UNSUPPORTED'
       : mach > 6.0 || incidenceForValidity > 30.0
         ? 'UNSUPPORTED'

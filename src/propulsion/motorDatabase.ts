@@ -157,6 +157,60 @@ export const CERTIFIED_MOTORS: Record<string, MotorSpec> = {
 };
 
 /**
+ * Fail-closed motor record validation (audit §5.2/§5.4): ordered finite
+ * times from ignition, finite nonnegative thrust, zero thrust endpoints
+ * (flow continuity), wet/dry/propellant identity, and positive geometry.
+ * Invalid records throw — depletion never silently degrades to a
+ * time-fraction fallback or a discontinuous jump.
+ */
+export function validateMotorSpec(motor: MotorSpec): void {
+  const what = motor && (motor.designation || motor.id) ? `motor '${motor.designation || motor.id}'` : 'motor';
+  if (!motor || typeof motor !== 'object') throw new Error(`motor validation: ${what} is not a record`);
+  const pos = (v: number, name: string): void => {
+    if (!Number.isFinite(v) || v <= 0) throw new Error(`motor validation: ${what} ${name} must be finite and positive (got ${v})`);
+  };
+  const nonNeg = (v: number, name: string): void => {
+    if (!Number.isFinite(v) || v < 0) throw new Error(`motor validation: ${what} ${name} must be finite and nonnegative (got ${v})`);
+  };
+  pos(motor.burnTime, 'burnTime');
+  pos(motor.propellantMass, 'propellantMass');
+  pos(motor.diameter, 'diameter');
+  pos(motor.length, 'length');
+  nonNeg(motor.dryMass, 'dryMass');
+  nonNeg(motor.totalMass, 'totalMass');
+  nonNeg(motor.totalImpulse, 'totalImpulse');
+  const wetErr = Math.abs(motor.totalMass - (motor.dryMass + motor.propellantMass));
+  if (wetErr > 1e-9 * Math.max(1e-12, motor.totalMass)) {
+    throw new Error(`motor validation: ${what} wet/dry/propellant identity violated (total ${motor.totalMass} vs dry+prop ${motor.dryMass + motor.propellantMass})`);
+  }
+  const curve = motor.thrustCurve;
+  if (!Array.isArray(curve) || curve.length < 2) {
+    throw new Error(`motor validation: ${what} thrust curve needs at least two points`);
+  }
+  for (let i = 0; i < curve.length; i++) {
+    const p = curve[i];
+    if (!p || !Number.isFinite(p.time) || !Number.isFinite(p.thrust) || p.thrust < 0) {
+      throw new Error(`motor validation: ${what} thrust point ${i} must carry finite time and nonnegative thrust`);
+    }
+    if (i > 0 && !(p.time > curve[i - 1].time)) {
+      throw new Error(`motor validation: ${what} thrust times must strictly increase (point ${i})`);
+    }
+  }
+  if (curve[0].time !== 0) {
+    throw new Error(`motor validation: ${what} thrust curve must start at t=0`);
+  }
+  if (Math.abs(curve[curve.length - 1].time - motor.burnTime) > 1e-9 * Math.max(1, motor.burnTime)) {
+    throw new Error(`motor validation: ${what} thrust curve must end at burnTime`);
+  }
+  if (curve[0].thrust !== 0 || curve[curve.length - 1].thrust !== 0) {
+    throw new Error(`motor validation: ${what} thrust curve endpoints must be zero (mass-flow continuity)`);
+  }
+  if (!(integrateThrustCurve(motor, motor.burnTime) > 0)) {
+    throw new Error(`motor validation: ${what} thrust curve delivers no impulse`);
+  }
+}
+
+/**
  * Returns instantaneous motor thrust at time t via linear interpolation
  */
 export function getMotorThrustAt(motor: MotorSpec, t: number): number {
@@ -182,19 +236,18 @@ export function getMotorThrustAt(motor: MotorSpec, t: number): number {
 
 /**
  * Authoritative total impulse (N*s) for the depletion law: the trapezoidal
- * integral of the supplied thrust curve (Round-16 policy). The certified
- * nameplate totalImpulse is retained for display and data-quality
- * cross-checks, but depletion MUST integrate the curve it differentiates:
- * using the nameplate as the denominator saturates early (C6) or jumps at
- * burnout (all others), while the flow below would not differentiate the
- * implemented mass function. Falls back to the nameplate only when the curve
- * is degenerate (fewer than two points).
+ * integral of the supplied thrust curve. The certified nameplate totalImpulse
+ * is retained for display and data-quality cross-checks, but depletion MUST
+ * integrate the curve it differentiates. Degenerate curves throw — validated
+ * motors (validateMotorSpec) always carry a positive integral, so generic
+ * records cannot silently degrade to a discontinuous law (audit §5.2).
  */
 export function getMotorImpulseTotal(motor: MotorSpec): number {
   const curveIntegral = integrateThrustCurve(motor, motor.burnTime);
-  if (Number.isFinite(curveIntegral) && curveIntegral > 0) return curveIntegral;
-  if (Number.isFinite(motor.totalImpulse) && motor.totalImpulse > 0) return motor.totalImpulse;
-  return 0;
+  if (!Number.isFinite(curveIntegral) || curveIntegral <= 0) {
+    throw new Error('motor depletion: thrust curve delivers no finite positive impulse — validate the motor record');
+  }
+  return curveIntegral;
 }
 
 /**
@@ -228,10 +281,8 @@ export function integrateThrustCurve(motor: MotorSpec, t: number): number {
  */
 export function getMotorMassFlowAt(motor: MotorSpec, t: number): number {
   if (!(t >= 0) || t >= motor.burnTime) return 0;
+  // getMotorImpulseTotal throws on degenerate curves: no silent linear rate.
   const total = getMotorImpulseTotal(motor);
-  if (!Number.isFinite(total) || total <= 0) {
-    return -motor.propellantMass / Math.max(1e-12, motor.burnTime);
-  }
   return -motor.propellantMass * getMotorThrustAt(motor, t) / total;
 }
 
@@ -239,28 +290,20 @@ export function getMotorMassFlowAt(motor: MotorSpec, t: number): number {
  * Current motor mass and propellant remaining at time t (impulse-
  * proportional depletion on the curve integral: m_prop(t) = m_prop,total *
  * (1 - I(t)/I_curve)). Because I(BURN) == I_curve by construction, depletion
- * reaches exactly zero at burnout with no saturation clamp and no mass jump;
- * wet/dry/propellant identities hold at every query time.
+ * reaches exactly zero at burnout; the min/max guard is provably inactive
+ * for validated curves (delivered/total stays in [0, 1]) and exists only
+ * against floating-point overshoot at the boundary.
  */
 export function getMotorMassAt(motor: MotorSpec, t: number): { currentMass: number; propellantRemaining: number } {
   if (t <= 0) {
     return { currentMass: motor.totalMass, propellantRemaining: motor.propellantMass };
   }
 
-  if (t >= motor.burnTime) {
-    return { currentMass: motor.dryMass, propellantRemaining: 0 };
-  }
-
   const total = getMotorImpulseTotal(motor);
-  let propellantRemaining: number;
-  if (Number.isFinite(total) && total > 0) {
-    const delivered = integrateThrustCurve(motor, t);
-    propellantRemaining = motor.propellantMass * Math.min(1, Math.max(0, 1 - delivered / total));
-  } else {
-    // No authoritative impulse: linear time fraction (documented fallback).
-    const burnFraction = Math.min(1.0, t / motor.burnTime);
-    propellantRemaining = motor.propellantMass * (1.0 - burnFraction);
-  }
+  // Curve-authoritative by construction: I(BURN) == total, so the interior
+  // fraction reaches exactly zero at burnout with no clamp engagement.
+  const delivered = integrateThrustCurve(motor, t);
+  const propellantRemaining = motor.propellantMass * Math.min(1, Math.max(0, 1 - delivered / total));
   const currentMass = motor.dryMass + propellantRemaining;
 
   return { currentMass, propellantRemaining };

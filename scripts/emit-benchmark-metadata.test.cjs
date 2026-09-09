@@ -151,7 +151,12 @@ function baseFixture(over = {}) {
     'src/dynamics/loads.repair.test.ts': "describe('loads acceptance', () => { it('covers combined CG and load validity', () => {}); });\n",
     'src/sim/event-restart.test.ts': "describe('event acceptance', () => { it('covers root restart and ordering', () => {}); });\n",
     'src/sim/sixDofSimulator.test.ts': "describe('production contracts', () => { it('aligns touchdown at the root', () => {}); });\n",
+    'src/propulsion/motorDatabase.test.ts': "describe('motor depletion', () => { it('burns by impulse', () => {}); });\n",
     'scripts/emit-benchmark-metadata.cjs': 'module.exports = {};\n',
+    'scripts/emit-benchmark-metadata.test.cjs': 'module.exports = {};\n',
+    'src/core/mass.test.ts': "describe('mass fidelity', () => { it('places the cone centroid', () => {}); });\n",
+    'src/components/FlightSimulationTab.test.tsx': "describe('safety presentation', () => { it('renders badges', () => {}); });\n",
+    'src/aero/transonicAero.test.ts': "describe('aero curves', () => { it('tabulates drag', () => {}); });\n",
     'vite.config.ts': 'export default {};\n',
     'tsconfig.json': '{}',
     ...over,
@@ -190,11 +195,17 @@ function makeVitestJson({
     });
   }
 
+  // NOTE: motorDatabase/mass/FlightSimulationTab suites are gate-required;
+  // transonicAero is collected-but-ungated (exercises the all-files rule).
   const acceptanceFiles = [
     'src/dynamics/rigidBody.adaptive.test.ts',
     'src/dynamics/loads.repair.test.ts',
     'src/sim/event-restart.test.ts',
     'src/sim/sixDofSimulator.test.ts',
+    'src/propulsion/motorDatabase.test.ts',
+    'src/core/mass.test.ts',
+    'src/components/FlightSimulationTab.test.tsx',
+    'src/aero/transonicAero.test.ts',
   ];
   const fileResults = acceptanceFiles
     .filter((rel) => !omitFile.includes(rel))
@@ -524,13 +535,13 @@ t('vitest per-file totals parsed from assertionResults, not f.assertions', () =>
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
-  assert.equal(parsed.files.length, 5);
+  assert.equal(parsed.files.length, 9);
   const vvFile = parsed.files.find((file) => file.file === 'vv-benchmarks.test.ts');
   assert.equal(vvFile.testCases.total, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.passed, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.failed, 0);
   assert.equal(vvFile.testCases.unknown, 0);
-  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 4);
+  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 8);
 });
 
 t('vitest JSON unparseable => certification fails', () => {
@@ -664,13 +675,69 @@ t('duplicate case identities fail certification', () => {
 });
 
 t('non-required file that did not cleanly pass fails certification', () => {
+  // transonicAero.test.ts is collected but bound to no gate: the all-files
+  // rule (not a gate requirement) must reject its unclean pass.
   const root = baseFixture();
   const json = makeVitestJson();
-  json.testResults[1].status = 'failed';
-  json.testResults[1].message = 'unhandled error with zero failed cases';
+  const target = json.testResults.find((r) => r.name.endsWith('transonicAero.test.ts'));
+  assert.ok(target, 'fixture must collect the ungated file');
+  target.status = 'failed';
+  target.message = 'unhandled error with zero failed cases';
   const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
   assert.equal(ok, false);
   assert.ok(missing.some((m) => m.includes('did not cleanly pass')), `missing: ${missing}`);
+});
+
+t('executed file with zero cases proves nothing', () => {
+  const root = baseFixture();
+  const json = makeVitestJson();
+  const target = json.testResults.find((r) => r.name.endsWith('transonicAero.test.ts'));
+  assert.ok(target, 'fixture must collect the ungated file');
+  target.assertionResults = [];
+  target.status = 'passed';
+  json.numTotalTests -= 1;
+  json.numPassedTests -= 1;
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('zero test cases')), `missing: ${missing}`);
+});
+
+t('missing aggregate counter fails certification', () => {
+  const root = baseFixture();
+  const json = makeVitestJson();
+  delete json.numFailedTests;
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('numFailedTests') && m.includes('missing or nonfinite')), `missing: ${missing}`);
+});
+
+t('installed version violating its declared range fails certification', () => {
+  const root = baseFixture({
+    'node_modules/three/package.json': JSON.stringify({ name: 'three', version: '0.100.0' }),
+  });
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('three@0.100.0') && m.includes('does not satisfy')), `missing: ${missing}`);
+});
+
+t('new acceptance suites are required and hashed', () => {
+  const root = baseFixture();
+  const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
+  assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
+  for (const rel of [
+    'src/propulsion/motorDatabase.test.ts',
+    'src/core/mass.test.ts',
+    'src/components/FlightSimulationTab.test.tsx',
+    'scripts/emit-benchmark-metadata.test.cjs',
+  ]) {
+    assert.match(evidence.hashes.files[rel], /^[0-9a-f]{64}$/, `${rel} must be hashed`);
+  }
+  // Dropping a required new suite fails its gate.
+  const dropped = computeEvidence(
+    ctx(root, { vitestJson: makeVitestJson({ omitFile: ['src/core/mass.test.ts'] }) })
+  );
+  assert.equal(dropped.passed, false);
+  assert.equal(dropped.evidence.verification.gateCoverage.GATE_1R_LOADS_ASSEMBLY, false);
 });
 
 // ---------------------------------------------------------------------------

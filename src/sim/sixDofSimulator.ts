@@ -17,10 +17,10 @@
  */
 
 import { RocketVehicle } from '../core/types';
-import { MotorSpec, getMotorMassAt } from '../propulsion/motorDatabase';
+import { MotorSpec, getMotorMassAt, validateMotorSpec } from '../propulsion/motorDatabase';
 import { aggregateVehicleMass } from '../core/mass';
 import { getAtmosphereAt } from './flightSimulator';
-import { integrateRigidAdaptive, denseOutputAt, normalizeQuaternion as normQ, simOmegaToKernel, kernelOmegaToSim, Vec3, LoadsAt, RigidState } from '../dynamics/rigidBody';
+import { integrateRigidAdaptive, denseOutputAt, normalizeQuaternion as normQ, simOmegaToKernel, kernelOmegaToSim, Vec3, LoadsAt, RigidState, StageValidity } from '../dynamics/rigidBody';
 import { detectEvents, EventState, NEWTON_EVENT_STATE, AstraeaEvent, EventSamplePair } from '../dynamics/events';
 import { computeFlightLoads, prepareVehicle, StageKinematicState, FlightLoadsDetail } from '../dynamics/loads';
 
@@ -40,20 +40,37 @@ export interface Quaternion {
 export interface SixDofTelemetryPoint {
   time: number;             // seconds
   position: Vector3D;       // East, North, Up (m)
-  velocity: Vector3D;       // m/s in ENU navigation frame
-  speed: number;            // scalar magnitude m/s
+  velocity: Vector3D;       // navigation-frame GROUND velocity (m/s, includes wind advection)
+  speed: number;            // AIRSPEED magnitude, |v_air| (m/s) — not |velocity|
   mach: number;
   altitude: number;         // z coordinate (m AGL)
   acceleration: number;     // scalar m/s^2
   angularVelocity: { p: number; q: number; r: number }; // roll, pitch, yaw rates (rad/s)
   angleOfAttackDeg: number; // total incidence angle (degrees)
-  pitchDeg: number;         // pitch attitude (degrees)
-  rollDeg: number;          // roll attitude (degrees)
-  yawDeg: number;           // yaw attitude (degrees)
+  q: { w: number; x: number; y: number; z: number }; // canonical body-to-nav attitude (unit quaternion)
+  pitchDeg: number;         // pitch attitude (degrees, nonauthoritative Euler presentation)
+  rollDeg: number;          // roll attitude (degrees, nonauthoritative Euler presentation)
+  yawDeg: number;           // yaw attitude (degrees, nonauthoritative Euler presentation)
   drag: number;             // Newtons
   thrust: number;           // Newtons
   mass: number;             // kg
   dynamicPressure: number;  // Pa
+}
+// NOTE (audit §8/§10): nonterminal telemetry points are NONCANONICAL display
+// data (rounded scalars, presentation Euler angles). Canonical records are
+// the full-precision terminal point, the per-point unit quaternion `q`, and
+// the result-level metrics/duration/mass.
+
+/** Explicit model/datums manifest for a production run (audit §10). */
+export interface SixDofRunManifest {
+  frames: string;            // navigation/body frame and origin conventions
+  ground: string;            // terrain model
+  atmosphere: string;        // atmosphere model
+  depletion: string;         // propellant depletion law
+  railContact: string;       // rail constraint model
+  recovery: string;          // recovery model and declared simplifications
+  unsupportedHandling: string; // how out-of-domain segments are treated
+  unsupportedScope: string[];  // explicitly excluded capabilities
 }
 
 export interface SixDofEvent {
@@ -76,7 +93,7 @@ export interface SixDofSimulationResult {
   burnoutTime: number;
   railExitVelocity: number;       // m/s
   isRailExitSafe: boolean;        // >= 15 m/s
-  weathercockAngleDeg: number;    // turning angle into wind off rail
+  weathercockAngleDeg: number;    // total air-relative incidence at rail exit (deg) — not a measured turn into wind
   landingPosition: Vector3D;      // touchdown coordinates (m)
   landingDistance: number;        // total lateral drift from launch pad (m)
   landingVelocity: number;        // m/s
@@ -87,6 +104,7 @@ export interface SixDofSimulationResult {
   terminationReason: 'touchdown' | 'timeout'; // how the loop ended (throws propagate)
   touchdownNominal: boolean;      // touchdown sequenced after apogee (abnormal impact => false)
   unsupportedHandling: 'continue-and-mark-UNKNOWN'; // preview manifest: unsupported segments continue, validity UNKNOWN, safeties closed
+  runManifest: SixDofRunManifest; // explicit model/datums/scope manifest (audit §10)
   landingMass: number;            // actual retained mass at landing (kg)
   flightDuration: number;         // seconds
   validity: FlightValidity;       // contract §7 exclusive four-state
@@ -127,31 +145,29 @@ export function eventCrossedAtRoot(
 }
 
 /**
- * Root-order candidate selection (production event policy, Round-16 audit
- * §6.1): choose which candidate to serve from refined root times.
- * Prerequisite-free events (rail, burnout) compete by refined order; a
- * dependent transition is never served ahead of an earlier rail/burnout root.
- * Returns the index into `names` to serve explicitly.
+ * Root-order candidate selection (production event policy, Round-17 audit
+ * §7.6): general minimum over driver-assigned effective service times. The
+ * driver assigns: prerequisite-free events their refined root; fresh
+ * dependents max(refined, chord) (causal deferral); degenerate roots (chord
+ * at/behind the base) the base time; already-satisfied-at-base dependents
+ * +∞ (they define no root — they attach to chord ties served at a committed
+ * root, so a deferred MAIN can never outrun its own APOGEE). Minimum wins;
+ * exact ties break by FSM priority, then index.
  */
 export function selectNextCandidate(
   names: readonly AstraeaEvent[],
-  refinedTimes: readonly number[]
+  selTimes: readonly number[]
 ): number {
-  const isFree = (n: AstraeaEvent): boolean => n === 'RAIL_EXIT' || n === 'MOTOR_BURNOUT';
+  const PRIORITY: Record<AstraeaEvent, number> = {
+    NONE: 5, RAIL_EXIT: 0, MOTOR_BURNOUT: 1, APOGEE_DROGUE: 2, MAIN_DEPLOY: 3, TOUCHDOWN: 4,
+  };
   let best = 0;
-  let bestTime = refinedTimes[0];
+  let bestKey = selTimes[0];
   for (let i = 1; i < names.length; i++) {
-    if (!isFree(names[i])) continue;
-    if (refinedTimes[i] < bestTime - 1e-9) {
+    const key = selTimes[i];
+    if (key < bestKey - 1e-9 || (Math.abs(key - bestKey) <= 1e-9 && PRIORITY[names[i]] < PRIORITY[names[best]])) {
       best = i;
-      bestTime = refinedTimes[i];
-    }
-  }
-  if (!isFree(names[best])) {
-    // Dependent first candidate: yield to any earlier prerequisite-free root.
-    for (let i = 0; i < names.length; i++) {
-      if (!isFree(names[i])) continue;
-      if (refinedTimes[i] < bestTime - 1e-9) return i;
+      bestKey = key;
     }
   }
   return best;
@@ -254,27 +270,49 @@ export function simulate6DofFlight(
   motor: MotorSpec,
   options: SixDofOptions = {}
 ): SixDofSimulationResult {
-  const railLength = options.railLength ?? 3.0;
-  const railElevationDeg = Math.min(90, Math.max(70, options.railElevationDeg ?? 85.0));
-  const railAzimuthDeg = options.railAzimuthDeg ?? 0.0;
-  const launchAltitudeASL = options.launchAltitudeASL ?? 0.0;
-  const windSpeedSurface = options.windSpeedSurface ?? 3.0;
-  const windAzimuthDeg = options.windAzimuthDeg ?? 90.0; // East wind by default
-  const mainDeployAlt = options.mainDeployAltitudeAGL ?? 250.0;
-  const dt = options.timeStep ?? 0.01;
-  const finCantRad = ((options.finCantAngleDeg ?? 0.0) * Math.PI) / 180;
+  // Fail-closed entry validation (audit §6.3/Round-17): every discrete
+  // simulation input is validated BEFORE any fallback or clamp. The rail
+  // elevation domain [70°, 90°] is declared — out-of-domain values throw
+  // rather than clamping silently (infinite elevation previously became 90°).
+  validateMotorSpec(motor);
+  const finiteOpt = (v: number | undefined, fallback: number, name: string): number => {
+    const out = v ?? fallback;
+    if (!Number.isFinite(out)) throw new Error(`simulate6DofFlight: option ${name} must be finite (got ${v})`);
+    return out;
+  };
+  const railLength = finiteOpt(options.railLength, 3.0, 'railLength');
+  if (!(railLength > 0)) throw new Error(`simulate6DofFlight: railLength must be positive (got ${railLength})`);
+  const railElevationDeg = finiteOpt(options.railElevationDeg, 85.0, 'railElevationDeg');
+  if (railElevationDeg < 70 || railElevationDeg > 90) {
+    throw new Error(`simulate6DofFlight: railElevationDeg ${railElevationDeg}° is outside the declared launch-rail domain [70°, 90°]`);
+  }
+  const railAzimuthDeg = finiteOpt(options.railAzimuthDeg, 0.0, 'railAzimuthDeg');
+  const launchAltitudeASL = finiteOpt(options.launchAltitudeASL, 0.0, 'launchAltitudeASL');
+  const windSpeedSurface = finiteOpt(options.windSpeedSurface, 3.0, 'windSpeedSurface');
+  if (!(windSpeedSurface >= 0)) throw new Error(`simulate6DofFlight: windSpeedSurface must be nonnegative (got ${windSpeedSurface})`);
+  const windAzimuthDeg = finiteOpt(options.windAzimuthDeg, 90.0, 'windAzimuthDeg');
+  const mainDeployAlt = finiteOpt(options.mainDeployAltitudeAGL, 250.0, 'mainDeployAltitudeAGL');
+  if (!(mainDeployAlt > 0)) throw new Error(`simulate6DofFlight: mainDeployAltitudeAGL must be positive (got ${mainDeployAlt})`);
+  const dt = finiteOpt(options.timeStep, 0.01, 'timeStep');
+  if (!(dt > 0)) throw new Error(`simulate6DofFlight: timeStep must be positive (got ${dt})`);
+  const finCantRad = (finiteOpt(options.finCantAngleDeg, 0.0, 'finCantAngleDeg') * Math.PI) / 180;
 
-  // Mass & Geometry
+  // Mass & Geometry: exact dry mass (audit §5.5 — the 0.01 kg floor made
+  // terminal telemetry mass disagree with landingMass for light vehicles).
+  // aggregateVehicleMass and prepareVehicle throw on invalid geometry.
   const massRollup = aggregateVehicleMass(vehicle);
-  const vehicleDryMass = Math.max(0.01, massRollup.totalMass);
+  if (!(massRollup.totalMass > 0)) {
+    throw new Error(`simulate6DofFlight: vehicle dry mass must be positive (got ${massRollup.totalMass})`);
+  }
+  const vehicleDryMass = massRollup.totalMass;
 
   // Production loads assembly (NORMATIVE, Gate 1r): the inline duplicate was
   // moved to src/dynamics/loads.ts. prepareVehicle caches geometry; the loads
   // assembly below (loadsAtStage) delegates to the production computeFlightLoads.
-  const pv = prepareVehicle(vehicle);
+  const pv = prepareVehicle(vehicle, motor);
 
   // 1. Initial State along Launch Rail
-  // Rail unit vector in world coordinates (Up = +Y, East = +X, North = +Z)
+  // Rail unit vector in world coordinates (ENU with Up = +Z: East = +X, North = +Y)
   const elRad = (railElevationDeg * Math.PI) / 180;
   const azRad = (railAzimuthDeg * Math.PI) / 180;
 
@@ -376,29 +414,40 @@ export function simulate6DofFlight(
     finCantRad,
   };
 
-  // Worst active-model validity observed at ANY stage-RHS evaluation (not
-  // just macro samples): intermediate accepted-trajectory excursions into
-  // EXTRAPOLATED/UNSUPPORTED must propagate into the final result.
+  // Committed-segment validity (Round-17 transactional protocol, audit §7.2):
+  // the kernel reports worst validity per ACCEPTED step; the driver folds
+  // those reports — plus committed point evaluations (macro, touchdown,
+  // rail-exit) — into these flags. Rejected trials, speculative
+  // reconstructions, and superseded bracket suffixes never touch them: a
+  // transition at τ rolls flags back to the bracket-base snapshot and
+  // re-records exactly the committed [bT, τ] prefix.
   let sawUnsupportedLoad = false;
   let sawExtrapolatedLoad = false;
+  const recordCommitted = (vs: readonly StageValidity[]): void => {
+    for (const v of vs) {
+      if (v === 'UNSUPPORTED') sawUnsupportedLoad = true;
+      else if (v === 'EXTRAPOLATED') sawExtrapolatedLoad = true;
+    }
+  };
+  const recordSingle = (v: StageValidity): void => {
+    if (v === 'UNSUPPORTED') sawUnsupportedLoad = true;
+    else if (v === 'EXTRAPOLATED') sawExtrapolatedLoad = true;
+  };
 
   // Adaptive stage-RHS: recompute full loads at every Dormand-Prince stage
   // from that stage's state and time. Reads the LIVE event/recovery flags, so
   // a restart integrates the remainder under post-transition dynamics. Before
-  // rail exit the rail constraint is a UNILATERAL base contact (audit §6.4):
-  // thrust minus gravity and drag is projected SIGNED along the rail, so the
-  // vehicle may decelerate while sliding, and only the pad contact (s <= 0
-  // with inward velocity AND inward force) holds the state. Rail-bound stages
-  // scope incidence out of validity (contact dynamics carry transverse loads)
-  // but record every other classification: the exclusion is incidence-only
-  // (audit §5.3), captured on committed spans and discarded on speculative
-  // reconstructions.
+  // rail exit the rail constraint is a UNILATERAL base contact: thrust minus
+  // gravity and drag is projected SIGNED along the rail, so the vehicle may
+  // decelerate while sliding, and only the pad contact holds the state.
+  // Rail-bound stages scope incidence out of validity (contact dynamics carry
+  // transverse loads) but report every other classification. Reports are
+  // per-call data folded ONLY for committed spans (see recordCommitted) —
+  // this callback never mutates driver flags itself.
   const loadsAtStage: LoadsAt = (tStage, stStage) => {
     const railBound = !eventState.hasLeftRail;
     const flags = { drogueDeployed: isDrogueDeployed, mainDeployed: isMainDeployed };
     const L: FlightLoadsDetail = computeFlightLoads(tStage, stStage as StageKinematicState, flags, { ...flightCfg, railBound }, pv);
-    if (L.loadValidity === 'UNSUPPORTED') sawUnsupportedLoad = true;
-    else if (L.loadValidity === 'EXTRAPOLATED') sawExtrapolatedLoad = true;
     if (!eventState.hasLeftRail) {
       const railUnit: Vec3 = { x: railVector.x, y: railVector.y, z: railVector.z };
       const sAlong = stStage.r.x * railUnit.x + stStage.r.y * railUnit.y + stStage.r.z * railUnit.z;
@@ -434,6 +483,9 @@ export function simulate6DofFlight(
 
   // Normative production advance: adaptive DP5(4), with dense output for
   // event localization. Fixed RK4 remains only as a benchmark oracle.
+  // Every advance folds its ACCEPTED-step validity trace (transactional
+  // protocol): the caller decides commitment — speculative reconstructions
+  // either fold (committed spans) or drop the trace (refinement duplicates).
   const integrateState = (s: RigidState, t0: number, h: number) =>
     integrateRigidAdaptive(
       s,
@@ -444,19 +496,18 @@ export function simulate6DofFlight(
       Math.min(0.05, h),
       Math.min(0.005, h)
     );
-  const stepState = (s: RigidState, t0: number, h: number): RigidState =>
-    integrateState(s, t0, h).state;
-  // Speculative reconstruction that must NOT contaminate validity: stage
-  // evaluations on a duplicated pre-transition span are already recorded by
-  // the full-span advance that tiled the committed trajectory (audit §5.3).
-  // A throw aborts the simulation fail-closed, so plain restore suffices.
-  const stepStateWithRestore = (s: RigidState, t0: number, h: number): RigidState => {
-    const keepU = sawUnsupportedLoad;
-    const keepE = sawExtrapolatedLoad;
-    const out = stepState(s, t0, h);
-    sawUnsupportedLoad = keepU;
-    sawExtrapolatedLoad = keepE;
-    return out;
+  const stepState = (s: RigidState, t0: number, h: number): RigidState => {
+    const res = integrateState(s, t0, h);
+    recordCommitted(res.committedValidity);
+    return res.state;
+  };
+  // Committed prefix re-record (audit §7.2): after rolling flags back to a
+  // bracket-base snapshot, re-integrate exactly the committed [bT, τ] prefix
+  // so its accepted-step trace — and only it — is recorded. The returned
+  // state is discarded; the transition state comes from dense refinement.
+  const recordCommittedSpan = (s: RigidState, t0: number, h: number): void => {
+    if (!(h > 0)) return;
+    recordCommitted(integrateState(s, t0, h).committedValidity);
   };
 
   // Sim-state parts -> kernel rigid state (component conversion, no copies).
@@ -469,8 +520,10 @@ export function simulate6DofFlight(
 
   // Refine a crossing against the SAME accepted adaptive trajectory. Dense
   // output avoids repeated sub-integrations and preserves pre-transition
-  // dynamics exactly until the localized root. The reconstruction duplicates
-  // an already-recorded committed span, so its stage validity is discarded.
+  // dynamics exactly until the localized root. The reconstruction is
+  // speculative by construction: its accepted-step trace is dropped, never
+  // folded (transactional protocol). Returns the CROSSED side of the final
+  // bisection interval, so the root satisfies the predicate by construction.
   const refineCrossing = (
     base: RigidState,
     t0: number,
@@ -481,11 +534,7 @@ export function simulate6DofFlight(
     if (crossed(base)) {
       throw new Error('restart engine: crossing already satisfied at the bracket base');
     }
-    const keepU = sawUnsupportedLoad;
-    const keepE = sawExtrapolatedLoad;
     const path = integrateState(base, t0, t1 - t0);
-    sawUnsupportedLoad = keepU;
-    sawExtrapolatedLoad = keepE;
     if (!crossed(path.state)) {
       throw new Error('restart engine: crossing not bracketed by the segment end — detector mismatch');
     }
@@ -496,8 +545,7 @@ export function simulate6DofFlight(
       if (crossed(denseOutputAt(path.dense, mid))) b = mid;
       else a = mid;
     }
-    const time = (a + b) / 2;
-    return { time, state: denseOutputAt(path.dense, time) };
+    return { time: b, state: denseOutputAt(path.dense, b) };
   };
 
   // Crossing predicates per event, evaluated on reconstructed trajectory
@@ -545,7 +593,7 @@ export function simulate6DofFlight(
   // metrics (velocity/altitude at the crossing) and recovery flags are taken
   // from the root state — never from a tick that arrived one step late, and
   // never carrying a post-crossing overshoot.
-  const applyEvent = (name: AstraeaEvent, timeOf: number, root: RigidState, peak?: { time: number; alt: number }): void => {
+  const applyEvent = (name: AstraeaEvent, timeOf: number, root: RigidState, peak?: { time: number; alt: number }, peakPos?: { x: number; y: number; z: number } | null): void => {
     switch (name) {
       case 'RAIL_EXIT': {
         hasLeftRail = true;
@@ -555,7 +603,8 @@ export function simulate6DofFlight(
         // the reconstructed crossing state (rail-aligned body, wind
         // impinging). Crosswind at rail exit lies in the yaw plane, so the
         // pitch-only alphaDeg would miss it — total incidence covers any plane.
-        const exitLoads = computeFlightLoads(timeOf, root as StageKinematicState, { drogueDeployed: isDrogueDeployed, mainDeployed: isMainDeployed }, flightCfg, pv);
+        const exitLoads = computeFlightLoads(timeOf, root as StageKinematicState, { drogueDeployed: isDrogueDeployed, mainDeployed: isMainDeployed }, { ...flightCfg, railBound: !eventState.hasLeftRail }, pv);
+        recordSingle(exitLoads.loadValidity);
         weathercockAngleDeg = exitLoads.kinematics.alphaTotalDeg;
         events.push({
           time: timeOf,
@@ -590,7 +639,11 @@ export function simulate6DofFlight(
         const peakTime = peak?.time ?? timeOf;
         maxAltitude = peakAlt;
         apogeeTime = peakTime;
-        apogeePos = { x: root.r.x, y: root.r.y, z: peakAlt };
+        // Stashed peaks (peakPos null) report time/altitude only: mixing the
+        // activation horizontal coordinates with the peak altitude fabricated
+        // a position the vehicle never occupied (audit §7.3). The committed
+        // argmax backstop owns the honest position.
+        if (peakPos) apogeePos = { x: peakPos.x, y: peakPos.y, z: peakPos.z };
         isDrogueDeployed = true;
         // No rate reset: the drogue's drag acts through the loads assembly
         // at the next stage-RHS evaluation (momentum-conserving; the
@@ -671,73 +724,104 @@ export function simulate6DofFlight(
         altitude: eState.r.z,
         mainDeployAlt,
       });
-      // Independent abnormal-impact terminal path (audit §6.5): ground contact
-      // while descending terminates the flight even when apogee sequencing
-      // never completed. The FSM touchdown requires apogee; this path does
-      // not. It fires only when the FSM yields no touchdown of its own.
-      const groundContact =
+      // Validity snapshot at the bracket base: the full-span advance above
+      // recorded [bT, t], but any transition at τ < t supersedes the suffix.
+      // serve() rolls back to this snapshot and re-records exactly [bT, τ].
+      const segU = sawUnsupportedLoad;
+      const segE = sawExtrapolatedLoad;
+      let rolledBack = false;
+      // Stashed pre-transition peak (audit §7.3): the latched pending root
+      // lives in the CARRIED detector state, not in the fresh result whose
+      // pending fields the FSM clears on apogee emission.
+      const stashedPeakTime = bEvent.pendingApogeeTime;
+      const stashedPeakAlt = bEvent.pendingApogeeAlt;
+      // Independent abnormal-impact candidacy (audit §7.4): ground contact
+      // competes in the same earliest-root selection as every other
+      // transition — it is never subordinated to an empty FSM result.
+      const abnormalContact =
         !bEvent.touchedDown && bState.r.z > 0 && eState.r.z <= 0 &&
         !det.events.some((e) => e.name === 'TOUCHDOWN');
+      // Abnormal touchdown applies through explicit service with the same
+      // transactional validity handling as selected events.
+      const serveAbnormal = (): void => {
+        const ref = refineCrossing(bState, bT, t, crossedFor('TOUCHDOWN'));
+        sawUnsupportedLoad = segU;
+        sawExtrapolatedLoad = segE;
+        recordCommittedSpan(bState, bT, ref.time - bT);
+        eState = { ...ref.state, r: { x: ref.state.r.x, y: ref.state.r.y, z: 0 } };
+        applyEvent('TOUCHDOWN', ref.time, eState);
+        bEvent = applyFsmTransition(bEvent, 'TOUCHDOWN', det.state, ref.time);
+        touchdownNominal = bEvent.isApogeeReached;
+        eventState = { ...bEvent };
+        touchdownTau = ref.time;
+        earlyTerminated = true;
+      };
       if (det.events.length === 0) {
         // Commit detector bookkeeping through the resolved time even when no
-        // event fires (audit §6.1): a pre-gate apogee root stashed in
-        // det.state must survive event-free brackets, or burnout-time
-        // recovery has no crossing to recover.
+        // event fires: a pre-gate apogee root stashed in det.state must
+        // survive event-free brackets, or burnout-time recovery has no
+        // crossing to recover.
         bEvent = { ...det.state };
         eventState = { ...det.state }; // LIVE for the remainder's stage-RHS
-        if (groundContact) {
-          const ref = refineCrossing(bState, bT, t, crossedFor('TOUCHDOWN'));
-          eState = { ...ref.state, r: { x: ref.state.r.x, y: ref.state.r.y, z: 0 } };
-          applyEvent('TOUCHDOWN', ref.time, eState);
-          bEvent = applyFsmTransition(bEvent, 'TOUCHDOWN', det.state, ref.time);
-          touchdownNominal = bEvent.isApogeeReached;
-          eventState = { ...bEvent };
-          touchdownTau = ref.time;
-          earlyTerminated = true;
-          break;
+        if (abnormalContact) {
+          serveAbnormal();
         }
         break;
       }
-      // Root-order competition (audit §6.1/§6.2): refine every candidate root
-      // on the pre-transition trajectory, then serve them in refined order.
-      // Chord-time order can reverse against true root order (nonlinear rail
-      // root vs exact burnout boundary); dependent events keep FSM order
-      // among themselves so deferred same-instant ties retain sequencing.
-      const refinedTimes = det.events.map((evt) => {
-        if (evt.name === 'MOTOR_BURNOUT') return motor.burnTime;
-        if (evt.time <= bT) return evt.time;
-        if (crossedFor(evt.name)(bState)) return evt.time; // deferred tie: keep FSM order
-        return refineCrossing(bState, bT, t, crossedFor(evt.name)).time;
+      // --- resolve every candidate root on the pre-transition path ---
+      // Roots are computed ONCE and reused for selection AND service: service
+      // never re-refines (audit §7.5 — a satisfied-at-base predicate must not
+      // reach an unconditional bisection that throws).
+      type Root = { time: number; state: RigidState };
+      const candidates: { name: AstraeaEvent; time: number }[] = det.events.map((e) => ({ name: e.name, time: e.time }));
+      if (abnormalContact) {
+        const frac = (0 - bState.r.z) / (eState.r.z - bState.r.z);
+        candidates.push({ name: 'TOUCHDOWN', time: bT + frac * (t - bT) });
+      }
+      const isFreeEvent = (n: AstraeaEvent): boolean => n === 'RAIL_EXIT' || n === 'MOTOR_BURNOUT';
+      const roots: Root[] = candidates.map((evt) => {
+        if (evt.name === 'MOTOR_BURNOUT') {
+          // Time-based transition: the crossing time IS the burn boundary.
+          return { time: motor.burnTime, state: integrateState(bState, bT, motor.burnTime - bT).state };
+        }
+        if (evt.time <= bT || crossedFor(evt.name)(bState)) {
+          // Degenerate or already-satisfied at the bracket base: the
+          // transition is actionable at the base state (audit §7.5).
+          return { time: evt.time <= bT ? bT : evt.time, state: bState };
+        }
+        return refineCrossing(bState, bT, t, crossedFor(evt.name));
+      });
+      // Selection keys (audit §7.6): satisfied-at-base dependents define no
+      // root, so they wait at +∞ for chord ties served at a committed root;
+      // fresh dependents wait for max(refined, chord); degenerate roots and
+      // free events compete by their resolved times.
+      const selTimes = candidates.map((evt, i) => {
+        if (isFreeEvent(evt.name)) return roots[i].time;
+        if (evt.time <= bT) return bT;
+        if (crossedFor(evt.name)(bState)) return Number.POSITIVE_INFINITY;
+        return Math.max(roots[i].time, evt.time);
       });
       const serveIdx = selectNextCandidate(
-        det.events.map((e) => e.name),
-        refinedTimes
+        candidates.map((e) => e.name),
+        selTimes
       );
-      const cand = det.events[serveIdx];
+      const cand = candidates[serveIdx];
+      const tau = roots[serveIdx].time;
+      const root = roots[serveIdx].state;
 
-      // --- refine the selected crossing root on the pre-transition path ---
-      let tau: number;
-      let root: RigidState;
-      if (cand.time <= bT) {
-        // Degenerate root at/behind the bracket base: the transition applies
-        // to the bracket state directly (localizeCrossing returned t0).
-        tau = bT;
-        root = bState;
-      } else if (cand.name === 'MOTOR_BURNOUT') {
-        // Time-based transition: the crossing time IS the burn boundary.
-        tau = motor.burnTime;
-        root = stepStateWithRestore(bState, bT, tau - bT);
-      } else {
-        const ref = refineCrossing(bState, bT, t, crossedFor(cand.name));
-        tau = ref.time;
-        root = ref.state;
-      }
-
-      // --- apply the selected event EXPLICITLY at its root ---
+      // --- apply the selected event EXPLICITLY at its resolved root ---
       const serve = (evt: { name: AstraeaEvent; time: number }, atTau: number, atRoot: RigidState): void => {
         transitionsInBracket++;
         if (transitionsInBracket > 64) {
           throw new Error('restart engine: transition cap exceeded in one macro bracket — re-detection is not converging');
+        }
+        if (!rolledBack) {
+          // Roll back the superseded suffix, then re-record exactly the
+          // committed [bT, τ] prefix (transactional protocol, audit §7.2).
+          sawUnsupportedLoad = segU;
+          sawExtrapolatedLoad = segE;
+          recordCommittedSpan(bState, bT, atTau - bT);
+          rolledBack = true;
         }
         // Stashed pre-burnout roots precede the bracket base (evt.time <=
         // bT): the EVENT time is the FSM's localized root while the state is
@@ -745,16 +829,14 @@ export function simulate6DofFlight(
         const evTime = evt.time <= bT ? evt.time : atTau;
         if (evt.name === 'APOGEE_DROGUE') {
           // Physical apogee metrics are separate observables from recovery
-          // activation (audit §6.3): a freshly refined root IS the peak; a
-          // stashed root reports the FSM-localized peak time/altitude.
-          const fresh = evt.time > bT;
-          const peak = fresh
-            ? { time: atTau, alt: atRoot.r.z }
-            : {
-                time: det.state.pendingApogeeTime ?? evTime,
-                alt: det.state.pendingApogeeAlt ?? atRoot.r.z,
-              };
-          applyEvent(evt.name, evTime, atRoot, peak);
+          // activation (audit §7.3): a latched pending root at or behind the
+          // base is the true peak; otherwise the refined root is the peak.
+          // Stashed activations never move the honest argmax position.
+          const stashed = stashedPeakTime !== undefined && stashedPeakTime <= bT;
+          const peak = stashed
+            ? { time: stashedPeakTime, alt: stashedPeakAlt ?? atRoot.r.z }
+            : { time: atTau, alt: atRoot.r.z };
+          applyEvent(evt.name, evTime, atRoot, peak, stashed ? null : { x: atRoot.r.x, y: atRoot.r.y, z: atRoot.r.z });
         } else {
           applyEvent(evt.name, evTime, atRoot);
         }
@@ -762,13 +844,16 @@ export function simulate6DofFlight(
       };
       serve(cand, tau, root);
       // --- FSM-simultaneous ties reevaluated at the COMMITTED root ---
-      // Chord equality is not physical simultaneity (audit §6.2): each tied
-      // candidate applies only if its own crossing predicate holds at the
-      // root the selected event committed (burnout: root at/after boundary).
-      for (let i = 0; i < det.events.length; i++) {
+      // Chord equality is not physical simultaneity (audit §6.2/§7.6): each
+      // tied candidate applies only if its own crossing predicate holds at
+      // the committed root AND its FSM prerequisites are met there
+      // (burnout: root at/after boundary).
+      for (let i = 0; i < candidates.length; i++) {
         if (i === serveIdx) continue;
-        const evt = det.events[i];
+        const evt = candidates[i];
         if (Math.abs(evt.time - cand.time) > 1e-12) continue; // FSM-simultaneous only
+        if (evt.name === 'MAIN_DEPLOY' && !bEvent.isApogeeReached) continue;
+        if (evt.name === 'APOGEE_DROGUE' && !(bEvent.hasLeftRail && bEvent.hasBurnedOut)) continue;
         const holds =
           evt.name === 'MOTOR_BURNOUT'
             ? tau >= motor.burnTime - 1e-12
@@ -779,8 +864,8 @@ export function simulate6DofFlight(
       if (bEvent.touchedDown) {
         // Reconstructed ground state: altitude AT the crossing, no overshoot.
         // Touchdown time, final state, landing mass, telemetry, and flight
-        // duration align EXACTLY at the touchdown root (audit §6.3): the
-        // macro endpoint time must never stand in for the localized root.
+        // duration align EXACTLY at the touchdown root: the macro endpoint
+        // time must never stand in for the localized root.
         eState = { ...root, r: { x: root.r.x, y: root.r.y, z: 0 } };
         touchdownTau = tau;
         touchdownNominal = bEvent.isApogeeReached;
@@ -833,7 +918,8 @@ export function simulate6DofFlight(
     const macroDetail = computeFlightLoads(t, macroState, {
       drogueDeployed: isDrogueDeployed,
       mainDeployed: isMainDeployed,
-    }, flightCfg, pv);
+    }, { ...flightCfg, railBound: !eventState.hasLeftRail }, pv);
+    recordSingle(macroDetail.loadValidity);
 
     const airspeed = macroDetail.kinematics.airspeed;
     const mach = macroDetail.kinematics.mach;
@@ -904,10 +990,11 @@ export function simulate6DofFlight(
         velocity: { x: parseFloat(vel.x.toFixed(1)), y: parseFloat(vel.y.toFixed(1)), z: parseFloat(vel.z.toFixed(1)) },
         speed: parseFloat(airspeed.toFixed(1)),
         mach: parseFloat(mach.toFixed(3)),
-        altitude: parseFloat(pos.z.toFixed(1)),
         acceleration: parseFloat(scalarAccel.toFixed(1)),
         angularVelocity: { p: parseFloat(omega.p.toFixed(2)), q: parseFloat(omega.q.toFixed(2)), r: parseFloat(omega.r.toFixed(2)) },
         angleOfAttackDeg: parseFloat(totalAlphaDeg.toFixed(2)),
+        q: { w: q.w, x: q.x, y: q.y, z: q.z },
+        altitude: parseFloat(pos.z.toFixed(1)),
         pitchDeg: parseFloat(euler.pitchDeg.toFixed(1)),
         rollDeg: parseFloat(euler.rollDeg.toFixed(1)),
         yawDeg: parseFloat(euler.yawDeg.toFixed(1)),
@@ -966,8 +1053,7 @@ export function simulate6DofFlight(
       q: { w: q.w, x: q.x, y: q.y, z: q.z },
       w: { x: omega.q, y: omega.p, z: omega.r },
     }, { drogueDeployed: isDrogueDeployed, mainDeployed: isMainDeployed }, flightCfg, pv);
-    if (touchdownLoads.loadValidity === 'UNSUPPORTED') sawUnsupportedLoad = true;
-    else if (touchdownLoads.loadValidity === 'EXTRAPOLATED') sawExtrapolatedLoad = true;
+    recordSingle(touchdownLoads.loadValidity);
     const euler = quaternionToEulerDeg(q);
     const touchdownAccel = Math.sqrt(
       touchdownLoads.forceN.x * touchdownLoads.forceN.x +
@@ -983,6 +1069,7 @@ export function simulate6DofFlight(
       acceleration: touchdownAccel,
       angularVelocity: { p: omega.p, q: omega.q, r: omega.r },
       angleOfAttackDeg: touchdownLoads.kinematics.alphaTotalDeg,
+      q: { w: q.w, x: q.x, y: q.y, z: q.z },
       pitchDeg: euler.pitchDeg,
       rollDeg: euler.rollDeg,
       yawDeg: euler.yawDeg,
@@ -1042,6 +1129,23 @@ export function simulate6DofFlight(
     terminationReason: terminated ? 'touchdown' : 'timeout',
     touchdownNominal: terminated ? touchdownNominal : false,
     unsupportedHandling: 'continue-and-mark-UNKNOWN',
+    runManifest: {
+      frames: 'ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis',
+      ground: 'flat z=0 AGL touchdown plane',
+      atmosphere: 'ISA-1976 via getAtmosphereAt; power-law surface wind shear',
+      depletion: 'impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)',
+      railContact: 'projected unilateral base contact with signed along-rail sliding; moments locked on rail',
+      recovery: 'canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent',
+      unsupportedHandling: 'continue-and-mark-UNKNOWN: out-of-domain segments continue; validity UNKNOWN; all safety outputs closed',
+      unsupportedScope: [
+        'multi-stage separation and staging events',
+        'rail tip-off dynamics and rail friction',
+        'canopy inflation, attachment, and opening-shock loads',
+        'non-flat terrain and terrain-relative deployment',
+        'ensemble, uncertainty, and containment analysis',
+        'sensor, interoperability, and competition-rule engines',
+      ],
+    },
     landingMass,
     flightDuration: t,
     validity,
@@ -1051,3 +1155,4 @@ export function simulate6DofFlight(
     telemetry,
   };
 }
+

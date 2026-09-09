@@ -365,7 +365,20 @@ export interface AdaptiveResult {
   rejectedSteps: number;
   /** dense-output brackets, one per accepted step, in time order */
   dense: AdaptiveDenseStep[];
+  /** worst active-model validity per ACCEPTED step, in time order (audit
+   *  §7.2/Round-17: rejected-trial evaluations are discarded by
+   *  construction — only committed segments report). Entries mirror `dense`.
+   *  The loads callback reports via an optional `loadValidity` field;
+   *  callbacks without one contribute VALID. */
+  committedValidity: StageValidity[];
 }
+
+/**
+ * Active-model validity reported by a loads callback (Round-17 transactional
+ * protocol). Defined here so the kernel can fold it without importing the
+ * loads assembly; `LoadValidity` in loads.ts is this same union.
+ */
+export type StageValidity = 'VALID' | 'EXTRAPOLATED' | 'UNSUPPORTED';
 
 /** Bounded-rejection caps: a stalled step sequence fails closed promptly. */
 const MAX_ADAPT_CONSECUTIVE_REJECTIONS = 500;
@@ -419,6 +432,22 @@ function validateLoads(L: Loads): void {
   }
 }
 
+/** Read the optional active-model validity reported by a loads callback. */
+function stageValidityOf(L: Loads): StageValidity {
+  const v = (L as Partial<{ loadValidity: StageValidity }>).loadValidity;
+  return v === 'UNSUPPORTED' || v === 'EXTRAPOLATED' || v === 'VALID' ? v : 'VALID';
+}
+
+/** Worst of a trial's stage reports (UNSUPPORTED > EXTRAPOLATED > VALID). */
+function worstValidity(vs: readonly StageValidity[]): StageValidity {
+  let worst: StageValidity = 'VALID';
+  for (const v of vs) {
+    if (v === 'UNSUPPORTED') return 'UNSUPPORTED';
+    if (v === 'EXTRAPOLATED') worst = 'EXTRAPOLATED';
+  }
+  return worst;
+}
+
 /** Validate a propagated state: finite, unit attitude. Shared pre-callback
  *  gate for both kernels (audit §3.3): no stage state reaches a loads
  *  consumer before this check. */
@@ -469,7 +498,6 @@ export function integrateRigidAdaptive(
     throw new Error('adaptive integrator: dtInit must be finite and strictly positive');
   }
 
-  // Match the fixed-step strict entry contract: normalization corrects only
   // floating-point drift; it must never turn an arbitrary 4-vector into a
   // fabricated attitude before the first loads callback.
   const qNorm0 = Math.hypot(s0.q.w, s0.q.x, s0.q.y, s0.q.z);
@@ -485,6 +513,7 @@ export function integrateRigidAdaptive(
   let steps = 0;
   let rejected = 0;
   let rejectStreak = 0;
+  const committedValidity: StageValidity[] = [];
   const dense: AdaptiveDenseStep[] = [];
 
   const accelFor = (L: Loads): Vec3 => ({ x: L.forceN.x / L.mass, y: L.forceN.y / L.mass, z: L.forceN.z / L.mass });
@@ -515,6 +544,10 @@ export function integrateRigidAdaptive(
     // rejection landing here can never converge, so the run fails closed.
     const floor = Number.EPSILON * Math.max(1, Math.abs(t), Math.abs(tEnd));
 
+    // Per-trial stage-validity buffer: folded into committedValidity ONLY on
+    // acceptance. Rejected trials (and their off-trajectory excursions) are
+    // discarded with the trial.
+    const trialValidity: StageValidity[] = [];
     const ks: StateDerivative[] = [];
 
     // Stage states + stage-load validation: the callback result at EVERY
@@ -557,6 +590,7 @@ export function integrateRigidAdaptive(
       validateAcceptedState(sti);
       const L = loadsAt(ti, sti);
       validateLoads(L);
+      trialValidity.push(stageValidityOf(L));
       ks.push(deriv(sti, L));
     }
 
@@ -643,10 +677,8 @@ export function integrateRigidAdaptive(
         q: q5cand,
         w: { x: s.w.x + w5.x, y: s.w.y + w5.y, z: s.w.z + w5.z },
       };
-      validateAcceptedState(y1); // accepted-state validation: reject baked-in NaN/Inf/non-unit
-      // FSAL stage (i = 6) evaluates the RHS exactly at the accepted 5th-order
-      // candidate, so the dense bracket's endpoint derivative is free.
       dense.push({ t0: t, h, t1: nextTime, y0: yPrev, f0: ks[0], y1, f1: ks[6] });
+      committedValidity.push(worstValidity(trialValidity));
       s = y1;
       t = nextTime;
       steps++;
@@ -677,18 +709,9 @@ export function integrateRigidAdaptive(
     }
 
   }
-
-  return { state: s, finalTime: t, steps, rejectedSteps: rejected, dense };
+  return { state: s, finalTime: t, steps, rejectedSteps: rejected, dense, committedValidity };
 }
 
-/**
- * Evaluate the 4th-order cubic Hermite dense output at time `t` within the
- * recorded integration span. The interpolant matches state AND RHS derivative
- * at both ends of each accepted step, so pointwise error is O(h^4) — the
- * contracted dense-output order for event localization.
- * Throws outside the span; t exactly on a step boundary reads the step that
- * ends there.
- */
 export function denseOutputAt(dense: readonly AdaptiveDenseStep[], t: number): RigidState {
   if (dense.length === 0) throw new Error('dense output: no accepted steps recorded');
   const spanT0 = dense[0].t0;
@@ -696,42 +719,61 @@ export function denseOutputAt(dense: readonly AdaptiveDenseStep[], t: number): R
   if (!(t >= spanT0 && t <= spanT1)) {
     throw new Error('dense output: query time ' + t + ' is outside integration span [' + spanT0 + ', ' + spanT1 + ']');
   }
-  let idx = dense.length - 1;
-  for (let i = 0; i < dense.length; i++) {
-    if (t <= dense[i].t1 + 1e-12) { idx = i; break; }
-  }
+  // Exact containment (audit §4.2): the first bracket whose authoritative end
+  // covers t. No epsilon creep into the next bracket — a query just past an
+  // endpoint selects the bracket it belongs to, never extrapolating (u > 1)
+  // from the preceding one.
+  let idx = 0;
+  while (idx < dense.length - 1 && t > dense[idx].t1) idx++;
   const d = dense[idx];
-  const u = d.h > 0 ? (t - d.t0) / d.h : 0;
+  // Exact-boundary retrieval: endpoints return the recorded states, not an
+  // interpolant evaluated at u = 0/1.
+  if (t === d.t0) return cloneRigidState(d.y0);
+  if (t === d.t1) return cloneRigidState(d.y1);
+  // Consistent timestamp-to-parameter contract: u spans the authoritative
+  // [t0, t1] interval and the endpoint derivatives scale by that same span.
+  const span = d.t1 - d.t0;
+  const u = span > 0 ? (t - d.t0) / span : 0;
   const u2 = u * u, u3 = u2 * u;
   const h00 = 2 * u3 - 3 * u2 + 1;   // weight of y0
-  const h10 = u3 - 2 * u2 + u;       // weight of h*f0
+  const h10 = u3 - 2 * u2 + u;       // weight of span*f0
   const h01 = -2 * u3 + 3 * u2;      // weight of y1
-  const h11 = u3 - u2;               // weight of h*f1
+  const h11 = u3 - u2;               // weight of span*f1
   // 13 component call sites share this one lockstep Hermite formula.
   const herm = (c0: number, dc0: number, c1: number, dc1: number): number =>
     h00 * c0 + h10 * dc0 + h01 * c1 + h11 * dc1;
   const qh = {
-    w: herm(d.y0.q.w, d.f0.dq.w * d.h, d.y1.q.w, d.f1.dq.w * d.h),
-    x: herm(d.y0.q.x, d.f0.dq.x * d.h, d.y1.q.x, d.f1.dq.x * d.h),
-    y: herm(d.y0.q.y, d.f0.dq.y * d.h, d.y1.q.y, d.f1.dq.y * d.h),
-    z: herm(d.y0.q.z, d.f0.dq.z * d.h, d.y1.q.z, d.f1.dq.z * d.h),
+    w: herm(d.y0.q.w, d.f0.dq.w * span, d.y1.q.w, d.f1.dq.w * span),
+    x: herm(d.y0.q.x, d.f0.dq.x * span, d.y1.q.x, d.f1.dq.x * span),
+    y: herm(d.y0.q.y, d.f0.dq.y * span, d.y1.q.y, d.f1.dq.y * span),
+    z: herm(d.y0.q.z, d.f0.dq.z * span, d.y1.q.z, d.f1.dq.z * span),
   };
   return {
     r: {
-      x: herm(d.y0.r.x, d.f0.dr.x * d.h, d.y1.r.x, d.f1.dr.x * d.h),
-      y: herm(d.y0.r.y, d.f0.dr.y * d.h, d.y1.r.y, d.f1.dr.y * d.h),
-      z: herm(d.y0.r.z, d.f0.dr.z * d.h, d.y1.r.z, d.f1.dr.z * d.h),
+      x: herm(d.y0.r.x, d.f0.dr.x * span, d.y1.r.x, d.f1.dr.x * span),
+      y: herm(d.y0.r.y, d.f0.dr.y * span, d.y1.r.y, d.f1.dr.y * span),
+      z: herm(d.y0.r.z, d.f0.dr.z * span, d.y1.r.z, d.f1.dr.z * span),
     },
     v: {
-      x: herm(d.y0.v.x, d.f0.dv.x * d.h, d.y1.v.x, d.f1.dv.x * d.h),
-      y: herm(d.y0.v.y, d.f0.dv.y * d.h, d.y1.v.y, d.f1.dv.y * d.h),
-      z: herm(d.y0.v.z, d.f0.dv.z * d.h, d.y1.v.z, d.f1.dv.z * d.h),
+      x: herm(d.y0.v.x, d.f0.dv.x * span, d.y1.v.x, d.f1.dv.x * span),
+      y: herm(d.y0.v.y, d.f0.dv.y * span, d.y1.v.y, d.f1.dv.y * span),
+      z: herm(d.y0.v.z, d.f0.dv.z * span, d.y1.v.z, d.f1.dv.z * span),
     },
     q: normalizeQuaternion(qh),
     w: {
-      x: herm(d.y0.w.x, d.f0.dw.x * d.h, d.y1.w.x, d.f1.dw.x * d.h),
-      y: herm(d.y0.w.y, d.f0.dw.y * d.h, d.y1.w.y, d.f1.dw.y * d.h),
-      z: herm(d.y0.w.z, d.f0.dw.z * d.h, d.y1.w.z, d.f1.dw.z * d.h),
+      x: herm(d.y0.w.x, d.f0.dw.x * span, d.y1.w.x, d.f1.dw.x * span),
+      y: herm(d.y0.w.y, d.f0.dw.y * span, d.y1.w.y, d.f1.dw.y * span),
+      z: herm(d.y0.w.z, d.f0.dw.z * span, d.y1.w.z, d.f1.dw.z * span),
     },
+  };
+}
+
+/** Deep copy of a rigid state (dense exact-boundary returns must not alias records). */
+function cloneRigidState(st: RigidState): RigidState {
+  return {
+    r: { x: st.r.x, y: st.r.y, z: st.r.z },
+    v: { x: st.v.x, y: st.v.y, z: st.v.z },
+    q: { w: st.q.w, x: st.q.x, y: st.q.y, z: st.q.z },
+    w: { x: st.w.x, y: st.w.y, z: st.w.z },
   };
 }

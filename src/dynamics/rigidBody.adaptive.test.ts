@@ -482,4 +482,74 @@ describe('Adaptive DP5(4) — repaired attitude error + bounded rejection', () =
     expect(e6 / e8).toBeGreaterThan(20);
     expect(e8 / e10).toBeGreaterThan(20);
   });
+
+  it('12. dense output retrieves exact endpoint states and contains queries', () => {
+    // Round-17 audit §4.2: boundary queries must return the recorded states
+    // (not an interpolant), and a query just past an endpoint must select
+    // the bracket it belongs to (never extrapolate with u > 1).
+    const res = integrateRigidAdaptive(spinState(), () => IDENTITY_LOADS, 0, 0.35, {
+      r: 1e-9, v: 1e-9, q: 1e-11, w: 1e-11,
+    }, 0.05, 0.005);
+    expect(res.dense.length).toBeGreaterThanOrEqual(2);
+    for (const d of res.dense) {
+      const atStart = denseOutputAt(res.dense, d.t0);
+      expect(atStart.r.x).toBe(d.y0.r.x);
+      expect(atStart.v.y).toBe(d.y0.v.y);
+      expect(atStart.w.z).toBe(d.y0.w.z);
+      const atEnd = denseOutputAt(res.dense, d.t1);
+      expect(atEnd.r.x).toBe(d.y1.r.x);
+      expect(atEnd.v.y).toBe(d.y1.v.y);
+      expect(atEnd.w.z).toBe(d.y1.w.z);
+      // Interior queries stay unitary and finite; endpoints chain exactly.
+      const mid = denseOutputAt(res.dense, (d.t0 + d.t1) / 2);
+      expect(quatNorm(mid.q)).toBeCloseTo(1, 10);
+    }
+    for (let i = 1; i < res.dense.length; i++) {
+      expect(res.dense[i].t0).toBe(res.dense[i - 1].t1);
+    }
+    // A query an ulp past an interior endpoint resolves inside the next
+    // bracket at a value consistent with that bracket (no u > 1 blowup).
+    const b0 = res.dense[0];
+    const justPast = denseOutputAt(res.dense, b0.t1 + Math.abs(b0.t1) * 1e-15 + 1e-18);
+    expect(Number.isFinite(justPast.r.x)).toBe(true);
+    expect(Math.abs(justPast.r.x - b0.y1.r.x)).toBeLessThanOrEqual(1e-6 * Math.max(1, Math.abs(b0.y1.r.x)));
+  });
+
+  it('13. nonlinear coupled dense-interior convergence ladder (triaxial top)', () => {
+    // Round-17 audit §4.3: the endpoint ladder (test 11) does not query dense
+    // output. Here interior dense evaluations on triaxial-top trajectories
+    // (fully coupled Euler dynamics) converge against a tight reference with
+    // its own dense output at 100x tolerance steps.
+    const inertiaB = { x: 2.0, y: 3.0, z: 2.5 };
+    const loads: Loads = {
+      forceN: { x: 0, y: 0, z: 0 },
+      momentB: { x: 0, y: 0, z: 0 },
+      inertiaB,
+      mass: 5.0,
+    };
+    const tEnd = 0.8;
+    const ref = integrateRigidAdaptive(spinState(), () => loads, 0, tEnd, {
+      r: 1e-13, v: 1e-13, q: 1e-13, w: 1e-13,
+    }, 0.5, 0.005);
+    const worstInterior = (tolQW: number): number => {
+      const res = integrateRigidAdaptive(spinState(), () => loads, 0, tEnd, {
+        r: 1e-9, v: 1e-9, q: tolQW, w: tolQW,
+      }, 0.5, 0.005);
+      let worst = 0;
+      for (const d of res.dense) {
+        for (const f of [0.25, 0.5, 0.75]) {
+          const tm = d.t0 + f * (d.t1 - d.t0);
+          const got = denseOutputAt(res.dense, tm);
+          const want = denseOutputAt(ref.dense, tm);
+          worst = Math.max(worst, quatAngle(got.q, want.q));
+        }
+      }
+      return worst;
+    };
+    const coarse = worstInterior(1e-6);
+    const fine = worstInterior(1e-8);
+    expect(coarse).toBeGreaterThan(0);
+    expect(fine).toBeLessThan(coarse);
+    expect(coarse / fine).toBeGreaterThan(10);
+  });
 });
