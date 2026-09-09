@@ -641,13 +641,15 @@ t('HEAD changing during execution breaks commit binding', () => {
   assert.ok(missing.some((m) => m.includes('HEAD changed during build/test')), `missing: ${missing}`);
 });
 
-t('suite-counter disagreement fails certification', () => {
+t('suite count below collected files fails certification', () => {
+  // numTotalTestSuites counts describe-blocks, not files: the honest check is
+  // a sanity floor (every file contributes at least one suite).
   const root = baseFixture();
   const json = makeVitestJson();
-  json.numTotalTestSuites += 2;
+  json.numTotalTestSuites = 1;
   const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
   assert.equal(ok, false);
-  assert.ok(missing.some((m) => m.includes('numTotalTestSuites') && m.includes('disagrees')), `missing: ${missing}`);
+  assert.ok(missing.some((m) => m.includes('numTotalTestSuites') && m.includes('below collected files')), `missing: ${missing}`);
 });
 
 t('duplicate case identities fail certification', () => {

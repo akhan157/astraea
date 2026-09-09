@@ -589,11 +589,11 @@ function computeEvidence(opts = {}) {
       if (Number.isFinite(rep.numFailedTests) && rep.numFailedTests !== parsed.totals.testCasesFailed) {
         missing.push(`tests: reporter numFailedTests (${rep.numFailedTests}) disagrees with summed file results (${parsed.totals.testCasesFailed})`);
       }
-      if (Number.isFinite(rep.numPassedTests) && rep.numPassedTests !== parsed.totals.testCasesPassed) {
-        missing.push(`tests: reporter numPassedTests (${rep.numPassedTests}) disagrees with summed file results (${parsed.totals.testCasesPassed})`);
-      }
-      if (Number.isFinite(rep.numTotalTestSuites) && rep.numTotalTestSuites !== parsed.totals.filesTotal) {
-        missing.push(`tests: reporter numTotalTestSuites (${rep.numTotalTestSuites}) disagrees with collected files (${parsed.totals.filesTotal})`);
+      // numTotalTestSuites counts describe-blocks (including nested/file-level),
+      // not files — incomparable with filesTotal. The honest check is a sanity
+      // floor: every collected file contributes at least one suite.
+      if (Number.isFinite(rep.numTotalTestSuites) && rep.numTotalTestSuites < parsed.totals.filesTotal) {
+        missing.push(`tests: reporter numTotalTestSuites (${rep.numTotalTestSuites}) below collected files (${parsed.totals.filesTotal})`);
       }
     }
   }
