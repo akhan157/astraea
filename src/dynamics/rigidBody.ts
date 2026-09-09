@@ -56,6 +56,10 @@ export interface Loads {
 export type LoadsAt = (tStage: number, st: RigidState) => Loads;
 
 /** Quaternion normalization (NORMATIVE; rejects degenerate quaternions). */
+export function addVec(a: Vec3, b: Vec3, h: number): Vec3 {
+  return { x: a.x + b.x * h, y: a.y + b.y * h, z: a.z + b.z * h };
+}
+
 export function normalizeQuaternion(q: Quat): Quat {
   const len = Math.sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
   if (len < 1e-9 || !Number.isFinite(len)) {
@@ -174,9 +178,6 @@ export function integrateRigidStep(
     dw: angularAcceleration(st.w, L.momentB, L.inertiaB),
   });
 
-  const addVec = (a: Vec3, b: Vec3, h: number): Vec3 => ({
-    x: a.x + b.x * h, y: a.y + b.y * h, z: a.z + b.z * h,
-  });
 
   const L0 = loadsAt ? loadsAt(startTime, sNorm) : loads;
   if (loadsAt) validateStateAndLoads(sNorm, L0, dt); // entry already validated `loads`; only factory output needs re-check
@@ -289,4 +290,183 @@ export function rotateWorldToBody(R: number[][], v: Vec3): Vec3 {
     y: R[0][1] * v.x + R[1][1] * v.y + R[2][1] * v.z,
     z: R[0][2] * v.x + R[1][2] * v.y + R[2][2] * v.z,
   };
+}
+/**
+ * Dormand-Prince RK 5(4) adaptive integration (NORMATIVE Gate 2).
+ *
+ * Adds the contracted adaptive integrator: embedded 5th/4th-order error
+ * estimate over the coupled 13-component state, per-axis absolute tolerances,
+ * and step control (0.2x/5x clamp, 8-step shrink factor). Quaternion update
+ * stays additive-normalized. `integrateRigidStep` (fixed RK4) remains for
+ * benchmark parity; the adaptive integrator supersedes it for production.
+ */
+
+export interface AdaptiveTolerances {
+  r: number;   // position (m)
+  v: number;   // velocity (m/s)
+  q: number;   // attitude (rotation angle rad)
+  w: number;   // angular rate (rad/s)
+}
+
+export interface AdaptiveResult {
+  state: RigidState;
+  finalTime: number;
+  steps: number;
+  rejectedSteps: number;
+}
+
+const A_DP: number[] = [0, 1/5, 3/10, 4/5, 8/9, 1, 1];
+const B_DP: number[][] = [
+  [],
+  [1/5],
+  [3/40, 9/40],
+  [44/45, -56/15, 32/9],
+  [19372/6561, -25360/2187, 64448/6561, -212/729],
+  [9017/3168, -355/33, 46732/5247, 49/176, -5103/18656],
+  [35/384, 0, 500/1113, 125/192, -2187/6784, 11/84],
+];
+const C5_DP: number[] = [35/384, 0, 500/1113, 125/192, -2187/6784, 11/84, 0];
+const C4_DP: number[] = [5179/57600, 0, 7571/16695, 393/640, -92097/339200, 187/2100, 1/40];
+
+function normVec(v: Vec3): number {
+  return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+function normQuatAngle(q: Quat): number {
+  return Math.acos(Math.max(-1, Math.min(1, q.w)));
+}
+function subVec(a: Vec3, b: Vec3): Vec3 { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
+
+/**
+ * Integrate from t0 with dynamic step sizing to reach tEnd.
+ * Each accepted step stores the state; returns final state.
+ */
+export function integrateRigidAdaptive(
+  s0: RigidState,
+  loadsAt: LoadsAt,
+  t0: number,
+  tEnd: number,
+  tol: AdaptiveTolerances,
+  maxStep: number = 0.05,
+  dtInit: number = 0.005
+): AdaptiveResult {
+  // normalize + validate entry
+  let s = { ...s0, q: normalizeQuaternion({ ...s0.q }) };
+  validateStateAndLoads(s, loadsAt(t0, s), dtInit);
+  let t = t0;
+  let dt = dtInit;
+  let steps = 0;
+  let rejected = 0;
+
+  const accelFor = (L: Loads): Vec3 => ({ x: L.forceN.x / L.mass, y: L.forceN.y / L.mass, z: L.forceN.z / L.mass });
+  const deriv = (st: RigidState, L: Loads): { dr: Vec3; dv: Vec3; dq: Quat; dw: Vec3 } => ({
+    dr: st.v,
+    dv: accelFor(L),
+    dq: quaternionDerivative(st.q, st.w),
+    dw: angularAcceleration(st.w, L.momentB, L.inertiaB),
+  });
+
+  while (t < tEnd - 1e-12) {
+    const h = Math.min(dt, maxStep, tEnd - t);
+    const ks: Array<{ dr: Vec3; dv: Vec3; dq: Quat; dw: Vec3 }> = [];
+
+    // stage states
+    const stageStates: RigidState[] = [];
+    for (let i = 0; i < 7; i++) {
+      const ti = i === 0 ? t : t + A_DP[i] * h;
+      if (i === 0) {
+        ks.push(deriv(s, loadsAt(ti, s)));
+        stageStates.push(s);
+      } else {
+        // accumulate k-lin combination
+        const base = { r: { ...s.r }, v: { ...s.v }, q: { ...s.q }, w: { ...s.w } };
+        let rr = { x: 0.0, y: 0.0, z: 0.0 };
+        let vv = { x: 0.0, y: 0.0, z: 0.0 };
+        let ww = { x: 0.0, y: 0.0, z: 0.0 };
+        let qq = { w: 0.0, x: 0.0, y: 0.0, z: 0.0 };
+        for (let j = 0; j < i; j++) {
+          const b = B_DP[i][j];
+          rr = addVec(rr, ks[j].dr, h * b);
+          vv = addVec(vv, ks[j].dv, h * b);
+          ww = addVec(ww, ks[j].dw, h * b);
+          const dqj = ks[j].dq;
+          qq.w += h * b * dqj.w;
+          qq.x += h * b * dqj.x;
+          qq.y += h * b * dqj.y;
+          qq.z += h * b * dqj.z;
+        }
+        const sti: RigidState = {
+          r: { x: base.r.x + rr.x, y: base.r.y + rr.y, z: base.r.z + rr.z },
+          v: { x: base.v.x + vv.x, y: base.v.y + vv.y, z: base.v.z + vv.z },
+          q: addQuat(base.q, qq, 1.0),
+          w: { x: base.w.x + ww.x, y: base.w.y + ww.y, z: base.w.z + ww.z },
+        };
+        stageStates.push(sti);
+        ks.push(deriv(sti, loadsAt(ti, sti)));
+      }
+    }
+
+    // 5th-order (C5) and 4th-order (C4) combinations
+    let r5 = { x: 0.0, y: 0.0, z: 0.0 };
+    let v5 = { x: 0.0, y: 0.0, z: 0.0 };
+    let w5 = { x: 0.0, y: 0.0, z: 0.0 };
+    let q5 = { w: 0.0, x: 0.0, y: 0.0, z: 0.0 };
+    let r4 = { x: 0.0, y: 0.0, z: 0.0 };
+    let v4 = { x: 0.0, y: 0.0, z: 0.0 };
+    let w4 = { x: 0.0, y: 0.0, z: 0.0 };
+    let q4 = { w: 0.0, x: 0.0, y: 0.0, z: 0.0 };
+    for (let i = 0; i < 7; i++) {
+      r5 = addVec(r5, ks[i].dr, h * C5_DP[i]);
+      v5 = addVec(v5, ks[i].dv, h * C5_DP[i]);
+      w5 = addVec(w5, ks[i].dw, h * C5_DP[i]);
+      const dqi = ks[i].dq;
+      q5.w += h * C5_DP[i] * dqi.w;
+      q5.x += h * C5_DP[i] * dqi.x;
+      q5.y += h * C5_DP[i] * dqi.y;
+      q5.z += h * C5_DP[i] * dqi.z;
+      r4 = addVec(r4, ks[i].dr, h * C4_DP[i]);
+      v4 = addVec(v4, ks[i].dv, h * C4_DP[i]);
+      w4 = addVec(w4, ks[i].dw, h * C4_DP[i]);
+      q4.w += h * C4_DP[i] * dqi.w;
+      q4.x += h * C4_DP[i] * dqi.x;
+      q4.y += h * C4_DP[i] * dqi.y;
+      q4.z += h * C4_DP[i] * dqi.z;
+    }
+
+    // error vector = fifth-order estimate minus fourth-order
+    const errR = normVec(subVec(r5, r4));
+    const errV = normVec(subVec(v5, v4));
+    const errW = normVec(subVec(w5, w4));
+    const errQ = normQuatAngle({ w: q5.w - q4.w, x: q5.x - q4.x, y: q5.y - q4.y, z: q5.z - q4.z });
+
+    const rho = Math.min(
+      Math.pow(tol.r / Math.max(1e-12, errR), 0.2),
+      Math.pow(tol.v / Math.max(1e-12, errV), 0.2),
+      Math.pow(tol.w / Math.max(1e-12, errW), 0.2),
+      Math.pow(tol.q / Math.max(1e-10, errQ), 0.2)
+    );
+    const acceptable = errR <= tol.r && errV <= tol.v && errW <= tol.w && errQ <= tol.q;
+
+    if (acceptable) {
+      s = {
+        r: { x: s.r.x + r5.x, y: s.r.y + r5.y, z: s.r.z + r5.z },
+        v: { x: s.v.x + v5.x, y: s.v.y + v5.y, z: s.v.z + v5.z },
+        q: normalizeQuaternion({
+          w: s.q.w + q5.w,
+          x: s.q.x + q5.x,
+          y: s.q.y + q5.y,
+          z: s.q.z + q5.z,
+        }),
+        w: { x: s.w.x + w5.x, y: s.w.y + w5.y, z: s.w.z + w5.z },
+      };
+      t += h;
+      steps++;
+      dt = Math.max(dt * 0.2, Math.min(dt * 5.0, dt * Math.max(0.2, Math.min(5.0, 0.9 * rho))));
+      dt = Math.min(dt, maxStep);
+    } else {
+      rejected++;
+      dt = Math.max(1e-6, dt * Math.max(0.2, 0.9 * rho));
+    }
+  }
+
+  return { state: s, finalTime: t, steps, rejectedSteps: rejected };
 }

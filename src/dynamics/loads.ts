@@ -154,7 +154,7 @@ export function computeFlightLoads(
   cfg: LoadsAssemblyConfig,
   pv: PreparedVehicle
 ): FlightLoadsDetail {
-  const altASL = cfg.launchAltitudeASL + st.r.y;
+  const altASL = cfg.launchAltitudeASL + st.r.z;
   const atmos = getAtmosphereAt(altASL);
   const powered = tStage < cfg.motor.burnTime;
   const thrust = getMotorThrustAt(cfg.motor, tStage);
@@ -168,7 +168,7 @@ export function computeFlightLoads(
   const Izz = Iyy;
 
   const R = quaternionToMatrix({ w: st.q.w, x: st.q.x, y: st.q.y, z: st.q.z });
-  const wind = cfg.windOverride ?? getWindVectorAt(st.r.y, cfg.windSpeedSurface, cfg.windAzimuthDeg);
+  const wind = cfg.windOverride ?? getWindVectorAt(st.r.z, cfg.windSpeedSurface, cfg.windAzimuthDeg);
   const relWorld = { x: st.v.x - wind.x, y: st.v.y - wind.y, z: st.v.z - wind.z };
   const relBody = rotateWorldToBody(R, relWorld);
   const airspeed = Math.sqrt(relBody.x * relBody.x + relBody.y * relBody.y + relBody.z * relBody.z);
@@ -199,7 +199,7 @@ export function computeFlightLoads(
   };
 
   const forceBodyN = rotateBodyToWorld(R, { x: aeroBody.x, y: aeroBody.y + thrust, z: aeroBody.z });
-  forceBodyN.y -= mass * 9.80665;
+  forceBodyN.z -= mass * 9.80665;
 
   const dStatic = cp - pv.baselineCg;
   const roll = st.w.y;

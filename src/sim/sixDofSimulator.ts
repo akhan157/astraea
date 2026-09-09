@@ -197,10 +197,11 @@ export function simulate6DofFlight(
   const elRad = (railElevationDeg * Math.PI) / 180;
   const azRad = (railAzimuthDeg * Math.PI) / 180;
 
+  // ENU rail vector: x=East, y=North, z=Up
   const railVector: Vector3D = {
     x: Math.cos(elRad) * Math.sin(azRad),
-    y: Math.sin(elRad),
-    z: Math.cos(elRad) * Math.cos(azRad),
+    y: Math.cos(elRad) * Math.cos(azRad),
+    z: Math.sin(elRad),
   };
 
   // Initial quaternion: align rocket longitudinal axis (+Y_body) with rail vector
@@ -269,8 +270,8 @@ export function simulate6DofFlight(
     // thrust/aero/moments/mass. Derives both the kernel display loads AND the
     // telemetry kinematics — no inline duplicate of the load assembly.
     const macroState: StageKinematicState = {
-      r: { x: pos.x, y: pos.y, z: pos.z },
-      v: { x: vel.x, y: vel.y, z: vel.z },
+      r: { x: pos.x, y: pos.z, z: pos.z },
+      v: { x: vel.x, y: vel.z, z: vel.z },
       q: { w: q.w, x: q.x, y: q.y, z: q.z },
       w: { x: omega.q, y: omega.p, z: omega.r }, // {pitch, roll, yaw}
     };
@@ -298,7 +299,7 @@ export function simulate6DofFlight(
       z: macroDetail.forceN.z,
     };
     const totalMass = macroDetail.mass;
-    const atmos = getAtmosphereAt(launchAltitudeASL + pos.y);
+    const atmos = getAtmosphereAt(launchAltitudeASL + pos.z);
     if (mach > maxMach) maxMach = mach;
     if (airspeed > maxSpeed) maxSpeed = airspeed;
 
@@ -311,7 +312,7 @@ export function simulate6DofFlight(
 
     // Launch Rail Constraint (keep — this constrains acceleration while the
     // FSM's RAIL_EXIT has not fired)
-    const distanceAlongRail = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
+    const distanceAlongRail = Math.sqrt(pos.x * pos.x + pos.z * pos.z + pos.z * pos.z);
 
     if (!eventState.hasLeftRail) {
       if (distanceAlongRail < railLength) {
@@ -346,41 +347,41 @@ export function simulate6DofFlight(
       altitudeAlongRail: distanceAlongRail,
       railLength,
       burnTime: motor.burnTime,
-      verticalVelocity: vel.y,
-      altitude: pos.y,
+      verticalVelocity: vel.z,
+      altitude: pos.z,
       mainDeployAlt,
     });
     eventState = ev.state;
 
     if (ev.fires.includes('RAIL_EXIT')) {
       hasLeftRail = true;
-      const scalarSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
+      const scalarSpeed = Math.sqrt(vel.x * vel.x + vel.z * vel.z + vel.z * vel.z);
       railExitVel = scalarSpeed;
       weathercockAngleDeg = totalAlphaDeg;
       events.push({
         time: t,
         name: 'Launch Rail Departure',
-        altitude: pos.y,
+        altitude: pos.z,
         velocity: scalarSpeed,
         description: `Exited ${railLength.toFixed(1)}m launch rail at ${scalarSpeed.toFixed(1)} m/s (safe threshold >= 15 m/s). Initial crosswind weathercocking: ${totalAlphaDeg.toFixed(1)}°.`,
       });
     }
 
     if (ev.fires.includes('MOTOR_BURNOUT')) {
-      burnoutAlt = pos.y;
-      burnoutVel = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
+      burnoutAlt = pos.z;
+      burnoutVel = Math.sqrt(vel.x * vel.x + vel.z * vel.z + vel.z * vel.z);
       events.push({
         time: t,
         name: 'Motor Burnout',
-        altitude: pos.y,
+        altitude: pos.z,
         velocity: burnoutVel,
-        description: `Motor burnout at ${pos.y.toFixed(0)}m AGL. Burnout velocity: ${burnoutVel.toFixed(0)} m/s (Mach ${(burnoutVel / atmos.speedOfSound).toFixed(2)}). Transitioning to unpowered coast.`,
+        description: `Motor burnout at ${pos.z.toFixed(0)}m AGL. Burnout velocity: ${burnoutVel.toFixed(0)} m/s (Mach ${(burnoutVel / atmos.speedOfSound).toFixed(2)}). Transitioning to unpowered coast.`,
       });
     }
 
     if (ev.fires.includes('APOGEE_DROGUE')) {
       isApogeeReached = true;
-      maxAltitude = pos.y;
+      maxAltitude = pos.z;
       apogeeTime = t;
       apogeePos = { ...pos };
       isDrogueDeployed = true;
@@ -388,9 +389,9 @@ export function simulate6DofFlight(
       events.push({
         time: t,
         name: 'Apogee & Drogue Deployment',
-        altitude: pos.y,
-        velocity: Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z),
-        description: `Apogee reached at ${pos.y.toFixed(0)}m (${(pos.y * 3.28084).toFixed(0)} ft) AGL. High-speed drogue parachute ejected.`,
+        altitude: pos.z,
+        velocity: Math.sqrt(vel.x * vel.x + vel.z * vel.z + vel.z * vel.z),
+        description: `Apogee reached at ${pos.z.toFixed(0)}m (${(pos.z * 3.28084).toFixed(0)} ft) AGL. High-speed drogue parachute ejected.`,
       });
     }
 
@@ -399,16 +400,16 @@ export function simulate6DofFlight(
       events.push({
         time: t,
         name: 'Main Parachute Deployment',
-        altitude: pos.y,
-        velocity: Math.abs(vel.y),
-        description: `Main parachute opened at ${pos.y.toFixed(0)}m AGL. Decelerating descent for safe landing.`,
+        altitude: pos.z,
+        velocity: Math.abs(vel.z),
+        description: `Main parachute opened at ${pos.z.toFixed(0)}m AGL. Decelerating descent for safe landing.`,
       });
     }
 
     if (ev.fires.includes('TOUCHDOWN')) {
-      pos.y = 0;
-      const finalImpactSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
-      const lateralDrift = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
+      pos.z = 0;
+      const finalImpactSpeed = Math.sqrt(vel.x * vel.x + vel.z * vel.z + vel.z * vel.z);
+      const lateralDrift = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
       events.push({
         time: t,
         name: 'Ground Touchdown',
@@ -424,11 +425,11 @@ export function simulate6DofFlight(
       const euler = quaternionToEulerDeg(q);
       telemetry.push({
         time: parseFloat(t.toFixed(3)),
-        position: { x: parseFloat(pos.x.toFixed(1)), y: parseFloat(pos.y.toFixed(1)), z: parseFloat(pos.z.toFixed(1)) },
-        velocity: { x: parseFloat(vel.x.toFixed(1)), y: parseFloat(vel.y.toFixed(1)), z: parseFloat(vel.z.toFixed(1)) },
+        position: { x: parseFloat(pos.x.toFixed(1)), y: parseFloat(pos.z.toFixed(1)), z: parseFloat(pos.z.toFixed(1)) },
+        velocity: { x: parseFloat(vel.x.toFixed(1)), y: parseFloat(vel.z.toFixed(1)), z: parseFloat(vel.z.toFixed(1)) },
         speed: parseFloat(airspeed.toFixed(1)),
         mach: parseFloat(mach.toFixed(3)),
-        altitude: parseFloat(pos.y.toFixed(1)),
+        altitude: parseFloat(pos.z.toFixed(1)),
         acceleration: parseFloat(scalarAccel.toFixed(1)),
         angularVelocity: { p: parseFloat(omega.p.toFixed(2)), q: parseFloat(omega.q.toFixed(2)), r: parseFloat(omega.r.toFixed(2)) },
         angleOfAttackDeg: parseFloat(totalAlphaDeg.toFixed(2)),
@@ -451,8 +452,8 @@ export function simulate6DofFlight(
     // Identity low-level load for rail-free basic validity; when loadsAt is
     // present this is overridden at every stage.
     const kernelInState = {
-      r: { x: pos.x, y: pos.y, z: pos.z },
-      v: { x: vel.x, y: vel.y, z: vel.z },
+      r: { x: pos.x, y: pos.z, z: pos.z },
+      v: { x: vel.x, y: vel.z, z: vel.z },
       q: { w: q.w, x: q.x, y: q.y, z: q.z },
       w: simOmegaToKernel(omega),
     };
@@ -495,8 +496,8 @@ export function simulate6DofFlight(
     }, dt, loadsAtStage, t);
 
     // IDENTITY write-back: r/v/q propagate unchanged; body-rate label inverse
-    pos.x = next.r.x; pos.y = next.r.y; pos.z = next.r.z;
-    vel.x = next.v.x; vel.y = next.v.y; vel.z = next.v.z;
+    pos.x = next.r.x; pos.z = next.r.y; pos.z = next.r.z;
+    vel.x = next.v.x; vel.z = next.v.y; vel.z = next.v.z;
     q.w = next.q.w; q.x = next.q.x; q.y = next.q.y; q.z = next.q.z;
     const o = kernelOmegaToSim(next.w);
     omega.p = o.p;
@@ -521,18 +522,18 @@ export function simulate6DofFlight(
       }
     }
 
-    if (pos.y < 0 && !isApogeeReached) pos.y = 0;
+    if (pos.z < 0 && !isApogeeReached) pos.z = 0;
 
     t += dt;
   }
   // Landing metrics: use ACTUAL retained mass at touchdown (dry vehicle +
   // remaining motor hardware), not the liftoff dry mass. Only meaningful
   // when the simulation actually terminated via touchdown (not timeout).
-  const landingSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
+  const landingSpeed = Math.sqrt(vel.x * vel.x + vel.z * vel.z + vel.z * vel.z);
   const motorStateAtLanding = getMotorMassAt(motor, t);
   const landingMass = vehicleDryMass + motorStateAtLanding.currentMass;
   const landingKineticEnergy = 0.5 * landingMass * Math.pow(landingSpeed, 2);
-  const lateralLandingDrift = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
+  const lateralLandingDrift = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
   const terminated = eventState.touchedDown;
   return {
     apogeeAltitude: maxAltitude,
