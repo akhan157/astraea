@@ -41,6 +41,7 @@ export interface Loads {
   forceN: Vec3;      // total force in navigation frame (N)
   momentB: Vec3;     // total moment in body frame (N*m)
   inertiaB: Vec3;    // diagonal principal inertias (x=pitch, y=roll, z=yaw), kg*m^2
+  inertiaDotB?: Vec3; // d(inertiaB)/dt (kg*m^2/s) — variable-inertia term (Gate 3)
   mass: number;      // kg
 }
 
@@ -101,16 +102,20 @@ export function quaternionDerivative(q: Quat, w: Vec3): Quat {
 }
 
 /** Euler-Poinsot angular acceleration from body moments and diagonal inertia.
- *  Precondition: inertiaB strictly positive (enforced by validateStateAndLoads).
- *  No silent clamping/clamping is applied — an out-of-domain value THROWS. */
-export function angularAcceleration(w: Vec3, momentB: Vec3, inertiaB: Vec3): Vec3 {
+ *  Includes the variable-inertia term -I^{-1} (dI/dt) omega when inertiaDotB
+ *  is provided (Gate 3). Precondition: inertiaB strictly positive
+ *  (enforced by validateStateAndLoads). No silent clamping. */
+export function angularAcceleration(w: Vec3, momentB: Vec3, inertiaB: Vec3, inertiaDotB?: Vec3): Vec3 {
   const Ix = inertiaB.x;
   const Iy = inertiaB.y;
   const Iz = inertiaB.z;
+  const dIx = inertiaDotB?.x ?? 0;
+  const dIy = inertiaDotB?.y ?? 0;
+  const dIz = inertiaDotB?.z ?? 0;
   return {
-    x: momentB.x / Ix - ((Iz - Iy) * w.y * w.z) / Ix,
-    y: momentB.y / Iy - ((Ix - Iz) * w.x * w.z) / Iy,
-    z: momentB.z / Iz - ((Iy - Ix) * w.x * w.y) / Iz,
+    x: (momentB.x - dIx * w.x - ((Iz - Iy) * w.y * w.z)) / Ix,
+    y: (momentB.y - dIy * w.y - ((Ix - Iz) * w.x * w.z)) / Iy,
+    z: (momentB.z - dIz * w.z - ((Iy - Ix) * w.x * w.y)) / Iz,
   };
 }
 
@@ -175,7 +180,7 @@ export function integrateRigidStep(
     dr: st.v,
     dv: accelFor(L),
     dq: quaternionDerivative(st.q, st.w),
-    dw: angularAcceleration(st.w, L.momentB, L.inertiaB),
+    dw: angularAcceleration(st.w, L.momentB, L.inertiaB, L.inertiaDotB),
   });
 
 
@@ -362,7 +367,7 @@ export function integrateRigidAdaptive(
     dr: st.v,
     dv: accelFor(L),
     dq: quaternionDerivative(st.q, st.w),
-    dw: angularAcceleration(st.w, L.momentB, L.inertiaB),
+    dw: angularAcceleration(st.w, L.momentB, L.inertiaB, L.inertiaDotB),
   });
 
   while (t < tEnd - 1e-12) {

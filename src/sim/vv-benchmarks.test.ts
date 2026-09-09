@@ -874,3 +874,127 @@ describe('VV-012 Production Event Localization', () => {
     expect(tOut).toBe(-1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// VV-013: Gate 3 variable-inertia term validation.
+// 1. Constant-inertia, zero-moment spin: |I·w| invariant without inertiaDotB.
+// 2. Constant-inertia, zero-moment spin: |I·w| invariant WITH inertiaDotB={0,0,0}.
+// 3. Varying inertia with inertiaDotB: angular momentum conservation.
+// 4. Varying inertia without inertiaDotB: angular momentum NOT conserved (drift).
+// ---------------------------------------------------------------------------
+
+describe('VV-013 Gate 3 Variable-Inertia Term', () => {
+  it('1. constant inertia, no inertiaDotB: |I·w| invariant (backward compat)', () => {
+    const tol = 1e-9;
+    const dt = 1e-3;
+    const Nt = 100;
+    const Ix = 0.01, Iy = 0.02, Iz = 0.015;
+    const loads: Loads = {
+      forceN: { x: 0, y: 0, z: 0 },
+      momentB: { x: 0, y: 0, z: 0 },
+      inertiaB: { x: Ix, y: Iy, z: Iz },
+      mass: 1,
+    };
+    const st0: RigidState = {
+      r: { x: 0, y: 0, z: 0 },
+      v: { x: 0, y: 0, z: 0 },
+      q: { w: 1, x: 0, y: 0, z: 0 },
+      w: { x: 10, y: -5, z: 20 },
+    };
+    const result = integrateRigidStep(st0, loads, dt * Nt);
+    const Lnorm0 = Math.hypot(Ix * st0.w.x, Iy * st0.w.y, Iz * st0.w.z);
+    const Lnorm1 = Math.hypot(Ix * result.w.x, Iy * result.w.y, Iz * result.w.z);
+    // RK4 does not exactly conserve energy/invariants; expect O(dt^4) drift
+    const relErr = Math.abs(Lnorm1 - Lnorm0) / Lnorm0;
+    expect(relErr).toBeLessThanOrEqual(5e-3); // 0.5% generous bound
+  });
+
+  it('2. constant inertia with inertiaDotB={0,0,0}: |I·w| invariant', () => {
+    const Ix = 0.01, Iy = 0.02, Iz = 0.015;
+    const loads: Loads = {
+      forceN: { x: 0, y: 0, z: 0 },
+      momentB: { x: 0, y: 0, z: 0 },
+      inertiaB: { x: Ix, y: Iy, z: Iz },
+      inertiaDotB: { x: 0, y: 0, z: 0 },
+      mass: 1,
+    };
+    const st0: RigidState = {
+      r: { x: 0, y: 0, z: 0 },
+      v: { x: 0, y: 0, z: 0 },
+      q: { w: 1, x: 0, y: 0, z: 0 },
+      w: { x: 10, y: -5, z: 20 },
+    };
+    const result = integrateRigidStep(st0, loads, 0.1);
+    const Lnorm0 = Math.hypot(Ix * st0.w.x, Iy * st0.w.y, Iz * st0.w.z);
+    const Lnorm1 = Math.hypot(Ix * result.w.x, Iy * result.w.y, Iz * result.w.z);
+    // RK4 does not exactly conserve energy/invariants; expect O(dt^4) drift
+    const relErr = Math.abs(Lnorm1 - Lnorm0) / Lnorm0;
+    expect(relErr).toBeLessThanOrEqual(5e-3);
+  });
+
+  it('3. varying inertia WITH inertiaDotB: |I·w| invariant', () => {
+    // Simulate a spin-up: I linearly decreasing, dI/dt negative.
+    // The inertiaDotB term injects angular acceleration that preserves L.
+    const I0x = 0.02, I0y = 0.03, I0z = 0.025;
+    const dIdx = -0.01, dIdy = -0.005, dIdz = -0.008; // /s
+    const dt = 5e-4;
+    const st0: RigidState = {
+      r: { x: 0, y: 0, z: 0 },
+      v: { x: 0, y: 0, z: 0 },
+      q: { w: 1, x: 0, y: 0, z: 0 },
+      w: { x: 100, y: 80, z: 60 },
+    };
+    let st = { ...st0, q: { ...st0.q }, w: { ...st0.w } };
+    const tEnd = 0.1;
+    for (let t = 0; t < tEnd; t += dt) {
+      const Ix = I0x + dIdx * t;
+      const Iy = I0y + dIdy * t;
+      const Iz = I0z + dIdz * t;
+      const loads: Loads = {
+        forceN: { x: 0, y: 0, z: 0 },
+        momentB: { x: 0, y: 0, z: 0 },
+        inertiaB: { x: Ix, y: Iy, z: Iz },
+        inertiaDotB: { x: dIdx, y: dIdy, z: dIdz },
+        mass: 1,
+      };
+      st = { ...integrateRigidStep(st, loads, dt) };
+    }
+    const L0 = Math.hypot(I0x * st0.w.x, I0y * st0.w.y, I0z * st0.w.z);
+    const Ifx = I0x + dIdx * tEnd, Ify = I0y + dIdy * tEnd, Ifz = I0z + dIdz * tEnd;
+    const L1 = Math.hypot(Ifx * st.w.x, Ify * st.w.y, Ifz * st.w.z);
+    expect(Math.abs(L1 - L0) / L0).toBeLessThanOrEqual(5e-3); // 0.5% — RK4 accumulates small error over finite steps
+  });
+
+  it('4. varying inertia WITHOUT inertiaDotB: angular momentum drifts', () => {
+    // Same ramp, but drop inertiaDotB — L should NOT be conserved
+    const I0x = 0.02, I0y = 0.03, I0z = 0.025;
+    const dIdx = -0.01, dIdy = -0.005, dIdz = -0.008;
+    const dt = 5e-4;
+    const st0: RigidState = {
+      r: { x: 0, y: 0, z: 0 },
+      v: { x: 0, y: 0, z: 0 },
+      q: { w: 1, x: 0, y: 0, z: 0 },
+      w: { x: 100, y: 80, z: 60 },
+    };
+    let st = { ...st0, q: { ...st0.q }, w: { ...st0.w } };
+    const tEnd = 0.1;
+    for (let t = 0; t < tEnd; t += dt) {
+      const Ix = I0x + dIdx * t;
+      const Iy = I0y + dIdy * t;
+      const Iz = I0z + dIdz * t;
+      const loads: Loads = {
+        forceN: { x: 0, y: 0, z: 0 },
+        momentB: { x: 0, y: 0, z: 0 },
+        inertiaB: { x: Ix, y: Iy, z: Iz },
+        // NO inertiaDotB — this is the defective path
+        mass: 1,
+      };
+      st = { ...integrateRigidStep(st, loads, dt) };
+    }
+    const L0 = Math.hypot(I0x * st0.w.x, I0y * st0.w.y, I0z * st0.w.z);
+    const Ifx = I0x + dIdx * tEnd, Ify = I0y + dIdy * tEnd, Ifz = I0z + dIdz * tEnd;
+    const L1 = Math.hypot(Ifx * st.w.x, Ify * st.w.y, Ifz * st.w.z);
+    // Without the inertiaDotB correction, angular momentum should drift significantly.
+    expect(Math.abs(L1 - L0) / L0).toBeGreaterThan(0.01); // at least 1% drift
+  });
+});

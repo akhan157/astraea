@@ -167,6 +167,14 @@ export function computeFlightLoads(
   const Iyy = pv.Iyy_dry + Iyy_mot; // transverse pitch
   const Izz = Iyy;
 
+  // Gate 3: variable-inertia term from motor mass depletion
+  // Average constant mass flow rate during burn, zero after
+  const dmDt = powered ? -cfg.motor.propellantMass / cfg.motor.burnTime : 0;
+  const dIxx_mot_dt = 0.5 * mRad * mRad * dmDt;
+  const dIyy_mot_dt = (3 * mRad * mRad + cfg.motor.length * cfg.motor.length) / 12 * dmDt;
+  // inertias stored as {pitch, roll, yaw} in kernel convention
+  const inertiaDotB = { x: dIyy_mot_dt, y: dIxx_mot_dt, z: dIyy_mot_dt };
+
   const R = quaternionToMatrix({ w: st.q.w, x: st.q.x, y: st.q.y, z: st.q.z });
   const wind = cfg.windOverride ?? getWindVectorAt(st.r.z, cfg.windSpeedSurface, cfg.windAzimuthDeg);
   const relWorld = { x: st.v.x - wind.x, y: st.v.y - wind.y, z: st.v.z - wind.z };
@@ -218,6 +226,7 @@ export function computeFlightLoads(
       z: (dStatic * aeroBody.x) - yawDamp,
     },
     inertiaB: { x: Iyy, y: Ixx, z: Izz }, // kernel {pitch, roll, yaw}
+    inertiaDotB,
     mass,
     kinematics: {
       airspeed,
