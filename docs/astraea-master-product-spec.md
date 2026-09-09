@@ -296,7 +296,9 @@ For rigid-body motion with instantaneous vehicle mass $m(t)$ and diagonal inerti
 $$\dot{\mathbf{r}}_N = \mathbf{v}_N$$
 $$\dot{\mathbf{v}}_N = \frac{1}{m(t)} \mathbf{R}_{NB} \mathbf{F}_B + \mathbf{g}_N$$
 $$\dot{\mathbf{q}}_{NB} = \frac{1}{2} \mathbf{q}_{NB} \otimes [0, \boldsymbol{\omega}_B]^T$$
-$$\dot{\boldsymbol{\omega}}_B = \mathbf{I}_B(t)^{-1} \left[ \mathbf{M}_B - \boldsymbol{\omega}_B \times (\mathbf{I}_B(t) \boldsymbol{\omega}_B) \right]$$
+$\dot{\boldsymbol{\omega}}_B = \mathbf{I}_B(t)^{-1} \left[ \mathbf{M}_B - \boldsymbol{\omega}_B \times (\mathbf{I}_B(t) \boldsymbol{\omega}_B) - \dot{\mathbf{I}}_B(t) \boldsymbol{\omega}_B \right]$
++
++**Variable-Mass Control Volume Note:** The $\dot{\mathbf{I}}_B \boldsymbol{\omega}_B$ term captures angular momentum redistribution from propellant depletion under the assumption of axisymmetric discharge aligned with the longitudinal axis and negligible exhaust angular momentum flux relative to the body frame. For non-axisymmetric propellant geometries or thrust vector misalignment, an explicit exhaust angular momentum flux term $\sum \dot{m}_e (\mathbf{r}_e \times \mathbf{v}_e)_B$ must be added.
 
 ### 5.3 Numerical Integrator: Adaptive Dormand-Prince RK54
 - **Integrator:** Embedded Runge-Kutta 5(4) with continuous 4th-order dense output.
@@ -309,9 +311,9 @@ $$\dot{\boldsymbol{\omega}}_B = \mathbf{I}_B(t)^{-1} \left[ \mathbf{M}_B - \bold
 - **Dense-Output Event Root-Finding:** Continuous interpolation for exact event localization:
   - $t_{\text{rail}}$: Distance along rail $s(t) - L_{\text{rail}} = 0$
   - $t_{\text{burnout}}$: $t - t_{\text{burn}} = 0$
-  - $t_{\text{apogee}}$: Vertical velocity zero-crossing $v_{N,y}(t) = 0$
-  - $t_{\text{main}}$: Main deploy altitude $r_{N,y}(t) - h_{\text{main}} = 0$
-  - $t_{\text{touchdown}}$: Ground contact $r_{N,y}(t) = 0$
+  - $t_{\text{apogee}}$: Vertical velocity zero-crossing $v_{N,z}(t) = 0$
+  - $t_{\text{main}}$: Main deploy altitude $r_{N,z}(t) - h_{\text{main}} = 0$
+  - $t_{\text{touchdown}}$: Ground contact $r_{N,z}(t) = 0$
 - **Discontinuous Forcing Reset:** Stop and restart integrator at state transitions (rail exit, staging, motor burnout, parachute bloom) to prevent numerical stiffness.
 
 ---
@@ -371,7 +373,7 @@ An uncertainty ensemble is fully specified by an immutable `scenario.json`:
 ```
 
 ### 7.2 Bivariate 2D Landing Dispersion Ellipse Mathematics
-For the resulting 2D landing coordinates $(x_i, z_i)$ (East, North), Astraea computes the bivariate covariance matrix $\mathbf{\Sigma} \in \mathbb{R}^{2 \times 2}$.
+For the resulting 2D landing coordinates $(x_{N,i}, y_{N,i})$ (East, North), Astraea computes the bivariate covariance matrix $\mathbf{\Sigma} \in \mathbb{R}^{2 \times 2}$.
 
 In a 2D bivariate Gaussian distribution, the cumulative containment probability inside ellipse $(\mathbf{r} - \boldsymbol{\mu})^T \mathbf{\Sigma}^{-1} (\mathbf{r} - \boldsymbol{\mu}) \le k^2$ is governed by the 2-DOF Chi-square distribution:
 $$P(k) = 1 - e^{-k^2 / 2}$$
@@ -412,7 +414,10 @@ At stage separation timestamp $t_{\text{stage}}$, the vehicle is decomposed into
 2. **Rigorous Conservation Invariants:**
    In the absence of external impulses, total linear and angular momentum about an arbitrary inertial origin $\mathbf{r}_0$ are conserved:
    $$\frac{\| \Delta \mathbf{P}_{\text{total}} \|}{\| \mathbf{P}_{\text{initial}} \|} \le 10^{-6}, \quad \frac{\| \Delta \mathbf{H}_0 \|}{\| \mathbf{H}_{0, \text{initial}} \|} \le 10^{-6}$$
-   Where $\mathbf{H}_0(t) = \sum_{i=1}^2 \left[ \mathbf{R}_{NB} \mathbf{I}_i \boldsymbol{\omega}_i^B + m_i (\mathbf{r}_i^N - \mathbf{r}_0) \times \mathbf{v}_i^N \right]$.
+   Where $\mathbf{H}_0(t) = \sum_{i=1}^2 \left[ \mathbf{R}_{NB,i} \mathbf{I}_i \boldsymbol{\omega}_i^B + m_i (\mathbf{r}_i^N - \mathbf{r}_0) \times \mathbf{v}_i^N \right]$ with child-specific attitude rotations $\mathbf{R}_{NB,i}$.
+
+**Parent Mass-Property Identity:** Partitioning must satisfy $m_P = \sum_i m_i$ and $\sum_i m_i \boldsymbol{\rho}_i^B = \mathbf{0}$ with parallel-axis inertia consistency. Tolerance policy uses mixed absolute/relative acceptance:
+$\| \Delta \mathbf{P} \| \le \epsilon_{P,\text{abs}} + \epsilon_{P,\text{rel}} \| \mathbf{P}_{\text{initial}} \|, \quad \epsilon_{P,\text{abs}} = 10^{-6}\text{ N}\cdot\text{s}, \ \epsilon_{P,\text{rel}} = 10^{-6}$
 
 3. **Continuous Geometric Collision & Recontact Detection:**
    Evaluates true boundary-surface clearance accounting for booster residual motor thrust tail-off ($F_{\text{tail-off}}(t)$) and differential aerodynamic drag:
@@ -420,7 +425,7 @@ At stage separation timestamp $t_{\text{stage}}$, the vehicle is decomposed into
    Where monitoring window $t_{\text{clearance}}$ persists until relative separation exceeds $5 \times D_{\text{airframe}}$. If $d_{\text{clearance}}(t) \le 0$, Astraea emits a **Recontact / Stage Collision Hazard Flag**.
 
 ### 9.2 Launch Rail Sliding Multi-Point Tip-Off Dynamics (`FD-TIP-001`)
-Launch rail departure is modeled as a sliding kinematic constraint using forward button ($x_{\text{fwd}}$) and aft button ($x_{\text{aft}}$):
+Launch rail departure is modeled as a sliding kinematic constraint. **Drawing-Axis Reconciliation:** Longitudinal positions $x_{\text{fwd}}, x_{\text{aft}}, x_{cg}, x_{cp}$ are axial distances measured from the nosecone tip along the body longitudinal $+Y_B$ axis (standard rocketry drawing convention). Transverse offset $y_{\text{button}}$ is the lateral rail button displacement from the longitudinal axis:
 1. **Phase 1 (Dual-Button Sliding Guide):** Both buttons engaged in rail channel ($s < L_{\text{rail}} - (x_{\text{aft}} - x_{\text{fwd}})$). Motion is constrained to 1-DOF along rail vector $\hat{\mathbf{u}}_{\text{rail}}$ with Coulomb sliding friction coefficient $\mu_r \approx 0.05$:
    $$\ddot{s}_{\text{rail}} = \frac{\mathbf{F}_{\text{net}} \cdot \hat{\mathbf{u}}_{\text{rail}} - \mu_r \| \mathbf{F}_{\text{normal}} \|}{m(t)}, \quad \boldsymbol{\omega}_B = \mathbf{0}$$
 2. **Phase 2 (Sliding Fulcrum Tip-Off):** Forward button clears rail at $s = L_{\text{rail}} - \Delta x_{\text{buttons}}$. The aft button remains in the channel, acting as an accelerating sliding fulcrum! Crosswinds induce an unbalanced transverse pitching torque:
@@ -435,7 +440,9 @@ $$\omega_n(t) = \sqrt{\frac{C_{N\alpha}(t) \cdot \bar{q}(t) \cdot S_{\text{ref}}
 
 When roll rate crosses pitch natural frequency ($|p(t)| \approx \omega_n(t)$), aerodynamic cross-coupling can trigger **Roll-Pitch Lock-In Resonance**, amplifying angle of attack.
 Astraea calculates the dimensionless **Resonance Avoidance Margin (RAM)** as an empirical screening metric:
-$$\text{RAM}(t) = \frac{\left| |p(t)| - \omega_n(t) \right|}{\max(0.1, \omega_n(t))}$$
+$\text{RAM}(t) = \frac{\left| |p(t)| - \omega_n(t) \right|}{\max(0.1\text{ rad/s}, \omega_n(t))}$
++
++**Unstable Configuration Handling:** If the restoring stiffness $C_{N\alpha} \bar{q} S_{\text{ref}} (x_{cp} - x_{cg}) < 0$ (statically unstable), $\omega_n$ is undefined. Astraea emits `UNSUPPORTED` status rather than computing a non-physical frequency.
 Screening rule: Flags an advisory warning if $\text{RAM}(t) < 0.20$ while dynamic pressure $\bar{q} > 2,000\text{ Pa}$.
 
 ### 9.4 Parachute Inflation Dynamics & Opening Shock Loads (`FD-SHK-001`)
@@ -503,9 +510,10 @@ $$F_{\text{shear}}(T) = F_{\text{nominal}} \cdot \max\left(0.40, 1.0 - 0.0042 \c
 Dual-deployment pyrotechnic sequencing is formalized as an explicit Mealy state machine:
 - **States:** `IDLE`, `ARMED`, `BOOST_DETECTED`, `COASTING`, `APOGEE_PRIMARY_FIRED`, `APOGEE_BACKUP_FIRED`, `MAIN_PRIMARY_FIRED`, `MAIN_BACKUP_FIRED`, `TOUCHDOWN`, `FAULT_LOCKED`.
 - **Primary Apogee Trigger:** True vertical velocity zero-crossing ($v_{N,z} \le 0\text{ m/s}$ and $t > t_{\text{burnout}}$).
-- **Backup Apogee Trigger:** $t_{\text{backup}} = t_{\text{primary}} + 1.5\text{s}$ OR barometric pressure confirms altitude drop $\ge 50\text{m}$ below apogee.
+- **Backup Apogee Trigger (Independent of Primary):** $t_{\text{backup}} = t_{\text{burnout}} + 3.0\text{s}$ OR barometric altitude drop $\ge 50\text{m}$ below detected apogee. Independence requirement: backup timer runs on a dedicated hardware clock channel independent of the primary altimeter detection path.
 - **Primary Main Chute Trigger:** $h_{\text{AGL}} \le h_{\text{main}}$ (default $250\text{m}$).
 - **Backup Main Chute Trigger:** $h_{\text{AGL}} \le h_{\text{main}} - 50\text{m}$ (default $200\text{m}$).
+- **FAULT_LOCKED Entry:** Entered when (a) barometric sensor disagreement >= 100m between dual channels, (b) continuity test failure on any ematch channel, or (c) battery voltage < 3.3V. FAULT_LOCKED requires manual ground reset; no autonomous recovery.
 - **Ejection Sizing Formula:**
   $$P_{\text{target}} = \frac{N_{\text{pins}} \cdot F_{\text{shear}}(T) \cdot SF + F_{\text{friction}}}{A_{\text{bulkhead}}}, \quad m_{\text{BP}} = \frac{P_{\text{target}} \cdot V_{\text{bay}}}{R_{\text{gas}} \cdot T_{\text{flame}}}$$
   Where $R_{\text{gas}} = 280\text{ J/(kg}\cdot\text{K)}$ and $T_{\text{flame}} = 1750\text{ K}$, with safety factor $SF \in [1.75, 2.25]$.
