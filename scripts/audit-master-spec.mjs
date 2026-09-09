@@ -68,8 +68,9 @@ Perform your rigorous seventh-round engineering audit:
     console.error("Error from OpenCodex:", res.status, errText);
     process.exit(1);
   }
-  fs.writeFileSync('scripts/astra-round7-audit.json', await res.text(), 'utf-8');
-  const data = await res.json();
+  const raw = await res.text();
+  fs.writeFileSync('scripts/astra-round7-audit.json', raw, 'utf-8');
+  const data = JSON.parse(raw);
   const critique = data.choices[0].message.content;
   console.log("\n=== ASTRA SEVENTH-ROUND AUDIT REPORT ===\n");
   console.log(critique);

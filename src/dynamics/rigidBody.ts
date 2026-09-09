@@ -44,12 +44,45 @@ export interface Loads {
   mass: number;      // kg
 }
 
-/** Quaternion normalization (same policy as sixDofSimulator). */
+/**
+ * Optional stage-dependent load factory. If provided, integrateRigidStep
+ * re-evaluates force/moment at EVERY RK4 stage using that stage's true state
+ * and time. This restores fourth-order accuracy for attitude-dependent
+ * translational forcing (wind, body-frame rotation, mass evolution).
+ * If omitted, loads are frozen at their initial values (first-order global
+ * velocity error for attitude-dependent forces — valid only for the
+ * constant-force benchmark class).
+ */
+export type LoadsAt = (tStage: number, st: RigidState) => Loads;
+
+/** Quaternion normalization (NORMATIVE; rejects degenerate quaternions). */
 export function normalizeQuaternion(q: Quat): Quat {
   const len = Math.sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
-  if (len < 1e-9) return { w: 1, x: 0, y: 0, z: 0 };
+  if (len < 1e-9 || !Number.isFinite(len)) {
+    throw new Error(
+      'strict rigid-body kernel: degenerate quaternion (|q| ~ 0 or nonfinite); refusing to fabricate an attitude'
+    );
+  }
   const inv = 1 / len;
   return { w: q.w * inv, x: q.x * inv, y: q.y * inv, z: q.z * inv };
+}
+
+/** Strict validation: reject nonfinite states, nonpositive mass, invalid dt. */
+export function validateStateAndLoads(s: RigidState, loads: Loads, dt: number): void {
+  const finite =
+    Number.isFinite(s.r.x) && Number.isFinite(s.r.y) && Number.isFinite(s.r.z) &&
+    Number.isFinite(s.v.x) && Number.isFinite(s.v.y) && Number.isFinite(s.v.z) &&
+    Number.isFinite(s.w.x) && Number.isFinite(s.w.y) && Number.isFinite(s.w.z) &&
+    Number.isFinite(s.q.w) && Number.isFinite(s.q.x) && Number.isFinite(s.q.y) && Number.isFinite(s.q.z) &&
+    Number.isFinite(loads.forceN.x) && Number.isFinite(loads.forceN.y) && Number.isFinite(loads.forceN.z) &&
+    Number.isFinite(loads.momentB.x) && Number.isFinite(loads.momentB.y) && Number.isFinite(loads.momentB.z) &&
+    Number.isFinite(loads.inertiaB.x) && Number.isFinite(loads.inertiaB.y) && Number.isFinite(loads.inertiaB.z);
+  if (!finite) throw new Error('strict rigid-body kernel: non-finite state or load component');
+  if (!(loads.mass > 0 && Number.isFinite(loads.mass))) throw new Error('strict rigid-body kernel: mass must be positive and finite');
+  if (!(dt > 0 && Number.isFinite(dt))) throw new Error('strict rigid-body kernel: dt must be positive and finite');
+  if (loads.inertiaB.x <= 0 || loads.inertiaB.y <= 0 || loads.inertiaB.z <= 0) {
+    throw new Error('strict rigid-body kernel: principal inertias must be strictly positive');
+  }
 }
 
 /** qDot = 0.5 * q (x) [0, w] (body angular rate). */
@@ -89,51 +122,69 @@ function addQuat(q: Quat, dq: Quat, h: number): Quat {
  * Advance the rigid-body state by one RK4 step of size dt under the given loads.
  * Force is applied in the NAVIGATION frame; moment in the BODY frame.
  * Quaternion update is additive + normalized (NORMATIVE contract).
+ *
+ * If `loadsAt` is provided, force/moment/mass/inertia are re-evaluated at each
+ * stage state and time tStage (restores 4th-order accuracy for attitude- and
+ * time-dependent forcing). Otherwise loads are frozen (constant-force class).
  */
 export function integrateRigidStep(
   s: RigidState,
   loads: Loads,
-  dt: number
+  dt: number,
+  loadsAt?: LoadsAt,
+  t0?: number
 ): RigidState {
-  const accel = (): Vec3 => ({
-    x: loads.forceN.x / loads.mass,
-    y: loads.forceN.y / loads.mass,
-    z: loads.forceN.z / loads.mass,
+  validateStateAndLoads(s, loads, dt);
+  const startTime = t0 ?? 0;
+
+  const accelFor = (L: Loads): Vec3 => ({
+    x: L.forceN.x / L.mass,
+    y: L.forceN.y / L.mass,
+    z: L.forceN.z / L.mass,
   });
 
-  const deriv = (st: RigidState): { dr: Vec3; dv: Vec3; dq: Quat; dw: Vec3 } => ({
+  const deriv = (st: RigidState, L: Loads, _t: number): { dr: Vec3; dv: Vec3; dq: Quat; dw: Vec3 } => ({
     dr: st.v,
-    dv: accel(),
+    dv: accelFor(L),
     dq: quaternionDerivative(st.q, st.w),
-    dw: angularAcceleration(st.w, loads.momentB, loads.inertiaB),
+    dw: angularAcceleration(st.w, L.momentB, L.inertiaB),
   });
 
   const addVec = (a: Vec3, b: Vec3, h: number): Vec3 => ({
     x: a.x + b.x * h, y: a.y + b.y * h, z: a.z + b.z * h,
   });
 
-  const d1 = deriv(s);
+  const L0 = loadsAt ? loadsAt(startTime, s) : loads;
+  const d1 = deriv(s, L0, startTime);
+  const tHalf = startTime + dt / 2;
+  const tFull = startTime + dt;
+
   const s1: RigidState = {
     r: addVec(s.r, d1.dr, dt / 2),
     v: addVec(s.v, d1.dv, dt / 2),
     q: addQuat(s.q, d1.dq, dt / 2),
     w: addVec(s.w, d1.dw, dt / 2),
   };
-  const d2 = deriv(s1);
+  const L1 = loadsAt ? loadsAt(tHalf, s1) : loads;
+  const d2 = deriv(s1, L1, tHalf);
+
   const s2: RigidState = {
     r: addVec(s.r, d2.dr, dt / 2),
     v: addVec(s.v, d2.dv, dt / 2),
     q: addQuat(s.q, d2.dq, dt / 2),
     w: addVec(s.w, d2.dw, dt / 2),
   };
-  const d3 = deriv(s2);
+  const L2 = loadsAt ? loadsAt(tHalf, s2) : loads;
+  const d3 = deriv(s2, L2, tHalf);
+
   const s3: RigidState = {
     r: addVec(s.r, d3.dr, dt),
     v: addVec(s.v, d3.dv, dt),
     q: addQuat(s.q, d3.dq, dt),
     w: addVec(s.w, d3.dw, dt),
   };
-  const d4 = deriv(s3);
+  const L3 = loadsAt ? loadsAt(tFull, s3) : loads;
+  const d4 = deriv(s3, L3, tFull);
 
   const blend = (d1v: number, d2v: number, d3v: number, d4v: number): number =>
     (d1v + 2 * d2v + 2 * d3v + d4v) * dt / 6;
