@@ -737,10 +737,12 @@ import { detectEvents, NEWTON_EVENT_STATE, EventState } from '../dynamics/events
 describe('VV-011 Production Event-FSM Acceptance', () => {
   it('fires RAIL_EXIT exactly once when along-rail travel reaches rail length', () => {
     let st: EventState = { ...NEWTON_EVENT_STATE };
+    let prevS = { t: 0, altitudeAlongRail: 0, verticalVelocity: 0, altitude: 0 };
     const railed: string[] = [];
     for (let i = 1; i <= 5; i++) {
-      const ev = detectEvents(st, {
-        t: i * 0.05,
+      const t = i * 0.05;
+      const ev = detectEvents(st, prevS, {
+        t,
         altitudeAlongRail: i * 0.5, // 0.5..2.5 m
         railLength: 2.0,
         burnTime: 1.0,
@@ -749,19 +751,40 @@ describe('VV-011 Production Event-FSM Acceptance', () => {
         mainDeployAlt: 250,
       });
       st = ev.state;
+      prevS = { t, altitudeAlongRail: i * 0.5, verticalVelocity: 20, altitude: i * 0.5 };
       railed.push(...ev.fires);
     }
     expect(railed.filter((e) => e === 'RAIL_EXIT').length).toBe(1);
     expect(st.hasLeftRail).toBe(true);
   });
 
-  it('fires MOTOR_BURNOUT once at burn time and APOGEE only AFTER rail exit', () => {
+  it('localizes RAIL_EXIT to a sub-timestep time across a 0.05s bracket', () => {
     let st: EventState = { ...NEWTON_EVENT_STATE };
+    // Along-rail velocity 20 m/s, crossing 2.0m between t=0.05 (1.0m) and t=0.1 (2.6m)
+    const prevS = { t: 0.05, altitudeAlongRail: 1.0, verticalVelocity: 20, altitude: 1.0 };
+    const ev = detectEvents(st, prevS, {
+      t: 0.1,
+      altitudeAlongRail: 2.6,
+      railLength: 2.0,
+      burnTime: 1.0,
+      verticalVelocity: 20,
+      altitude: 2.6,
+      mainDeployAlt: 250,
+    });
+    const railEv = ev.events.find((e) => e.name === 'RAIL_EXIT');
+    expect(railEv).toBeDefined();
+    // Linear interpolation: t* = 0.05 + (2.0-1.0)/(2.6-1.0)*0.05 = 0.08125
+    expect(Math.abs(railEv!.time - 0.08125)).toBeLessThanOrEqual(1e-9);
+  });
+
+  it('fires MOTOR_BURNOUT once at burn time and APOGEE only AFTER rail exit AND burnout', () => {
+    let st: EventState = { ...NEWTON_EVENT_STATE };
+    let prevS = { t: 0, altitudeAlongRail: 0, verticalVelocity: 25, altitude: 500 };
     const timeline: string[] = [];
     // burn at 0.6s; rail at 0.5s (lint altAlongRail 0.55); apogee v_y<=0 at 1.0s
     for (let i = 1; i <= 25; i++) {
       const t = i * 0.05;
-      const ev = detectEvents(st, {
+      const ev = detectEvents(st, prevS, {
         t,
         altitudeAlongRail: 0.55 * Math.min(1, t / 0.5), // 0.55 -> rail at t=0.5
         railLength: 0.5,
@@ -771,6 +794,7 @@ describe('VV-011 Production Event-FSM Acceptance', () => {
         mainDeployAlt: 250,
       });
       st = ev.state;
+      prevS = { t, altitudeAlongRail: 0.55 * Math.min(1, t / 0.5), verticalVelocity: Math.max(-5, 25 - t * 30), altitude: 500 - t * 300 };
       timeline.push(...ev.fires);
     }
     const burnIdx = timeline.indexOf('MOTOR_BURNOUT');
@@ -778,18 +802,46 @@ describe('VV-011 Production Event-FSM Acceptance', () => {
     expect(timeline.indexOf('RAIL_EXIT')).toBeGreaterThanOrEqual(0);
     expect(burnIdx).toBeGreaterThanOrEqual(0);
     expect(apoIdx).toBeGreaterThanOrEqual(0);
+    // APOGEE requires burnout (nominal sequencing): rail < burnout <= apogee
+    expect(burnIdx).toBeLessThan(apoIdx);
     // one-shot
     expect(timeline.filter((e) => e === 'MOTOR_BURNOUT').length).toBe(1);
     expect(timeline.filter((e) => e === 'APOGEE_DROGUE').length).toBe(1);
   });
 
+  it('does NOT fire APOGEE before burnout even on descending vertical velocity', () => {
+    let st: EventState = { ...NEWTON_EVENT_STATE };
+    let prevS = { t: 0, altitudeAlongRail: 0, verticalVelocity: 0, altitude: 9000 };
+    let apogeeFired = false;
+    // burnTime = 10s (never), rail exits at t=0.05, vertical velocity goes
+    // negative immediately — apogee must NOT fire because burnout has not happened.
+    for (let i = 1; i <= 5; i++) {
+      const t = i * 0.05;
+      const ev = detectEvents(st, prevS, {
+        t,
+        altitudeAlongRail: 1.0, // > railLength 0.5 => rail exits on first tick
+        railLength: 0.5,
+        burnTime: 10.0,
+        verticalVelocity: -3,
+        altitude: 9000 - t,
+        mainDeployAlt: 250,
+      });
+      st = ev.state;
+      prevS = { t, altitudeAlongRail: 1.0, verticalVelocity: -3, altitude: 9000 - t };
+      if (ev.fires.includes('APOGEE_DROGUE')) apogeeFired = true;
+    }
+    expect(apogeeFired).toBe(false);
+    expect(st.isApogeeReached).toBe(false);
+  });
+
   it('does NOT deploy main before apogee (direction filter + sequencing)', () => {
     let st: EventState = { ...NEWTON_EVENT_STATE };
+    let prevS = { t: 0, altitudeAlongRail: 0, verticalVelocity: 20, altitude: 9000 };
     let mainDeployed = false;
     // as-cending phase: altitude high, v_y positive -> main must never fire
     for (let i = 1; i <= 20; i++) {
       const t = i * 0.05;
-      const ev = detectEvents(st, {
+      const ev = detectEvents(st, prevS, {
         t,
         altitudeAlongRail: 0.5,
         railLength: 0.5,
@@ -799,9 +851,30 @@ describe('VV-011 Production Event-FSM Acceptance', () => {
         mainDeployAlt: 250,
       });
       st = ev.state;
+      prevS = { t, altitudeAlongRail: 0.5, verticalVelocity: 20 + t * 30, altitude: 9000 + t * 100 };
       if (ev.fires.includes('MAIN_DEPLOY')) mainDeployed = true;
     }
     expect(mainDeployed).toBe(false);
+  });
+
+  it('fires TOUCHDOWN with a localized descending-altitude crossing', () => {
+    let st: EventState = { ...NEWTON_EVENT_STATE, hasLeftRail: true, hasBurnedOut: true, isApogeeReached: true };
+    // Descending from 5m to -1m across the bracket -> touchdown root at t*
+    const prevS = { t: 9.0, altitudeAlongRail: 5.0, verticalVelocity: -6, altitude: 5.0 };
+    const ev = detectEvents(st, prevS, {
+      t: 9.05,
+      altitudeAlongRail: -6,
+      railLength: 0.5,
+      burnTime: 1.0,
+      verticalVelocity: -6,
+      altitude: -1.0,
+      mainDeployAlt: 250,
+    });
+    const td = ev.events.find((e) => e.name === 'TOUCHDOWN');
+    expect(td).toBeDefined();
+    // t* = 9.0 + (0-5)/(-1-5)*0.05 = 9.0 + (5/6)*0.05 = 9.041666...
+    expect(Math.abs(td!.time - (9.0 + (5.0 / 6.0) * 0.05))).toBeLessThanOrEqual(1e-9);
+    expect(ev.state.touchedDown).toBe(true);
   });
 });
 

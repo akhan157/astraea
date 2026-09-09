@@ -2,24 +2,23 @@
  * Astraea Production Flight-Event FSM (NORMATIVE)
  *
  * Pure, testable event-detection state machine used by sixDofSimulator.
- * Each tick presents the current kinematic state; detectEvents() returns the
- * events that FIRE on that tick together with any state transitions.
+ * Each tick presents the current kinematic state together with the PREVIOUS
+ * tick's kinematic state, so genuine crossings can be bracketed and
+ * root-localized to a sub-timestep time (P0-04/05).
  *
- * Direction-filtered, monotonic, one-shot events:
- *   RAIL_EXIT       : distance-along-rail crosses L_rail (ascending)
- *   MOTOR_BURNOUT   : t >= t_burnout (one-shot)
- *   APOGEE_DROGUE   : vertical velocity zero-crossing, v_y <= 0, after rail
- *   MAIN_DEPLOY     : altitude <= h_main (descending only, after apogee)
- *   TOUCHDOWN       : altitude <= 0 (after apogee)
+ * Direction-filtered, monotonic, one-shot events; each event returns its
+ * root-localized time via `localizeCrossingFiltered`:
+ *   RAIL_EXIT       : along-rail coordinate crosses L_rail (ascending)
+ *   MOTOR_BURNOUT   : t crosses t_burnout (one-shot)
+ *   APOGEE_DROGUE   : vertical velocity zero-cross, v<=0, after rail+burnout
+ *   MAIN_DEPLOY     : altitude crosses h_main (descending, after apogee)
+ *   TOUCHDOWN       : altitude crosses 0 (descending, after apogee)
+ *
+ * Event state transitions are one-shot and monotonic (no re-fire). Invalid
+ * or out-of-sequence inputs are rejected by the direction/sequencing guards.
  */
 
-export type AstraeaEvent =
-  | 'NONE'
-  | 'RAIL_EXIT'
-  | 'MOTOR_BURNOUT'
-  | 'APOGEE_DROGUE'
-  | 'MAIN_DEPLOY'
-  | 'TOUCHDOWN';
+export type AstraeaEvent = 'NONE' | 'RAIL_EXIT' | 'MOTOR_BURNOUT' | 'APOGEE_DROGUE' | 'MAIN_DEPLOY' | 'TOUCHDOWN';
 
 export interface EventState {
   hasLeftRail: boolean;
@@ -31,12 +30,33 @@ export interface EventState {
 
 export interface EventInput {
   t: number;
-  altitudeAlongRail: number; // distance along launch rail vector (m)
+  /** current along-rail coordinate (m, signed projection onto rail axis) */
+  altitudeAlongRail: number;
   railLength: number;
   burnTime: number;
-  verticalVelocity: number; // +up (m/s)
-  altitude: number; // AGL (m)
+  /** +up (m/s) */
+  verticalVelocity: number;
+  /** AGL (m) */
+  altitude: number;
   mainDeployAlt: number;
+}
+
+export interface EventSamplePair {
+  t: number;
+  altitudeAlongRail: number;
+  verticalVelocity: number;
+  altitude: number;
+}
+
+export interface LocalizedEvent {
+  name: AstraeaEvent;
+  time: number;
+}
+
+export interface EventResult {
+  fires: AstraeaEvent[];
+  events: LocalizedEvent[];
+  state: EventState;
 }
 
 export const NEWTON_EVENT_STATE: EventState = {
@@ -47,13 +67,8 @@ export const NEWTON_EVENT_STATE: EventState = {
   touchedDown: false,
 };
 
-export interface EventResult {
-  fires: AstraeaEvent[];
-  state: EventState;
-}
-
-/** One-shot monotonic event transition. */
-export function detectEvents(prev: EventState, inp: EventInput): EventResult {
+/** One-shot monotonic event transition with root-localized event times. */
+export function detectEvents(prev: EventState, prevS: EventSamplePair, inp: EventInput): EventResult {
   const s: EventState = {
     hasLeftRail: prev.hasLeftRail,
     hasBurnedOut: prev.hasBurnedOut,
@@ -62,50 +77,72 @@ export function detectEvents(prev: EventState, inp: EventInput): EventResult {
     touchedDown: prev.touchedDown,
   };
   const fires: AstraeaEvent[] = [];
+  const events: LocalizedEvent[] = [];
 
-  // RAIL_EXIT: still on rail, along-rail travel reaches rail length (ascending implied)
-  if (!s.hasLeftRail && inp.altitudeAlongRail >= inp.railLength) {
+  const locRail = localizeCrossingFiltered(
+    prevS.t, prevS.altitudeAlongRail, inp.t, inp.altitudeAlongRail, inp.railLength, 'ascending'
+  );
+  // RAIL_EXIT: still on rail, along-rail coordinate crosses L_rail ascending
+  if (!s.hasLeftRail && locRail >= 0) {
     s.hasLeftRail = true;
     fires.push('RAIL_EXIT');
+    events.push({ name: 'RAIL_EXIT', time: locRail });
   }
 
-  // MOTOR_BURNOUT: one-shot by time
-  if (!s.hasBurnedOut && inp.t >= inp.burnTime) {
+  // MOTOR_BURNOUT: one-shot by time, brackets the burn boundary
+  if (!s.hasBurnedOut && prevS.t < inp.burnTime && inp.t >= inp.burnTime) {
     s.hasBurnedOut = true;
     fires.push('MOTOR_BURNOUT');
+    events.push({ name: 'MOTOR_BURNOUT', time: inp.burnTime });
   }
 
-  // APOGEE_DROGUE: after rail, vertical velocity crosses down through zero
-  if (!s.isApogeeReached && s.hasLeftRail && inp.verticalVelocity <= 0 && inp.t > 0.8) {
-    s.isApogeeReached = true;
-    fires.push('APOGEE_DROGUE');
+  // APOGEE_DROGUE: after rail + burnout, vertical velocity crosses 0 descending
+  if (!s.isApogeeReached && s.hasLeftRail && s.hasBurnedOut) {
+    const locAp = localizeCrossingFiltered(
+      prevS.t, prevS.verticalVelocity, inp.t, inp.verticalVelocity, 0, 'descending'
+    );
+    if (locAp >= 0) {
+      s.isApogeeReached = true;
+      fires.push('APOGEE_DROGUE');
+      events.push({ name: 'APOGEE_DROGUE', time: locAp });
+    }
   }
 
-  // MAIN_DEPLOY: after apogee, descending, altitude reaches main-deploy gate
-  if (!s.isApogeeReached && !fires.includes('APOGEE_DROGUE')) {
-    // no main deploy before apogee
-  } else if (!s.isMainDeployed && s.isApogeeReached && inp.verticalVelocity <= 0 && inp.altitude <= inp.mainDeployAlt) {
-    s.isMainDeployed = true;
-    fires.push('MAIN_DEPLOY');
+  // MAIN_DEPLOY: after apogee, descending, altitude crosses h_main
+  if (!s.isMainDeployed && s.isApogeeReached) {
+    const locMain = localizeCrossingFiltered(
+      prevS.t, prevS.altitude, inp.t, inp.altitude, inp.mainDeployAlt, 'descending'
+    );
+    if (locMain >= 0) {
+      s.isMainDeployed = true;
+      fires.push('MAIN_DEPLOY');
+      events.push({ name: 'MAIN_DEPLOY', time: locMain });
+    }
   }
 
-  // TOUCHDOWN: after apogee, ground contact
-  if (!s.touchedDown && s.isApogeeReached && inp.altitude <= 0 && inp.t > 1.0) {
-    s.touchedDown = true;
-    fires.push('TOUCHDOWN');
+  // TOUCHDOWN: after apogee, descending, altitude crosses 0
+  if (!s.touchedDown && s.isApogeeReached) {
+    const locTd = localizeCrossingFiltered(
+      prevS.t, prevS.altitude, inp.t, inp.altitude, 0, 'descending'
+    );
+    if (locTd >= 0) {
+      s.touchedDown = true;
+      fires.push('TOUCHDOWN');
+      events.push({ name: 'TOUCHDOWN', time: locTd });
+    }
   }
 
   if (fires.length === 0) fires.push('NONE');
-
-  return { fires, state: s };
+  return { fires, state: s, events };
 }
+
 /**
  * Root-localized event timing (NORMATIVE P0-5).
  * Given two consecutive integration samples bracketing a threshold crossing
  * of a monotone quantity, returns the interpolated crossing time.
  * Linear Hermite interpolation on (t0, val0, t1, val1) -> crossing of `target`.
  * Used to localize RAIL_EXIT, MAIN_DEPLOY, TOUCHDOWN, and apogee zero-cross
- * to <= 1e-5 s without requiring a finer integration timestep.
+ * to a sub-timestep time without requiring a finer integration timestep.
  */
 export function localizeCrossing(
   t0: number,
@@ -122,7 +159,8 @@ export function localizeCrossing(
 /**
  * Direction-filtered bracketing: checks that the crossing is in the
  * expected direction (ascending or descending) before localizing.
- * Returns the localized time, or -1 if the direction is wrong.
+ * Returns the localized time, or -1 if the direction is wrong or the
+ * target is not bracketed.
  */
 export function localizeCrossingFiltered(
   t0: number,

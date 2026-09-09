@@ -251,6 +251,13 @@ export function simulate6DofFlight(
   let isDrogueDeployed = false;
   let isMainDeployed = false;
   let eventState: EventState = { ...NEWTON_EVENT_STATE };
+  // Previous-tick kinematic sample for root-localized crossing detection
+  let prevSample = {
+    t: 0,
+    altitudeAlongRail: 0,
+    verticalVelocity: 0,
+    altitude: 0,
+  };
 
   const telemetry: SixDofTelemetryPoint[] = [];
   const events: SixDofEvent[] = [];
@@ -344,8 +351,9 @@ export function simulate6DofFlight(
     const scalarAccel = Math.sqrt(accelWorld.x * accelWorld.x + accelWorld.y * accelWorld.y + accelWorld.z * accelWorld.z);
     if (scalarAccel > maxAccel) maxAccel = scalarAccel;
 
-    // Production FSM: one-shot direction-filtered event detection
-    const ev = detectEvents(eventState, {
+    // Production FSM: one-shot direction-filtered event detection with
+    // root-localized crossing times (P0-04/05)
+    const ev = detectEvents(eventState, prevSample, {
       t,
       altitudeAlongRail: distanceAlongRail,
       railLength,
@@ -355,6 +363,20 @@ export function simulate6DofFlight(
       mainDeployAlt,
     });
     eventState = ev.state;
+    const tRailExit = ev.events.find(e => e.name === 'RAIL_EXIT')?.time ?? t;
+    const tBurnout = ev.events.find(e => e.name === 'MOTOR_BURNOUT')?.time ?? t;
+    const tApogee = ev.events.find(e => e.name === 'APOGEE_DROGUE')?.time ?? t;
+    const tMain = ev.events.find(e => e.name === 'MAIN_DEPLOY')?.time ?? t;
+    const tTouchdown = ev.events.find(e => e.name === 'TOUCHDOWN')?.time ?? t;
+
+    // Capture the CURRENT pre-step state as the prev sample for the next tick's
+    // crossing detection (must happen BEFORE integration write-back).
+    prevSample = {
+      t,
+      altitudeAlongRail: distanceAlongRail,
+      verticalVelocity: vel.z,
+      altitude: pos.z,
+    };
 
     if (ev.fires.includes('RAIL_EXIT')) {
       hasLeftRail = true;
@@ -362,7 +384,7 @@ export function simulate6DofFlight(
       railExitVel = scalarSpeed;
       weathercockAngleDeg = totalAlphaDeg;
       events.push({
-        time: t,
+        time: tRailExit,
         name: 'Launch Rail Departure',
         altitude: pos.z,
         velocity: scalarSpeed,
@@ -374,7 +396,7 @@ export function simulate6DofFlight(
       burnoutAlt = pos.z;
       burnoutVel = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
       events.push({
-        time: t,
+        time: tBurnout,
         name: 'Motor Burnout',
         altitude: pos.z,
         velocity: burnoutVel,
@@ -385,12 +407,12 @@ export function simulate6DofFlight(
     if (ev.fires.includes('APOGEE_DROGUE')) {
       isApogeeReached = true;
       maxAltitude = pos.z;
-      apogeeTime = t;
+      apogeeTime = tApogee;
       apogeePos = { ...pos };
       isDrogueDeployed = true;
       omega = { p: 0, q: 0, r: 0 }; // tumbling / drogue decouples attitude
       events.push({
-        time: t,
+        time: tApogee,
         name: 'Apogee & Drogue Deployment',
         altitude: pos.z,
         velocity: Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z),
@@ -401,7 +423,7 @@ export function simulate6DofFlight(
     if (ev.fires.includes('MAIN_DEPLOY')) {
       isMainDeployed = true;
       events.push({
-        time: t,
+        time: tMain,
         name: 'Main Parachute Deployment',
         altitude: pos.z,
         velocity: Math.abs(vel.z),
@@ -414,7 +436,7 @@ export function simulate6DofFlight(
       const finalImpactSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
       const lateralDrift = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
       events.push({
-        time: t,
+        time: tTouchdown,
         name: 'Ground Touchdown',
         altitude: 0,
         velocity: finalImpactSpeed,
