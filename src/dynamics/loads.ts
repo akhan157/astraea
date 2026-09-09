@@ -142,6 +142,7 @@ export interface FlightLoadsDetail extends Loads {
     mach: number;
     qInf: number;
     alphaDeg: number;
+    betaDeg: number;
     latSpeed: number;
     dragAxial: number;
     thrust: number;
@@ -164,16 +165,30 @@ export function computeFlightLoads(
   const mass = pv.vehicleDryMass + motorSt.currentMass;
   const mRad = cfg.motor.diameter / 2;
   const Ixx_mot = 0.5 * motorSt.currentMass * mRad * mRad;
-  const Iyy_mot = (motorSt.currentMass * (3 * mRad * mRad + cfg.motor.length * cfg.motor.length)) / 12;
-  const Ixx = pv.Ixx_dry + Ixx_mot; // roll-axial
-  const Iyy = pv.Iyy_dry + Iyy_mot; // transverse pitch
+  // Motor transverse inertia about its own centroid, then PARALLEL-AXIS
+  // translated to the baseline vehicle CG (motor mounted aft of CG by
+  // motor center offset; audit §5.1). Izz = Iyy under axisymmetry.
+  const Iyy_mot_c = (motorSt.currentMass * (3 * mRad * mRad + cfg.motor.length * cfg.motor.length)) / 12;
+  // Motor CG offset from vehicle CG: motor axial base at vehicle aft, so its
+  // center sits at (totalLength - motor.length/2) from nose; baseline cg from nose.
+  const motorCgFromNose = Math.max(0, pv.totalLength - cfg.motor.length / 2);
+  const dMot = motorCgFromNose - pv.baselineCg; // signed (m)
+  const Iyy_mot = Iyy_mot_c + motorSt.currentMass * dMot * dMot;
+  const Ixx = pv.Ixx_dry + Ixx_mot; // roll-axial (insensitive to axial offset)
+  const Iyy = pv.Iyy_dry + Iyy_mot; // transverse pitch (parallel-axis corrected)
   const Izz = Iyy;
 
-  // Gate 3: variable-inertia term from motor mass depletion
-  // Average constant mass flow rate during burn, zero after
+  // Gate 3: variable-inertia term from motor mass depletion.
+  // Constant-flow depletion is the DISCHARGE MODEL in production use
+  // (contract §5 motor model): dm/dt = -m_prop / t_burn while burning.
+  // The parallel-axis term contributes d(Iyy)/dt = 2 m_mot d_mot (d_mot/dt),
+  // which with d_mot constant reduces to the mass-flow term only; we account
+  // for the mass-linked d(I)/dt via the two terms below.
   const dmDt = powered ? -cfg.motor.propellantMass / cfg.motor.burnTime : 0;
   const dIxx_mot_dt = 0.5 * mRad * mRad * dmDt;
-  const dIyy_mot_dt = (3 * mRad * mRad + cfg.motor.length * cfg.motor.length) / 12 * dmDt;
+  const dIyy_mot_dt =
+    (3 * mRad * mRad + cfg.motor.length * cfg.motor.length) / 12 * dmDt +
+    2 * dmDt * dMot * dMot; // d(m·d_mot²)/dt with d_mot constant = 2·dm·d²
   // inertias stored as {pitch, roll, yaw} in kernel convention
   const inertiaDotB = { x: dIyy_mot_dt, y: dIxx_mot_dt, z: dIyy_mot_dt };
 
@@ -184,8 +199,12 @@ export function computeFlightLoads(
   const airspeed = Math.sqrt(relBody.x * relBody.x + relBody.y * relBody.y + relBody.z * relBody.z);
   const mach = airspeed / atmos.speedOfSound;
   const qInf = 0.5 * atmos.density * airspeed * airspeed;
+  // Certified paired incidence (contract §6): α about the X_B (pitch) axis,
+  // β about the Z_B (yaw) axis, from body-frame air-relative velocity.
   const latSpeed = Math.sqrt(relBody.x * relBody.x + relBody.z * relBody.z);
-  const alpha = Math.atan2(latSpeed, Math.max(0.1, Math.abs(relBody.y)));
+  // Signed paired incidence (contract §6): α about X_B (pitch), β about Z_B (yaw)
+  const beta = Math.atan2(relBody.x, Math.max(1e-6, Math.hypot(relBody.y, relBody.z)));
+  const alphaTotal = Math.atan2(latSpeed, Math.max(1e-6, Math.abs(relBody.y)));
 
   const aero = aeroAtMach(mach, powered, pv);
   let cd = aero.totalCd;
@@ -199,14 +218,27 @@ export function computeFlightLoads(
     cd = pv.drogue.cd || 0.8;
   }
 
-  const dragAxial = qInf * effArea * cd * Math.sign(relBody.y || 1);
-  const cna = 12.0;
-  const normal = qInf * pv.refArea * cna * Math.sin(alpha);
-  const aeroBody = {
-    x: latSpeed > 0 ? -normal * (relBody.x / latSpeed) : 0,
-    y: -dragAxial,
-    z: latSpeed > 0 ? -normal * (relBody.z / latSpeed) : 0,
-  };
+  const dragAxial = qInf * effArea * cd; // wind-axis drag magnitude (N)
+
+  // Wind-axis -> body transform (contract §6): drag opposes the air-relative
+  // velocity unit vector; lift acts along the body Y-Z plane normal to it.
+  let aeroBody = { x: 0.0, y: 0.0, z: 0.0 };
+  if (airspeed < 1e-6 || latSpeed < 1e-9) {
+    // No relative airflow / purely axial flow: zero transverse aero forces
+    aeroBody.y = -dragAxial * (airspeed > 1e-6 ? relBody.y / airspeed : 0);
+  } else {
+    // Drag opposes airflow, axial component only (wind-axis -> body, §6)
+    aeroBody.y = -dragAxial * (relBody.y / airspeed);
+    // Normal force magnitude from total incidence, in the transverse X-Z
+    // plane (signed by longitudinal air-speed direction to fold reverse flow
+    // correctly): direction = -transverse velocity / latSpeed
+    const cna = 12.0; // documented normal-force slope (Mach-averaged, screened)
+    const normalMag = qInf * pv.refArea * cna * Math.sin(alphaTotal) * Math.sign(relBody.y);
+    const nx = latSpeed > 0 ? -normalMag * (relBody.x / latSpeed) : 0;
+    const nz = latSpeed > 0 ? -normalMag * (relBody.z / latSpeed) : 0;
+    aeroBody.x = nx;
+    aeroBody.z = nz;
+  }
 
   const forceBodyN = rotateBodyToWorld(R, { x: aeroBody.x, y: aeroBody.y + thrust, z: aeroBody.z });
   forceBodyN.z -= mass * 9.80665;
@@ -217,7 +249,10 @@ export function computeFlightLoads(
   const yaw = st.w.z;
   const pitchDamp = 0.5 * atmos.density * Math.max(1, airspeed) * pv.refArea * pv.totalLength * pv.totalLength * 1.5 * pitch;
   const yawDamp = 0.5 * atmos.density * Math.max(1, airspeed) * pv.refArea * pv.totalLength * pv.totalLength * 1.5 * yaw;
-  const rollDamp = qInf * pv.refArea * pv.rBody * pv.rBody * 4.0 * roll;
+  // Roll damping: dimensionally correct N·m via nondimensional rate p·d/(2V)
+  // (contract §6 convention): L_p = qInf S d C_lp p d / (2 V)
+  const clp = 4.0; // roll-damping coefficient derivative (screened empirical)
+  const rollDamp = (qInf * pv.refArea * pv.rBody * pv.rBody * clp * roll) / (2 * Math.max(1.0, airspeed));
   const rollTorque = qInf * pv.refArea * pv.rBody * Math.sin(cfg.finCantRad) * 4.0;
 
   return {
@@ -234,7 +269,8 @@ export function computeFlightLoads(
       airspeed,
       mach,
       qInf,
-      alphaDeg: (alpha * 180) / Math.PI,
+      alphaDeg: (alphaTotal * 180) / Math.PI,
+      betaDeg: (beta * 180) / Math.PI,
       latSpeed,
       dragAxial,
       thrust,

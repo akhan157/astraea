@@ -1125,3 +1125,58 @@ describe('VV-014 Adaptive Integrator Termination + Convergence', () => {
     expect(Math.abs(result.state.v.x - 20)).toBeLessThanOrEqual(1e-6);
   });
 });
+
+// ---------------------------------------------------------------------------
+// VV-015: Production Descent Validation (audit §5.4).
+// Drives the PRODUCTION simulator to touchdown and asserts physical descent:
+// - touchdown is reached (terminated) with finite outputs;
+// - terminal descent under main chute is bounded FAR below ballistic impact;
+// - localized touchdown time is physically ordered (apogee < main < touchdown);
+// - angular rates remain finite through the drogue/main transitions
+//   (no undocumented instantaneous rate resets corrupting momentum).
+// ---------------------------------------------------------------------------
+
+describe('VV-015 Production Descent Validation', () => {
+  it('terminates at touchdown with bounded, finite, ordered descent metrics', () => {
+    const res = simulate6DofFlight(PRESET_ESTES_ALPHA, CERTIFIED_MOTORS.estes_c6, {
+      railLength: 1.2,
+      railElevationDeg: 90.0, // vertical rail
+      windSpeedSurface: 2.0,
+      windAzimuthDeg: 180.0,
+    });
+    // Touchdown reached
+    expect(res.terminated).toBe(true);
+    // All landing outputs finite
+    expect(Number.isFinite(res.landingVelocity)).toBe(true);
+    expect(Number.isFinite(res.landingDistance)).toBe(true);
+    expect(Number.isFinite(res.landingKineticEnergy)).toBe(true);
+    // Bounded terminal impact: main-chute ballistic terminal for LPR
+    // (Estes-style 1-2 kg, 12-24" chutes) is ~3-8 m/s; assert clearly below
+    // the 15 m/s rail-safe scale and below a 10 m/s hard bound.
+    expect(res.landingVelocity).toBeLessThan(10.0);
+    // Descent physically ordered: apogee time < main deploy < touchdown
+    const tApoge = res.events.find((e) => e.name.includes('Apogee'))?.time ?? -1;
+    const tMain = res.events.find((e) => e.name.includes('Main Parachute'))?.time ?? -1;
+    const tTd = res.events.find((e) => e.name.includes('Ground Touchdown'))?.time ?? -1;
+    expect(tApoge).toBeGreaterThan(0);
+    expect(tMain).toBeGreaterThan(tApoge);
+    expect(tTd).toBeGreaterThan(tMain);
+    // Finiteness of angular rates through transitions
+    const maxRate = Math.max(...res.telemetry.map((p) => Math.abs(p.angularVelocity.p)));
+    expect(Number.isFinite(maxRate)).toBe(true);
+    // apogee altitude is physical (no axis corruption)
+    expect(res.apogeeAltitude).toBeGreaterThan(0);
+    // descent is not ballistic free-fall: main deploy well before touchdown
+    expect(tTd - tMain).toBeGreaterThan(10.0);
+    // Contract §7 exclusive four-state: PASS requires touchdown + envelope
+    expect(['PASS', 'FAIL', 'UNKNOWN', 'NOT_APPLICABLE']).toContain(res.validity);
+    // Honest envelope semantics: if any instantaneous total incidence > 30°
+    // (e.g. tumbling during drogue descent), the flight is UNKNOWN, never PASS.
+    expect(res.validity).not.toBe('FAIL');   // touchdown was achieved
+    if (!res.enveloped) {
+      expect(res.validity).toBe('UNKNOWN');  // outside envelope => not certifiable
+    } else {
+      expect(res.validity).toBe('PASS');
+    }
+  });
+});

@@ -86,9 +86,13 @@ export interface SixDofSimulationResult {
   terminated: boolean;            // true only on actual ground touchdown
   landingMass: number;            // actual retained mass at landing (kg)
   flightDuration: number;         // seconds
+  validity: FlightValidity;       // contract §7 exclusive four-state
+  enveloped: boolean;             // within Mach ∈ [0,4] & α ≤ 30° envelope
   events: SixDofEvent[];
   telemetry: SixDofTelemetryPoint[];
 }
+
+export type FlightValidity = 'PASS' | 'FAIL' | 'UNKNOWN' | 'NOT_APPLICABLE';
 
 export interface SixDofOptions {
   railLength?: number;            // meters (default 3.0m)
@@ -236,6 +240,7 @@ export function simulate6DofFlight(
   let maxAltitude = 0;
   let maxSpeed = 0;
   let maxMach = 0;
+  let maxAlphaDeg = 0;
   let maxAccel = 0;
   let apogeeTime = 0;
   let apogeePos: Vector3D = { x: 0, y: 0, z: 0 };
@@ -309,6 +314,7 @@ export function simulate6DofFlight(
     const atmos = getAtmosphereAt(launchAltitudeASL + pos.z);
     if (mach > maxMach) maxMach = mach;
     if (airspeed > maxSpeed) maxSpeed = airspeed;
+    if (totalAlphaDeg > maxAlphaDeg) maxAlphaDeg = totalAlphaDeg;
 
     // Linear Acceleration in World Frame
     let accelWorld: Vector3D = {
@@ -410,7 +416,9 @@ export function simulate6DofFlight(
       apogeeTime = tApogee;
       apogeePos = { ...pos };
       isDrogueDeployed = true;
-      omega = { p: 0, q: 0, r: 0 }; // tumbling / drogue decouples attitude
+      // No rate reset: the drogue's drag acts through the loads assembly at
+      // the next stage-RHS evaluation (momentum-conserving; the parachute
+      // drag decelerates/rotates the vehicle physically).
       events.push({
         time: tApogee,
         name: 'Apogee & Drogue Deployment',
@@ -560,6 +568,13 @@ export function simulate6DofFlight(
   const landingKineticEnergy = 0.5 * landingMass * Math.pow(landingSpeed, 2);
   const lateralLandingDrift = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
   const terminated = eventState.touchedDown;
+  // Contract §8: continuous validated envelope M ∈ [0,4], α_total ≤ 30°.
+  // Contract §7: exclusive {PASS, FAIL, UNKNOWN, NOT_APPLICABLE}.
+  const enveloped = maxMach <= 4.0 && maxAlphaDeg <= 30.0;
+  const validity: FlightValidity =
+    !terminated ? 'FAIL' :
+    !enveloped ? 'UNKNOWN' :
+    Number.isFinite(landingKineticEnergy) && Number.isFinite(landingSpeed) ? 'PASS' : 'FAIL';
   return {
     apogeeAltitude: maxAltitude,
     apogeeTime,
@@ -582,6 +597,8 @@ export function simulate6DofFlight(
     terminated,
     landingMass,
     flightDuration: t,
+    validity,
+    enveloped,
     events,
     telemetry,
   };
