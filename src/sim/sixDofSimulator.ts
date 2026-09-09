@@ -85,6 +85,7 @@ export interface SixDofSimulationResult {
   isLandingVelocitySafe: boolean; // <= 6.0 m/s landing speed
   terminated: boolean;            // true only on actual ground touchdown
   landingMass: number;            // actual retained mass at landing (kg)
+  flightDuration: number;         // seconds
   events: SixDofEvent[];
   telemetry: SixDofTelemetryPoint[];
 }
