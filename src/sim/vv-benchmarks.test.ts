@@ -885,7 +885,6 @@ describe('VV-012 Production Event Localization', () => {
 
 describe('VV-013 Gate 3 Variable-Inertia Term', () => {
   it('1. constant inertia, no inertiaDotB: |I·w| invariant (backward compat)', () => {
-    const tol = 1e-9;
     const dt = 1e-3;
     const Nt = 100;
     const Ix = 0.01, Iy = 0.02, Iz = 0.015;
