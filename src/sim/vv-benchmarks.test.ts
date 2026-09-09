@@ -67,32 +67,38 @@ function integrateStep(
   const s0: State6Dof = {
     r: s.r.clone(), v: s.v.clone(), q: s.q.clone(), w: s.w.clone(),
   };
+  const addQ = (q: THREE.Quaternion, dq: THREE.Quaternion, h: number): THREE.Quaternion => {
+    const out = q.clone();
+    out.x += dq.x * h;
+    out.y += dq.y * h;
+    out.z += dq.z * h;
+    out.w += dq.w * h;
+    out.normalize();
+    return out;
+  };
   const d1 = deriv(s0);
   const s1: State6Dof = {
     r: s0.r.clone().addScaledVector(d1.dr, dt / 2),
     v: s0.v.clone().addScaledVector(d1.dv, dt / 2),
-    q: s0.q.clone(),
+    q: addQ(s0.q, d1.dq, dt / 2),
     w: s0.w.clone().addScaledVector(d1.dw, dt / 2),
   };
-  s1.q.normalize();
   const d2 = deriv(s1);
 
   const s2: State6Dof = {
     r: s0.r.clone().addScaledVector(d2.dr, dt / 2),
     v: s0.v.clone().addScaledVector(d2.dv, dt / 2),
-    q: s0.q.clone(),
+    q: addQ(s0.q, d2.dq, dt / 2),
     w: s0.w.clone().addScaledVector(d2.dw, dt / 2),
   };
-  s2.q.normalize();
   const d3 = deriv(s2);
 
   const s3: State6Dof = {
     r: s0.r.clone().addScaledVector(d3.dr, dt),
     v: s0.v.clone().addScaledVector(d3.dv, dt),
-    q: s0.q.clone(),
+    q: addQ(s0.q, d3.dq, dt),
     w: s0.w.clone().addScaledVector(d3.dw, dt),
   };
-  s3.q.normalize();
   const d4 = deriv(s3);
 
   s.r.addScaledVector(
