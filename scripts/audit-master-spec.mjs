@@ -27,7 +27,7 @@ WHAT CHANGED:
    - ADDED stage-dependent RHS: integrateRigidStep() now accepts an optional loadsAt(tStage, state) factory; when provided, force/moment/mass/inertia are RE-EVALUATED at every RK4 stage state and time, restoring 4th-order accuracy for attitude- and time-dependent forcing. When omitted, loads are frozen (constant-force class only, documented).
    - ADDED strict validation: normalizeQuaternion() THROWS on degenerate (|q|~0) or nonfinite quaternions instead of fabricating identity; validateStateAndLoads() rejects nonfinite state/load components, nonpositive or nonfinite mass, nonpositive dt, and nonpositive principal inertias. No silent physical-state fabrication remains.
 
-VERIFICATION: 43/43 tests pass, production build clean.
+VERIFICATION: 44/44 tests pass, production build clean. VV-009 added: pure-roll and pure-pitch inertia-coupling discrimination (kernel axis isolation). The tautological VV-008 frame test was REMOVED per your guidance; kernel is documented as frame-agnostic Cartesian RK4 (ENU in, forceN in nav frame), with exported production adapters displayToKernel/kernelToDisplay/simOmegaToKernel/simInertiaToKernel provided for the flight simulator.
 
 
 

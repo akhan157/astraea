@@ -21,7 +21,7 @@ import { MotorSpec, getMotorThrustAt, getMotorMassAt } from '../propulsion/motor
 import { computeAerodynamicCurves } from '../aero/transonicAero';
 import { aggregateVehicleMass } from '../core/mass';
 import { getAtmosphereAt } from './flightSimulator';
-import { integrateRigidStep, normalizeQuaternion as normQ } from '../dynamics/rigidBody';
+import { integrateRigidStep, normalizeQuaternion as normQ, displayToKernel, kernelToDisplay, simOmegaToKernel, kernelOmegaToSim, simInertiaToKernel } from '../dynamics/rigidBody';
 
 export interface Vector3D {
   x: number; // East (m)
@@ -576,33 +576,36 @@ export function simulate6DofFlight(
       break;
     }
 
-    // Numerical State Integration via production rigid-body kernel (NORMATIVE)
-    // Frame map: display (E, alt, N) -> kernel ENU (E, N, U)
+    // Numerical State Integration via production rigid-body kernel (NORMATIVE).
+    // Adapters exported from rigidBody.ts implement the proper display<->ENU
+    // rotation (det=+1), body-rate relabel, and inertia permutation.
     const next = integrateRigidStep(
       {
-        r: { x: pos.x, y: pos.z, z: pos.y },
-        v: { x: vel.x, y: vel.z, z: vel.y },
+        r: displayToKernel({ x: pos.x, y: pos.y, z: pos.z }),
+        v: displayToKernel({ x: vel.x, y: vel.y, z: vel.z }),
         q: { w: q.w, x: q.x, y: q.y, z: q.z },
-        // body-frame angular velocity: x=pitch, y=roll, z=yaw
-        w: { x: omega.q, y: omega.p, z: omega.r },
+        w: simOmegaToKernel(omega),
       },
       {
-        forceN: { x: totalForceWorld.x, y: totalForceWorld.z, z: totalForceWorld.y },
+        forceN: displayToKernel({ x: totalForceWorld.x, y: totalForceWorld.y, z: totalForceWorld.z }),
         momentB: { x: momentBody.x, y: momentBody.y, z: momentBody.z },
-        // kernel inertiaB = {pitch, roll, yaw}; production Ixx=roll-axial, Iyy=Izz=transverse
-        inertiaB: { x: Iyy, y: Ixx, z: Izz },
+        // production Ixx=roll-axial, Iyy=Izz=transverse -> kernel {pitch, roll, yaw}
+        inertiaB: simInertiaToKernel({ x: Ixx, y: Iyy, z: Izz }),
         mass: totalMass,
       },
       dt
     );
 
-    pos.x = next.r.x; pos.z = next.r.y; pos.y = next.r.z;
-    vel.x = next.v.x; vel.z = next.v.y; vel.y = next.v.z;
+    // Map kernel ENU back to production display {E, Up, N} + body rates
+    const dPos = kernelToDisplay(next.r);
+    const dVel = kernelToDisplay(next.v);
+    pos.x = dPos.x; pos.y = dPos.y; pos.z = dPos.z;
+    vel.x = dVel.x; vel.y = dVel.y; vel.z = dVel.z;
     q.w = next.q.w; q.x = next.q.x; q.y = next.q.y; q.z = next.q.z;
-    // map back: omega.p = roll = w.y, omega.q = pitch = w.x, omega.r = yaw = w.z
-    omega.p = next.w.y;
-    omega.q = next.w.x;
-    omega.r = next.w.z;
+    const o = kernelOmegaToSim(next.w);
+    omega.p = o.p;
+    omega.q = o.q;
+    omega.r = o.r;
 
     if (pos.y < 0 && !isApogeeReached) pos.y = 0;
 

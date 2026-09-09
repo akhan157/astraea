@@ -96,11 +96,13 @@ export function quaternionDerivative(q: Quat, w: Vec3): Quat {
   };
 }
 
-/** Euler-Poinsot angular acceleration from body moments and diagonal inertia. */
+/** Euler-Poinsot angular acceleration from body moments and diagonal inertia.
+ *  Precondition: inertiaB strictly positive (enforced by validateStateAndLoads).
+ *  No silent clamping/clamping is applied — an out-of-domain value THROWS. */
 export function angularAcceleration(w: Vec3, momentB: Vec3, inertiaB: Vec3): Vec3 {
-  const Ix = Math.max(1e-9, inertiaB.x);
-  const Iy = Math.max(1e-9, inertiaB.y);
-  const Iz = Math.max(1e-9, inertiaB.z);
+  const Ix = inertiaB.x;
+  const Iy = inertiaB.y;
+  const Iz = inertiaB.z;
   return {
     x: momentB.x / Ix - ((Iz - Iy) * w.y * w.z) / Ix,
     y: momentB.y / Iy - ((Ix - Iz) * w.x * w.z) / Iy,
@@ -166,6 +168,7 @@ export function integrateRigidStep(
     w: addVec(s.w, d1.dw, dt / 2),
   };
   const L1 = loadsAt ? loadsAt(tHalf, s1) : loads;
+  validateStateAndLoads(s1, L1, dt);
   const d2 = deriv(s1, L1, tHalf);
 
   const s2: RigidState = {
@@ -175,6 +178,7 @@ export function integrateRigidStep(
     w: addVec(s.w, d2.dw, dt / 2),
   };
   const L2 = loadsAt ? loadsAt(tHalf, s2) : loads;
+  validateStateAndLoads(s2, L2, dt);
   const d3 = deriv(s2, L2, tHalf);
 
   const s3: RigidState = {
@@ -184,12 +188,13 @@ export function integrateRigidStep(
     w: addVec(s.w, d3.dw, dt),
   };
   const L3 = loadsAt ? loadsAt(tFull, s3) : loads;
+  validateStateAndLoads(s3, L3, dt);
   const d4 = deriv(s3, L3, tFull);
 
   const blend = (d1v: number, d2v: number, d3v: number, d4v: number): number =>
     (d1v + 2 * d2v + 2 * d3v + d4v) * dt / 6;
 
-  return {
+  const out: RigidState = {
     r: { x: s.r.x + blend(d1.dr.x, d2.dr.x, d3.dr.x, d4.dr.x), y: s.r.y + blend(d1.dr.y, d2.dr.y, d3.dr.y, d4.dr.y), z: s.r.z + blend(d1.dr.z, d2.dr.z, d3.dr.z, d4.dr.z) },
     v: { x: s.v.x + blend(d1.dv.x, d2.dv.x, d3.dv.x, d4.dv.x), y: s.v.y + blend(d1.dv.y, d2.dv.y, d3.dv.y, d4.dv.y), z: s.v.z + blend(d1.dv.z, d2.dv.z, d3.dv.z, d4.dv.z) },
     q: normalizeQuaternion({
@@ -204,6 +209,16 @@ export function integrateRigidStep(
       z: s.w.z + blend(d1.dw.z, d2.dw.z, d3.dw.z, d4.dw.z),
     },
   };
+  // Final output validation: reject nonfinite propagated state.
+  const outFinite =
+    Number.isFinite(out.r.x) && Number.isFinite(out.r.y) && Number.isFinite(out.r.z) &&
+    Number.isFinite(out.v.x) && Number.isFinite(out.v.y) && Number.isFinite(out.v.z) &&
+    Number.isFinite(out.w.x) && Number.isFinite(out.w.y) && Number.isFinite(out.w.z) &&
+    Number.isFinite(out.q.w) && Number.isFinite(out.q.x) && Number.isFinite(out.q.y) && Number.isFinite(out.q.z);
+  if (!outFinite) {
+    throw new Error('strict rigid-body kernel: non-finite output state after RK4 step');
+  }
+  return out;
 }
 
 /** Quaternion -> rotation matrix (body to navigation). */
@@ -226,18 +241,19 @@ export function rotateBodyToWorld(R: number[][], v: Vec3): Vec3 {
 }
 
 /**
- * Production display adapter (NORMATIVE): maps the flight simulator's display
- * Vector3D convention — {x: East, y: Up/altitude, z: North} — into the kernel's
- * ENU convention {x: East, y: North, z: Up} for position and velocity.
- * (Display y <-> kernel z, display z <-> kernel y; identity on x.)
+ * Production display adapter (NORMATIVE).
+ * Display convention: {x: East (rendered left), y: Up/altitude, z: North}.
+ * Kernel convention: {x: East, y: North, z: Up} (right-handed ENU).
+ * The mapping is the proper rotation (det = +1):
+ *   displayToKernel(v) = (-v.x, v.z, v.y)
  */
 export function displayToKernel(v: Vec3): Vec3 {
-  return { x: v.x, y: v.z, z: v.y };
+  return { x: -v.x, y: v.z, z: v.y };
 }
 
-/** Inverse of displayToKernel: kernel ENU -> display {E, Up, N}. */
+/** Inverse: kernel ENU -> display {x: East(rendered left), y: Up, z: North}. */
 export function kernelToDisplay(v: Vec3): Vec3 {
-  return { x: v.x, y: v.z, z: v.y };
+  return { x: -v.x, y: v.z, z: v.y };
 }
 
 /**

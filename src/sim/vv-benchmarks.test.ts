@@ -17,7 +17,7 @@
 
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { integrateRigidStep, RigidState, Loads, normalizeQuaternion } from '../dynamics/rigidBody';
+import { integrateRigidStep, RigidState, Loads, normalizeQuaternion, quaternionToMatrix } from '../dynamics/rigidBody';
 
 // ---------------------------------------------------------------------------
 // Production-Linked 6-DOF core.
@@ -561,4 +561,141 @@ describe('VV-009 Roll/Pitch Inertia-Coupling Discrimination', () => {
     expect(out.w.y).toBe(0);
     expect(out.w.z).toBe(0);
   });
+});
+
+// ---------------------------------------------------------------------------
+// VV-010: Coupled Rotating-Body-Force Convergence (loadsAt stage RHS)
+// Spherical inertia + constant spin about body z + constant body-frame force
+// along body x, starting with identity attitude and zero initial translation.
+// Astra's exact closing-form reference:
+//   v_x = (F/m/Omega) sin(Omega t),  r_x = (F/m/Omega^2)(1 - cos(Omega t))
+//   v_y = (F/m/Omega)(1-cos(Omega t)), r_y = (F/m/Omega^2)(Omega t - sin(Omega t))
+// Global error must scale ~16x when h halves (4th order) with loadsAt active.
+// ---------------------------------------------------------------------------
+
+describe('VV-010 Coupled Rotating-Body-Force RK4 Convergence (loadsAt)', () => {
+  const F = 80.0;      // body x force (N)
+  const m = 6.0;
+  const Omega = 4.0;   // rad/s spin about body z
+  const tEnd = 1.0;
+
+  // Body->nav rotation for constant spin about body z: q(t)=cos(Ot/2)+sin(Ot/2) k
+  const bodyForceAt = (tStage: number, st: RigidState): Loads => {
+    const half = (Omega * tStage) / 2;
+    const c = Math.cos(half);
+    const s = Math.sin(half);
+    // rotate [F, 0, 0] body -> nav via q(t)
+    const fxN = (c * c - s * s) * F;   // = cos(Ot)*F (rotation about z)
+    const fyN = 2 * c * s * F;         // = sin(Ot)*F
+    return {
+      forceN: { x: fxN, y: fyN, z: 0 },
+      momentB: { x: 0, y: 0, z: 0 }, // torque-free spin maintained
+      inertiaB: { x: 1.0, y: 1.0, z: 1.0 }, // spherical
+      mass: m,
+    };
+  };
+
+  // A second factory DERIVED from the state quaternion, exactly what the
+  // production RHS should do: rotate body force through CURRENT attitude.
+  const bodyForceViaState = (_t: number, _st: RigidState): Loads => {
+    const R = quaternionToMatrix(_st.q);
+    return {
+      forceN: {
+        x: R[0][0] * F,
+        y: R[1][0] * F,
+        z: R[2][0] * F,
+      },
+      momentB: { x: 0, y: 0, z: 0 },
+      inertiaB: { x: 1.0, y: 1.0, z: 1.0 },
+      mass: m,
+    };
+  };
+
+  it('matches closed-form rotating-body solution with error ratio ~16 on step-halving', () => {
+    function run(h: number, viaState: boolean): number {
+      let s: RigidState = {
+        r: { x: 0, y: 0, z: 0 },
+        v: { x: 0, y: 0, z: 0 },
+        q: { w: 1, x: 0, y: 0, z: 0 },
+        w: { x: 0, y: 0, z: Omega },
+      };
+      const factory = viaState ? bodyForceViaState : bodyForceAt;
+      const n = Math.round(tEnd / h);
+      let t = 0;
+      for (let i = 0; i < n; i++) {
+        s = integrateRigidStep(s, factory(t, s), h, factory, t);
+        t += h;
+      }
+      // Exact at tEnd:
+      const c = Math.cos(Omega * tEnd);
+      const si = Math.sin(Omega * tEnd);
+      const vx = (F / (m * Omega)) * si;
+      const vy = (F / (m * Omega)) * (1 - c);
+      const rx = (F / (m * Omega * Omega)) * (1 - c);
+      const ry = (F / (m * Omega * Omega)) * (Omega * tEnd - si);
+      const ev = Math.hypot(s.v.x - vx, s.v.y - vy);
+      const er = Math.hypot(s.r.x - rx, s.r.y - ry);
+      return Math.max(ev, er);
+    }
+
+    const h0 = 1e-3;
+    const e0 = run(h0, true);
+    const e1 = run(h0 / 2, true);
+    const e2 = run(h0 / 4, true);
+
+    // 4th-order: e(h/2)/e(h) ~ 1/16
+    expect(e0).toBeGreaterThan(0);
+    const ratio1 = e0 / Math.max(1e-30, e1);
+    const ratio2 = e1 / Math.max(1e-30, e2);
+    expect(ratio1).toBeGreaterThan(8);
+    expect(ratio2).toBeGreaterThan(8);
+    // And absolute accuracy at fine step
+    expect(e2).toBeLessThan(1e-4);
+  });
+
+  it('coupled rotating-body solution requires the load factory (frozen loads diverge)', () => {
+    // With frozen loads (no loadsAt), the body force applied once at t=0 is
+    // integrated as a CONSTANT nav force -> completely wrong trajectory.
+    function runFrozen(h: number): number {
+      let s: RigidState = {
+        r: { x: 0, y: 0, z: 0 },
+        v: { x: 0, y: 0, z: 0 },
+        q: { w: 1, x: 0, y: 0, z: 0 },
+        w: { x: 0, y: 0, z: Omega },
+      };
+      const frozen: Loads = { forceN: { x: F, y: 0, z: 0 }, momentB: { x: 0, y: 0, z: 0 }, inertiaB: { x: 1.0, y: 1.0, z: 1.0 }, mass: m };
+      const n = Math.round(tEnd / h);
+      for (let i = 0; i < n; i++) s = integrateRigidStep(s, frozen, h);
+      const c = Math.cos(Omega * tEnd);
+      const si = Math.sin(Omega * tEnd);
+      const vx = (F / (m * Omega)) * si;
+      const vy = (F / (m * Omega)) * (1 - c);
+      return Math.hypot(s.v.x - vx, s.v.y - vy);
+    }
+    const eFrozen = runFrozen(1e-4);
+    const eFactory = runWithFactory(1e-4);
+    // Frozen-load velocity error is O(1) here; factory is tiny
+    expect(eFrozen).toBeGreaterThan(0.5);
+    expect(eFactory).toBeLessThan(1e-3);
+  });
+
+  function runWithFactory(h: number): number {
+    let s: RigidState = {
+      r: { x: 0, y: 0, z: 0 },
+      v: { x: 0, y: 0, z: 0 },
+      q: { w: 1, x: 0, y: 0, z: 0 },
+      w: { x: 0, y: 0, z: Omega },
+    };
+    const n = Math.round(tEnd / h);
+    let t = 0;
+    for (let i = 0; i < n; i++) {
+      s = integrateRigidStep(s, bodyForceAt(t, s), h, bodyForceAt, t);
+      t += h;
+    }
+    const c = Math.cos(Omega * tEnd);
+    const si = Math.sin(Omega * tEnd);
+    const vx = (F / (m * Omega)) * si;
+    const vy = (F / (m * Omega)) * (1 - c);
+    return Math.hypot(s.v.x - vx, s.v.y - vy);
+  }
 });
