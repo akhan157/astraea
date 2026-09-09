@@ -304,7 +304,6 @@ export function simulate6DofFlight(
 
   let burnoutAlt = 0;
   let burnoutVel = 0;
-  let hasBurnedOut = false;
 
   let isApogeeReached = false;
   let isDrogueDeployed = false;
@@ -503,7 +502,6 @@ export function simulate6DofFlight(
     }
 
     if (ev.fires.includes('MOTOR_BURNOUT')) {
-      hasBurnedOut = true;
       burnoutAlt = pos.y;
       burnoutVel = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
       events.push({
