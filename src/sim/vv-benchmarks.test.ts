@@ -17,12 +17,19 @@
 
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
+import {
+  integrateRigidStep,
+  RigidState,
+  Loads,
+} from '../dynamics/rigidBody';
 
 // ---------------------------------------------------------------------------
-// Minimal rigid-body 6-DOF core used by the verification suite.
-// This is the reference implementation the benchmarks validate against.
+// Production-Linked 6-DOF core.
 // Frames: right-handed ENU navigation (+X East, +Y North, +Z Up).
 // Body frame: +Y_B longitudinal (nose), +X_B pitch, +Z_B yaw.
+// The analytical benchmarks DRIVE THE PRODUCTION KERNEL (Gate A): there is no
+// parallel test-local integrator. integrateStep() is a thin THREE-type adapter
+// over integrateRigidStep() from src/dynamics/rigidBody.ts.
 // ---------------------------------------------------------------------------
 
 interface State6Dof {
@@ -33,15 +40,8 @@ interface State6Dof {
 }
 
 const G0 = 9.80665;
-function qDerivative(q: THREE.Quaternion, w: THREE.Vector3): THREE.Quaternion {
-  // qDot = 1/2 * q (x) [0, w]
-  const qW = new THREE.Quaternion(w.x * 0.5, w.y * 0.5, w.z * 0.5, 0);
-  const out = new THREE.Quaternion();
-  out.multiplyQuaternions(q, qW);
-  return out;
-}
 
-
+/** Adapter: advance the production rigid-body state by ONE RK4 step. */
 function integrateStep(
   s: State6Dof,
   forceN: THREE.Vector3,
@@ -50,82 +50,23 @@ function integrateStep(
   m: number,
   dt: number
 ): void {
-  // Single RK4 step on coupled translational + rotational state
-  const angAccel = (w: THREE.Vector3) => new THREE.Vector3(
-    momentB.x / inertiaB.x - ((inertiaB.z - inertiaB.y) * w.y * w.z) / inertiaB.x,
-    momentB.y / inertiaB.y - ((inertiaB.x - inertiaB.z) * w.x * w.z) / inertiaB.y,
-    momentB.z / inertiaB.z - ((inertiaB.y - inertiaB.x) * w.x * w.y) / inertiaB.z
-  );
-
-  const deriv = (st: State6Dof): { dr: THREE.Vector3; dv: THREE.Vector3; dq: THREE.Quaternion; dw: THREE.Vector3 } => ({
-    dr: st.v.clone(),
-    dv: forceN.clone().divideScalar(m),
-    dq: qDerivative(st.q, st.w),
-    dw: angAccel(st.w),
-  });
-
-  const s0: State6Dof = {
-    r: s.r.clone(), v: s.v.clone(), q: s.q.clone(), w: s.w.clone(),
+  const state: RigidState = {
+    r: { x: s.r.x, y: s.r.y, z: s.r.z },
+    v: { x: s.v.x, y: s.v.y, z: s.v.z },
+    q: { w: s.q.w, x: s.q.x, y: s.q.y, z: s.q.z },
+    w: { x: s.w.x, y: s.w.y, z: s.w.z },
   };
-  const addQ = (q: THREE.Quaternion, dq: THREE.Quaternion, h: number): THREE.Quaternion => {
-    const out = q.clone();
-    out.x += dq.x * h;
-    out.y += dq.y * h;
-    out.z += dq.z * h;
-    out.w += dq.w * h;
-    out.normalize();
-    return out;
+  const loads: Loads = {
+    forceN: { x: forceN.x, y: forceN.y, z: forceN.z },
+    momentB: { x: momentB.x, y: momentB.y, z: momentB.z },
+    inertiaB: { x: inertiaB.x, y: inertiaB.y, z: inertiaB.z },
+    mass: m,
   };
-  const d1 = deriv(s0);
-  const s1: State6Dof = {
-    r: s0.r.clone().addScaledVector(d1.dr, dt / 2),
-    v: s0.v.clone().addScaledVector(d1.dv, dt / 2),
-    q: addQ(s0.q, d1.dq, dt / 2),
-    w: s0.w.clone().addScaledVector(d1.dw, dt / 2),
-  };
-  const d2 = deriv(s1);
-
-  const s2: State6Dof = {
-    r: s0.r.clone().addScaledVector(d2.dr, dt / 2),
-    v: s0.v.clone().addScaledVector(d2.dv, dt / 2),
-    q: addQ(s0.q, d2.dq, dt / 2),
-    w: s0.w.clone().addScaledVector(d2.dw, dt / 2),
-  };
-  const d3 = deriv(s2);
-
-  const s3: State6Dof = {
-    r: s0.r.clone().addScaledVector(d3.dr, dt),
-    v: s0.v.clone().addScaledVector(d3.dv, dt),
-    q: addQ(s0.q, d3.dq, dt),
-    w: s0.w.clone().addScaledVector(d3.dw, dt),
-  };
-  const d4 = deriv(s3);
-
-  s.r.addScaledVector(
-    d1.dr.clone().add(d2.dr.clone().multiplyScalar(2)).add(d3.dr.clone().multiplyScalar(2)).add(d4.dr),
-    dt / 6
-  );
-  s.v.addScaledVector(
-    d1.dv.clone().add(d2.dv.clone().multiplyScalar(2)).add(d3.dv.clone().multiplyScalar(2)).add(d4.dv),
-    dt / 6
-  );
-  s.w.addScaledVector(
-    d1.dw.clone().add(d2.dw.clone().multiplyScalar(2)).add(d3.dw.clone().multiplyScalar(2)).add(d4.dw),
-    dt / 6
-  );
-
-  // Quaternion incremental integration (weighted)
-  const dqBlend = new THREE.Quaternion(
-    (d1.dq.x + 2 * d2.dq.x + 2 * d3.dq.x + d4.dq.x) * dt / 6,
-    (d1.dq.y + 2 * d2.dq.y + 2 * d3.dq.y + d4.dq.y) * dt / 6,
-    (d1.dq.z + 2 * d2.dq.z + 2 * d3.dq.z + d4.dq.z) * dt / 6,
-    (d1.dq.w + 2 * d2.dq.w + 2 * d3.dq.w + d4.dq.w) * dt / 6
-  );
-  s.q.x += dqBlend.x;
-  s.q.y += dqBlend.y;
-  s.q.z += dqBlend.z;
-  s.q.w += dqBlend.w;
-  s.q.normalize();
+  const next = integrateRigidStep(state, loads, dt);
+  s.r.set(next.r.x, next.r.y, next.r.z);
+  s.v.set(next.v.x, next.v.y, next.v.z);
+  s.q.set(next.q.x, next.q.y, next.q.z, next.q.w);
+  s.w.set(next.w.x, next.w.y, next.w.z);
 }
 
 function energyAndMomentum(

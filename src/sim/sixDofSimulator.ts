@@ -21,10 +21,11 @@ import { MotorSpec, getMotorThrustAt, getMotorMassAt } from '../propulsion/motor
 import { computeAerodynamicCurves } from '../aero/transonicAero';
 import { aggregateVehicleMass } from '../core/mass';
 import { getAtmosphereAt } from './flightSimulator';
+import { integrateRigidStep, normalizeQuaternion as normQ } from '../dynamics/rigidBody';
 
 export interface Vector3D {
   x: number; // East (m)
-  y: number; // Up / Altitude AGL (m)
+  y: number; // Up / Altitude AGL (m)  [ENU: +Z_nav is up; here y is the display-up alias]
   z: number; // North (m)
 }
 
@@ -99,18 +100,9 @@ export interface SixDofOptions {
 }
 
 /**
- * Normalizes a quaternion in-place to prevent numerical drift
+ * Normalizes a quaternion to prevent numerical drift (production kernel).
  */
-function normalizeQuaternion(q: Quaternion): Quaternion {
-  const len = Math.sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
-  if (len < 1e-9) return { w: 1, x: 0, y: 0, z: 0 };
-  return {
-    w: q.w / len,
-    x: q.x / len,
-    y: q.y / len,
-    z: q.z / len,
-  };
-}
+const normalizeQuaternion = normQ;
 
 /**
  * Converts quaternion to rotation matrix R (body to world)
@@ -499,17 +491,6 @@ export function simulate6DofFlight(
     const scalarAccel = Math.sqrt(accelWorld.x * accelWorld.x + accelWorld.y * accelWorld.y + accelWorld.z * accelWorld.z);
     if (scalarAccel > maxAccel) maxAccel = scalarAccel;
 
-    // Euler Equations for Angular Acceleration (when off rail)
-    let pDot = 0;
-    let qDot = 0;
-    let rDot = 0;
-
-    if (hasLeftRail && !isApogeeReached) {
-      pDot = (momentBody.y - (Izz - Iyy) * omega.q * omega.r) / Ixx;
-      qDot = (momentBody.x - (Ixx - Izz) * omega.p * omega.r) / Iyy;
-      rDot = (momentBody.z - (Iyy - Ixx) * omega.p * omega.q) / Izz;
-    }
-
     // Check Motor Burnout
     if (!hasBurnedOut && t >= motor.burnTime) {
       hasBurnedOut = true;
@@ -595,35 +576,35 @@ export function simulate6DofFlight(
       break;
     }
 
-    // Numerical State Integration (Euler-Cromer)
-    vel.x += accelWorld.x * dt;
-    vel.y += accelWorld.y * dt;
-    vel.z += accelWorld.z * dt;
+    // Numerical State Integration via production rigid-body kernel (NORMATIVE)
+    // Frame map: display (E, alt, N) -> kernel ENU (E, N, U)
+    const next = integrateRigidStep(
+      {
+        r: { x: pos.x, y: pos.z, z: pos.y },
+        v: { x: vel.x, y: vel.z, z: vel.y },
+        q: { w: q.w, x: q.x, y: q.y, z: q.z },
+        // body-frame angular velocity: x=pitch, y=roll, z=yaw
+        w: { x: omega.q, y: omega.p, z: omega.r },
+      },
+      {
+        forceN: { x: totalForceWorld.x, y: totalForceWorld.z, z: totalForceWorld.y },
+        momentB: { x: momentBody.x, y: momentBody.y, z: momentBody.z },
+        // kernel inertiaB = {pitch, roll, yaw}; production Ixx=roll-axial, Iyy=Izz=transverse
+        inertiaB: { x: Iyy, y: Ixx, z: Izz },
+        mass: totalMass,
+      },
+      dt
+    );
 
-    pos.x += vel.x * dt;
-    pos.y += vel.y * dt;
-    pos.z += vel.z * dt;
+    pos.x = next.r.x; pos.z = next.r.y; pos.y = next.r.z;
+    vel.x = next.v.x; vel.z = next.v.y; vel.y = next.v.z;
+    q.w = next.q.w; q.x = next.q.x; q.y = next.q.y; q.z = next.q.z;
+    // map back: omega.p = roll = w.y, omega.q = pitch = w.x, omega.r = yaw = w.z
+    omega.p = next.w.y;
+    omega.q = next.w.x;
+    omega.r = next.w.z;
 
     if (pos.y < 0 && !isApogeeReached) pos.y = 0;
-
-    // Angular state integration
-    if (hasLeftRail && !isApogeeReached) {
-      omega.p += pDot * dt;
-      omega.q += qDot * dt;
-      omega.r += rDot * dt;
-
-      // Quaternion derivative: qDot = 0.5 * q * omega
-      const dqW = 0.5 * (-q.x * omega.p - q.y * omega.q - q.z * omega.r);
-      const dqX = 0.5 * (q.w * omega.p + q.y * omega.r - q.z * omega.q);
-      const dqY = 0.5 * (q.w * omega.q - q.x * omega.r + q.z * omega.p);
-      const dqZ = 0.5 * (q.w * omega.r + q.x * omega.q - q.y * omega.p);
-
-      q.w += dqW * dt;
-      q.x += dqX * dt;
-      q.y += dqY * dt;
-      q.z += dqZ * dt;
-      q = normalizeQuaternion(q);
-    }
 
     t += dt;
   }
