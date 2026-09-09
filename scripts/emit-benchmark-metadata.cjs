@@ -78,7 +78,7 @@ function extractSolverConfig() {
   return {
     fixedIntegrator: 'classical RK4 (Runge-Kutta 4-stage, additive normalized quaternion)',
     adaptiveIntegrator: hasAdaptive ? 'Dormand-Prince RK 5(4) (embedded error estimate, per-axis tolerances, bounded rejection)' : 'NOT PRESENT',
-    defaultIntegrator: `${defaultIntegrator} (simulator)'`,
+    defaultIntegrator: `${defaultIntegrator} (simulator)`,
     productionUsesAdaptive: simChoosesAdaptive,
     inertiaDotB: hasInertiaDot ? 'enabled (production loads assembly)' : 'disabled',
     validationLevel: 'strict (unit-norm q precondition, nonfinite rejection, positive inertia/mass)',
