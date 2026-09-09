@@ -336,8 +336,17 @@ const C4_DP: number[] = [5179/57600, 0, 7571/16695, 393/640, -92097/339200, 187/
 function normVec(v: Vec3): number {
   return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }
-function normQuatAngle(q: Quat): number {
-  return Math.acos(Math.max(-1, Math.min(1, q.w)));
+function relQuatAngle(qa: Quat, qb: Quat): number {
+  // Relative rotation between two quaternion increments: angle(qa ⊗ qb⁻¹),
+  // i.e. how far the 5th- and 4th-order attitude predictions diverge.
+  const qab = {
+    w: qa.w * qb.w + qa.x * qb.x + qa.y * qb.y + qa.z * qb.z,
+    x: qa.w * qb.x - qa.x * qb.w - qa.y * qb.z + qa.z * qb.y,
+    y: qa.w * qb.y + qa.x * qb.z - qa.y * qb.w - qa.z * qb.x,
+    z: qa.w * qb.z - qa.x * qb.y + qa.y * qb.x - qa.z * qb.w,
+  };
+  const s = Math.sqrt(qab.x * qab.x + qab.y * qab.y + qab.z * qab.z);
+  return 2 * Math.atan2(s, Math.abs(qab.w));
 }
 function subVec(a: Vec3, b: Vec3): Vec3 { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
 
@@ -441,13 +450,19 @@ export function integrateRigidAdaptive(
     const errR = normVec(subVec(r5, r4));
     const errV = normVec(subVec(v5, v4));
     const errW = normVec(subVec(w5, w4));
-    const errQ = normQuatAngle({ w: q5.w - q4.w, x: q5.x - q4.x, y: q5.y - q4.y, z: q5.z - q4.z });
+    // Attitude divergence = relative rotation between the 5th- and 4th-order
+    // quaternion increments (handles stationary state: increments both zero
+    // => zero rotation => errQ = 0, no infinite rejection).
+    const errQ = relQuatAngle(
+      { w: q5.w, x: q5.x, y: q5.y, z: q5.z },
+      { w: q4.w, x: q4.x, y: q4.y, z: q4.z }
+    );
 
     const rho = Math.min(
-      Math.pow(tol.r / Math.max(1e-12, errR), 0.2),
-      Math.pow(tol.v / Math.max(1e-12, errV), 0.2),
-      Math.pow(tol.w / Math.max(1e-12, errW), 0.2),
-      Math.pow(tol.q / Math.max(1e-10, errQ), 0.2)
+      errR <= 0 ? Infinity : Math.pow(tol.r / errR, 0.2),
+      errV <= 0 ? Infinity : Math.pow(tol.v / errV, 0.2),
+      errW <= 0 ? Infinity : Math.pow(tol.w / errW, 0.2),
+      errQ <= 0 ? Infinity : Math.pow(tol.q / errQ, 0.2)
     );
     const acceptable = errR <= tol.r && errV <= tol.v && errW <= tol.w && errQ <= tol.q;
 
@@ -469,7 +484,14 @@ export function integrateRigidAdaptive(
       dt = Math.min(dt, maxStep);
     } else {
       rejected++;
-      dt = Math.max(1e-6, dt * Math.max(0.2, 0.9 * rho));
+      const dtNew = dt * Math.max(0.2, 0.9 * rho);
+      if (dtNew < 1e-12) {
+        throw new Error(
+          'adaptive integrator: step rejected below numerical floor (1e-12 s); ' +
+          'loads/tolerance combination is not integrable at this sensitivity'
+        );
+      }
+      dt = Math.max(1e-6, dtNew);
     }
   }
 

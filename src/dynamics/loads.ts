@@ -56,10 +56,12 @@ export function getWindVectorAt(
   const speed = speedSurface * Math.pow(h / 2.0, 0.14);
   const azRad = (azimuthDeg * Math.PI) / 180;
   const towards = azRad + Math.PI;
+  // ENU: x=East, y=North, z=Up. Wind blows TOWARD the azimuth; the North
+  // component lives in y, and there is no vertical wind (z = 0).
   return {
     x: speed * Math.sin(towards),
-    y: 0,
-    z: speed * Math.cos(towards),
+    y: speed * Math.cos(towards),
+    z: 0,
   };
 }
 

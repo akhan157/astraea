@@ -17,7 +17,7 @@
 
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { integrateRigidStep, RigidState, Loads, normalizeQuaternion, quaternionToMatrix } from '../dynamics/rigidBody';
+import { integrateRigidStep, integrateRigidAdaptive, RigidState, Loads, normalizeQuaternion, quaternionToMatrix } from '../dynamics/rigidBody';
 import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
 
 // ---------------------------------------------------------------------------
@@ -995,5 +995,60 @@ describe('VV-013 Gate 3 Variable-Inertia Term', () => {
     const L1 = Math.hypot(Ifx * st.w.x, Ify * st.w.y, Ifz * st.w.z);
     // Without the inertiaDotB correction, angular momentum should drift significantly.
     expect(Math.abs(L1 - L0) / L0).toBeGreaterThan(0.01); // at least 1% drift
+  });
+});
+
+// ---------------------------------------------------------------------------
+// VV-014: Adaptive integrator regression (Astra round-12 finding).
+// 1. Exactly stationary state under adaptive DP5(4) must terminate and
+//    reproduce the state exactly (no infinite rejection at tolerance ~1e-9).
+// 2. Constant-velocity straight flight under adaptive integration produces
+//    the closed-form position to the advertised tolerance.
+// ---------------------------------------------------------------------------
+
+describe('VV-014 Adaptive Integrator Termination + Convergence', () => {
+  it('1. stationary state terminates adaptive integration at tight tolerance', () => {
+    const s0: RigidState = {
+      r: { x: 5, y: -2, z: 300 },
+      v: { x: 0, y: 0, z: 0 },
+      q: { w: 1, x: 0, y: 0, z: 0 },
+      w: { x: 0, y: 0, z: 0 },
+    };
+    const loads: Loads = {
+      forceN: { x: 0, y: 0, z: 0 },
+      momentB: { x: 0, y: 0, z: 0 },
+      inertiaB: { x: 0.01, y: 0.02, z: 0.015 },
+      mass: 1,
+    };
+    const result = integrateRigidAdaptive(s0, () => loads, 0, 1.0, {
+      r: 1e-9, v: 1e-12, q: 1e-12, w: 1e-12,
+    }, 0.1, 0.01);
+    expect(result.finalTime).toBeCloseTo(1.0, 3);
+    expect(result.steps).toBeGreaterThan(0);
+    expect(Math.abs(result.state.r.x - 5)).toBeLessThanOrEqual(1e-8);
+    expect(Math.abs(result.state.r.z - 300)).toBeLessThanOrEqual(1e-8);
+    expect(Math.abs(result.state.v.x)).toBeLessThanOrEqual(1e-10);
+    expect(Math.abs(result.state.w.x)).toBeLessThanOrEqual(1e-9);
+  });
+
+  it('2. constant-velocity flight matches closed form to tolerance', () => {
+    const s0: RigidState = {
+      r: { x: 0, y: 0, z: 0 },
+      v: { x: 20, y: 0, z: 0 },
+      q: { w: 1, x: 0, y: 0, z: 0 },
+      w: { x: 0, y: 0, z: 0 },
+    };
+    const loads: Loads = {
+      forceN: { x: 0, y: 0, z: 0 },
+      momentB: { x: 0, y: 0, z: 0 },
+      inertiaB: { x: 0.01, y: 0.02, z: 0.015 },
+      mass: 1,
+    };
+    const tEnd = 2.5;
+    const result = integrateRigidAdaptive(s0, () => loads, 0, tEnd, {
+      r: 1e-6, v: 1e-9, q: 1e-9, w: 1e-9,
+    }, 0.5, 0.05);
+    expect(Math.abs(result.state.r.x - 20 * tEnd)).toBeLessThanOrEqual(1e-3);
+    expect(Math.abs(result.state.v.x - 20)).toBeLessThanOrEqual(1e-6);
   });
 });

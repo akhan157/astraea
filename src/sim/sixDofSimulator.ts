@@ -270,8 +270,8 @@ export function simulate6DofFlight(
     // thrust/aero/moments/mass. Derives both the kernel display loads AND the
     // telemetry kinematics — no inline duplicate of the load assembly.
     const macroState: StageKinematicState = {
-      r: { x: pos.x, y: pos.z, z: pos.z },
-      v: { x: vel.x, y: vel.z, z: vel.z },
+      r: { x: pos.x, y: pos.y, z: pos.z },
+      v: { x: vel.x, y: vel.y, z: vel.z },
       q: { w: q.w, x: q.x, y: q.y, z: q.z },
       w: { x: omega.q, y: omega.p, z: omega.r }, // {pitch, roll, yaw}
     };
@@ -312,7 +312,10 @@ export function simulate6DofFlight(
 
     // Launch Rail Constraint (keep — this constrains acceleration while the
     // FSM's RAIL_EXIT has not fired)
-    const distanceAlongRail = Math.sqrt(pos.x * pos.x + pos.z * pos.z + pos.z * pos.z);
+    // Signed displacement along the rail axis, projected from the rail base
+    // (pad at origin): s = dot(r - r_rail0, u_rail). Rail base is at origin.
+    const distanceAlongRail =
+      pos.x * railVector.x + pos.y * railVector.y + pos.z * railVector.z;
 
     if (!eventState.hasLeftRail) {
       if (distanceAlongRail < railLength) {
@@ -355,7 +358,7 @@ export function simulate6DofFlight(
 
     if (ev.fires.includes('RAIL_EXIT')) {
       hasLeftRail = true;
-      const scalarSpeed = Math.sqrt(vel.x * vel.x + vel.z * vel.z + vel.z * vel.z);
+      const scalarSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
       railExitVel = scalarSpeed;
       weathercockAngleDeg = totalAlphaDeg;
       events.push({
@@ -369,7 +372,7 @@ export function simulate6DofFlight(
 
     if (ev.fires.includes('MOTOR_BURNOUT')) {
       burnoutAlt = pos.z;
-      burnoutVel = Math.sqrt(vel.x * vel.x + vel.z * vel.z + vel.z * vel.z);
+      burnoutVel = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
       events.push({
         time: t,
         name: 'Motor Burnout',
@@ -390,7 +393,7 @@ export function simulate6DofFlight(
         time: t,
         name: 'Apogee & Drogue Deployment',
         altitude: pos.z,
-        velocity: Math.sqrt(vel.x * vel.x + vel.z * vel.z + vel.z * vel.z),
+        velocity: Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z),
         description: `Apogee reached at ${pos.z.toFixed(0)}m (${(pos.z * 3.28084).toFixed(0)} ft) AGL. High-speed drogue parachute ejected.`,
       });
     }
@@ -408,7 +411,7 @@ export function simulate6DofFlight(
 
     if (ev.fires.includes('TOUCHDOWN')) {
       pos.z = 0;
-      const finalImpactSpeed = Math.sqrt(vel.x * vel.x + vel.z * vel.z + vel.z * vel.z);
+      const finalImpactSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
       const lateralDrift = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
       events.push({
         time: t,
@@ -425,8 +428,8 @@ export function simulate6DofFlight(
       const euler = quaternionToEulerDeg(q);
       telemetry.push({
         time: parseFloat(t.toFixed(3)),
-        position: { x: parseFloat(pos.x.toFixed(1)), y: parseFloat(pos.z.toFixed(1)), z: parseFloat(pos.z.toFixed(1)) },
-        velocity: { x: parseFloat(vel.x.toFixed(1)), y: parseFloat(vel.z.toFixed(1)), z: parseFloat(vel.z.toFixed(1)) },
+        position: { x: parseFloat(pos.x.toFixed(1)), y: parseFloat(pos.y.toFixed(1)), z: parseFloat(pos.z.toFixed(1)) },
+        velocity: { x: parseFloat(vel.x.toFixed(1)), y: parseFloat(vel.y.toFixed(1)), z: parseFloat(vel.z.toFixed(1)) },
         speed: parseFloat(airspeed.toFixed(1)),
         mach: parseFloat(mach.toFixed(3)),
         altitude: parseFloat(pos.z.toFixed(1)),
@@ -452,8 +455,8 @@ export function simulate6DofFlight(
     // Identity low-level load for rail-free basic validity; when loadsAt is
     // present this is overridden at every stage.
     const kernelInState = {
-      r: { x: pos.x, y: pos.z, z: pos.z },
-      v: { x: vel.x, y: vel.z, z: vel.z },
+      r: { x: pos.x, y: pos.y, z: pos.z },
+      v: { x: vel.x, y: vel.y, z: vel.z },
       q: { w: q.w, x: q.x, y: q.y, z: q.z },
       w: simOmegaToKernel(omega),
     };
@@ -496,8 +499,8 @@ export function simulate6DofFlight(
     }, dt, loadsAtStage, t);
 
     // IDENTITY write-back: r/v/q propagate unchanged; body-rate label inverse
-    pos.x = next.r.x; pos.z = next.r.y; pos.z = next.r.z;
-    vel.x = next.v.x; vel.z = next.v.y; vel.z = next.v.z;
+    pos.x = next.r.x; pos.y = next.r.y; pos.z = next.r.z;
+    vel.x = next.v.x; vel.y = next.v.y; vel.z = next.v.z;
     q.w = next.q.w; q.x = next.q.x; q.y = next.q.y; q.z = next.q.z;
     const o = kernelOmegaToSim(next.w);
     omega.p = o.p;
@@ -529,7 +532,7 @@ export function simulate6DofFlight(
   // Landing metrics: use ACTUAL retained mass at touchdown (dry vehicle +
   // remaining motor hardware), not the liftoff dry mass. Only meaningful
   // when the simulation actually terminated via touchdown (not timeout).
-  const landingSpeed = Math.sqrt(vel.x * vel.x + vel.z * vel.z + vel.z * vel.z);
+  const landingSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
   const motorStateAtLanding = getMotorMassAt(motor, t);
   const landingMass = vehicleDryMass + motorStateAtLanding.currentMass;
   const landingKineticEnergy = 0.5 * landingMass * Math.pow(landingSpeed, 2);
