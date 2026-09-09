@@ -83,14 +83,35 @@ const BASE_PKG = JSON.stringify(
 );
 
 const BASE_SOURCE = [
+  "describe('VV-001 Fixture Suite One', () => {",
+  "  it('first case', () => { expect(a).toBeLessThanOrEqual(1); });",
+  '});',
+  "describe('VV-002 Fixture Suite Two', () => {",
+  "  it('second case', () => { expect(b).toBeLessThanOrEqual(2); });",
+  '});',
+  "describe('VV-003 Fixture Suite Three', () => {",
+  "  it('third case', () => { expect(c).toBeLessThanOrEqual(3); });",
+  '});',
   "describe('VV-004 Galilean Invariance of Aero Loads (production loads assembly)', () => {",
   "  it('loads are frame independent', () => { expect(Math.abs(x)).toBeLessThanOrEqual(1e-9); });",
+  '});',
+  "describe('VV-005 Fixture Suite Five', () => {",
+  "  it('fifth case', () => { expect(e).toBeLessThanOrEqual(5); });",
+  '});',
+  "describe('VV-006 Fixture Suite Six', () => {",
+  "  it('sixth case', () => { expect(f).toBeLessThanOrEqual(6); });",
   '});',
   "describe('VV-007 Production Solver Linkage', () => {",
   "  it('simulator executes', () => { expect(ok).toBe(true); });",
   '});',
+  "describe('VV-009 Fixture Suite Nine', () => {",
+  "  it('ninth case', () => { expect(i).toBeLessThanOrEqual(9); });",
+  '});',
   "describe('VV-010 Coupled Rotating-Body-Force RK4 Convergence (loadsAt)', () => {",
   "  it('converges fourth order', () => { expect(err).toBeLessThanOrEqual(1e-2); });",
+  '});',
+  "describe('VV-011 Fixture Suite Eleven', () => {",
+  "  it('eleventh case', () => { expect(k).toBeLessThanOrEqual(11); });",
   '});',
   "describe('VV-012 Production Event Localization', () => {",
   "  it('localizes crossing', () => { expect(Math.abs(t - tExact)).toBeLessThanOrEqual(1e-5); });",
@@ -123,12 +144,14 @@ function baseFixture(over = {}) {
     'src/aero/transonicAero.ts': 'export const computeAerodynamicCurves = () => [];\n',
     'src/aero/barrowman.ts': 'export const computeRocketStability = () => ({});\n',
     'src/core/mass.ts': 'export const aggregateVehicleMass = () => ({});\n',
+    'src/core/types.ts': 'export const STANDARD_MATERIALS = {};\n',
+    'src/store/rocketStore.ts': 'export const PRESET_ESTES_ALPHA = {};\n',
     'src/components/FlightSimulationTab.tsx': 'export const FlightSimulationTab = () => null;\n',
-    'scripts/emit-benchmark-metadata.cjs': 'module.exports = {};\n',
     'src/dynamics/rigidBody.adaptive.test.ts': "describe('adaptive acceptance', () => { it('covers candidate attitude and rejection', () => {}); });\n",
     'src/dynamics/loads.repair.test.ts': "describe('loads acceptance', () => { it('covers combined CG and load validity', () => {}); });\n",
     'src/sim/event-restart.test.ts': "describe('event acceptance', () => { it('covers root restart and ordering', () => {}); });\n",
     'src/sim/sixDofSimulator.test.ts': "describe('production contracts', () => { it('aligns touchdown at the root', () => {}); });\n",
+    'scripts/emit-benchmark-metadata.cjs': 'module.exports = {};\n',
     'vite.config.ts': 'export default {};\n',
     'tsconfig.json': '{}',
     ...over,
@@ -139,7 +162,7 @@ function baseFixture(over = {}) {
   return fixture(files);
 }
 
-const REQUIRED_IDS = ['004', '007', '010', '012', '013', '014', '015'];
+const REQUIRED_IDS = ['001', '002', '003', '004', '005', '006', '007', '009', '010', '011', '012', '013', '014', '015'];
 
 /** Minimal but schema-realistic vitest JSON mirroring the installed reporter. */
 function makeVitestJson({
@@ -242,7 +265,7 @@ function gitStub({ hashOk = true, statusOut = '', statusOk = true } = {}) {
   };
 }
 
-function ctx(root, { run, runTests, runEmitterSelfTests, readFile, vitestJson, buildOk = true, buildExit = 0 } = {}) {
+function ctx(root, { run, runTests, runEmitterSelfTests, readFile, readBytes, vitestJson, buildOk = true, buildExit = 0 } = {}) {
   const json = vitestJson ?? {};
   return {
     root,
@@ -251,6 +274,7 @@ function ctx(root, { run, runTests, runEmitterSelfTests, readFile, vitestJson, b
     runTests: runTests ?? (() => ({ ok: json.success === true, exitCode: json.success === true ? 0 : 1, json: vitestJson })),
     runEmitterSelfTests: runEmitterSelfTests ?? (() => ({ ok: true, exitCode: 0 })),
     ...(readFile ? { readFile } : {}),
+    ...(readBytes ? { readBytes } : {}),
   };
 }
 
@@ -452,16 +476,16 @@ t('post-execution tree drift breaks pre/post source binding', () => {
 t('post-execution file drift breaks pre/post source binding', () => {
   const root = baseFixture();
   const seen = new Set();
-  const driftRead = (rel) => {
+  const driftBytes = (rel) => {
     const full = path.join(root, ...rel.split('/'));
-    const text = fs.readFileSync(full, 'utf-8');
+    const buf = fs.readFileSync(full);
     if (rel === 'src/dynamics/loads.ts') {
-      if (seen.has(rel)) return `${text}\n// drift`;
+      if (seen.has(rel)) return Buffer.concat([buf, Buffer.from('\n// drift')]);
       seen.add(rel);
     }
-    return text;
+    return buf;
   };
-  const drifted = computeEvidence(ctx(root, { vitestJson: makeVitestJson(), readFile: driftRead }));
+  const drifted = computeEvidence(ctx(root, { vitestJson: makeVitestJson(), readBytes: driftBytes }));
   assert.equal(drifted.passed, false);
   assert.equal(drifted.evidence.sourceBinding.prePostHashesMatch, false);
   assert.ok(drifted.missing.some((m) => m.includes('src/dynamics/loads.ts') && m.includes('pre/post source binding violated')), `missing: ${drifted.missing}`);
@@ -581,6 +605,70 @@ t('missing production-contracts acceptance file fails its gate', () => {
   assert.equal(evidence.verification.gateCoverage.GATE_4_PRODUCTION_CONTRACTS, false);
   assert.equal(evidence.verification.gateCoverage.GATE_4_P0_5_EVENT_LOCALIZATION, true);
   assert.ok(missing.some((reason) => reason.includes(rel) && reason.includes('not executed')));
+});
+
+t('deleting a mandatory legacy suite from source fails certification', () => {
+  // Fixed inventory (audit §7.4): silent retirement must not pass. Drop the
+  // VV-005 describe from source while execution stays green otherwise.
+  const pruned = BASE_SOURCE.replace(/describe\('VV-005[^]*?\n\}\);\n/, '');
+  assert.ok(!pruned.includes('VV-005'), 'fixture must actually drop VV-005');
+  const root = baseFixture({ 'src/sim/vv-benchmarks.test.ts': pruned });
+  const json = makeVitestJson();
+  json.testResults[0].assertionResults = json.testResults[0].assertionResults.filter(
+    (a) => !(a.ancestorTitles[0] || '').includes('VV-005')
+  );
+  json.numTotalTests = json.testResults.flatMap((r) => r.assertionResults).length;
+  json.numPassedTests = json.numTotalTests;
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('VV-005') && m.includes('missing from source')), `missing: ${missing}`);
+});
+
+t('HEAD changing during execution breaks commit binding', () => {
+  const root = baseFixture();
+  let headCalls = 0;
+  const base = gitStub();
+  const run = (cmd) => {
+    if (cmd === 'git rev-parse HEAD') {
+      headCalls += 1;
+      return headCalls > 1 ? { ok: true, stdout: 'deadbee'.padEnd(40, '0') } : base(cmd);
+    }
+    return base(cmd);
+  };
+  const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { run, vitestJson: makeVitestJson() }));
+  assert.equal(ok, false);
+  assert.equal(evidence.sourceBinding.prePostHeadMatch, false);
+  assert.ok(missing.some((m) => m.includes('HEAD changed during build/test')), `missing: ${missing}`);
+});
+
+t('suite-counter disagreement fails certification', () => {
+  const root = baseFixture();
+  const json = makeVitestJson();
+  json.numTotalTestSuites += 2;
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('numTotalTestSuites') && m.includes('disagrees')), `missing: ${missing}`);
+});
+
+t('duplicate case identities fail certification', () => {
+  const root = baseFixture();
+  const json = makeVitestJson();
+  json.testResults[1].assertionResults.push({ ...json.testResults[1].assertionResults[0] });
+  json.numTotalTests += 1;
+  json.numPassedTests += 1;
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('duplicate case identity')), `missing: ${missing}`);
+});
+
+t('non-required file that did not cleanly pass fails certification', () => {
+  const root = baseFixture();
+  const json = makeVitestJson();
+  json.testResults[1].status = 'failed';
+  json.testResults[1].message = 'unhandled error with zero failed cases';
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
+  assert.equal(ok, false);
+  assert.ok(missing.some((m) => m.includes('did not cleanly pass')), `missing: ${missing}`);
 });
 
 // ---------------------------------------------------------------------------

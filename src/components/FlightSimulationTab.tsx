@@ -41,7 +41,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
   const [mainDeployAlt, setMainDeployAlt] = useState<number>(250); // meters AGL
   const [simResult, setSimResult] = useState<SixDofSimulationResult | null>(null);
   const [lastRunInputKey, setLastRunInputKey] = useState<string | null>(null);
-  const [simError, setSimError] = useState<string | null>(null);
+  const [simError, setSimError] = useState<{ message: string; inputs: string; at: string } | null>(null);
 
   const activeMotor: MotorSpec = CERTIFIED_MOTORS[selectedMotorId] || CERTIFIED_MOTORS.estes_c6;
 
@@ -118,9 +118,13 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
     };
   }, [isOpen, onClose]);
   const handleRunSimulation = () => {
-    // Fail-closed rerun (audit §7): a throwing rerun clears the previous
-    // result and records the failure — stale SAFE/PASS output must never
-    // survive a failed synchronous rerun.
+    // Fail-closed rerun (audit §8): a throwing rerun clears the previous
+    // result and records a reproducible failed-run record (message, inputs,
+    // timestamp) — stale SAFE/PASS output must never survive a failed
+    // synchronous rerun.
+    const inputSummary =
+      `motor=${activeMotor.designation} rail=${railLength}m@${railElevation}°/${railAzimuth}° ` +
+      `wind=${windSpeed}m/s@${windAzimuth}° cant=${finCant}° mainAlt=${mainDeployAlt}m`;
     try {
       const res = simulate6DofFlight(vehicle, activeMotor, {
         railLength,
@@ -137,7 +141,11 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
     } catch (err) {
       setSimResult(null);
       setLastRunInputKey(null);
-      setSimError(err instanceof Error ? err.message : String(err));
+      setSimError({
+        message: err instanceof Error ? err.message : String(err),
+        inputs: inputSummary,
+        at: new Date().toISOString(),
+      });
     }
   };
 
@@ -170,7 +178,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                 </span>
               </div>
               <p className="text-xs text-zinc-400">
-                Quaternion Kinematics, Wind Shear, Aero Restoring Moments, and Competition Safety Gates
+                Quaternion Kinematics, Wind Shear, Aero Restoring Moments, and Screening Thresholds (preview — not competition gates)
               </p>
             </div>
           </div>
@@ -360,7 +368,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
               className="p-3 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-xs font-mono"
               role="alert"
             >
-              Simulation failed: {simError}. Previous results were cleared — no stale output is shown.
+              Simulation failed at {simError.at}: {simError.message}. Inputs: {simError.inputs}. Previous results were cleared — no stale output is shown.
             </div>
           )}
           {simResult && (
@@ -373,6 +381,10 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
               >
                 <span className="text-[10px] text-zinc-400 uppercase font-semibold mr-1">Flight Status</span>
                 {(() => {
+                  // Outcome, model-domain validity, and limit compliance are
+                  // separate claims (audit §8): PASS requires touchdown under
+                  // a nominal model; FAIL distinguishes timeout from other
+                  // non-completion; UNKNOWN is a model-domain statement.
                   const v = simResult.validity;
                   const badge =
                     v === 'PASS'
@@ -383,19 +395,23 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                           icon: resultsAreStale
                             ? <AlertTriangle className="w-3.5 h-3.5" />
                             : <CheckCircle2 className="w-3.5 h-3.5" />,
-                          label: resultsAreStale ? 'PASS · prior run' : 'PASS · criterion satisfied',
+                          label: resultsAreStale ? 'PASS · prior run (stale)' : 'PASS · touchdown, nominal model',
                         }
                       : v === 'UNKNOWN'
                         ? {
                             c: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
                             icon: <AlertTriangle className="w-3.5 h-3.5" />,
-                            label: 'UNKNOWN · insufficient evidence',
+                            label: simResult.touchdownNominal
+                              ? 'UNKNOWN · outside validated model'
+                              : 'UNKNOWN · abnormal termination, outside model',
                           }
                         : v === 'FAIL'
                           ? {
                               c: 'text-rose-400 bg-rose-500/10 border-rose-500/30',
                               icon: <X className="w-3.5 h-3.5" />,
-                              label: 'FAIL · limit exceeded',
+                              label: simResult.terminationReason === 'timeout'
+                                ? 'FAIL · no touchdown before time limit'
+                                : 'FAIL · run did not complete',
                             }
                           : {
                               c: 'text-zinc-300 bg-zinc-700/20 border-zinc-600/40',
@@ -409,15 +425,23 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                     </span>
                   );
                 })()}
-                <span
-                  className={`text-[10px] px-2 py-1 rounded border font-mono ${
-                    simResult.enveloped
-                      ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
-                      : 'text-amber-400 bg-amber-500/10 border-amber-500/30'
-                  }`}
-                >
-                  {simResult.enveloped ? 'VALID · M∈[0,4], α≤30°' : 'OUT-OF-DOMAIN · not certifiable'}
-                </span>
+                {(() => {
+                  // The envelope badge must agree with final validity: a macro
+                  // envelope pass coexisting with stage excursions or
+                  // extrapolation previously showed green VALID beside UNKNOWN.
+                  const domainOk = simResult.enveloped && !simResult.offNominalExcursion;
+                  return (
+                    <span
+                      className={`text-[10px] px-2 py-1 rounded border font-mono ${
+                        domainOk
+                          ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+                          : 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                      }`}
+                    >
+                      {domainOk ? 'IN-DOMAIN · M∈[0,4], α≤30°, no excursions' : 'OFF-DOMAIN · not certifiable'}
+                    </span>
+                  );
+                })()}
                 <span
                   className={`text-[10px] px-2 py-1 rounded border font-mono ${
                     resultsAreStale
@@ -469,7 +493,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                 </div>
 
                 <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
-                  <div className="text-[10px] text-zinc-500 uppercase font-semibold">Weathercocking</div>
+                  <div className="text-[10px] text-zinc-500 uppercase font-semibold">Rail-Exit Incidence</div>
                   <div className="text-lg font-bold font-mono text-amber-400 mt-1">
                     {simResult.weathercockAngleDeg.toFixed(1)}°
                   </div>

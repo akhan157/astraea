@@ -16,7 +16,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { detectEvents, NEWTON_EVENT_STATE, EventState, EventSamplePair } from '../dynamics/events';
-import { simulate6DofFlight } from './sixDofSimulator';
+import { simulate6DofFlight, selectNextCandidate, eventCrossedAtRoot, clampRailBaseContact } from './sixDofSimulator';
+import { RigidState } from '../dynamics/rigidBody';
 import { PRESET_ESTES_ALPHA } from '../store/rocketStore';
 import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
 
@@ -444,5 +445,65 @@ describe('event-restart full-flight: no hidden clipping (audit 3.7/4)', () => {
     });
     const cantMax = Math.max(...cant.telemetry.map((t) => Math.abs(t.angularVelocity.p)));
     expect(cantMax).toBeGreaterThan(1.41);
+  });
+});
+
+describe('production event policy: refined selection, root ties, base contact (Round-16 audit §6)', () => {
+  it('serves the earliest refined root when chord order inverts (rail vs burnout)', () => {
+    // Chord estimates rank rail exit (0.2) before burnout (0.3), but
+    // refinement places the true rail root after the burn boundary.
+    // selectNextCandidate must serve burnout (index 1), not det.events[0]:
+    // the old loop broke on the first chord time and skipped the selection.
+    const idx = selectNextCandidate(['RAIL_EXIT', 'MOTOR_BURNOUT'], [0.5, 0.3]);
+    expect(idx).toBe(1);
+    // No inversion: chord-first free candidate refines first.
+    expect(selectNextCandidate(['RAIL_EXIT', 'MOTOR_BURNOUT'], [0.2, 0.3])).toBe(0);
+  });
+
+  it('never serves a dependent transition ahead of an earlier rail/burnout root', () => {
+    // Apogee chord-first, but a rail root refines earlier: rail must go first
+    // so its prerequisite is committed before apogee applies.
+    expect(selectNextCandidate(['APOGEE_DROGUE', 'RAIL_EXIT'], [0.4, 0.3])).toBe(1);
+    // Dependent candidates keep FSM order among themselves.
+    expect(selectNextCandidate(['APOGEE_DROGUE', 'MAIN_DEPLOY'], [0.4, 0.4])).toBe(0);
+  });
+
+  it('evaluates FSM-simultaneous ties at the committed root state', () => {
+    const rail = { x: 0, y: 0, z: 1 };
+    const above: RigidState = {
+      r: { x: 0, y: 0, z: 300 }, v: { x: 0, y: 0, z: -5 },
+      q: { w: 1, x: 0, y: 0, z: 0 }, w: { x: 0, y: 0, z: 0 },
+    };
+    const below: RigidState = { ...above, r: { x: 0, y: 0, z: 200 } };
+    // Same-instant main tie applies only when the root is actually at or
+    // below the deployment threshold — never on chord equality alone.
+    expect(eventCrossedAtRoot('MAIN_DEPLOY', above, rail, 1.0, 250)).toBe(false);
+    expect(eventCrossedAtRoot('MAIN_DEPLOY', below, rail, 1.0, 250)).toBe(true);
+    // Apogee applies only with nonpositive root vertical velocity.
+    expect(eventCrossedAtRoot('APOGEE_DROGUE', above, rail, 1.0, 250)).toBe(true);
+    expect(eventCrossedAtRoot('APOGEE_DROGUE', { ...above, v: { x: 0, y: 0, z: 3 } }, rail, 1.0, 250)).toBe(false);
+    // Rail and touchdown predicates bracket their own roots.
+    expect(eventCrossedAtRoot('RAIL_EXIT', { ...above, r: { x: 0, y: 0, z: 0.5 } }, rail, 1.0, 250)).toBe(false);
+    expect(eventCrossedAtRoot('RAIL_EXIT', { ...above, r: { x: 0, y: 0, z: 1.5 } }, rail, 1.0, 250)).toBe(true);
+    expect(eventCrossedAtRoot('TOUCHDOWN', { ...above, r: { x: 0, y: 0, z: -0.5 } }, rail, 1.0, 250)).toBe(true);
+  });
+
+  it('projects penetrating base states without touching outward motion', () => {
+    const rail = { x: 0, y: 0, z: 1 };
+    // Penetrating with inward velocity: position returns to the stop plane
+    // and the inward component is removed; transverse velocity is preserved.
+    const pos = { x: 1, y: 2, z: -0.05 };
+    const vel = { x: 3, y: -1, z: -2 };
+    clampRailBaseContact(pos, vel, rail);
+    expect(pos.z).toBe(0);
+    expect(pos.x).toBe(1);
+    expect(vel.z).toBe(0);
+    expect(vel.x).toBe(3);
+    // Outward motion is untouched.
+    const pos2 = { x: 0, y: 0, z: 0.5 };
+    const vel2 = { x: 0, y: 0, z: 4 };
+    clampRailBaseContact(pos2, vel2, rail);
+    expect(pos2.z).toBe(0.5);
+    expect(vel2.z).toBe(4);
   });
 });

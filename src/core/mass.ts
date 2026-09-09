@@ -33,6 +33,16 @@ export interface VehicleMassRollup {
 }
 
 /**
+ * Fail-closed geometry: nonfinite or nonpositive structural dimensions throw
+ * rather than clamping into a silently nominal mass model (audit §4.3).
+ */
+function requireFinitePositive(value: number, what: string): void {
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`vehicle geometry: ${what} must be finite and positive (got ${value})`);
+  }
+}
+
+/**
  * Calculates mass and CG for a nosecone
  */
 function computeNoseconeMass(comp: NoseconeComponent, materialDensity: number): { mass: number; localCG: number } {
@@ -41,38 +51,51 @@ function computeNoseconeMass(comp: NoseconeComponent, materialDensity: number): 
     return { mass: comp.massOverride, localCG: cg };
   }
 
+  requireFinitePositive(comp.length, 'nosecone length');
+  requireFinitePositive(comp.baseDiameter, 'nosecone baseDiameter');
   const r = comp.baseDiameter / 2;
   const l = comp.length;
   let volume: number;
-  let localCG: number;
+  // Centroids measured from the component FRONT (tip), matching the axial
+  // chain datum (globalCG = axialStart + localCG). A uniform solid cone has
+  // its centroid at 3L/4 from the tip — never 2L/3 (the conical CP station).
+  let centroidFrac: number;
 
   switch (comp.shape) {
     case 'conical':
       volume = (1 / 3) * Math.PI * r * r * l;
-      localCG = (2 / 3) * l;
+      centroidFrac = 0.75;
       break;
     case 'ogive':
       // Tangent ogive solid volume approximation ~ 0.57 * pi * r^2 * l
       volume = 0.57 * Math.PI * r * r * l;
-      localCG = 0.466 * l;
+      centroidFrac = 0.466;
       break;
     case 'parabolic':
       volume = 0.5 * Math.PI * r * r * l;
-      localCG = 0.5 * l;
+      centroidFrac = 0.5;
       break;
     case 'vonkarman':
     case 'elliptical':
     default:
       volume = 0.55 * Math.PI * r * r * l;
-      localCG = 0.5 * l;
+      centroidFrac = 0.5;
       break;
   }
+  let localCG = centroidFrac * l;
 
   if (comp.isHollow && comp.wallThickness > 0 && comp.wallThickness < r) {
+    // Hollow shell = outer solid minus a similar inner cavity seated at the
+    // base: the cavity centroid sits at (l - lInner) + frac*lInner from the
+    // tip, so the shell centroid moves forward of the solid value. Keeping
+    // the outer centroid (the old behavior) is a demonstrable CG error.
     const rInner = r - comp.wallThickness;
     const lInner = Math.max(0.001, l - comp.wallThickness);
     const innerVolume = volume * Math.pow(rInner / r, 2) * (lInner / l);
-    volume = Math.max(0.000001, volume - innerVolume);
+    const cavityCG = (l - lInner) + centroidFrac * lInner;
+    const shellVolume = Math.max(0.000001, volume - innerVolume);
+    localCG = (volume * localCG - innerVolume * cavityCG) / shellVolume;
+    volume = shellVolume;
   }
 
   const mass = volume * materialDensity;
@@ -87,13 +110,20 @@ function computeBodyTubeMass(comp: BodyTubeComponent, materialDensity: number): 
     return { mass: comp.massOverride, localCG: comp.cgOverride !== undefined ? comp.cgOverride : comp.length / 2 };
   }
 
+  requireFinitePositive(comp.length, 'bodytube length');
+  requireFinitePositive(comp.outerDiameter, 'bodytube outerDiameter');
   const rOuter = comp.outerDiameter / 2;
+  // A zero or negative wall (inner >= outer) is invalid geometry, not a
+  // zero-mass tube: fail closed instead of Math.max-clamping to nominal.
   const rInner = comp.innerDiameter > 0 ? comp.innerDiameter / 2 : Math.max(0, rOuter - 0.0015);
+  if (!(rInner < rOuter)) {
+    throw new Error(`vehicle geometry: bodytube innerDiameter must leave positive wall (got ${comp.innerDiameter} vs outer ${comp.outerDiameter})`);
+  }
   const crossSectionArea = Math.PI * (rOuter * rOuter - rInner * rInner);
-  const volume = Math.max(0, crossSectionArea * comp.length);
-  const mass = volume * materialDensity;
+  const volume = crossSectionArea * comp.length;
+  const tubeMass = volume * materialDensity;
 
-  return { mass, localCG: comp.cgOverride !== undefined ? comp.cgOverride : comp.length / 2 };
+  return { mass: tubeMass, localCG: comp.cgOverride !== undefined ? comp.cgOverride : comp.length / 2 };
 }
 
 /**
@@ -104,10 +134,19 @@ function computeTransitionMass(comp: TransitionComponent, materialDensity: numbe
     return { mass: comp.massOverride, localCG: comp.cgOverride !== undefined ? comp.cgOverride : comp.length / 2 };
   }
 
+  requireFinitePositive(comp.length, 'transition length');
+  if (!Number.isFinite(comp.foreDiameter) || comp.foreDiameter < 0) {
+    throw new Error(`vehicle geometry: transition foreDiameter must be finite and nonnegative (got ${comp.foreDiameter})`);
+  }
+  if (!Number.isFinite(comp.aftDiameter) || comp.aftDiameter < 0) {
+    throw new Error(`vehicle geometry: transition aftDiameter must be finite and nonnegative (got ${comp.aftDiameter})`);
+  }
+  if (!(comp.foreDiameter > 0 || comp.aftDiameter > 0)) {
+    throw new Error('vehicle geometry: transition needs a positive diameter');
+  }
   const r1 = comp.foreDiameter / 2;
   const r2 = comp.aftDiameter / 2;
   const l = comp.length;
-
   // Frustum solid volume
   const solidVol = (1 / 3) * Math.PI * l * (r1 * r1 + r1 * r2 + r2 * r2);
   let volume = solidVol;
@@ -177,8 +216,14 @@ export function aggregateVehicleMass(vehicle: RocketVehicle): VehicleMassRollup 
 
   const results: ComponentMassResult[] = [];
 
+  if (!vehicle || !Array.isArray(vehicle.components) || vehicle.components.length === 0) {
+    throw new Error('vehicle geometry: vehicle has no components — mass rollup is undefined');
+  }
   for (const comp of vehicle.components) {
     const material = STANDARD_MATERIALS[comp.materialId] || STANDARD_MATERIALS.cardboard;
+    if (!Number.isFinite(material.density) || material.density <= 0) {
+      throw new Error(`vehicle geometry: material '${comp.materialId}' has nonpositive density`);
+    }
     let mass = 0;
     let localCG = 0;
     let axialStart = currentAxialX;

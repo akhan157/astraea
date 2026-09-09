@@ -198,6 +198,7 @@ export function integrateRigidStep(
     q: addQuat(sNorm.q, d1.dq, dt / 2),
     w: addVec(sNorm.w, d1.dw, dt / 2),
   };
+  validateAcceptedState(s1); // pre-callback: never expose a raw stage state (audit §3.3)
   const L1 = loadsAt ? loadsAt(tHalf, s1) : loads;
   validateStateAndLoads(s1, L1, dt);
   const d2 = deriv(s1, L1, tHalf);
@@ -208,6 +209,7 @@ export function integrateRigidStep(
     q: addQuat(sNorm.q, d2.dq, dt / 2),
     w: addVec(sNorm.w, d2.dw, dt / 2),
   };
+  validateAcceptedState(s2); // pre-callback: never expose a raw stage state (audit §3.3)
   const L2 = loadsAt ? loadsAt(tHalf, s2) : loads;
   validateStateAndLoads(s2, L2, dt);
   const d3 = deriv(s2, L2, tHalf);
@@ -218,6 +220,7 @@ export function integrateRigidStep(
     q: addQuat(sNorm.q, d3.dq, dt),
     w: addVec(sNorm.w, d3.dw, dt),
   };
+  validateAcceptedState(s3); // pre-callback: never expose a raw stage state (audit §3.3)
   const L3 = loadsAt ? loadsAt(tFull, s3) : loads;
   validateStateAndLoads(s3, L3, dt);
   const d4 = deriv(s3, L3, tFull);
@@ -344,11 +347,14 @@ export interface AdaptiveDenseStep {
   t0: number;
   /** actual trial size used for the accepted step (s) */
   h: number;
+  /** accepted endpoint timestamp (=== nextTime; may differ from t0 + h by an
+   *  ulp when the remaining span binds — the authoritative bracket end) */
+  t1: number;
   y0: RigidState;
   /** RHS derivative at (t0, y0) — stage-1 k */
   f0: StateDerivative;
   y1: RigidState;
-  /** RHS derivative at (t0+h, y1) — FSAL stage-7 k, zero extra evaluation */
+  /** RHS derivative at (t1, y1) — FSAL stage-7 k, zero extra evaluation */
   f1: StateDerivative;
 }
 
@@ -413,8 +419,10 @@ function validateLoads(L: Loads): void {
   }
 }
 
-/** Validate an accepted propagated state: finite, unit attitude. */
-function validateAcceptedState(st: RigidState): void {
+/** Validate a propagated state: finite, unit attitude. Shared pre-callback
+ *  gate for both kernels (audit §3.3): no stage state reaches a loads
+ *  consumer before this check. */
+export function validateAcceptedState(st: RigidState): void {
   const finite =
     Number.isFinite(st.r.x) && Number.isFinite(st.r.y) && Number.isFinite(st.r.z) &&
     Number.isFinite(st.v.x) && Number.isFinite(st.v.y) && Number.isFinite(st.v.z) &&
@@ -501,8 +509,10 @@ export function integrateRigidAdaptive(
     if (!Number.isFinite(nextTime) || nextTime <= t) {
       throw new Error('adaptive integrator: trial cannot make representable progress');
     }
-    // Representable-progress floor: below this, t + h cannot advance t in
-    // floating point, so a rejection landing here can never converge.
+    // Rejection floor (declared conservative policy, audit §3.3): EPSILON *
+    // max(1, |t|, |tEnd|) bounds the scale at which t + h stops advancing t
+    // up to an O(1) factor — it is not the exact per-value ulp threshold. A
+    // rejection landing here can never converge, so the run fails closed.
     const floor = Number.EPSILON * Math.max(1, Math.abs(t), Math.abs(tEnd));
 
     const ks: StateDerivative[] = [];
@@ -510,7 +520,10 @@ export function integrateRigidAdaptive(
     // Stage states + stage-load validation: the callback result at EVERY
     // stage (including stage 0) is validated before it feeds a derivative.
     for (let i = 0; i < 7; i++) {
-      const ti = i === 0 ? t : t + A_DP[i] * h;
+      // Endpoint stages (A_DP == 1) evaluate exactly at the accepted endpoint
+      // nextTime — never at t + h, which can differ by an ulp when the
+      // remaining span binds (audit §3.3).
+      const ti = i === 0 ? t : A_DP[i] === 1 ? nextTime : t + A_DP[i] * h;
       let sti: RigidState;
       if (i === 0) {
         sti = s;
@@ -633,7 +646,7 @@ export function integrateRigidAdaptive(
       validateAcceptedState(y1); // accepted-state validation: reject baked-in NaN/Inf/non-unit
       // FSAL stage (i = 6) evaluates the RHS exactly at the accepted 5th-order
       // candidate, so the dense bracket's endpoint derivative is free.
-      dense.push({ t0: t, h, y0: yPrev, f0: ks[0], y1, f1: ks[6] });
+      dense.push({ t0: t, h, t1: nextTime, y0: yPrev, f0: ks[0], y1, f1: ks[6] });
       s = y1;
       t = nextTime;
       steps++;
@@ -679,13 +692,13 @@ export function integrateRigidAdaptive(
 export function denseOutputAt(dense: readonly AdaptiveDenseStep[], t: number): RigidState {
   if (dense.length === 0) throw new Error('dense output: no accepted steps recorded');
   const spanT0 = dense[0].t0;
-  const spanT1 = dense[dense.length - 1].t0 + dense[dense.length - 1].h;
+  const spanT1 = dense[dense.length - 1].t1;
   if (!(t >= spanT0 && t <= spanT1)) {
     throw new Error('dense output: query time ' + t + ' is outside integration span [' + spanT0 + ', ' + spanT1 + ']');
   }
   let idx = dense.length - 1;
   for (let i = 0; i < dense.length; i++) {
-    if (t <= dense[i].t0 + dense[i].h + 1e-12) { idx = i; break; }
+    if (t <= dense[i].t1 + 1e-12) { idx = i; break; }
   }
   const d = dense[idx];
   const u = d.h > 0 ? (t - d.t0) / d.h : 0;

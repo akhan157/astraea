@@ -58,6 +58,11 @@ export interface LoadsAssemblyConfig {
   finCantRad: number;
   /** Direct ENU wind override (m/s) for testability (Galilean invariance). */
   windOverride?: Vec3;
+  /** Rail-constrained stage (audit §5.3): transverse loads are carried by
+   *  the rail under contact dynamics, so body incidence is not a validity
+   *  input. Mach clamps, finite-input checks, and drag-domain handling still
+   *  apply — the exclusion is incidence-only, never whole-validity. */
+  railBound?: boolean;
 }
 
 /** Power-law wind shear profile: v(h) = v_surf * (h/2)^0.14. */
@@ -97,6 +102,11 @@ export interface PreparedVehicle {
    *  referenced to refArea. Vehicle-dependent base that the Mach-modified
    *  normal slope used by the loads assembly is scaled from. */
   cna0: number;
+  /** Motor aft-end station measured from the nose (m): the flagged mount's
+   *  aft end when a motor mount is assigned, else the vehicle aft end
+   *  (documented fallback). The call site seats the motor centroid half a
+   *  motor length forward of this station. */
+  motorAftStationFromNose: number;
   drogue: ParachuteComponent | undefined;
   mainChute: ParachuteComponent | undefined;
   aeroPowered: ReturnType<typeof computeAerodynamicCurves>;
@@ -109,7 +119,10 @@ export function prepareVehicle(vehicle: RocketVehicle): PreparedVehicle {
   const refDiameter = massRollup.referenceDiameter;
   const refArea = (Math.PI / 4) * Math.pow(refDiameter, 2);
   const rBody = refDiameter / 2;
-  const vehicleDryMass = Math.max(0.01, massRollup.totalMass);
+  if (!(massRollup.totalMass > 0)) {
+    throw new Error('prepareVehicle: vehicle dry mass must be positive');
+  }
+  const vehicleDryMass = massRollup.totalMass;
   const Ixx_dry = 0.5 * vehicleDryMass * rBody * rBody;
   const Iyy_dry = (vehicleDryMass * (3 * rBody * rBody + totalLength * totalLength)) / 12;
   const parachutes = vehicle.components.filter((c) => c.type === 'parachute') as ParachuteComponent[];
@@ -123,11 +136,32 @@ export function prepareVehicle(vehicle: RocketVehicle): PreparedVehicle {
     Iyy_dry,
     baselineCg: massRollup.cg,
     cna0: computeRocketStability(vehicle).totalCNa,
+    motorAftStationFromNose: resolveMotorCentroid(vehicle, massRollup),
     drogue: parachutes[0],
     mainChute: parachutes.length > 1 ? parachutes[1] : parachutes[0],
     aeroPowered: computeAerodynamicCurves(vehicle, true, 25),
     aeroCoasting: computeAerodynamicCurves(vehicle, false, 25),
   };
+}
+
+/**
+ * Motor aft-end station from the nose (m). A body tube flagged
+ * `isMotorMount` seats the motor at its aft end; without an assigned mount
+ * the motor is assumed at the vehicle aft end (documented fallback).
+ */
+function resolveMotorCentroid(
+  vehicle: RocketVehicle,
+  massRollup: { totalLength: number; components: { id: string; axialStart: number; length: number }[] }
+): number {
+  const mount = vehicle.components.find((c) => c.type === 'bodytube' && c.isMotorMount);
+  if (mount) {
+    const rec = massRollup.components.find((r) => r.id === mount.id);
+    if (rec) {
+      const mountEnd = rec.axialStart + rec.length;
+      return mountEnd; // refined with motor length at the call site
+    }
+  }
+  return massRollup.totalLength; // aft-end fallback (refined at the call site)
 }
 
 function aeroAtMach(
@@ -230,7 +264,7 @@ export function computeFlightLoads(
   const mass = mDry + mMot;
   const mRad = cfg.motor.diameter / 2;
   const mLen = cfg.motor.length;
-  const xMot = Math.max(0.0, pv.totalLength - mLen / 2); // motor centroid, m from nose
+  const xMot = Math.max(0.0, pv.motorAftStationFromNose - mLen / 2); // motor centroid: half a motor length forward of the mount/vehicle aft end
   const xDry = pv.baselineCg;                            // dry vehicle CG, m from nose
   const xC = (mDry * xDry + mMot * xMot) / mass;         // instantaneous combined CG
   const dDry = xDry - xC; // signed axial offsets -> combined CG
@@ -302,19 +336,29 @@ export function computeFlightLoads(
   // body loads are nominal only through M=4 and 15° total incidence; the
   // transition envelope ends at M=6 or 30°. Recovery uses the canopy drag
   // model (constant canopy CD, declared empirical, same Mach clamps), so body
-  // incidence is not a validity input while a chute is live. Non-finite
-  // kinematics fail closed: NaN comparisons must never fall through to VALID.
+  // incidence is not a validity input while a chute is live. Rail-bound
+  // stages likewise exclude incidence (contact dynamics carry transverse
+  // loads) but keep every other check. Non-finite kinematics fail closed:
+  // NaN comparisons must never fall through to VALID — and the classifier
+  // covers every state input, not just Mach/airspeed/incidence (audit §5.3:
+  // nonfinite rates must not classify VALID even when the kernel later
+  // rejects the resulting loads).
   const recovery = drogueLive || mainLive;
-  const incidenceForValidity = recovery ? 0 : alphaTotalDeg;
+  const railBound = cfg.railBound === true;
+  const incidenceForValidity = recovery || railBound ? 0 : alphaTotalDeg;
+  const statesFinite =
+    Number.isFinite(st.r.x) && Number.isFinite(st.r.y) && Number.isFinite(st.r.z) &&
+    Number.isFinite(st.v.x) && Number.isFinite(st.v.y) && Number.isFinite(st.v.z) &&
+    Number.isFinite(st.w.x) && Number.isFinite(st.w.y) && Number.isFinite(st.w.z) &&
+    Number.isFinite(st.q.w) && Number.isFinite(st.q.x) && Number.isFinite(st.q.y) && Number.isFinite(st.q.z);
   let loadValidity: LoadValidity =
-    !Number.isFinite(mach) || !Number.isFinite(incidenceForValidity) || !Number.isFinite(airspeed)
+    !statesFinite || !Number.isFinite(mach) || !Number.isFinite(incidenceForValidity) || !Number.isFinite(airspeed)
       ? 'UNSUPPORTED'
       : mach > 6.0 || incidenceForValidity > 30.0
         ? 'UNSUPPORTED'
         : mach > 4.0 || incidenceForValidity > 15.0
           ? 'EXTRAPOLATED'
           : 'VALID';
-
   // Wind-axis -> body transform (audit §3.6): the COMPLETE drag vector
   //   F_D,B = -D * v_air,B / |v_air,B|
   // opposes the air-relative velocity in EVERY channel (not merely the axial
@@ -325,17 +369,10 @@ export function computeFlightLoads(
   let cna = 0.0;
   // Model-domain handling (audit §6B): slender-body nose-first aero is
   // undefined for DOMINANT reverse axial flow — flow coming from a cone
-  // within 45° of the pure aft axis (v_air,B,y < 0 AND |v_y| >= latSpeed).
-  // Such a load fails closed at the validity flag (UNSUPPORTED), never
-  // silently folded into small incidence or claimed nominal. The stage must
-  // stay finite and integrable: the complete drag vector still applies
-  // (blunt-base drag) while the slender-body normal-force law is suppressed
-  // (zero transverse normal force). Post-stall broadside flow
-  // (|v_y| < latSpeed) stays computable through the signed-aoa laws. Under a
-  // deployed recovery canopy the rocket body is slung beneath the chute; the
-  // canopy drag vector (below) is the valid model there, so tail-first flow
-  // is allowed.
-  const tailFirstFreeFlight = !recovery && relBody.y < 0.0 && -relBody.y >= latSpeed;
+  // within 45° of the pure aft axis. In free flight such a load fails closed
+  // at the validity flag; rail-bound reverse flow is contact regime
+  // (seated/tailwind), not a free-flight model violation.
+  const tailFirstFreeFlight = !recovery && !railBound && relBody.y < 0.0 && -relBody.y >= latSpeed;
   if (tailFirstFreeFlight) {
     loadValidity = 'UNSUPPORTED';
   }

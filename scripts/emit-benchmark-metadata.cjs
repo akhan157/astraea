@@ -95,9 +95,18 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/aero/barrowman.ts',
   'src/core/mass.ts',
   'src/components/FlightSimulationTab.tsx',
+  'src/core/types.ts',
+  'src/store/rocketStore.ts',
   'scripts/emit-benchmark-metadata.cjs',
   'package.json',
 ]);
+
+// Fixed mandatory legacy inventory (Round-16 audit §7.4): source-relative
+// completeness lets a deleted suite pass silently. These 14 VV suites must
+// exist in source AND execute green — deletion from either fails.
+const REQUIRED_VV_IDS = Object.freeze(
+  ['001', '002', '003', '004', '005', '006', '007', '009', '010', '011', '012', '013', '014', '015']
+);
 const HASHED_INFORMATIONAL_FILES = Object.freeze([
   'pnpm-lock.yaml',
   'package-lock.json',
@@ -243,11 +252,13 @@ function parseVitestJson(json) {
   for (const f of json.testResults ?? []) {
     const byStatus = {};
     const failures = [];
+    const caseNames = [];
     let durationMs = 0;
     const STATUS_KEYS = ['passed', 'failed', 'skipped', 'pending', 'todo', 'disabled'];
     for (const a of f.assertionResults ?? []) {
       const st = a.status || 'unknown';
       byStatus[st] = (byStatus[st] ?? 0) + 1;
+      caseNames.push(`${a.fullName ?? ''} :: ${a.title ?? ''}`);
       if (typeof a.duration === 'number') durationMs += a.duration;
       if (st === 'failed') {
         failures.push({ fullName: a.fullName ?? '', title: a.title ?? '', messages: a.failureMessages ?? [] });
@@ -279,6 +290,7 @@ function parseVitestJson(json) {
       durationMs: Math.round(durationMs * 1000) / 1000,
       message: f.message ?? '',
       failures,
+      caseNames,
     });
   }
   const numDisabled = files.reduce((n, f) => n + f.testCases.disabled, 0);
@@ -451,6 +463,10 @@ function computeEvidence(opts = {}) {
   const runEmitterSelfTests = opts.runEmitterSelfTests ?? (() => defaultRunEmitterSelfTests(root));
   const exists = opts.exists ?? ((rel) => fs.existsSync(path.join(root, rel)));
   const readFile = opts.readFile ?? ((rel) => fs.readFileSync(path.join(root, rel), 'utf-8'));
+  // Raw on-disk bytes for hashing (audit §7.3): file hashes are sha256 of
+  // the byte stream, not of a UTF-8-decoded string (identical for valid
+  // UTF-8 source, but the advertised operation is the byte hash).
+  const readBytes = opts.readBytes ?? ((rel) => fs.readFileSync(path.join(root, rel)));
   const readJson = opts.readJson ?? ((rel) => {
     const text = readFile(rel);
     return text ? JSON.parse(text) : null;
@@ -465,7 +481,7 @@ function computeEvidence(opts = {}) {
     const h = {};
     for (const rel of [...HASHED_REQUIRED_FILES, ...HASHED_INFORMATIONAL_FILES]) {
       try {
-        h[rel] = sha256Hex(readFile(rel));
+        h[rel] = sha256Hex(readBytes(rel));
       } catch {
         h[rel] = null;
       }
@@ -540,10 +556,27 @@ function computeEvidence(opts = {}) {
   if (parsed && parsed.totals.testCasesSkipped > 0) missing.push(`tests: ${parsed.totals.testCasesSkipped} skipped/pending/todo/disabled test case(s) — unexecuted evidence`);
   if (parsed && parsed.totals.testCasesUnknown > 0) missing.push(`tests: ${parsed.totals.testCasesUnknown} test case(s) with unknown status — unrecognized evidence`);
   if (parsed) {
+    // Every collected file is mandatory preparation evidence: a file that did
+    // not cleanly pass (failed, unknown, or unexecuted cases, unrecognized
+    // status) fails certification even when no gate names it (audit §7.4).
     for (const f of parsed.files) {
-      if (f.testCases.unknown > 0) missing.push(`tests: ${f.path} reports ${f.testCases.unknown} unknown-status result(s)`);
+      const tc = f.testCases;
+      if (tc.unknown > 0) missing.push(`tests: ${f.path} reports ${tc.unknown} unknown-status result(s)`);
       if (!['passed', 'failed', 'skipped', 'todo', 'pending'].includes(f.status)) {
         missing.push(`tests: ${f.path} file status '${f.status}' is not a recognized outcome`);
+      }
+      const unexecuted = tc.skipped + tc.pending + tc.todo + tc.disabled;
+      if (f.status !== 'passed' || tc.failed > 0 || tc.unknown > 0 || unexecuted > 0) {
+        missing.push(`tests: ${f.path} did not cleanly pass (status=${f.status}, passed=${tc.passed}/${tc.total}, failed=${tc.failed}, unknown=${tc.unknown}, unexecuted=${unexecuted})`);
+      }
+    }
+    // Duplicate case identities indicate sharded/double-collected execution.
+    const seenNames = new Set();
+    for (const f of parsed.files) {
+      for (const name of f.caseNames ?? []) {
+        const key = `${f.path} :: ${name}`;
+        if (seenNames.has(key)) missing.push(`tests: duplicate case identity ${key} — execution evidence is incoherent`);
+        seenNames.add(key);
       }
     }
     // Reporter-aggregate consistency: top-level counters must agree with the
@@ -559,6 +592,9 @@ function computeEvidence(opts = {}) {
       if (Number.isFinite(rep.numPassedTests) && rep.numPassedTests !== parsed.totals.testCasesPassed) {
         missing.push(`tests: reporter numPassedTests (${rep.numPassedTests}) disagrees with summed file results (${parsed.totals.testCasesPassed})`);
       }
+      if (Number.isFinite(rep.numTotalTestSuites) && rep.numTotalTestSuites !== parsed.totals.filesTotal) {
+        missing.push(`tests: reporter numTotalTestSuites (${rep.numTotalTestSuites}) disagrees with collected files (${parsed.totals.filesTotal})`);
+      }
     }
   }
   const testSummary = parsed ? { ...parsed.totals, success: parsed.success, files: parsed.files } : null;
@@ -568,17 +604,32 @@ function computeEvidence(opts = {}) {
   if (!emitterSelf.ok) missing.push(`evidence: emitter self-tests failed (exit ${emitterSelf.exitCode}) — fail-closed behavior unproven`);
 
   // --- post-execution source binding ------------------------------------------
+  // Booleans (not message-text matching) drive the binding fields below.
+  let statusDrift = false;
+  let hashDrift = false;
+  let headDrift = false;
   const postStatus = run('git status --porcelain');
   const postHashes = hashCited();
+  const postHead = run('git rev-parse HEAD');
   if (!postStatus.ok) {
     missing.push('git: post-execution working-tree state unreadable — immutability unverifiable');
+    statusDrift = true;
   } else if (gitStatus.ok && postStatus.stdout !== gitStatus.stdout) {
     missing.push('evidence: working tree changed during build/test/hash collection — pre/post source binding violated');
+    statusDrift = true;
   }
   for (const rel of [...HASHED_REQUIRED_FILES, ...HASHED_INFORMATIONAL_FILES]) {
     if (preHashes[rel] !== postHashes[rel]) {
       missing.push(`evidence: ${rel} changed during build/test/hash collection — pre/post source binding violated`);
+      hashDrift = true;
     }
+  }
+  if (!postHead.ok) {
+    missing.push('git: post-execution HEAD unreadable — execution commit unverifiable');
+    headDrift = true;
+  } else if (postHead.stdout !== commitHash) {
+    missing.push('evidence: HEAD changed during build/test/hash collection — execution commit unverifiable');
+    headDrift = true;
   }
 
   // --- VV suite evidence: source inventory x executed results -----------------
@@ -617,10 +668,15 @@ function computeEvidence(opts = {}) {
     };
   }
 
-  // --- legacy-suite completeness: EVERY source suite is mandatory ------------
-  // A legacy suite that is present in source but missing from execution — or
-  // executed without passing — fails certification outright, independent of
-  // per-gate requirements.
+  // --- legacy-suite completeness: fixed mandatory inventory -------------------
+  // Source-relative completeness lets a deleted suite pass silently. Every
+  // REQUIRED_VV_IDS entry must exist in source AND execute green; any extra
+  // source suite is held to the same bar.
+  for (const id of REQUIRED_VV_IDS) {
+    if (!sourceSuites.includes(id)) {
+      missing.push(`evidence: mandatory VV-${id} missing from source — silent suite retirement fails certification`);
+    }
+  }
   for (const s of suiteSlices) {
     const rec = vvRecords[s.id];
     if (!rec) {
@@ -693,7 +749,7 @@ function computeEvidence(opts = {}) {
   }
 
   const passed = missing.length === 0;
-  const bindingIntact = !missing.some((m) => m.includes('pre/post') || m.includes('during build/test'));
+  const bindingIntact = !statusDrift && !hashDrift && !headDrift;
 
   const evidence = {
     artifact: 'astraea-benchmark-metadata',
@@ -704,9 +760,10 @@ function computeEvidence(opts = {}) {
     failClosed: 'any missing required evidence forces passed=false and exit 1',
     commit,
     sourceBinding: {
-      prePostHashesMatch: bindingIntact,
-      prePostStatusMatch: bindingIntact,
-      note: 'cited-file hashes and git status were captured before AND after build/test execution; drift fails certification',
+      prePostHashesMatch: !hashDrift,
+      prePostStatusMatch: !statusDrift,
+      prePostHeadMatch: !headDrift,
+      note: 'cited-file hashes, git status, and HEAD were captured before AND after build/test execution; drift fails certification',
     },
     runtime: {
       node: process.version,

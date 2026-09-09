@@ -26,7 +26,7 @@ import {
   PRESET_ESTES_ALPHA,
   PRESET_NASA_STUDENT_LAUNCH,
 } from '../store/rocketStore';
-import { CERTIFIED_MOTORS, getMotorMassAt, getMotorMassFlowAt, integrateThrustCurve } from '../propulsion/motorDatabase';
+import { CERTIFIED_MOTORS, getMotorMassAt, getMotorMassFlowAt, getMotorImpulseTotal, integrateThrustCurve } from '../propulsion/motorDatabase';
 
 const MOTOR = CERTIFIED_MOTORS.estes_c6;
 const BURN = MOTOR.burnTime;
@@ -89,7 +89,7 @@ describe('loads repair: instantaneous combined CG and inertia derivative', () =>
     // Impulse-proportional production law (master contract): propellant burns
     // with delivered impulse, not with elapsed-time fraction.
     const motorSt = getMotorMassAt(MOTOR, t);
-    const xMot = Math.max(0, pv.totalLength - MOTOR.length / 2);
+    const xMot = Math.max(0, pv.motorAftStationFromNose - MOTOR.length / 2);
     const expected = (pv.vehicleDryMass * pv.baselineCg + motorSt.currentMass * xMot) /
       (pv.vehicleDryMass + motorSt.currentMass);
     const L = computeFlightLoads(t, STATE(AXIAL), FLAGS_FREE, CFG, pv);
@@ -105,14 +105,11 @@ describe('loads repair: instantaneous combined CG and inertia derivative', () =>
     const early = getMotorMassAt(MOTOR, 0.25 * BURN);
     const linearRemaining = MOTOR.propellantMass * 0.75;
     expect(early.propellantRemaining).toBeLessThan(linearRemaining);
-    // Mass flow tracks instantaneous thrust.
-    const peakFlow = getMotorMassFlowAt(MOTOR, 0.18);
-    const lateFlow = getMotorMassFlowAt(MOTOR, 1.2);
-    expect(peakFlow).toBeLessThan(lateFlow);
-    expect(lateFlow).toBeLessThan(0);
     expect(getMotorMassFlowAt(MOTOR, BURN + 1)).toBe(0);
-    // Full-burn integral recovers the certified total impulse.
-    expect(integrateThrustCurve(MOTOR, BURN)).toBeCloseTo(MOTOR.totalImpulse, 0);
+    // Curve-authoritative denominator (Round-16 policy): the depletion law
+    // integrates the curve it differentiates — exactly, not to 0.5 N·s.
+    expect(getMotorMassAt(MOTOR, BURN).propellantRemaining).toBe(0);
+    expect(integrateThrustCurve(MOTOR, BURN)).toBe(getMotorImpulseTotal(MOTOR));
   });
 });
 

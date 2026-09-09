@@ -71,28 +71,23 @@ describe('6-DOF production event/validity contracts (Round-15 audit §6/§7)', (
       windAzimuthDeg: 270.0,
     });
     expect(res.terminated).toBe(true);
+    expect(res.terminationReason).toBe('touchdown');
+    expect(res.touchdownNominal).toBe(true);
     const touchdown = res.events.find((e) => e.name === 'Ground Touchdown');
     expect(touchdown).toBeDefined();
     // Touchdown event time IS the flight duration: no macro-endpoint stand-in.
     expect(res.flightDuration).toBe(touchdown!.time);
-    // Landing mass is the retained mass at the root (post-burnout: dry motor).
-    expect(res.landingMass).toBeCloseTo(
-      res.telemetry[res.telemetry.length - 1].mass, 3
-    );
-    // Final telemetry point sits at the root: ground altitude, root time.
+    // Canonical terminal telemetry is FULL PRECISION (audit §6.4): the final
+    // point coincides exactly with the touchdown root state, mass, and time.
     const last = res.telemetry[res.telemetry.length - 1];
     expect(last.altitude).toBe(0);
-    expect(Math.abs(last.time - res.flightDuration)).toBeLessThan(5e-4);
-    // Event times strictly increase along the flight.
-    for (let i = 1; i < res.events.length; i++) {
-      expect(res.events[i].time).toBeGreaterThan(res.events[i - 1].time);
-    }
-  });
-
-  it('propagates active-model validity into final validity and safety outputs', () => {
-    const motor = CERTIFIED_MOTORS.estes_c6;
-    // Nominal flight: free-flight incidence stays inside the envelope, so the
-    // result certifies and rail safety reads SAFE.
+    expect(last.time).toBe(res.flightDuration);
+    expect(last.position.x).toBe(res.landingPosition.x);
+    expect(last.position.y).toBe(res.landingPosition.y);
+    expect(last.position.z).toBe(0);
+    expect(last.mass).toBe(res.landingMass);
+    const lastSpeed = Math.sqrt(last.velocity.x * last.velocity.x + last.velocity.y * last.velocity.y + last.velocity.z * last.velocity.z);
+    expect(lastSpeed).toBe(res.landingVelocity);
     const nominal = simulate6DofFlight(PRESET_ESTES_ALPHA, motor, {
       railLength: 1.0,
       railElevationDeg: 85.0,

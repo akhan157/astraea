@@ -28,6 +28,8 @@ async function main() {
     'src/dynamics/events.ts',
     'src/sim/sixDofSimulator.ts',
     'src/sim/sixDofSimulator.test.ts',
+    'src/propulsion/motorDatabase.test.ts',
+    'src/components/FlightSimulationTab.test.tsx',
     'src/sim/event-restart.test.ts',
     'src/sim/vv-benchmarks.test.ts',
     'src/sim/flightSimulator.ts',
@@ -44,11 +46,16 @@ async function main() {
     .join('');
 
   const prompt = `You are Astra, Principal Aerospace Systems Architect and Chief Systems Engineer.
-You are auditing Astraea Round 15 after the adversarial Round-14 report scored 5.7/10 with NO-GO.
+You are auditing Astraea Round 16 after the adversarial Round-15 report scored 6.1/10 with NO-GO.
 
 Audit only what the supplied sources and machine evidence establish. Do not accept the change summary as proof. Recompute the physics, numerical-method, event-causality, frame, validity, and evidence conclusions from source.
 
-ROUND-15 CHANGE SUMMARY TO VERIFY:
+ROUND-16 CHANGE SUMMARY TO VERIFY:
+- Motor depletion is authoritative on the thrust-curve integral (exact burnout continuity, exact flow-derivative consistency, no saturation or jumps) with an all-motor contract suite; nosecone centroid/hollowing corrected; geometry fails closed; motor mounts resolve assigned hardware.
+- Production serves the explicitly selected refined event at its own root; FSM-simultaneous ties apply only when their predicate holds at the committed root; superseded future pending roots are invalidated; physical apogee metrics are separate from recovery activation; abnormal ground impact terminates independently; base contact projects nonpenetration; bracket transitions are capped.
+- Terminal telemetry is full-precision canonical state; validity is transactional over committed segments with incidence-only rail scoping, full input finiteness, unsupported precedence, and abnormal-impact UNKNOWN; UI separates outcome/validity/limits, restricts competition claims, and records failed runs with inputs.
+- Kernel records explicit accepted endpoints in dense output with exact endpoint stage times; fixed-step stages pre-validate; nonlinear coupled ladder demonstrated.
+- Evidence enforces a fixed 14-suite inventory, all-files-must-pass, boolean binding fields, HEAD recheck, raw-byte hashing, expanded imported closure, suite-counter reconciliation, and duplicate-identity rejection; automated UI safety suite covers certified presentation and staleness.
 - Adaptive solver: exact-end landing (endpoint-bound trials land exactly on tEnd), representable-progress rejection for stuck step-control trials, unconditional total-trial guard, every stage state validated before loadsAt, fixed-kernel inertiaDotB validation, nonlinear dense-output convergence and event-timing proof.
 - Motor depletion is impulse-proportional (m_prop(t) = m_prop,total * (1 - I(t)/I_total)) with thrust-proportional mass flow feeding inertiaDot; the motor, mass, and aero implementations are bundled in this audit's evidence.
 - Production commits detector bookkeeping through event-free brackets, refines competing rail/burnout roots before serving dependent transitions, reevaluates main-ties at the root state, and preserves the earliest stashed apogee root across partial application.
@@ -65,7 +72,7 @@ ${JSON.stringify(evidence, null, 2)}
 SUPPLIED SPECIFICATIONS, PRIOR AUDIT, PRODUCTION SOURCES, TESTS, EVIDENCE EMITTER, AND UI:
 ${sourceBundle}
 
-Deliver a rigorous Round-15 report:
+Deliver a rigorous Round-16 report:
 1. One complete-product quality score from 1.0 to 10.0 and a build-readiness GO/NO-GO.
 2. A gate table for 1r, 2, 3, 4, and 5. Mark each CLOSED, PARTIAL, or OPEN with exact evidence.
 3. Recalculate quaternion/RK algebra, ENU/body mapping, variable-inertia derivative/reference, aero force directions/domain classification, adaptive step/error/dense-output behavior, event prerequisite/restart causality, motor depletion law, and validity-to-safety propagation.
@@ -74,7 +81,7 @@ Deliver a rigorous Round-15 report:
 
 Do not award points for source volume, comments, or tests that do not discriminate the asserted defect.`;
 
-  console.log('Querying native Astra (gpt-6-astra) for Round-15 consolidated audit...');
+  console.log('Querying native Astra (gpt-6-astra) for Round-16 consolidated audit...');
   const res = await fetch('http://127.0.0.1:10100/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -103,9 +110,9 @@ Do not award points for source volume, comments, or tests that do not discrimina
   if (typeof critique !== 'string' || critique.length === 0) {
     throw new Error('Audit response did not contain report content');
   }
-  fs.writeFileSync('scripts/astra-round15-audit.json', raw, 'utf-8');
-  fs.writeFileSync('docs/astra-round15-audit.md', critique, 'utf-8');
-  console.log('\n=== ASTRA ROUND-15 CONSOLIDATED AUDIT REPORT ===\n');
+  fs.writeFileSync('scripts/astra-round16-audit.json', raw, 'utf-8');
+  fs.writeFileSync('docs/astra-round16-audit.md', critique, 'utf-8');
+  console.log('\n=== ASTRA ROUND-16 CONSOLIDATED AUDIT REPORT ===\n');
   console.log(critique);
 }
 

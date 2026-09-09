@@ -181,12 +181,20 @@ export function getMotorThrustAt(motor: MotorSpec, t: number): number {
 }
 
 /**
- * Authoritative total impulse (N*s) for the depletion law below: the certified
- * motor totalImpulse when positive and finite, else the thrust-curve integral.
+ * Authoritative total impulse (N*s) for the depletion law: the trapezoidal
+ * integral of the supplied thrust curve (Round-16 policy). The certified
+ * nameplate totalImpulse is retained for display and data-quality
+ * cross-checks, but depletion MUST integrate the curve it differentiates:
+ * using the nameplate as the denominator saturates early (C6) or jumps at
+ * burnout (all others), while the flow below would not differentiate the
+ * implemented mass function. Falls back to the nameplate only when the curve
+ * is degenerate (fewer than two points).
  */
 export function getMotorImpulseTotal(motor: MotorSpec): number {
+  const curveIntegral = integrateThrustCurve(motor, motor.burnTime);
+  if (Number.isFinite(curveIntegral) && curveIntegral > 0) return curveIntegral;
   if (Number.isFinite(motor.totalImpulse) && motor.totalImpulse > 0) return motor.totalImpulse;
-  return integrateThrustCurve(motor, motor.burnTime);
+  return 0;
 }
 
 /**
@@ -213,9 +221,10 @@ export function integrateThrustCurve(motor: MotorSpec, t: number): number {
 }
 
 /**
- * Instantaneous propellant mass-flow rate (kg/s, nonpositive) from the master
- * impulse-proportional law: dm/dt = -m_prop,total * F(t) / I_total. Zero
- * outside the burn interval.
+ * Instantaneous propellant mass-flow rate (kg/s, nonpositive) from the
+ * impulse-proportional law: dm/dt = -m_prop,total * F(t) / I_curve. Zero
+ * outside the burn interval. This differentiates getMotorMassAt exactly on
+ * the unsaturated interior (the denominator IS the curve integral).
  */
 export function getMotorMassFlowAt(motor: MotorSpec, t: number): number {
   if (!(t >= 0) || t >= motor.burnTime) return 0;
@@ -227,11 +236,11 @@ export function getMotorMassFlowAt(motor: MotorSpec, t: number): number {
 }
 
 /**
- * Current motor mass and propellant remaining at time t (master-spec
- * impulse-proportional depletion: propellant burns in proportion to delivered
- * impulse, m_prop(t) = m_prop,total * (1 - I(t)/I_total), never the
- * constant-rate time fraction). Falls back to the linear time fraction only
- * when no positive authoritative impulse exists.
+ * Current motor mass and propellant remaining at time t (impulse-
+ * proportional depletion on the curve integral: m_prop(t) = m_prop,total *
+ * (1 - I(t)/I_curve)). Because I(BURN) == I_curve by construction, depletion
+ * reaches exactly zero at burnout with no saturation clamp and no mass jump;
+ * wet/dry/propellant identities hold at every query time.
  */
 export function getMotorMassAt(motor: MotorSpec, t: number): { currentMass: number; propellantRemaining: number } {
   if (t <= 0) {

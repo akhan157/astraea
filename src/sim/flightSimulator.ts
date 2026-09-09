@@ -96,7 +96,14 @@ export interface SimulationOptions {
 }
 
 /**
- * Runs numerical flight trajectory simulation
+ * Runs numerical flight trajectory simulation.
+ *
+ * NON-AUTHORITATIVE SCOPE (audit §8): this legacy path is explicitly excluded
+ * from authoritative use — Euler–Cromer propagation, late event detection,
+ * dry-vehicle-only impact mass, and an OR-gated landing-safety flag with no
+ * model-validity or actual-touchdown gating. Retained as a benchmark oracle
+ * for its own regression tests only. Authoritative simulation is
+ * `simulate6DofFlight()`.
  */
 export function simulateFlight(
   vehicle: RocketVehicle,

@@ -441,6 +441,45 @@ describe('Adaptive DP5(4) — repaired attitude error + bounded rejection', () =
       if (denseOutputAt(res.dense, mid).r.x >= 0.5) b = mid;
       else a = mid;
     }
-    expect((a + b) / 2).toBeCloseTo(Math.LN2, 4);
+    // 1e-5-second event accuracy: the production requirement, not 5e-5.
+    expect((a + b) / 2).toBeCloseTo(Math.LN2, 5);
+  });
+
+  it('11. nonlinear coupled rigid-body convergence ladder (triaxial top)', () => {
+    // Round-16 audit §3.4: scalar-decay exercises a linear ODE, not nonlinear
+    // coupled dynamics. A torque-free TRIAXIAL top couples all three Euler
+    // equations through (I_z - I_y)ω_yω_z-type products; tightening the
+    // tolerance 100x per rung must shrink the attitude error against a
+    // tight reference by well over an order of magnitude per rung.
+    const inertiaB = { x: 2.0, y: 3.0, z: 2.5 };
+    const loads: Loads = {
+      forceN: { x: 0, y: 0, z: 0 },
+      momentB: { x: 0, y: 0, z: 0 },
+      inertiaB,
+      mass: 5.0,
+    };
+    const tEnd = 0.8;
+    // maxStep 0.5 stays clear of the adapted sizes so tolerance alone
+    // drives the step sequence on every rung including the reference.
+    const ref = integrateRigidAdaptive(spinState(), () => loads, 0, tEnd, {
+      r: 1e-13, v: 1e-13, q: 1e-13, w: 1e-13,
+    }, 0.5, 0.005);
+    const attitudeErr = (tolQW: number): number => {
+      const res = integrateRigidAdaptive(spinState(), () => loads, 0, tEnd, {
+        r: 1e-9, v: 1e-9, q: tolQW, w: tolQW,
+      }, 0.5, 0.005);
+      expect(res.finalTime).toBe(tEnd);
+      return quatAngle(res.state.q, ref.state.q);
+    };
+    const e6 = attitudeErr(1e-6);
+    const e8 = attitudeErr(1e-8);
+    const e10 = attitudeErr(1e-10);
+    expect(e6).toBeGreaterThan(0);
+    expect(e8).toBeLessThan(e6);
+    expect(e10).toBeLessThan(e8);
+    // Fifth-order control: ~100x error reduction per 100x tolerance rung;
+    // require at least 20x (over one order of magnitude).
+    expect(e6 / e8).toBeGreaterThan(20);
+    expect(e8 / e10).toBeGreaterThan(20);
   });
 });

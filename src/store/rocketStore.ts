@@ -35,6 +35,7 @@ export const PRESET_ESTES_ALPHA: RocketVehicle = {
       length: 0.311, // 311 mm
       outerDiameter: 0.0248,
       innerDiameter: 0.0241,
+      isMotorMount: true, // Estes C6 seats at this tube's aft end
       materialId: 'cardboard',
       color: '#ffffff',
     },
@@ -114,6 +115,7 @@ export const PRESET_NASA_STUDENT_LAUNCH: RocketVehicle = {
       length: 1.45,
       outerDiameter: 0.152,
       innerDiameter: 0.145,
+      isMotorMount: true, // high-power motor seats at this section's aft end
       materialId: 'fiberglass',
       color: '#18181b',
     },
