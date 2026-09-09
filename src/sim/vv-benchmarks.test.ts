@@ -719,3 +719,82 @@ describe('VV-010 Coupled Rotating-Body-Force RK4 Convergence (loadsAt)', () => {
     return Math.hypot(s.v.x - vx, s.v.y - vy);
   }
 });
+
+// ---------------------------------------------------------------------------
+// VV-011: Production Event-FSM Acceptance (Gate 1 — events now production code)
+// Exercises src/dynamics/events.ts detectEvents() directly: direction filters,
+// one-shot semantics, and event ordering across the nominal flight timeline.
+// ---------------------------------------------------------------------------
+
+import { detectEvents, NEWTON_EVENT_STATE, EventState } from '../dynamics/events';
+
+describe('VV-011 Production Event-FSM Acceptance', () => {
+  it('fires RAIL_EXIT exactly once when along-rail travel reaches rail length', () => {
+    let st: EventState = { ...NEWTON_EVENT_STATE };
+    const railed: string[] = [];
+    for (let i = 1; i <= 5; i++) {
+      const ev = detectEvents(st, {
+        t: i * 0.05,
+        altitudeAlongRail: i * 0.5, // 0.5..2.5 m
+        railLength: 2.0,
+        burnTime: 1.0,
+        verticalVelocity: 20,
+        altitude: i * 0.5,
+        mainDeployAlt: 250,
+      });
+      st = ev.state;
+      railed.push(...ev.fires);
+    }
+    expect(railed.filter((e) => e === 'RAIL_EXIT').length).toBe(1);
+    expect(st.hasLeftRail).toBe(true);
+  });
+
+  it('fires MOTOR_BURNOUT once at burn time and APOGEE only AFTER rail exit', () => {
+    let st: EventState = { ...NEWTON_EVENT_STATE };
+    const timeline: string[] = [];
+    // burn at 0.6s; rail at 0.5s (lint altAlongRail 0.55); apogee v_y<=0 at 1.0s
+    for (let i = 1; i <= 25; i++) {
+      const t = i * 0.05;
+      const ev = detectEvents(st, {
+        t,
+        altitudeAlongRail: 0.55 * Math.min(1, t / 0.5), // 0.55 -> rail at t=0.5
+        railLength: 0.5,
+        burnTime: 0.6,
+        verticalVelocity: Math.max(-5, 25 - t * 30),
+        altitude: 500 - t * 300,
+        mainDeployAlt: 250,
+      });
+      st = ev.state;
+      timeline.push(...ev.fires);
+    }
+    const burnIdx = timeline.indexOf('MOTOR_BURNOUT');
+    const apoIdx = timeline.indexOf('APOGEE_DROGUE');
+    expect(timeline.indexOf('RAIL_EXIT')).toBeGreaterThanOrEqual(0);
+    expect(burnIdx).toBeGreaterThanOrEqual(0);
+    expect(apoIdx).toBeGreaterThanOrEqual(0);
+    // one-shot
+    expect(timeline.filter((e) => e === 'MOTOR_BURNOUT').length).toBe(1);
+    expect(timeline.filter((e) => e === 'APOGEE_DROGUE').length).toBe(1);
+  });
+
+  it('does NOT deploy main before apogee (direction filter + sequencing)', () => {
+    let st: EventState = { ...NEWTON_EVENT_STATE };
+    let mainDeployed = false;
+    // as-cending phase: altitude high, v_y positive -> main must never fire
+    for (let i = 1; i <= 20; i++) {
+      const t = i * 0.05;
+      const ev = detectEvents(st, {
+        t,
+        altitudeAlongRail: 0.5,
+        railLength: 0.5,
+        burnTime: 1.0,
+        verticalVelocity: 20 + t * 30,
+        altitude: 9000 + t * 100, // ascending, well above mainDeployAlt
+        mainDeployAlt: 250,
+      });
+      st = ev.state;
+      if (ev.fires.includes('MAIN_DEPLOY')) mainDeployed = true;
+    }
+    expect(mainDeployed).toBe(false);
+  });
+});

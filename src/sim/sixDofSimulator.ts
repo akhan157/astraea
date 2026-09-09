@@ -22,6 +22,7 @@ import { computeAerodynamicCurves } from '../aero/transonicAero';
 import { aggregateVehicleMass } from '../core/mass';
 import { getAtmosphereAt } from './flightSimulator';
 import { integrateRigidStep, normalizeQuaternion as normQ, simOmegaToKernel, kernelOmegaToSim, simInertiaToKernel } from '../dynamics/rigidBody';
+import { detectEvents, EventState, NEWTON_EVENT_STATE } from '../dynamics/events';
 
 export interface Vector3D {
   x: number; // East (m)
@@ -308,6 +309,7 @@ export function simulate6DofFlight(
   let isApogeeReached = false;
   let isDrogueDeployed = false;
   let isMainDeployed = false;
+  let eventState: EventState = { ...NEWTON_EVENT_STATE };
 
   const telemetry: SixDofTelemetryPoint[] = [];
   const events: SixDofEvent[] = [];
@@ -448,12 +450,12 @@ export function simulate6DofFlight(
       z: totalForceWorld.z / totalMass,
     };
 
-    // Launch Rail Constraint
+    // Launch Rail Constraint (keep — this constrains acceleration while the
+    // FSM's RAIL_EXIT has not fired)
     const distanceAlongRail = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
 
-    if (!hasLeftRail) {
+    if (!eventState.hasLeftRail) {
       if (distanceAlongRail < railLength) {
-        // Constrain acceleration strictly along rail vector
         const forwardForce =
           totalForceWorld.x * railVector.x +
           totalForceWorld.y * railVector.y +
@@ -466,33 +468,41 @@ export function simulate6DofFlight(
           z: forwardAccel * railVector.z,
         };
 
-        // Suppress rotations on rail
         omega = { p: 0, q: 0, r: 0 };
         q = normalizeQuaternion(initialQ);
-      } else {
-        // Just exited launch rail!
-        hasLeftRail = true;
-        const scalarSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
-        railExitVel = scalarSpeed;
-
-        // Compute weathercocking angle off rail
-        weathercockAngleDeg = totalAlphaDeg;
-
-        events.push({
-          time: t,
-          name: 'Launch Rail Departure',
-          altitude: pos.y,
-          velocity: scalarSpeed,
-          description: `Exited ${railLength.toFixed(1)}m launch rail at ${scalarSpeed.toFixed(1)} m/s (safe threshold >= 15 m/s). Initial crosswind weathercocking: ${totalAlphaDeg.toFixed(1)}°.`,
-        });
       }
     }
 
     const scalarAccel = Math.sqrt(accelWorld.x * accelWorld.x + accelWorld.y * accelWorld.y + accelWorld.z * accelWorld.z);
     if (scalarAccel > maxAccel) maxAccel = scalarAccel;
 
-    // Check Motor Burnout
-    if (!hasBurnedOut && t >= motor.burnTime) {
+    // Production FSM: one-shot direction-filtered event detection
+    const ev = detectEvents(eventState, {
+      t,
+      altitudeAlongRail: distanceAlongRail,
+      railLength,
+      burnTime: motor.burnTime,
+      verticalVelocity: vel.y,
+      altitude: pos.y,
+      mainDeployAlt,
+    });
+    eventState = ev.state;
+
+    if (ev.fires.includes('RAIL_EXIT')) {
+      hasLeftRail = true;
+      const scalarSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
+      railExitVel = scalarSpeed;
+      weathercockAngleDeg = totalAlphaDeg;
+      events.push({
+        time: t,
+        name: 'Launch Rail Departure',
+        altitude: pos.y,
+        velocity: scalarSpeed,
+        description: `Exited ${railLength.toFixed(1)}m launch rail at ${scalarSpeed.toFixed(1)} m/s (safe threshold >= 15 m/s). Initial crosswind weathercocking: ${totalAlphaDeg.toFixed(1)}°.`,
+      });
+    }
+
+    if (ev.fires.includes('MOTOR_BURNOUT')) {
       hasBurnedOut = true;
       burnoutAlt = pos.y;
       burnoutVel = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
@@ -505,17 +515,13 @@ export function simulate6DofFlight(
       });
     }
 
-    // Check Apogee (vertical velocity crosses zero)
-    if (!isApogeeReached && hasLeftRail && vel.y <= 0 && t > 0.8) {
+    if (ev.fires.includes('APOGEE_DROGUE')) {
       isApogeeReached = true;
       maxAltitude = pos.y;
       apogeeTime = t;
       apogeePos = { ...pos };
       isDrogueDeployed = true;
-
-      // Tumbling / drogue eliminates attitude lock
-      omega = { p: 0, q: 0, r: 0 };
-
+      omega = { p: 0, q: 0, r: 0 }; // tumbling / drogue decouples attitude
       events.push({
         time: t,
         name: 'Apogee & Drogue Deployment',
@@ -525,8 +531,7 @@ export function simulate6DofFlight(
       });
     }
 
-    // Check Main Parachute Deployment
-    if (isApogeeReached && !isMainDeployed && pos.y <= mainDeployAlt) {
+    if (ev.fires.includes('MAIN_DEPLOY')) {
       isMainDeployed = true;
       events.push({
         time: t,
@@ -535,6 +540,20 @@ export function simulate6DofFlight(
         velocity: Math.abs(vel.y),
         description: `Main parachute opened at ${pos.y.toFixed(0)}m AGL. Decelerating descent for safe landing.`,
       });
+    }
+
+    if (ev.fires.includes('TOUCHDOWN')) {
+      pos.y = 0;
+      const finalImpactSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
+      const lateralDrift = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
+      events.push({
+        time: t,
+        name: 'Ground Touchdown',
+        altitude: 0,
+        velocity: finalImpactSpeed,
+        description: `Touchdown at ${finalImpactSpeed.toFixed(1)} m/s. Total lateral wind drift: ${lateralDrift.toFixed(0)}m from pad.`,
+      });
+      break;
     }
 
     // Telemetry sampling (every 0.05s)
@@ -558,22 +577,6 @@ export function simulate6DofFlight(
         mass: parseFloat(totalMass.toFixed(3)),
         dynamicPressure: parseFloat(qInf.toFixed(0)),
       });
-    }
-
-    // Touchdown detection
-    if (isApogeeReached && pos.y <= 0 && t > 1.0) {
-      pos.y = 0;
-      const finalImpactSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
-      const lateralDrift = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
-
-      events.push({
-        time: t,
-        name: 'Ground Touchdown',
-        altitude: 0,
-        velocity: finalImpactSpeed,
-        description: `Touchdown at ${finalImpactSpeed.toFixed(1)} m/s. Total lateral wind drift: ${lateralDrift.toFixed(0)}m from pad.`,
-      });
-      break;
     }
 
     // Numerical State Integration via production rigid-body kernel (NORMATIVE).
