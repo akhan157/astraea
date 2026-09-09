@@ -1,0 +1,1274 @@
+{
+  "artifact": "astraea-benchmark-metadata",
+  "version": "2.1.0",
+  "timestamp": "2026-09-09T22:24:10.201Z",
+  "passed": true,
+  "missing": [],
+  "failClosed": "any missing required evidence forces passed=false and exit 1",
+  "commit": {
+    "hash": "91b4c015a392893eb8f22bb81c88f09324fdc3d3",
+    "short": "91b4c01",
+    "date": "2026-09-09T18:22:58-04:00",
+    "branch": "main",
+    "known": true,
+    "treeState": "clean",
+    "note": "clean"
+  },
+  "sourceBinding": {
+    "prePostHashesMatch": true,
+    "prePostStatusMatch": true,
+    "prePostHeadMatch": true,
+    "note": "cited-file hashes, git status, and HEAD were captured before AND after build/test execution; drift fails certification"
+  },
+  "runtime": {
+    "node": "v24.18.0",
+    "platform": "win32/x64"
+  },
+  "dependencies": {
+    "declared": {
+      "clsx": "^2.1.1",
+      "fast-xml-parser": "^5.11.1",
+      "jszip": "^3.10.1",
+      "lucide-react": "^1.43.0",
+      "react": "^19.2.8",
+      "react-dom": "^19.2.8",
+      "tailwind-merge": "^3.6.0",
+      "three": "^0.185.1",
+      "zustand": "^5.0.15",
+      "@tailwindcss/vite": "^4.3.3",
+      "@testing-library/react": "^16.3.3",
+      "@testing-library/user-event": "^14.6.7",
+      "@types/react": "^19.2.18",
+      "@types/react-dom": "^19.2.7",
+      "@types/three": "^0.185.4",
+      "@vitejs/plugin-react": "^6.1.1",
+      "jsdom": "^30.0.1",
+      "tailwindcss": "^4.3.3",
+      "typescript": "^7.0.2",
+      "vite": "^8.2.2",
+      "vitest": "^5.0.0"
+    },
+    "installed": {
+      "clsx": {
+        "declared": "^2.1.1",
+        "installed": "2.1.1",
+        "found": true,
+        "conformant": true
+      },
+      "fast-xml-parser": {
+        "declared": "^5.11.1",
+        "installed": "5.11.1",
+        "found": true,
+        "conformant": true
+      },
+      "jszip": {
+        "declared": "^3.10.1",
+        "installed": "3.10.1",
+        "found": true,
+        "conformant": true
+      },
+      "lucide-react": {
+        "declared": "^1.43.0",
+        "installed": "1.43.0",
+        "found": true,
+        "conformant": true
+      },
+      "react": {
+        "declared": "^19.2.8",
+        "installed": "19.2.8",
+        "found": true,
+        "conformant": true
+      },
+      "react-dom": {
+        "declared": "^19.2.8",
+        "installed": "19.2.8",
+        "found": true,
+        "conformant": true
+      },
+      "tailwind-merge": {
+        "declared": "^3.6.0",
+        "installed": "3.6.0",
+        "found": true,
+        "conformant": true
+      },
+      "three": {
+        "declared": "^0.185.1",
+        "installed": "0.185.1",
+        "found": true,
+        "conformant": true
+      },
+      "zustand": {
+        "declared": "^5.0.15",
+        "installed": "5.0.15",
+        "found": true,
+        "conformant": true
+      },
+      "@tailwindcss/vite": {
+        "declared": "^4.3.3",
+        "installed": "4.3.3",
+        "found": true,
+        "conformant": true
+      },
+      "@testing-library/react": {
+        "declared": "^16.3.3",
+        "installed": "16.3.3",
+        "found": true,
+        "conformant": true
+      },
+      "@testing-library/user-event": {
+        "declared": "^14.6.7",
+        "installed": "14.6.7",
+        "found": true,
+        "conformant": true
+      },
+      "@types/react": {
+        "declared": "^19.2.18",
+        "installed": "19.2.18",
+        "found": true,
+        "conformant": true
+      },
+      "@types/react-dom": {
+        "declared": "^19.2.7",
+        "installed": "19.2.7",
+        "found": true,
+        "conformant": true
+      },
+      "@types/three": {
+        "declared": "^0.185.4",
+        "installed": "0.185.4",
+        "found": true,
+        "conformant": true
+      },
+      "@vitejs/plugin-react": {
+        "declared": "^6.1.1",
+        "installed": "6.1.1",
+        "found": true,
+        "conformant": true
+      },
+      "jsdom": {
+        "declared": "^30.0.1",
+        "installed": "30.0.1",
+        "found": true,
+        "conformant": true
+      },
+      "tailwindcss": {
+        "declared": "^4.3.3",
+        "installed": "4.3.3",
+        "found": true,
+        "conformant": true
+      },
+      "typescript": {
+        "declared": "^7.0.2",
+        "installed": "7.0.2",
+        "found": true,
+        "conformant": true
+      },
+      "vite": {
+        "declared": "^8.2.2",
+        "installed": "8.2.2",
+        "found": true,
+        "conformant": true
+      },
+      "vitest": {
+        "declared": "^5.0.0",
+        "installed": "5.0.0",
+        "found": true,
+        "conformant": true
+      }
+    },
+    "installedComplete": true,
+    "measuredFrom": "node_modules/<pkg>/package.json (on-disk installed manifests)",
+    "lockfile": {
+      "present": true,
+      "format": "pnpm-yaml",
+      "note": "YAML lockfile — not parsed as JSON; installed versions measured from node_modules"
+    }
+  },
+  "solver": {
+    "available": true,
+    "fixedIntegrator": "classical RK4 (Runge-Kutta 4-stage, additive normalized quaternion)",
+    "adaptiveIntegrator": "Dormand-Prince RK 5(4) (embedded error estimate, per-axis tolerances, bounded rejection)",
+    "defaultIntegrator": "adaptive DP5(4) (simulator)",
+    "productionUsesAdaptive": true,
+    "inertiaDotB": "enabled (production loads assembly)",
+    "validationLevel": "strict (unit-norm q precondition, nonfinite rejection, positive inertia/mass)",
+    "configNote": "inferred by source-text matching, not by runtime tracing: productionUsesAdaptive detects the integrateRigidAdaptive( call site in sixDofSimulator.ts"
+  },
+  "residualsSidecar": {
+    "present": false,
+    "note": "no residuals sidecar — passing-assertion values are unmeasurable from the vitest JSON reporter"
+  },
+  "verification": {
+    "buildPass": true,
+    "buildExitCode": 0,
+    "buildError": null,
+    "testExitCode": 0,
+    "testJsonParsed": true,
+    "testSummary": {
+      "filesTotal": 16,
+      "filesPassed": 16,
+      "filesFailed": 0,
+      "filesSkipped": 0,
+      "testCasesTotal": 185,
+      "testCasesPassed": 185,
+      "testCasesFailed": 0,
+      "testCasesSkipped": 0,
+      "testCasesTodo": 0,
+      "testCasesDisabled": 0,
+      "testCasesUnknown": 0,
+      "countSemantics": "per-test-case (it/test) results, not individual expect() calls",
+      "success": true,
+      "files": [
+        {
+          "file": "emit-benchmark-metadata.test.cjs",
+          "path": "C:/Users/adnan/orca/astraea/scripts/emit-benchmark-metadata.test.cjs",
+          "status": "passed",
+          "testCases": {
+            "total": 45,
+            "passed": 45,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 5808.994,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) green path: all required suites executed+passed => passed, all gates true :: green path: all required suites executed+passed => passed, all gates true",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) green path: artifact carries measured evidence fields :: green path: artifact carries measured evidence fields",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) self-hash reproduces from the advertised basis; tampering breaks it :: self-hash reproduces from the advertised basis; tampering breaks it",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) decimal digits are captured from the digits position :: decimal digits are captured from the digits position",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) dynamic inventory: source AND executed include the adaptive and descent suites :: dynamic inventory: source AND executed include the adaptive and descent suites",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) every legacy suite is mandatory even when no gate requires it :: every legacy suite is mandatory even when no gate requires it",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) missing required suite fails its gate (per-gate granularity), exit nonzero :: missing required suite fails its gate (per-gate granularity), exit nonzero",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) skipped required evidence fails gate and reports skip counts :: skipped required evidence fails gate and reports skip counts",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) failed required test case fails its gate and emits failure messages plus observed values :: failed required test case fails its gate and emits failure messages plus observed values",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) unknown test-case status fails certification :: unknown test-case status fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) unknown file status fails certification :: unknown file status fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) reporter-aggregate disagreement fails certification :: reporter-aggregate disagreement fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) git failure => certification FAIL with unknown commit :: git failure => certification FAIL with unknown commit",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) dirty tree pins passed=false :: dirty tree pins passed=false",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) post-execution tree drift breaks pre/post source binding :: post-execution tree drift breaks pre/post source binding",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) post-execution file drift breaks pre/post source binding :: post-execution file drift breaks pre/post source binding",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) build failure fails certification :: build failure fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) failing emitter self-tests fail certification :: failing emitter self-tests fail certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) missing lockfile fails certification :: missing lockfile fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) vitest per-file totals parsed from assertionResults, not f.assertions :: vitest per-file totals parsed from assertionResults, not f.assertions",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) vitest JSON unparseable => certification fails :: vitest JSON unparseable => certification fails",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) installed deps measured from node_modules, pnpm YAML lockfile never read as JSON :: installed deps measured from node_modules, pnpm YAML lockfile never read as JSON",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) declared dep missing from node_modules => installed measurement incomplete => fail :: declared dep missing from node_modules => installed measurement incomplete => fail",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) test run exit code nonzero => fail even if JSON looks green :: test run exit code nonzero => fail even if JSON looks green",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) suite with source test cases but zero executed cases fails the gate :: suite with source test cases but zero executed cases fails the gate",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) missing discriminating acceptance file fails its bound gate :: missing discriminating acceptance file fails its bound gate",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) missing production-contracts acceptance file fails its gate :: missing production-contracts acceptance file fails its gate",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) deleting a mandatory legacy suite from source fails certification :: deleting a mandatory legacy suite from source fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) HEAD changing during execution breaks commit binding :: HEAD changing during execution breaks commit binding",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) suite count below collected files fails certification :: suite count below collected files fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) duplicate case identities fail certification :: duplicate case identities fail certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) non-required file that did not cleanly pass fails certification :: non-required file that did not cleanly pass fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) executed file with zero cases proves nothing :: executed file with zero cases proves nothing",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) missing aggregate counter fails certification :: missing aggregate counter fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) installed version violating its declared range fails certification :: installed version violating its declared range fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) new acceptance suites are required and hashed :: new acceptance suites are required and hashed",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) executed file outside the fixed inventory fails certification :: executed file outside the fixed inventory fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) inventory file missing from collection fails certification :: inventory file missing from collection fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) inventory source/executed count mismatch fails certification :: inventory source/executed count mismatch fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) empty inventory source fails certification :: empty inventory source fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) exotic declared range fails certification :: exotic declared range fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) nonfinite file duration fails certification :: nonfinite file duration fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) residuals sidecar: valid ingested, malformed fails, absent labeled :: residuals sidecar: valid ingested, malformed fails, absent labeled",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) unreadable solver pre-capture fails certification :: unreadable solver pre-capture fails certification",
+            "scripts/emit-benchmark-metadata.test.cjs (node evidence suite) cleanup fixture trees :: cleanup fixture trees"
+          ]
+        },
+        {
+          "file": "barrowman.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/aero/barrowman.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 7,
+            "passed": 7,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 4.425,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "Barrowman Aerodynamics Engine Nosecone CP formulas calculates conical nosecone CP at 2/3 length :: calculates conical nosecone CP at 2/3 length",
+            "Barrowman Aerodynamics Engine Nosecone CP formulas calculates ogive nosecone CP at 0.466 length :: calculates ogive nosecone CP at 0.466 length",
+            "Barrowman Aerodynamics Engine Nosecone CP formulas calculates parabolic nosecone CP at 0.500 length :: calculates parabolic nosecone CP at 0.500 length",
+            "Barrowman Aerodynamics Engine Nosecone CP formulas calculates von karman nosecone CP at 0.500 length :: calculates von karman nosecone CP at 0.500 length",
+            "Barrowman Aerodynamics Engine Trapezoid Fin Set Aero computes positive normal force derivative and realistic CP :: computes positive normal force derivative and realistic CP",
+            "Barrowman Aerodynamics Engine Whole-Vehicle Stability Integration evaluates vehicle stability with positive margin :: evaluates vehicle stability with positive margin",
+            "Barrowman Aerodynamics Engine Whole-Vehicle Stability Integration guards against division by zero with zero fins :: guards against division by zero with zero fins"
+          ]
+        },
+        {
+          "file": "finFlutter.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/aero/finFlutter.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 4,
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 3.247,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "Aeroelasticity: NACA TN 4197 Fin Flutter Analysis calculates realistic flutter boundary for G10 Fiberglass fins with competition margins :: calculates realistic flutter boundary for G10 Fiberglass fins with competition margins",
+            "Aeroelasticity: NACA TN 4197 Fin Flutter Analysis supports custom shear modulus override for custom carbon layups :: supports custom shear modulus override for custom carbon layups",
+            "Aeroelasticity: NACA TN 4197 Fin Flutter Analysis models altitude atmospheric pressure effect on flutter boundary :: models altitude atmospheric pressure effect on flutter boundary",
+            "Aeroelasticity: NACA TN 4197 Fin Flutter Analysis computes elliptical fin flutter with safety margins :: computes elliptical fin flutter with safety margins"
+          ]
+        },
+        {
+          "file": "transonicAero.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/aero/transonicAero.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 4,
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 3.962,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "Transonic & Supersonic Aerodynamics Engine computes Van Driest II compressible turbulent skin friction with altitude scaling :: computes Van Driest II compressible turbulent skin friction with altitude scaling",
+            "Transonic & Supersonic Aerodynamics Engine proves Von Kármán nosecone has lower wave drag than conical at Mach 2 :: proves Von Kármán nosecone has lower wave drag than conical at Mach 2",
+            "Transonic & Supersonic Aerodynamics Engine models continuous C1 base drag with peak at Mach 1.0 and power-on plume drop :: models continuous C1 base drag with peak at Mach 1.0 and power-on plume drop",
+            "Transonic & Supersonic Aerodynamics Engine generates complete Mach 0 to 4 drag curve with transonic spike :: generates complete Mach 0 to 4 drag curve with transonic spike"
+          ]
+        },
+        {
+          "file": "FlightSimulationTab.test.tsx",
+          "path": "C:/Users/adnan/orca/astraea/src/components/FlightSimulationTab.test.tsx",
+          "status": "passed",
+          "testCases": {
+            "total": 4,
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 2243.481,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "FlightSimulationTab safety presentation completes a run and renders outcome, validity, and freshness badges :: completes a run and renders outcome, validity, and freshness badges",
+            "FlightSimulationTab safety presentation ties safety presentation decisively to the certified context :: ties safety presentation decisively to the certified context",
+            "FlightSimulationTab safety presentation flags results STALE after an input change and withdraws certification :: flags results STALE after an input change and withdraws certification",
+            "FlightSimulationTab safety presentation clears prior results and records inputs when a rerun throws :: clears prior results and records inputs when a rerun throws"
+          ]
+        },
+        {
+          "file": "mass.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/core/mass.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 8,
+            "passed": 8,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 6.351,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "Mass and CG Aggregator aggregates total length and dimensions correctly :: aggregates total length and dimensions correctly",
+            "Mass and CG Aggregator respects explicit massOverride values :: respects explicit massOverride values",
+            "Mass fidelity: cone centroid, hollowing, and fail-closed geometry (Round-16 audit §4.3) places the solid-cone centroid at 3L/4 from the tip, not the 2L/3 CP station :: places the solid-cone centroid at 3L/4 from the tip, not the 2L/3 CP station",
+            "Mass fidelity: cone centroid, hollowing, and fail-closed geometry (Round-16 audit §4.3) moves the hollow-shell centroid forward of the solid value :: moves the hollow-shell centroid forward of the solid value",
+            "Mass fidelity: cone centroid, hollowing, and fail-closed geometry (Round-16 audit §4.3) rejects nonpositive/nonfinite structural dimensions instead of clamping nominal :: rejects nonpositive/nonfinite structural dimensions instead of clamping nominal",
+            "Mass fidelity: cone centroid, hollowing, and fail-closed geometry (Round-16 audit §4.3) rejects unknown materials, NaN offsets, and invalid fins/chutes :: rejects unknown materials, NaN offsets, and invalid fins/chutes",
+            "Mass fidelity: cone centroid, hollowing, and fail-closed geometry (Round-16 audit §4.3) validates geometry before mass overrides and rejects bad identities :: validates geometry before mass overrides and rejects bad identities",
+            "Mass fidelity: cone centroid, hollowing, and fail-closed geometry (Round-16 audit §4.3) places the paraboloid centroid at 2L/3 from the tip :: places the paraboloid centroid at 2L/3 from the tip"
+          ]
+        },
+        {
+          "file": "loads.repair.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/dynamics/loads.repair.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 18,
+            "passed": 18,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 16.093,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "loads repair: instantaneous combined CG and inertia derivative inertiaDotB matches the central finite difference of inertiaB across burn :: inertiaDotB matches the central finite difference of inertiaB across burn",
+            "loads repair: instantaneous combined CG and inertia derivative returns the instantaneous combined CG exactly matching the two-body closed form :: returns the instantaneous combined CG exactly matching the two-body closed form",
+            "loads repair: instantaneous combined CG and inertia derivative depletes propellant in proportion to delivered impulse, not elapsed time :: depletes propellant in proportion to delivered impulse, not elapsed time",
+            "loads repair: complete wind-axis drag vector pure transverse flow produces nonzero drag force (old axial-only assembly returned zero) :: pure transverse flow produces nonzero drag force (old axial-only assembly returned zero)",
+            "loads repair: complete wind-axis drag vector parachute path applies the complete drag vector concurrently with thrust/gravity :: parachute path applies the complete drag vector concurrently with thrust/gravity",
+            "loads repair: signed incidence and flow-domain enforcement alpha is signed paired atan2(vz, vy) and is never folded toward zero :: alpha is signed paired atan2(vz, vy) and is never folded toward zero",
+            "loads repair: signed incidence and flow-domain enforcement bounds tail-first free-flight flow: finite blunt-base drag, zero normal force, UNSUPPORTED validity :: bounds tail-first free-flight flow: finite blunt-base drag, zero normal force, UNSUPPORTED validity",
+            "loads repair: Mach/vehicle-dependent normal slope and validity normal slope comes from the vehicle (Barrowman), not a hardcoded 12 :: normal slope comes from the vehicle (Barrowman), not a hardcoded 12",
+            "loads repair: Mach/vehicle-dependent normal slope and validity normal slope degrades with Mach above 1 (supersonic fin effectiveness) :: normal slope degrades with Mach above 1 (supersonic fin effectiveness)",
+            "loads repair: Mach/vehicle-dependent normal slope and validity classifies load validity across Mach and incidence envelopes :: classifies load validity across Mach and incidence envelopes",
+            "loads repair: Mach/vehicle-dependent normal slope and validity damping moments vanish at zero airspeed (no Math.max(1, V) floor) :: damping moments vanish at zero airspeed (no Math.max(1, V) floor)",
+            "loads repair: recovery gating on hardware and canopy moment deployment flags without a parachute component do not suppress airframe loads :: deployment flags without a parachute component do not suppress airframe loads",
+            "loads repair: recovery gating on hardware and canopy moment live canopy drag carries no airframe-CP static moment :: live canopy drag carries no airframe-CP static moment",
+            "loads repair: recovery gating on hardware and canopy moment non-finite kinematics fail closed to UNSUPPORTED, never VALID :: non-finite kinematics fail closed to UNSUPPORTED, never VALID",
+            "loads repair: explicit motor-mount assignment (Round-18 audit §4.5) resolves the flagged mount and rejects ambiguity :: resolves the flagged mount and rejects ambiguity",
+            "loads repair: explicit motor-mount assignment (Round-18 audit §4.5) rejects bore misfit, solid mounts, and impossible placement :: rejects bore misfit, solid mounts, and impossible placement",
+            "loads repair: explicit motor-mount assignment (Round-18 audit §4.5) falls back to the aft end without an assigned mount :: falls back to the aft end without an assigned mount",
+            "loads repair: fin-specific supersonic response (Round-18 audit §5.2) degrades only fins supersonically and reweights CP from forces :: degrades only fins supersonically and reweights CP from forces"
+          ]
+        },
+        {
+          "file": "rigidBody.adaptive.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/dynamics/rigidBody.adaptive.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 13,
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 87.344,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 1. nonzero-spin torque-free motion converges with attitude invariants conserved (incl. antipodal initial attitude) :: 1. nonzero-spin torque-free motion converges with attitude invariants conserved (incl. antipodal initial attitude)",
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 2. changing-axis torque profile matches an independent fixed-step reference :: 2. changing-axis torque profile matches an independent fixed-step reference",
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 3. tight-tolerance attitude-coupled translation converges (body-frame thrust via live attitude) :: 3. tight-tolerance attitude-coupled translation converges (body-frame thrust via live attitude)",
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 4. persistent rejection terminates at the representable-progress floor (no stall) :: 4. persistent rejection terminates at the representable-progress floor (no stall)",
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 5. invalid stage-load callback results are rejected :: 5. invalid stage-load callback results are rejected",
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 6. dense output brackets every accepted step and interpolates for event localization :: 6. dense output brackets every accepted step and interpolates for event localization",
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 7. tiny positive intervals reach the exact endpoint; unrepresentable progress is rejected :: 7. tiny positive intervals reach the exact endpoint; unrepresentable progress is rejected",
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 8. every stage state exposed to loadsAt is finite with unit attitude :: 8. every stage state exposed to loadsAt is finite with unit attitude",
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 9. fixed-kernel and adaptive validators reject non-finite inertiaDotB :: 9. fixed-kernel and adaptive validators reject non-finite inertiaDotB",
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 10. dense output converges superlinearly on nonlinear dynamics with an event root :: 10. dense output converges superlinearly on nonlinear dynamics with an event root",
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 11. nonlinear coupled rigid-body convergence ladder (triaxial top) :: 11. nonlinear coupled rigid-body convergence ladder (triaxial top)",
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 12. dense output retrieves exact endpoint states and contains queries :: 12. dense output retrieves exact endpoint states and contains queries",
+            "Adaptive DP5(4) — repaired attitude error + bounded rejection 13. nonlinear coupled dense-interior convergence ladder (triaxial top) :: 13. nonlinear coupled dense-interior convergence ladder (triaxial top)"
+          ]
+        },
+        {
+          "file": "orkParser.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/formats/orkParser.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 3,
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 25.842,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "OpenRocket (.ork) Parser and Exporter unpacks ZIP archive and parses OpenRocket XML components :: unpacks ZIP archive and parses OpenRocket XML components",
+            "OpenRocket (.ork) Parser and Exporter performs bidirectional round-trip export and re-import :: performs bidirectional round-trip export and re-import",
+            "OpenRocket (.ork) Parser and Exporter throws descriptive error on corrupted non-zip buffer :: throws descriptive error on corrupted non-zip buffer"
+          ]
+        },
+        {
+          "file": "rktParser.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/formats/rktParser.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 2,
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 7.009,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "RockSim (.rkt) XML File Parser parses RockSim XML and converts mm and grams to SI units :: parses RockSim XML and converts mm and grams to SI units",
+            "RockSim (.rkt) XML File Parser throws descriptive error on malformed XML or empty parts :: throws descriptive error on malformed XML or empty parts"
+          ]
+        },
+        {
+          "file": "motorDatabase.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/propulsion/motorDatabase.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 11,
+            "passed": 11,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 11.706,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "motor depletion: exact identities for every certified motor wet/dry/propellant identities hold at every query time :: wet/dry/propellant identities hold at every query time",
+            "motor depletion: exact identities for every certified motor burnout continuity: wet at ignition, exactly dry at and after burnout :: burnout continuity: wet at ignition, exactly dry at and after burnout",
+            "motor depletion: exact identities for every certified motor no interior saturation: propellant remains until burnout :: no interior saturation: propellant remains until burnout",
+            "motor depletion: exact identities for every certified motor mass flow differentiates the implemented mass function :: mass flow differentiates the implemented mass function",
+            "motor depletion: exact identities for every certified motor mass flow integrates back to the propellant load and vanishes at burnout :: mass flow integrates back to the propellant load and vanishes at burnout",
+            "motor depletion: exact identities for every certified motor curve integral is the authoritative denominator; nameplate cross-check is documented :: curve integral is the authoritative denominator; nameplate cross-check is documented",
+            "motor record validation: fail-closed generic handling (Round-17 audit §5.2) accepts every bundled certified motor :: accepts every bundled certified motor",
+            "motor record validation: fail-closed generic handling (Round-17 audit §5.2) rejects degenerate and inconsistent records instead of degrading silently :: rejects degenerate and inconsistent records instead of degrading silently",
+            "motor query and peak hardening (Round-18 audit §4.2) rejects nonfinite query times instead of reading zero :: rejects nonfinite query times instead of reading zero",
+            "motor query and peak hardening (Round-18 audit §4.2) rejects positive-infinite delivered impulse :: rejects positive-infinite delivered impulse",
+            "motor query and peak hardening (Round-18 audit §4.2) locks tabulated peak to declared maxThrust on bundled records :: locks tabulated peak to declared maxThrust on bundled records"
+          ]
+        },
+        {
+          "file": "event-restart.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/sim/event-restart.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 19,
+            "passed": 19,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 3085.929,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "event-restart FSM: chronological ordering (audit 3.7) returns same-bracket events sorted by localized time, not code order :: returns same-bracket events sorted by localized time, not code order",
+            "event-restart FSM: chronological ordering (audit 3.7) preserves dependency order on same-instant ties (apogee before main) :: preserves dependency order on same-instant ties (apogee before main)",
+            "event-restart FSM: chronological ordering (audit 3.7) keeps apogee gated on rail exit AND burnout :: keeps apogee gated on rail exit AND burnout",
+            "event-restart FSM: chronological ordering (audit 3.7) defers a PRE-BURNOUT vertical-velocity zero-crossing until burnout opens the gate :: defers a PRE-BURNOUT vertical-velocity zero-crossing until burnout opens the gate",
+            "event-restart FSM: fail-fast validation (audit 3.7) rejects non-finite kinematics :: rejects non-finite kinematics",
+            "event-restart FSM: fail-fast validation (audit 3.7) rejects non-increasing bracket time :: rejects non-increasing bracket time",
+            "event-restart FSM: low-apogee + abnormal main paths (audit 3.7) deploys the main AT apogee when the apogee altitude is below the threshold :: deploys the main AT apogee when the apogee altitude is below the threshold",
+            "event-restart FSM: low-apogee + abnormal main paths (audit 3.7) deploys the main at touchdown when the descending h_main crossing never occurs :: deploys the main at touchdown when the descending h_main crossing never occurs",
+            "event-restart FSM: transition-restart sequence (audit 3.7) resolves rail -> burnout -> apogee in chronological order via root re-feed :: resolves rail -> burnout -> apogee in chronological order via root re-feed",
+            "event-restart FSM: transition-restart sequence (audit 3.7) never refires a one-shot event across restarts :: never refires a one-shot event across restarts",
+            "event-restart full-flight: no hidden clipping (audit 3.7/4) produces strictly increasing localized event times and a root-grounded touchdown :: produces strictly increasing localized event times and a root-grounded touchdown",
+            "event-restart full-flight: no hidden clipping (audit 3.7/4) is deterministic across identical runs :: is deterministic across identical runs",
+            "event-restart full-flight: no hidden clipping (audit 3.7/4) stays consistent across timestep/bisection phase boundaries :: stays consistent across timestep/bisection phase boundaries",
+            "event-restart full-flight: no hidden clipping (audit 3.7/4) roll limiter removed: no fin cant leaves roll at zero; cant spins freely :: roll limiter removed: no fin cant leaves roll at zero; cant spins freely",
+            "production event policy: refined selection, root ties, base contact (Round-16 audit §6) serves the earliest refined root when chord order inverts (rail vs burnout) :: serves the earliest refined root when chord order inverts (rail vs burnout)",
+            "production event policy: refined selection, root ties, base contact (Round-16 audit §6) never serves a dependent transition ahead of an earlier rail/burnout root :: never serves a dependent transition ahead of an earlier rail/burnout root",
+            "production event policy: refined selection, root ties, base contact (Round-16 audit §6) defers already-satisfied dependents to chord ties at committed roots :: defers already-satisfied dependents to chord ties at committed roots",
+            "production event policy: refined selection, root ties, base contact (Round-16 audit §6) evaluates FSM-simultaneous ties at the committed root state :: evaluates FSM-simultaneous ties at the committed root state",
+            "production event policy: refined selection, root ties, base contact (Round-16 audit §6) projects penetrating base states without touching outward motion :: projects penetrating base states without touching outward motion"
+          ]
+        },
+        {
+          "file": "flightSimulator.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/sim/flightSimulator.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 4,
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 46.894,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "6-DOF Numerical Trajectory Flight Simulator ISA 1976 Standard Atmosphere returns exact sea level atmospheric constants :: returns exact sea level atmospheric constants",
+            "6-DOF Numerical Trajectory Flight Simulator ISA 1976 Standard Atmosphere models colder temperature and lower pressure at 5000m altitude :: models colder temperature and lower pressure at 5000m altitude",
+            "6-DOF Numerical Trajectory Flight Simulator Full Trajectory Simulation simulates Estes Alpha III flight on Estes C6 motor :: simulates Estes Alpha III flight on Estes C6 motor",
+            "6-DOF Numerical Trajectory Flight Simulator Full Trajectory Simulation simulates NASA Student Launch target on Aerotech K550W motor :: simulates NASA Student Launch target on Aerotech K550W motor"
+          ]
+        },
+        {
+          "file": "sixDofSimulator.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/sim/sixDofSimulator.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 9,
+            "passed": 9,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 2376.751,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "6-DOF (Six Degrees of Freedom) Flight Simulator simulates 3D trajectory with launch rail elevation and wind drift :: simulates 3D trajectory with launch rail elevation and wind drift",
+            "6-DOF (Six Degrees of Freedom) Flight Simulator demonstrates aerodynamic weathercocking into crosswinds :: demonstrates aerodynamic weathercocking into crosswinds",
+            "6-DOF (Six Degrees of Freedom) Flight Simulator spins up roll rate with non-zero fin cant angle :: spins up roll rate with non-zero fin cant angle",
+            "6-DOF production event/validity contracts (Round-15 audit §6/§7) aligns touchdown time, final state, landing mass, telemetry, and flightDuration at the root :: aligns touchdown time, final state, landing mass, telemetry, and flightDuration at the root",
+            "6-DOF production event/validity contracts (Round-15 audit §6/§7) propagates active-model validity into final validity and safety outputs :: propagates active-model validity into final validity and safety outputs",
+            "6-DOF production adversarial sweeps (Round-17 audit §7/§10) activates pre-burnout apogee at burnout from the stashed pending root :: activates pre-burnout apogee at burnout from the stashed pending root",
+            "6-DOF production adversarial sweeps (Round-17 audit §7/§10) terminates abnormally on rail-return flameout without penetration :: terminates abnormally on rail-return flameout without penetration",
+            "6-DOF production adversarial sweeps (Round-17 audit §7/§10) serves same-bracket burnout and rail exit in refined order :: serves same-bracket burnout and rail exit in refined order",
+            "6-DOF production adversarial sweeps (Round-17 audit §7/§10) deploys main at apogee when the peak stays below the threshold :: deploys main at apogee when the peak stays below the threshold"
+          ]
+        },
+        {
+          "file": "vv-benchmarks.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/sim/vv-benchmarks.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 30,
+            "passed": 30,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 5010.052,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "VV-001 Vacuum Ballistic Benchmark matches closed-form parabolic solution within 1e-4 m :: matches closed-form parabolic solution within 1e-4 m",
+            "VV-002 Torque-Free Rigid-Body Conservation conserves energy and inertial angular-momentum VECTOR over 100 rotations (drift <= 1e-6) :: conserves energy and inertial angular-momentum VECTOR over 100 rotations (drift <= 1e-6)",
+            "VV-003 Quaternion Antipodal Invariance produces identical physical trajectories for q and -q with body-frame force coupling :: produces identical physical trajectories for q and -q with body-frame force coupling",
+            "VV-004 Galilean Invariance of Aero Loads (production loads assembly) identical air-relative velocity under common boost yields identical production load vectors :: identical air-relative velocity under common boost yields identical production load vectors",
+            "VV-005 Staging Momentum Conservation conserves linear and angular momentum with frame-consistent body-frame algebra (<= 1e-6 relative) :: conserves linear and angular momentum with frame-consistent body-frame algebra (<= 1e-6 relative)",
+            "VV-007 Production Solver Linkage executes production simulate6DofFlight with finite, bounded trajectory :: executes production simulate6DofFlight with finite, bounded trajectory",
+            "VV-007 Production Solver Linkage off-vertical launch yields physically consistent East drift sign (adapter sanity) :: off-vertical launch yields physically consistent East drift sign (adapter sanity)",
+            "VV-006 Event Localization Accuracy localizes ANALYTICAL APOGEE (velocity zero-cross) within 1e-5 s :: localizes ANALYTICAL APOGEE (velocity zero-cross) within 1e-5 s",
+            "VV-006 Event Localization Accuracy localizes NON-LINEAR descending-altitude event (quadratic root) within 1e-5 s :: localizes NON-LINEAR descending-altitude event (quadratic root) within 1e-5 s",
+            "VV-006 Event Localization Accuracy localizes RAIL-EXIT altitude event with direction filter (ascending only) to 1e-5 s :: localizes RAIL-EXIT altitude event with direction filter (ascending only) to 1e-5 s",
+            "VV-009 Roll/Pitch Inertia-Coupling Discrimination pure roll moment excites roll rate only, scaled by roll inertia :: pure roll moment excites roll rate only, scaled by roll inertia",
+            "VV-009 Roll/Pitch Inertia-Coupling Discrimination pure pitch moment excites pitch rate only, scaled by pitch inertia :: pure pitch moment excites pitch rate only, scaled by pitch inertia",
+            "VV-010 Coupled Rotating-Body-Force RK4 Convergence (loadsAt) matches closed-form rotating-body solution with error ratio ~16 on step-halving :: matches closed-form rotating-body solution with error ratio ~16 on step-halving",
+            "VV-010 Coupled Rotating-Body-Force RK4 Convergence (loadsAt) coupled rotating-body solution requires the load factory (frozen loads diverge) :: coupled rotating-body solution requires the load factory (frozen loads diverge)",
+            "VV-011 Production Event-FSM Acceptance fires RAIL_EXIT exactly once when along-rail travel reaches rail length :: fires RAIL_EXIT exactly once when along-rail travel reaches rail length",
+            "VV-011 Production Event-FSM Acceptance localizes RAIL_EXIT to a sub-timestep time across a 0.05s bracket :: localizes RAIL_EXIT to a sub-timestep time across a 0.05s bracket",
+            "VV-011 Production Event-FSM Acceptance fires MOTOR_BURNOUT once at burn time and APOGEE only AFTER rail exit AND burnout :: fires MOTOR_BURNOUT once at burn time and APOGEE only AFTER rail exit AND burnout",
+            "VV-011 Production Event-FSM Acceptance does NOT fire APOGEE before burnout even on descending vertical velocity :: does NOT fire APOGEE before burnout even on descending vertical velocity",
+            "VV-011 Production Event-FSM Acceptance does NOT deploy main before apogee (direction filter + sequencing) :: does NOT deploy main before apogee (direction filter + sequencing)",
+            "VV-011 Production Event-FSM Acceptance fires TOUCHDOWN with a localized descending-altitude crossing :: fires TOUCHDOWN with a localized descending-altitude crossing",
+            "VV-012 Production Event Localization localizes RAIL-EXIT crossing on a quadratic ballistic trajectory to 1e-5 s :: localizes RAIL-EXIT crossing on a quadratic ballistic trajectory to 1e-5 s",
+            "VV-012 Production Event Localization localizes MAIN-DEPLOY descending-altitude crossing to 1e-5 s :: localizes MAIN-DEPLOY descending-altitude crossing to 1e-5 s",
+            "VV-012 Production Event Localization REJECTS wrong-direction crossings (descending rail exit, ascending touchdown) :: REJECTS wrong-direction crossings (descending rail exit, ascending touchdown)",
+            "VV-013 Gate 3 Variable-Inertia Term 1. constant inertia, no inertiaDotB: |I·w| invariant (backward compat) :: 1. constant inertia, no inertiaDotB: |I·w| invariant (backward compat)",
+            "VV-013 Gate 3 Variable-Inertia Term 2. constant inertia with inertiaDotB={0,0,0}: |I·w| invariant :: 2. constant inertia with inertiaDotB={0,0,0}: |I·w| invariant",
+            "VV-013 Gate 3 Variable-Inertia Term 3. varying inertia WITH inertiaDotB: |I·w| invariant :: 3. varying inertia WITH inertiaDotB: |I·w| invariant",
+            "VV-013 Gate 3 Variable-Inertia Term 4. varying inertia WITHOUT inertiaDotB: angular momentum drifts :: 4. varying inertia WITHOUT inertiaDotB: angular momentum drifts",
+            "VV-014 Adaptive Integrator Termination + Convergence 1. stationary state terminates adaptive integration at tight tolerance :: 1. stationary state terminates adaptive integration at tight tolerance",
+            "VV-014 Adaptive Integrator Termination + Convergence 2. constant-velocity flight matches closed form to tolerance :: 2. constant-velocity flight matches closed form to tolerance",
+            "VV-015 Production Descent Validation terminates at touchdown with bounded, finite, ordered descent metrics :: terminates at touchdown with bounded, finite, ordered descent metrics"
+          ]
+        },
+        {
+          "file": "rocketStore.test.ts",
+          "path": "C:/Users/adnan/orca/astraea/src/store/rocketStore.test.ts",
+          "status": "passed",
+          "testCases": {
+            "total": 4,
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "todo": 0,
+            "disabled": 0,
+            "unknown": 0
+          },
+          "durationMs": 4.557,
+          "message": "",
+          "failures": [],
+          "caseNames": [
+            "RocketStore (Zustand & History) initializes with default vehicle and valid stability analysis :: initializes with default vehicle and valid stability analysis",
+            "RocketStore (Zustand & History) updates a component dimension and recalculates stability :: updates a component dimension and recalculates stability",
+            "RocketStore (Zustand & History) handles undo and redo correctly :: handles undo and redo correctly",
+            "RocketStore (Zustand & History) adds and removes components properly :: adds and removes components properly"
+          ]
+        }
+      ]
+    },
+    "emitterSelfTests": {
+      "ok": true,
+      "exitCode": 0,
+      "note": "substantive fail-closed suite scripts/emit-benchmark-metadata.test.cjs executed as part of the certified command"
+    },
+    "vvSuiteInventory": {
+      "source": [
+        "001",
+        "002",
+        "003",
+        "004",
+        "005",
+        "007",
+        "006",
+        "009",
+        "010",
+        "011",
+        "012",
+        "013",
+        "014",
+        "015"
+      ],
+      "executed": [
+        "001",
+        "002",
+        "003",
+        "004",
+        "005",
+        "006",
+        "007",
+        "009",
+        "010",
+        "011",
+        "012",
+        "013",
+        "014",
+        "015"
+      ],
+      "notExecuted": []
+    },
+    "vvMeasurements": {
+      "001": {
+        "title": "VV-001 Vacuum Ballistic Benchmark",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 1,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 114.503,
+        "tolerancesDeclared": [
+          0.0001
+        ],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": []
+      },
+      "002": {
+        "title": "VV-002 Torque-Free Rigid-Body Conservation",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 1,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 3268.801,
+        "tolerancesDeclared": [
+          0.000001
+        ],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": []
+      },
+      "003": {
+        "title": "VV-003 Quaternion Antipodal Invariance",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 1,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 14.269,
+        "tolerancesDeclared": [
+          1e-9
+        ],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": []
+      },
+      "004": {
+        "title": "VV-004 Galilean Invariance of Aero Loads (production loads assembly)",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 1,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 35.873,
+        "tolerancesDeclared": [
+          1e-9
+        ],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": [
+          "GATE_1R_LOADS_ASSEMBLY",
+          "GATE_4_P0_3_FRAME_DECLARED"
+        ]
+      },
+      "005": {
+        "title": "VV-005 Staging Momentum Conservation",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 1,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 4.543,
+        "tolerancesDeclared": [],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": []
+      },
+      "007": {
+        "title": "VV-007 Production Solver Linkage",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 2,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 1283.85,
+        "tolerancesDeclared": [
+          0.000001,
+          1.5,
+          1000
+        ],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": [
+          "GATE_1R_LOADS_ASSEMBLY"
+        ]
+      },
+      "006": {
+        "title": "VV-006 Event Localization Accuracy",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 3,
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 3,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 1.822,
+        "tolerancesDeclared": [
+          0.00001
+        ],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": []
+      },
+      "009": {
+        "title": "VV-009 Roll/Pitch Inertia-Coupling Discrimination",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 2,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 0.542,
+        "tolerancesDeclared": [],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": []
+      },
+      "010": {
+        "title": "VV-010 Coupled Rotating-Body-Force RK4 Convergence (loadsAt)",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 2,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 32.75,
+        "tolerancesDeclared": [
+          0.001,
+          0.01
+        ],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": [
+          "GATE_1R_LOADS_ASSEMBLY",
+          "GATE_4_P0_2_LOADSAT_STAGE_RHS"
+        ]
+      },
+      "011": {
+        "title": "VV-011 Production Event-FSM Acceptance",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 6,
+          "passed": 6,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 6,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 1.358,
+        "tolerancesDeclared": [
+          1e-9
+        ],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": []
+      },
+      "012": {
+        "title": "VV-012 Production Event Localization",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 3,
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 3,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 0.64,
+        "tolerancesDeclared": [
+          0.00001
+        ],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": [
+          "GATE_4_P0_5_EVENT_LOCALIZATION"
+        ]
+      },
+      "013": {
+        "title": "VV-013 Gate 3 Variable-Inertia Term",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 4,
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 4,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 3.402,
+        "tolerancesDeclared": [
+          0.005
+        ],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": [
+          "GATE_3_VARIABLE_INERTIA"
+        ]
+      },
+      "014": {
+        "title": "VV-014 Adaptive Integrator Termination + Convergence",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 2,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 0.845,
+        "tolerancesDeclared": [
+          1e-10,
+          1e-9,
+          1e-8,
+          0.000001,
+          0.001
+        ],
+        "decimalDigitsDeclared": [
+          3
+        ],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": [
+          "GATE_2_ADAPTIVE_INTEGRATOR"
+        ]
+      },
+      "015": {
+        "title": "VV-015 Production Descent Validation",
+        "executed": true,
+        "status": "passed",
+        "testCases": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "todo": 0,
+          "disabled": 0,
+          "unknown": 0
+        },
+        "sourceTestCases": 1,
+        "countSemantics": "per-test-case (it/test) counts, not individual expect() calls",
+        "durationMs": 246.853,
+        "tolerancesDeclared": [
+          10
+        ],
+        "decimalDigitsDeclared": [],
+        "observedValues": [],
+        "measuredNote": "durations are measured per case; passing-assertion values are not exposed by the vitest JSON reporter (declared bounds are source literals); observedValues recovers numerics the reporter did emit in failure messages; KNOWN PARSER LIMIT: the toBeCloseTo digit regex skips first arguments containing commas, so exotic assertion spellings can under-report decimalDigitsDeclared",
+        "failures": [],
+        "gateEvidence": [
+          "GATE_1R_LOADS_ASSEMBLY",
+          "GATE_4_PRODUCTION_CONTRACTS"
+        ]
+      }
+    },
+    "gateCoverage": {
+      "GATE_1R_LOADS_ASSEMBLY": true,
+      "GATE_2_ADAPTIVE_INTEGRATOR": true,
+      "GATE_3_VARIABLE_INERTIA": true,
+      "GATE_4_P0_2_LOADSAT_STAGE_RHS": true,
+      "GATE_4_P0_3_FRAME_DECLARED": true,
+      "GATE_4_P0_5_EVENT_LOCALIZATION": true,
+      "GATE_4_PRODUCTION_CONTRACTS": true
+    },
+    "gateDetails": {
+      "GATE_1R_LOADS_ASSEMBLY": {
+        "passed": true,
+        "required": [
+          "004",
+          "007",
+          "010",
+          "015"
+        ],
+        "requiredFiles": [
+          "src/dynamics/loads.repair.test.ts",
+          "src/core/mass.test.ts"
+        ],
+        "reasons": []
+      },
+      "GATE_2_ADAPTIVE_INTEGRATOR": {
+        "passed": true,
+        "required": [
+          "014"
+        ],
+        "requiredFiles": [
+          "src/dynamics/rigidBody.adaptive.test.ts"
+        ],
+        "reasons": []
+      },
+      "GATE_3_VARIABLE_INERTIA": {
+        "passed": true,
+        "required": [
+          "013"
+        ],
+        "requiredFiles": [
+          "src/dynamics/loads.repair.test.ts",
+          "src/propulsion/motorDatabase.test.ts"
+        ],
+        "reasons": []
+      },
+      "GATE_4_P0_2_LOADSAT_STAGE_RHS": {
+        "passed": true,
+        "required": [
+          "010"
+        ],
+        "requiredFiles": [],
+        "reasons": []
+      },
+      "GATE_4_P0_3_FRAME_DECLARED": {
+        "passed": true,
+        "required": [
+          "004"
+        ],
+        "requiredFiles": [],
+        "reasons": []
+      },
+      "GATE_4_P0_5_EVENT_LOCALIZATION": {
+        "passed": true,
+        "required": [
+          "012"
+        ],
+        "requiredFiles": [
+          "src/sim/event-restart.test.ts"
+        ],
+        "reasons": []
+      },
+      "GATE_4_PRODUCTION_CONTRACTS": {
+        "passed": true,
+        "required": [
+          "015"
+        ],
+        "requiredFiles": [
+          "src/sim/sixDofSimulator.test.ts",
+          "src/components/FlightSimulationTab.test.tsx"
+        ],
+        "reasons": []
+      }
+    }
+  },
+  "hashes": {
+    "files": {
+      "src/sim/vv-benchmarks.test.ts": "f60c20e4dcc6a7289a91dfd418d026a3e7ece786c606e7dfa5e734d298762196",
+      "src/dynamics/rigidBody.adaptive.test.ts": "8deea4313ef100b927d50b416b4705507cf4ba34c00ca4ffc6c42215f83b7fd8",
+      "src/dynamics/loads.repair.test.ts": "ee6dca4e6e3b7a1d0904d18d45145c0d0e230568d91fc5ad486e5d1885855475",
+      "src/sim/event-restart.test.ts": "d4b10646d0a5566b39d9000d7fe1e17e0ee9abb8fedd527833d551b038f44715",
+      "src/sim/sixDofSimulator.test.ts": "1880cdf1f2b3bff7d228a475b14901770b5e8f641be694350cd4093b0fdbb373",
+      "src/propulsion/motorDatabase.test.ts": "f85751be7c98766df97c5345ee239657072b7461526903d99cc151f9b8cc9826",
+      "src/core/mass.test.ts": "1e3499f65c47419ebfd1859a3303d2d82aecd6ad2129b2b3f94aadd4503bac84",
+      "src/components/FlightSimulationTab.test.tsx": "b344864c18a14fe0291d25463b8ad9f778bdd3388bc5d00eb1a02b4be90c460f",
+      "scripts/emit-benchmark-metadata.test.cjs": "b8eed8c79071f299d16528b8aeca5638cadcbfba3cad8b550746dc51c095f781",
+      "src/dynamics/rigidBody.ts": "ce9becb593028cf346057662e03e9bfadf5c9a132bba79ffc85cb1bd49505154",
+      "src/dynamics/loads.ts": "08a53eb151471c74b007875b835cd180be34331135e92e0482e79af032171c25",
+      "src/dynamics/events.ts": "0a15a1ca4d5734f11b468301a2c0e9238a0caa1ca5a7d53d99cd4e0c903532f6",
+      "src/sim/sixDofSimulator.ts": "c38a7bba13965d189965b7bc7832b79130630d533abbdf91862beacdfe5c81f0",
+      "src/sim/flightSimulator.ts": "3f0297faed4944b11a09706f18ddf51d0852258b0e1e57324d0411d50419cc0c",
+      "src/propulsion/motorDatabase.ts": "6383ddd498d7726ab9dd523a78fe0f4d0a2c12369aa8fb256e6bbc1a289d7883",
+      "src/aero/transonicAero.ts": "e6ef429717a18fa31cfe0db850f9ec8003cd5021b65efc0f2052ae1d1d724ec0",
+      "src/aero/barrowman.ts": "0d7288ad43d41d7c1c0d86a6b724438f0896d7d03e9f3ff24685b64413fcb4a8",
+      "src/core/mass.ts": "23996c5edbf85c6a523379645206dcc0caf76b631d25e8ca3aa01220c2acb42b",
+      "src/components/FlightSimulationTab.tsx": "8d1af9875647a4aac971cb6188da1e7f1fbda79bdaf856957209352687f931a0",
+      "src/core/types.ts": "73c4f84d8b84006dbcbb5b4168e0fe8f9453ecce21202d428ece110760af71ff",
+      "src/store/rocketStore.ts": "d7b13ddc1d7f9dcdf8fd502bf126d9a070c5bff548c6173085fb8ddff889a677",
+      "scripts/emit-benchmark-metadata.cjs": "d2a1dc483a102edbe9ab0601884ef7eb112f52e2efd2821dc2d8ccf3ad0c79a1",
+      "package.json": "241067ac319f0e5f95eab31ca7939eba0a896f59cc7f8ec27fb5e5300a85dbca",
+      "pnpm-lock.yaml": "500c067522c37529268b5ce3b50539ed1454fca17f068e9e0d6115420ec9ea64",
+      "package-lock.json": null,
+      "vite.config.ts": "5ee2c0850a483f0eb99d48f39e744f2b705de9d8ca4cc4dae88a3d9cfb5574e3",
+      "tsconfig.json": "fe6274d9705e77ee6194a7eba96dbfed006e96c124cb07ee7d8188634477138e"
+    },
+    "artifactSelf": "d4eb84f0dbc095ee73323c64b47a2b6aa57b420b5d627de1f54ae72cdc41edab",
+    "basis": "sha256 of the artifact JSON with hashes.artifactSelf and hashes.basis removed (hashes == {files} at hash time); file hashes are sha256 of on-disk bytes"
+  }
+}
