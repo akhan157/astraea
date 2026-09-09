@@ -21,7 +21,7 @@ import { MotorSpec, getMotorThrustAt, getMotorMassAt } from '../propulsion/motor
 import { computeAerodynamicCurves } from '../aero/transonicAero';
 import { aggregateVehicleMass } from '../core/mass';
 import { getAtmosphereAt } from './flightSimulator';
-import { integrateRigidStep, normalizeQuaternion as normQ, simOmegaToKernel, kernelOmegaToSim, simInertiaToKernel } from '../dynamics/rigidBody';
+import { integrateRigidStep, normalizeQuaternion as normQ, simOmegaToKernel, kernelOmegaToSim, simInertiaToKernel, Vec3, LoadsAt } from '../dynamics/rigidBody';
 import { detectEvents, EventState, NEWTON_EVENT_STATE } from '../dynamics/events';
 
 export interface Vector3D {
@@ -253,6 +253,104 @@ export function simulate6DofFlight(
     return curves[0];
   }
 
+  // Baseline CG offset for restoring-moment lever arm (CP - CG). The mass
+  // rollup CG is a coarse constant proxy (documented limitation).
+  const baselineCg = massRollup.cg;
+
+  /**
+   * Production flight RHS (NORMATIVE, Gate 4-P0-2).
+   * Evaluates FULL instantaneous loads (thrust, aero forces/moments, gravity,
+   * dynamic mass/inertia) at an arbitrary stage state/time. Passed as `loadsAt`
+   * to integrateRigidStep so the simulator performs genuine 4th-order coupled
+   * integration instead of per-macro-step frozen loads.
+   * Kernel is frame-agnostic Cartesian RK4 in the simulator display frame
+   * {x: East, y: Up, z: North}; returns kernel-form Loads.
+   */
+  function computeFlightLoads(
+    tStage: number,
+    st: {
+      r: { x: number; y: number; z: number };
+      v: { x: number; y: number; z: number };
+      q: { w: number; x: number; y: number; z: number };
+      w: { x: number; y: number; z: number };
+    },
+    flags: { drogueDeployed: boolean; mainDeployed: boolean }
+  ) {
+    const altASL = launchAltitudeASL + st.r.y;
+    const atmosSt = getAtmosphereAt(altASL);
+    const powered = tStage < motor.burnTime;
+    const thrustSt = getMotorThrustAt(motor, tStage);
+    const motorSt = getMotorMassAt(motor, tStage);
+    const massSt = vehicleDryMass + motorSt.currentMass;
+    const mRad = motor.diameter / 2;
+    const Ixx_mot = 0.5 * motorSt.currentMass * mRad * mRad;
+    const Iyy_mot = (motorSt.currentMass * (3 * mRad * mRad + motor.length * motor.length)) / 12;
+    const IxxSt = Ixx_dry + Ixx_mot; // roll-axial
+    const IyySt = Iyy_dry + Iyy_mot; // transverse pitch
+    const IzzSt = IyySt;
+
+    const qSt = { w: st.q.w, x: st.q.x, y: st.q.y, z: st.q.z };
+    const RSt = quaternionToMatrix(qSt);
+    const windSt = getWindVectorAt(st.r.y, windSpeedSurface, windAzimuthDeg);
+    const relWorld = {
+      x: st.v.x - windSt.x,
+      y: st.v.y - windSt.y,
+      z: st.v.z - windSt.z,
+    };
+    const relBody = rotateWorldToBody(RSt, relWorld);
+    const airspeedSt = Math.sqrt(relBody.x * relBody.x + relBody.y * relBody.y + relBody.z * relBody.z);
+    const machSt = airspeedSt / atmosSt.speedOfSound;
+    const qInfSt = 0.5 * atmosSt.density * airspeedSt * airspeedSt;
+    const latSpeedSt = Math.sqrt(relBody.x * relBody.x + relBody.z * relBody.z);
+    const alphaSt = Math.atan2(latSpeedSt, Math.max(0.1, Math.abs(relBody.y)));
+
+    const aeroSt = getAeroAtMach(machSt, powered);
+    let cdSt = aeroSt.totalCd;
+    const cpSt = aeroSt.cp;
+
+    let effAreaSt = refArea;
+    if (flags.mainDeployed && mainChute) {
+      effAreaSt = (Math.PI / 4) * Math.pow(mainChute.diameter, 2);
+      cdSt = mainChute.cd || 1.5;
+    } else if (flags.drogueDeployed && drogue) {
+      effAreaSt = (Math.PI / 4) * Math.pow(drogue.diameter, 2);
+      cdSt = drogue.cd || 0.8;
+    }
+
+    const dragAxialSt = qInfSt * effAreaSt * cdSt * Math.sign(relBody.y || 1);
+    const cnaSt = 12.0;
+    const normalSt = qInfSt * refArea * cnaSt * Math.sin(alphaSt);
+    const aeroBody = {
+      x: latSpeedSt > 0 ? -normalSt * (relBody.x / latSpeedSt) : 0,
+      y: -dragAxialSt,
+      z: latSpeedSt > 0 ? -normalSt * (relBody.z / latSpeedSt) : 0,
+    };
+
+    // Total force body -> nav, add gravity (display y is Up)
+    const forceBodyN = rotateBodyToWorld(RSt, { x: aeroBody.x, y: aeroBody.y + thrustSt, z: aeroBody.z });
+    forceBodyN.y -= massSt * 9.80665;
+
+    const dStatic = cpSt - baselineCg;
+    const roll = st.w.y;
+    const pitch = st.w.x;
+    const yaw = st.w.z;
+    const pitchDampSt = 0.5 * atmosSt.density * Math.max(1, airspeedSt) * refArea * totalLength * totalLength * 1.5 * pitch;
+    const yawDampSt = 0.5 * atmosSt.density * Math.max(1, airspeedSt) * refArea * totalLength * totalLength * 1.5 * yaw;
+    const rollDampSt = qInfSt * refArea * rBody * rBody * 4.0 * Math.max(0.1, roll);
+    const rollTorqueSt = qInfSt * refArea * rBody * Math.sin(finCantRad) * 4.0;
+
+    return {
+      forceN: { x: forceBodyN.x, y: forceBodyN.y, z: forceBodyN.z },
+      momentB: {
+        x: -(dStatic * aeroBody.z) - pitchDampSt,
+        y: rollTorqueSt - rollDampSt,
+        z: (dStatic * aeroBody.x) - yawDampSt,
+      },
+      inertiaB: { x: IyySt, y: IxxSt, z: IzzSt },
+      mass: massSt,
+    };
+  }
+
   // 1. Initial State along Launch Rail
   // Rail unit vector in world coordinates (Up = +Y, East = +X, North = +Z)
   const elRad = (railElevationDeg * Math.PI) / 180;
@@ -430,7 +528,7 @@ export function simulate6DofFlight(
     // Aerodynamic pitch/yaw damping moments: M_damp = -0.5 * rho * V * S_ref * L^2 * C_mq * omega
     const pitchDampingTorque = 0.5 * atmos.density * Math.max(1, airspeed) * refArea * totalLength * totalLength * 1.5 * omega.q;
     const yawDampingTorque = 0.5 * atmos.density * Math.max(1, airspeed) * refArea * totalLength * totalLength * 1.5 * omega.r;
-    const rollDampingTorque = 0.5 * atmos.density * Math.max(1, airspeed) * refArea * rBody * rBody * 0.5 * omega.p;
+    const rollDampingTorque = qInf * refArea * rBody * rBody * 4.0 * Math.max(0.1, omega.p);
 
     // Roll torque induced by fin cant angle: T_roll = q * S_ref * R_body * sin(delta_cant) * N_fins
     const rollTorque = qInf * refArea * rBody * Math.sin(finCantRad) * 4.0;
@@ -602,21 +700,44 @@ export function simulate6DofFlight(
     // Body rates/inertia use the certified label mapping:
     //   omega {p=roll, q=pitch, r=yaw} <-> kernel w {x=pitch, y=roll, z=yaw}
     //   Ixx=roll-axial, Iyy=Izz=transverse -> kernel inertiaB {pitch, roll, yaw}
-    const next = integrateRigidStep(
-      {
-        r: { x: pos.x, y: pos.y, z: pos.z },
-        v: { x: vel.x, y: vel.y, z: vel.z },
-        q: { w: q.w, x: q.x, y: q.y, z: q.z },
-        w: simOmegaToKernel(omega),
-      },
-      {
-        forceN: { x: constrainedForceN.x, y: constrainedForceN.y, z: constrainedForceN.z },
-        momentB: { x: momentBody.x, y: momentBody.y, z: momentBody.z },
-        inertiaB: simInertiaToKernel({ x: Ixx, y: Iyy, z: Izz }),
-        mass: totalMass,
-      },
-      dt
-    );
+    // Identity low-level load for rail-free basic validity; when loadsAt is
+    // present this is overridden at every stage.
+    const kernelInState = {
+      r: { x: pos.x, y: pos.y, z: pos.z },
+      v: { x: vel.x, y: vel.y, z: vel.z },
+      q: { w: q.w, x: q.x, y: q.y, z: q.z },
+      w: simOmegaToKernel(omega),
+    };
+
+    // Stage-RHS (P0-2): recompute full loads at every RK4 stage from that
+    // stage's state and time. Pre-rail, project net force along the rail so
+    // the constrained force actually drives translation (P0-1).
+    const loadsAtStage: LoadsAt = (tStage, stStage) => {
+      const flags = { drogueDeployed: isDrogueDeployed, mainDeployed: isMainDeployed };
+      const L = computeFlightLoads(tStage, stStage, flags);
+      if (!eventState.hasLeftRail) {
+        // Project force along rail vector (display frame): F_rail = (F . u_hat) u_hat
+        const railUnit: Vec3 = { x: railVector.x, y: railVector.y, z: railVector.z };
+        const fdot = L.forceN.x * railUnit.x + L.forceN.y * railUnit.y + L.forceN.z * railUnit.z;
+        const fProj = Math.max(0, fdot); // rail only pushes forward
+        return {
+          ...L,
+          forceN: {
+            x: fProj * railUnit.x,
+            y: fProj * railUnit.y,
+            z: fProj * railUnit.z,
+          },
+        };
+      }
+      return L;
+    };
+
+    const next = integrateRigidStep(kernelInState, {
+      forceN: { x: constrainedForceN.x, y: constrainedForceN.y, z: constrainedForceN.z },
+      momentB: { x: momentBody.x, y: momentBody.y, z: momentBody.z },
+      inertiaB: simInertiaToKernel({ x: Ixx, y: Iyy, z: Izz }),
+      mass: totalMass,
+    }, dt, loadsAtStage, t);
 
     // IDENTITY write-back: r/v/q propagate unchanged; body-rate label inverse
     pos.x = next.r.x; pos.y = next.r.y; pos.z = next.r.z;
