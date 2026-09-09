@@ -804,3 +804,73 @@ describe('VV-011 Production Event-FSM Acceptance', () => {
     expect(mainDeployed).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// VV-012: Production Event Localization (Gate 1r — events, P0-5)
+// Exercises localizeCrossingFiltered() from src/dynamics/events.ts: direction
+// filter, 1e-5 s accuracy on quadratic trajectories, bracket containment.
+// ---------------------------------------------------------------------------
+
+import { localizeCrossingFiltered } from '../dynamics/events';
+
+describe('VV-012 Production Event Localization', () => {
+  it('localizes RAIL-EXIT crossing on a quadratic ballistic trajectory to 1e-5 s', () => {
+    const v0 = 30.0;
+    const railLen = 2.4;
+    const g = G0;
+    const dt = 1e-2; // coarse integration step (0.01 s production cadence)
+    // Ballistic z(t) = v0 t - 0.5 g t^2 ; ascend-crossing of railLen
+    let t0 = 0, z0 = 0, t1 = 0, z1 = 0;
+    for (let t = 0; t < 5; t += dt) {
+      const z = v0 * t - 0.5 * g * t * t;
+      if (z >= railLen) {
+        t0 = t - dt;
+        z0 = v0 * t0 - 0.5 * g * t0 * t0;
+        t1 = t;
+        z1 = z;
+        break;
+      }
+    }
+    const tLoc = localizeCrossingFiltered(t0, z0, t1, z1, railLen, 'ascending');
+    const tExact = v0 / g * (1 - Math.sqrt(Math.max(0, 1 - 2 * g * railLen / (v0 * v0))));
+    expect(tLoc).toBeGreaterThan(0);
+    expect(Math.abs(tLoc - tExact)).toBeLessThanOrEqual(1e-5);
+  });
+
+  it('localizes MAIN-DEPLOY descending-altitude crossing to 1e-5 s', () => {
+    const v0 = 80.0;
+    const hTarget = 150.0;
+    const g = G0;
+    const dt = 1e-2;
+    // Descending branch of z(t) = v0 t - 0.5 g t^2
+    let t0 = 0, z0 = 0, t1 = 0, z1 = 0;
+    for (let t = dt; t < 40; t += dt) {
+      const z = v0 * t - 0.5 * g * t * t;
+      const zPrev = v0 * (t - dt) - 0.5 * g * (t - dt) * (t - dt);
+      if (zPrev > hTarget && z <= hTarget) {
+        t0 = t - dt;
+        z0 = zPrev;
+        t1 = t;
+        z1 = z;
+        break;
+      }
+    }
+    const tLoc = localizeCrossingFiltered(t0, z0, t1, z1, hTarget, 'descending');
+    const disc = v0 * v0 - 2 * g * hTarget;
+    const tExact = (v0 + Math.sqrt(disc)) / g;
+    expect(tLoc).toBeGreaterThan(0);
+    expect(Math.abs(tLoc - tExact)).toBeLessThanOrEqual(1e-5);
+  });
+
+  it('REJECTS wrong-direction crossings (descending rail exit, ascending touchdown)', () => {
+    // Descending: z decreasing, but we ask for ascending rail exit -> reject
+    const tDesc = localizeCrossingFiltered(0, 10, 0.01, 5, 8, 'ascending');
+    expect(tDesc).toBe(-1);
+    // Ascending: z increasing, but we ask for descending touchdown -> reject
+    const tAsc = localizeCrossingFiltered(0, 0, 0.01, 10, 5, 'descending');
+    expect(tAsc).toBe(-1);
+    // Bracket containment: target outside [val0, val1] -> reject
+    const tOut = localizeCrossingFiltered(0, 0, 0.01, 5, 100, 'ascending');
+    expect(tOut).toBe(-1);
+  });
+});

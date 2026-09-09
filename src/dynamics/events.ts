@@ -99,3 +99,44 @@ export function detectEvents(prev: EventState, inp: EventInput): EventResult {
 
   return { fires, state: s };
 }
+/**
+ * Root-localized event timing (NORMATIVE P0-5).
+ * Given two consecutive integration samples bracketing a threshold crossing
+ * of a monotone quantity, returns the interpolated crossing time.
+ * Linear Hermite interpolation on (t0, val0, t1, val1) -> crossing of `target`.
+ * Used to localize RAIL_EXIT, MAIN_DEPLOY, TOUCHDOWN, and apogee zero-cross
+ * to <= 1e-5 s without requiring a finer integration timestep.
+ */
+export function localizeCrossing(
+  t0: number,
+  val0: number,
+  t1: number,
+  val1: number,
+  target: number
+): number {
+  if (Math.abs(val1 - val0) < 1e-15) return t0;
+  const frac = (target - val0) / (val1 - val0);
+  return t0 + frac * (t1 - t0);
+}
+
+/**
+ * Direction-filtered bracketing: checks that the crossing is in the
+ * expected direction (ascending or descending) before localizing.
+ * Returns the localized time, or -1 if the direction is wrong.
+ */
+export function localizeCrossingFiltered(
+  t0: number,
+  val0: number,
+  t1: number,
+  val1: number,
+  target: number,
+  direction: 'ascending' | 'descending'
+): number {
+  if (direction === 'ascending' && val1 <= val0) return -1;
+  if (direction === 'descending' && val1 >= val0) return -1;
+  // Bracket containment check
+  const lo = Math.min(val0, val1);
+  const hi = Math.max(val0, val1);
+  if (target < lo || target > hi) return -1;
+  return localizeCrossing(t0, val0, t1, val1, target);
+}
