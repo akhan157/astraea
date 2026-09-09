@@ -15,7 +15,28 @@
  *   TOUCHDOWN       : altitude crosses 0 (descending, after apogee)
  *
  * Event state transitions are one-shot and monotonic (no re-fire). Invalid
- * or out-of-sequence inputs are rejected by the direction/sequencing guards.
+ * or out-of-sequence inputs are rejected by the direction/sequencing guards
+ * and by fail-fast finite/increasing-time validation below.
+ *
+ * Ordering contract (round-13 audit 3.7): `events`/`fires` are returned in
+ * CHRONOLOGICAL order of their localized crossing times (stable ties keep
+ * dependency order — apogee before a same-instant main/touchdown). A returned
+ * event time is the root *candidate* on the bracket's chord; the driving
+ * simulator MUST rebuild the root state (restart at the localized time,
+ * apply the transition, integrate the remainder) before further crossing
+ * decisions. The driver guarantees each bracket's endpoints, so candidates
+ * always root inside the bracket and the same-bracket event order is the
+ * chronological order resolved by successive restarts — never code order.
+ * A velocity zero-cross that precedes rail exit or burnout is stashed until
+ * the last prerequisite opens. Its effective transition time is the maximum
+ * of the physical zero-cross and both prerequisite times, so no dependent
+ * event is emitted retroactively with a later state.
+ *
+ * Abnormal-flight rules (round-13 audit 3.7):
+ *   - Apogee below the main threshold: the main deploys AT apogee (a
+ *     descending h_main crossing can never occur).
+ *   - Touchdown with the main still undeployed: the main deploys at impact
+ *     (explicit recovery state instead of a silently lost deployment).
  */
 
 export type AstraeaEvent = 'NONE' | 'RAIL_EXIT' | 'MOTOR_BURNOUT' | 'APOGEE_DROGUE' | 'MAIN_DEPLOY' | 'TOUCHDOWN';
@@ -26,6 +47,15 @@ export interface EventState {
   isApogeeReached: boolean;
   isMainDeployed: boolean;
   touchedDown: boolean;
+  /**
+   * Root-stash for the audit 3.7 pre-burnout velocity-crossing fix: while the
+   * apogee gate (rail + burnout) is closed, a descending vz zero-cross is
+   * still localized and RETAINED (time + altitude), not dropped. Once the
+   * gate opens with the vehicle still descending (inp vertical velocity <= 0),
+   * APOGEE_DROGUE fires at the stashed crossing root.
+   */
+  pendingApogeeTime?: number;
+  pendingApogeeAlt?: number;
 }
 
 export interface EventInput {
@@ -75,64 +105,134 @@ export function detectEvents(prev: EventState, prevS: EventSamplePair, inp: Even
     isApogeeReached: prev.isApogeeReached,
     isMainDeployed: prev.isMainDeployed,
     touchedDown: prev.touchedDown,
+    pendingApogeeTime: prev.pendingApogeeTime,
+    pendingApogeeAlt: prev.pendingApogeeAlt,
   };
-  const fires: AstraeaEvent[] = [];
   const events: LocalizedEvent[] = [];
 
+  const finite =
+    Number.isFinite(prevS.t) && Number.isFinite(prevS.altitudeAlongRail) &&
+    Number.isFinite(prevS.verticalVelocity) && Number.isFinite(prevS.altitude) &&
+    Number.isFinite(inp.t) && Number.isFinite(inp.altitudeAlongRail) &&
+    Number.isFinite(inp.railLength) && Number.isFinite(inp.burnTime) &&
+    Number.isFinite(inp.verticalVelocity) && Number.isFinite(inp.altitude) &&
+    Number.isFinite(inp.mainDeployAlt) &&
+    (prev.pendingApogeeTime === undefined || Number.isFinite(prev.pendingApogeeTime)) &&
+    (prev.pendingApogeeAlt === undefined || Number.isFinite(prev.pendingApogeeAlt));
+  if (!finite) {
+    throw new Error('events FSM: non-finite kinematic input in detectEvents');
+  }
+  if (!(prevS.t < inp.t)) {
+    throw new Error('events FSM: bracket time must strictly increase (prevS.t < inp.t)');
+  }
+
+  const altitudeAt = (time: number): number => {
+    if (time <= prevS.t) return prevS.altitude;
+    if (time >= inp.t) return inp.altitude;
+    const fraction = (time - prevS.t) / (inp.t - prevS.t);
+    return prevS.altitude + fraction * (inp.altitude - prevS.altitude);
+  };
+
+  // Resolve prerequisite crossings without letting a later event in this
+  // bracket retroactively open a gate at an earlier time.
   const locRail = localizeCrossingFiltered(
     prevS.t, prevS.altitudeAlongRail, inp.t, inp.altitudeAlongRail, inp.railLength, 'ascending'
   );
-  // RAIL_EXIT: still on rail, along-rail coordinate crosses L_rail ascending
-  if (!s.hasLeftRail && locRail >= 0) {
+  const railReadyTime = prev.hasLeftRail ? prevS.t : locRail >= 0 ? locRail : null;
+  if (!prev.hasLeftRail && locRail >= 0) {
     s.hasLeftRail = true;
-    fires.push('RAIL_EXIT');
     events.push({ name: 'RAIL_EXIT', time: locRail });
   }
 
-  // MOTOR_BURNOUT: one-shot by time, brackets the burn boundary
-  if (!s.hasBurnedOut && prevS.t < inp.burnTime && inp.t >= inp.burnTime) {
+  const burnoutCrossed =
+    !prev.hasBurnedOut && prevS.t < inp.burnTime && inp.t >= inp.burnTime;
+  const burnoutReadyTime = prev.hasBurnedOut
+    ? prevS.t
+    : burnoutCrossed
+      ? inp.burnTime
+      : null;
+  if (burnoutCrossed) {
     s.hasBurnedOut = true;
-    fires.push('MOTOR_BURNOUT');
     events.push({ name: 'MOTOR_BURNOUT', time: inp.burnTime });
   }
 
-  // APOGEE_DROGUE: after rail + burnout, vertical velocity crosses 0 descending
-  if (!s.isApogeeReached && s.hasLeftRail && s.hasBurnedOut) {
+  let apogeeReadyTime: number | null = prev.isApogeeReached ? prevS.t : null;
+  if (!prev.isApogeeReached) {
     const locAp = localizeCrossingFiltered(
       prevS.t, prevS.verticalVelocity, inp.t, inp.verticalVelocity, 0, 'descending'
     );
-    if (locAp >= 0) {
-      s.isApogeeReached = true;
-      fires.push('APOGEE_DROGUE');
-      events.push({ name: 'APOGEE_DROGUE', time: locAp });
+    if (locAp >= 0 && s.pendingApogeeTime === undefined) {
+      s.pendingApogeeTime = locAp;
+      s.pendingApogeeAlt = altitudeAt(locAp);
+    }
+
+    if (
+      railReadyTime !== null &&
+      burnoutReadyTime !== null &&
+      s.pendingApogeeTime !== undefined &&
+      inp.verticalVelocity <= 0
+    ) {
+      // A zero crossing that preceded either prerequisite becomes actionable
+      // when the LAST prerequisite opens, never at a retroactive timestamp.
+      const apoTime = Math.max(s.pendingApogeeTime, railReadyTime, burnoutReadyTime);
+      if (apoTime <= inp.t) {
+        s.isApogeeReached = true;
+        apogeeReadyTime = apoTime;
+        s.pendingApogeeTime = undefined;
+        s.pendingApogeeAlt = undefined;
+        events.push({ name: 'APOGEE_DROGUE', time: apoTime });
+
+        // If the vehicle is already below the main threshold when apogee
+        // becomes actionable, no future descending threshold crossing exists.
+        if (!s.isMainDeployed && altitudeAt(apoTime) <= inp.mainDeployAlt + 1e-12) {
+          s.isMainDeployed = true;
+          events.push({ name: 'MAIN_DEPLOY', time: apoTime });
+        }
+      }
     }
   }
 
-  // MAIN_DEPLOY: after apogee, descending, altitude crosses h_main
   if (!s.isMainDeployed && s.isApogeeReached) {
     const locMain = localizeCrossingFiltered(
       prevS.t, prevS.altitude, inp.t, inp.altitude, inp.mainDeployAlt, 'descending'
     );
     if (locMain >= 0) {
-      s.isMainDeployed = true;
-      fires.push('MAIN_DEPLOY');
-      events.push({ name: 'MAIN_DEPLOY', time: locMain });
+      const mainTime = Math.max(locMain, apogeeReadyTime ?? prevS.t);
+      if (mainTime <= inp.t) {
+        s.isMainDeployed = true;
+        events.push({ name: 'MAIN_DEPLOY', time: mainTime });
+      }
     }
   }
 
-  // TOUCHDOWN: after apogee, descending, altitude crosses 0
   if (!s.touchedDown && s.isApogeeReached) {
     const locTd = localizeCrossingFiltered(
       prevS.t, prevS.altitude, inp.t, inp.altitude, 0, 'descending'
     );
     if (locTd >= 0) {
-      s.touchedDown = true;
-      fires.push('TOUCHDOWN');
-      events.push({ name: 'TOUCHDOWN', time: locTd });
+      const touchdownTime = Math.max(locTd, apogeeReadyTime ?? prevS.t);
+      if (touchdownTime <= inp.t) {
+        // Keep dependency order at an abnormal same-instant terminal path.
+        if (!s.isMainDeployed) {
+          s.isMainDeployed = true;
+          events.push({ name: 'MAIN_DEPLOY', time: touchdownTime });
+        }
+        s.touchedDown = true;
+        events.push({ name: 'TOUCHDOWN', time: touchdownTime });
+      }
     }
   }
 
-  if (fires.length === 0) fires.push('NONE');
+  const priority: Record<AstraeaEvent, number> = {
+    NONE: 5,
+    RAIL_EXIT: 0,
+    MOTOR_BURNOUT: 1,
+    APOGEE_DROGUE: 2,
+    MAIN_DEPLOY: 3,
+    TOUCHDOWN: 4,
+  };
+  events.sort((a, b) => a.time - b.time || priority[a.name] - priority[b.name]);
+  const fires: AstraeaEvent[] = events.length === 0 ? ['NONE'] : events.map((event) => event.name);
   return { fires, state: s, events };
 }
 

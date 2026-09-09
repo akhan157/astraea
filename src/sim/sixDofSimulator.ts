@@ -20,14 +20,14 @@ import { RocketVehicle } from '../core/types';
 import { MotorSpec, getMotorMassAt } from '../propulsion/motorDatabase';
 import { aggregateVehicleMass } from '../core/mass';
 import { getAtmosphereAt } from './flightSimulator';
-import { integrateRigidStep, normalizeQuaternion as normQ, simOmegaToKernel, kernelOmegaToSim, Vec3, LoadsAt, Loads } from '../dynamics/rigidBody';
-import { detectEvents, EventState, NEWTON_EVENT_STATE } from '../dynamics/events';
+import { integrateRigidAdaptive, denseOutputAt, normalizeQuaternion as normQ, simOmegaToKernel, kernelOmegaToSim, Vec3, LoadsAt, Loads, RigidState } from '../dynamics/rigidBody';
+import { detectEvents, EventState, NEWTON_EVENT_STATE, AstraeaEvent, EventSamplePair } from '../dynamics/events';
 import { computeFlightLoads, prepareVehicle, StageKinematicState } from '../dynamics/loads';
 
 export interface Vector3D {
   x: number; // East (m)
-  y: number; // Up / Altitude AGL (m)  [ENU: +Z_nav is up; here y is the display-up alias]
-  z: number; // North (m)
+  y: number; // North (m)
+  z: number; // Up / Altitude AGL (m)
 }
 
 export interface Quaternion {
@@ -39,11 +39,11 @@ export interface Quaternion {
 
 export interface SixDofTelemetryPoint {
   time: number;             // seconds
-  position: Vector3D;       // East, Up, North (m)
-  velocity: Vector3D;       // m/s in world frame
+  position: Vector3D;       // East, North, Up (m)
+  velocity: Vector3D;       // m/s in ENU navigation frame
   speed: number;            // scalar magnitude m/s
   mach: number;
-  altitude: number;         // y coordinate (m AGL)
+  altitude: number;         // z coordinate (m AGL)
   acceleration: number;     // scalar m/s^2
   angularVelocity: { p: number; q: number; r: number }; // roll, pitch, yaw rates (rad/s)
   angleOfAttackDeg: number; // total incidence angle (degrees)
@@ -180,16 +180,6 @@ export function simulate6DofFlight(
   // Mass & Geometry
   const massRollup = aggregateVehicleMass(vehicle);
   const vehicleDryMass = Math.max(0.01, massRollup.totalMass);
-  const refDiameter = massRollup.referenceDiameter;
-  const refArea = (Math.PI / 4) * Math.pow(refDiameter, 2);
-
-  // Transverse & Roll Moments of Inertia
-  // Longitudinal cylindrical shell approximation: I_xx = 0.5 * m * R^2, I_yy = I_zz = m * (3*R^2 + L^2) / 12
-  const rBody = refDiameter / 2;
-
-  // Parachutes
-
-  // Aerodynamic curves (precomputed for powered and unpowered flight)
 
   // Production loads assembly (NORMATIVE, Gate 1r): the inline duplicate was
   // moved to src/dynamics/loads.ts. prepareVehicle caches geometry; the loads
@@ -263,6 +253,18 @@ export function simulate6DofFlight(
     verticalVelocity: 0,
     altitude: 0,
   };
+  // FULL rigid-state checkpoint at prevSample.t (round-13 audit 3.7): the
+  // restart engine re-integrates from this state to reconstruct the root
+  // state at a localized crossing, so a transition (rail off, recovery
+  // deployed, touchdown) is applied AT its crossing rather than one step late.
+  let prevFullState: RigidState = {
+    r: { x: 0, y: 0, z: 0 },
+    v: { x: 0, y: 0, z: 0 },
+    q: { ...initialQ },
+    w: { x: 0, y: 0, z: 0 },
+  };
+  // FSM state at the bracket base (before the current bracket's transitions).
+  let prevEventState: EventState = { ...NEWTON_EVENT_STATE };
 
   const telemetry: SixDofTelemetryPoint[] = [];
   const events: SixDofEvent[] = [];
@@ -277,7 +279,300 @@ export function simulate6DofFlight(
 
   const maxSimTime = 300.0; // 5 min max
 
+  // Shared loads configuration (macro evaluations and the stage RHS).
+  const flightCfg = {
+    vehicle,
+    motor,
+    launchAltitudeASL,
+    windSpeedSurface,
+    windAzimuthDeg,
+    finCantRad,
+  };
+
+  // Adaptive stage-RHS: recompute full loads at every Dormand-Prince stage
+  // from that stage's state and time. Reads the LIVE event/recovery flags, so
+  // a restart integrates the remainder under post-transition dynamics. Before
+  // rail exit, project net force along the rail and lock body moments.
+  const loadsAtStage: LoadsAt = (tStage, stStage) => {
+    const flags = { drogueDeployed: isDrogueDeployed, mainDeployed: isMainDeployed };
+    const L: Loads = computeFlightLoads(tStage, stStage as StageKinematicState, flags, flightCfg, pv);
+    if (!eventState.hasLeftRail) {
+      const railUnit: Vec3 = { x: railVector.x, y: railVector.y, z: railVector.z };
+      const fdot = L.forceN.x * railUnit.x + L.forceN.y * railUnit.y + L.forceN.z * railUnit.z;
+      const fProj = Math.max(0, fdot);
+      return {
+        forceN: { x: fProj * railUnit.x, y: fProj * railUnit.y, z: fProj * railUnit.z },
+        momentB: { x: 0, y: 0, z: 0 },
+        inertiaB: L.inertiaB,
+        mass: L.mass,
+      };
+    }
+    return L;
+  };
+
+  const adaptiveTolerances = {
+    r: 1e-3,
+    v: 1e-2,
+    q: 1e-5,
+    w: 1e-3,
+  } as const;
+
+  // Normative production advance: adaptive DP5(4), with dense output for
+  // event localization. Fixed RK4 remains only as a benchmark oracle.
+  const integrateState = (s: RigidState, t0: number, h: number) =>
+    integrateRigidAdaptive(
+      s,
+      loadsAtStage,
+      t0,
+      t0 + h,
+      adaptiveTolerances,
+      Math.min(0.05, h),
+      Math.min(0.005, h)
+    );
+  const stepState = (s: RigidState, t0: number, h: number): RigidState =>
+    integrateState(s, t0, h).state;
+
+  // Sim-state parts -> kernel rigid state (component conversion, no copies).
+  const toKernel = (p: Vector3D, v: Vector3D, qq: Quaternion, om: { p: number; q: number; r: number }): RigidState => ({
+    r: { x: p.x, y: p.y, z: p.z },
+    v: { x: v.x, y: v.y, z: v.z },
+    q: { w: qq.w, x: qq.x, y: qq.y, z: qq.z },
+    w: simOmegaToKernel(om),
+  });
+
+  // Refine a crossing against the SAME accepted adaptive trajectory. Dense
+  // output avoids repeated sub-integrations and preserves pre-transition
+  // dynamics exactly until the localized root.
+  const refineCrossing = (
+    base: RigidState,
+    t0: number,
+    t1: number,
+    crossed: (s: RigidState) => boolean
+  ): { time: number; state: RigidState } => {
+    const tol = 1e-5;
+    if (crossed(base)) {
+      throw new Error('restart engine: crossing already satisfied at the bracket base');
+    }
+    const path = integrateState(base, t0, t1 - t0);
+    if (!crossed(path.state)) {
+      throw new Error('restart engine: crossing not bracketed by the segment end — detector mismatch');
+    }
+    let a = t0;
+    let b = t1;
+    while (b - a > tol) {
+      const mid = (a + b) / 2;
+      if (crossed(denseOutputAt(path.dense, mid))) b = mid;
+      else a = mid;
+    }
+    const time = (a + b) / 2;
+    return { time, state: denseOutputAt(path.dense, time) };
+  };
+
+  // Single FSM transition (one-shot): the driving engine applies events one
+  // at a time at their resolved roots, keeping the FSM state in lockstep.
+  // The stashed pre-burnout apogee root (pendingApogee*) is carried from the
+  // detection result so the recovery path survives the one-at-a-time apply.
+  const applyFsmTransition = (prev: EventState, name: AstraeaEvent, fsm: EventState): EventState => {
+    const s: EventState = {
+      ...prev,
+      pendingApogeeTime: fsm.pendingApogeeTime,
+      pendingApogeeAlt: fsm.pendingApogeeAlt,
+    };
+    switch (name) {
+      case 'RAIL_EXIT': s.hasLeftRail = true; break;
+      case 'MOTOR_BURNOUT': s.hasBurnedOut = true; break;
+      case 'APOGEE_DROGUE': s.isApogeeReached = true; break;
+      case 'MAIN_DEPLOY': s.isMainDeployed = true; break;
+      case 'TOUCHDOWN': s.touchedDown = true; break;
+      default: break;
+    }
+    return s;
+  };
+
+  // Event side-effects at the RECONSTRUCTED root state (round-13 audit 3.7):
+  // metrics (velocity/altitude at the crossing) and recovery flags are taken
+  // from the root state — never from a tick that arrived one step late, and
+  // never carrying a post-crossing overshoot.
+  const applyEvent = (name: AstraeaEvent, timeOf: number, root: RigidState): void => {
+    switch (name) {
+      case 'RAIL_EXIT': {
+        hasLeftRail = true;
+        const scalarSpeed = Math.sqrt(root.v.x * root.v.x + root.v.y * root.v.y + root.v.z * root.v.z);
+        railExitVel = scalarSpeed;
+        // Initial crosswind weathercocking: production TOTAL incidence at
+        // the reconstructed crossing state (rail-aligned body, wind
+        // impinging). Crosswind at rail exit lies in the yaw plane, so the
+        // pitch-only alphaDeg would miss it — total incidence covers any plane.
+        const exitLoads = computeFlightLoads(timeOf, root as StageKinematicState, { drogueDeployed: isDrogueDeployed, mainDeployed: isMainDeployed }, flightCfg, pv);
+        weathercockAngleDeg = exitLoads.kinematics.alphaTotalDeg;
+        events.push({
+          time: timeOf,
+          name: 'Launch Rail Departure',
+          altitude: root.r.z,
+          velocity: scalarSpeed,
+          description: `Exited ${railLength.toFixed(1)}m launch rail at ${scalarSpeed.toFixed(1)} m/s (safe threshold >= 15 m/s). Initial crosswind weathercocking: ${weathercockAngleDeg.toFixed(1)}°.`,
+        });
+        break;
+      }
+      case 'MOTOR_BURNOUT': {
+        burnoutAlt = root.r.z;
+        burnoutVel = Math.sqrt(root.v.x * root.v.x + root.v.y * root.v.y + root.v.z * root.v.z);
+        const atmo = getAtmosphereAt(launchAltitudeASL + root.r.z);
+        events.push({
+          time: timeOf,
+          name: 'Motor Burnout',
+          altitude: root.r.z,
+          velocity: burnoutVel,
+          description: `Motor burnout at ${root.r.z.toFixed(0)}m AGL. Burnout velocity: ${burnoutVel.toFixed(0)} m/s (Mach ${(burnoutVel / atmo.speedOfSound).toFixed(2)}). Transitioning to unpowered coast.`,
+        });
+        break;
+      }
+      case 'APOGEE_DROGUE': {
+        isApogeeReached = true;
+        maxAltitude = root.r.z;
+        apogeeTime = timeOf;
+        apogeePos = { x: root.r.x, y: root.r.y, z: root.r.z };
+        isDrogueDeployed = true;
+        // No rate reset: the drogue's drag acts through the loads assembly
+        // at the next stage-RHS evaluation (momentum-conserving; the
+        // parachute drag decelerates/rotates the vehicle physically).
+        events.push({
+          time: timeOf,
+          name: 'Apogee & Drogue Deployment',
+          altitude: root.r.z,
+          velocity: Math.sqrt(root.v.x * root.v.x + root.v.y * root.v.y + root.v.z * root.v.z),
+          description: `Apogee reached at ${root.r.z.toFixed(0)}m (${(root.r.z * 3.28084).toFixed(0)} ft) AGL. High-speed drogue parachute ejected.`,
+        });
+        break;
+      }
+      case 'MAIN_DEPLOY': {
+        isMainDeployed = true;
+        events.push({
+          time: timeOf,
+          name: 'Main Parachute Deployment',
+          altitude: root.r.z,
+          velocity: Math.abs(root.v.z),
+          description: `Main parachute opened at ${root.r.z.toFixed(0)}m AGL. Decelerating descent for safe landing.`,
+        });
+        break;
+      }
+      case 'TOUCHDOWN': {
+        const finalImpactSpeed = Math.sqrt(root.v.x * root.v.x + root.v.y * root.v.y + root.v.z * root.v.z);
+        const lateralDrift = Math.sqrt(root.r.x * root.r.x + root.r.y * root.r.y);
+        events.push({
+          time: timeOf,
+          name: 'Ground Touchdown',
+          altitude: 0,
+          velocity: finalImpactSpeed,
+          description: `Touchdown at ${finalImpactSpeed.toFixed(1)} m/s. Total lateral wind drift: ${lateralDrift.toFixed(0)}m from pad.`,
+        });
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
   while (t < maxSimTime) {
+    // =====================================================================
+    // EVENT RESTART ENGINE (round-13 audit 3.7/4)
+    // Crossings inside the bracket (prevSample.t, t] are detected by the
+    // FSM, then resolved in CHRONOLOGICAL order: refine each root on the
+    // re-integrated trajectory (dense-output bisection, <= 1e-5 s), apply
+    // the transition AT the reconstructed root state, integrate the
+    // remainder of the bracket under POST-transition dynamics, re-detect.
+    // A bracket is fully resolved before any macro-step integration, so the
+    // rail constraint, recovery drag, and touchdown velocity cannot lag one
+    // step past their crossing.
+    // =====================================================================
+    let bT = prevSample.t;
+    let bSample: EventSamplePair = { ...prevSample };
+    let bState: RigidState = { ...prevFullState };
+    let bEvent: EventState = { ...prevEventState };
+    let eState: RigidState = bState;
+    let earlyTerminated = false;
+
+    while (bT < t - 1e-12) {
+      // Endpoint state at t on the CURRENT (pre-this-transition) trajectory:
+      // the FSM brackets [bT, t] between the checkpoint and this endpoint.
+      eState = stepState(bState, bT, t - bT);
+      const det = detectEvents(bEvent, bSample, {
+        t,
+        altitudeAlongRail: eState.r.x * railVector.x + eState.r.y * railVector.y + eState.r.z * railVector.z,
+        railLength,
+        burnTime: motor.burnTime,
+        verticalVelocity: eState.v.z,
+        altitude: eState.r.z,
+        mainDeployAlt,
+      });
+      if (det.events.length === 0) break;
+      const cand = det.events[0];
+
+      // --- refine the crossing root on the pre-transition trajectory ---
+      let τ: number;
+      let root: RigidState;
+      if (cand.time <= bT) {
+        // Degenerate root at/behind the bracket base: the transition applies
+        // to the bracket state directly (localizeCrossing returned t0).
+        τ = bT;
+        root = bState;
+      } else if (cand.name === 'MOTOR_BURNOUT') {
+        // Time-based transition: the crossing time IS the burn boundary.
+        τ = motor.burnTime;
+        root = stepState(bState, bT, τ - bT);
+      } else {
+        const crossed = (s: RigidState): boolean =>
+          cand.name === 'RAIL_EXIT'
+            ? s.r.x * railVector.x + s.r.y * railVector.y + s.r.z * railVector.z >= railLength
+            : cand.name === 'APOGEE_DROGUE'
+              ? s.v.z <= 0
+              : cand.name === 'MAIN_DEPLOY'
+                ? s.r.z <= mainDeployAlt
+                : s.r.z <= 0; // TOUCHDOWN descending through ground
+        const ref = refineCrossing(bState, bT, t, crossed);
+        τ = ref.time;
+        root = ref.state;
+      }
+
+      // --- apply every candidate at this root (same-instant ties) ---
+      for (const evt of det.events) {
+        if (Math.abs(evt.time - cand.time) > 1e-12) break; // sorted: ties contiguous
+        // A stashed pre-burnout apogee root can precede the bracket base
+        // (cand.time <= bT): the EVENT time is the FSM's localized root; the
+        // reconstructed state is the bracket base (documented approximation,
+        // audit 3.7 recovery path).
+        const evTime = evt.time <= bT ? evt.time : τ;
+        applyEvent(evt.name, evTime, root);
+        bEvent = applyFsmTransition(bEvent, evt.name, det.state);
+      }
+      eventState = { ...bEvent }; // LIVE for the remainder's stage-RHS
+      if (bEvent.touchedDown) {
+        // Reconstructed ground state: altitude AT the crossing, no overshoot.
+        eState = { ...root, r: { x: root.r.x, y: root.r.y, z: 0 } };
+        earlyTerminated = true;
+        break;
+      }
+
+      // Next bracket: from the transition root, re-resolve the remainder.
+      bT = τ;
+      bState = root;
+      bSample = {
+        t: τ,
+        altitudeAlongRail: root.r.x * railVector.x + root.r.y * railVector.y + root.r.z * railVector.z,
+        verticalVelocity: root.v.z,
+        altitude: root.r.z,
+      };
+    }
+
+    // Commit the resolved bracket-end state.
+    pos.x = eState.r.x; pos.y = eState.r.y; pos.z = eState.r.z;
+    vel.x = eState.v.x; vel.y = eState.v.y; vel.z = eState.v.z;
+    q.w = eState.q.w; q.x = eState.q.x; q.y = eState.q.y; q.z = eState.q.z;
+    const eo = kernelOmegaToSim(eState.w);
+    omega.p = eo.p; omega.q = eo.q; omega.r = eo.r;
+
+    if (earlyTerminated) break;
+
     // Production loads at the macro-step state (NORMATIVE): single source for
     // thrust/aero/moments/mass. Derives both the kernel display loads AND the
     // telemetry kinematics — no inline duplicate of the load assembly.
@@ -290,19 +585,12 @@ export function simulate6DofFlight(
     const macroDetail = computeFlightLoads(t, macroState, {
       drogueDeployed: isDrogueDeployed,
       mainDeployed: isMainDeployed,
-    }, {
-      vehicle,
-      motor,
-      launchAltitudeASL,
-      windSpeedSurface,
-      windAzimuthDeg,
-      finCantRad,
-    }, pv);
+    }, flightCfg, pv);
 
     const airspeed = macroDetail.kinematics.airspeed;
     const mach = macroDetail.kinematics.mach;
     const qInf = macroDetail.kinematics.qInf;
-    const totalAlphaDeg = macroDetail.kinematics.alphaDeg;
+    const totalAlphaDeg = macroDetail.kinematics.alphaTotalDeg;
     const dragAxial = macroDetail.kinematics.dragAxial;
     const thrustScalar = macroDetail.kinematics.thrust;
     const totalForceWorld: Vector3D = {
@@ -311,10 +599,9 @@ export function simulate6DofFlight(
       z: macroDetail.forceN.z,
     };
     const totalMass = macroDetail.mass;
-    const atmos = getAtmosphereAt(launchAltitudeASL + pos.z);
     if (mach > maxMach) maxMach = mach;
     if (airspeed > maxSpeed) maxSpeed = airspeed;
-    if (totalAlphaDeg > maxAlphaDeg) maxAlphaDeg = totalAlphaDeg;
+    if (!isDrogueDeployed && !isMainDeployed && totalAlphaDeg > maxAlphaDeg) maxAlphaDeg = totalAlphaDeg;
 
     // Linear Acceleration in World Frame
     let accelWorld: Vector3D = {
@@ -323,10 +610,9 @@ export function simulate6DofFlight(
       z: totalForceWorld.z / totalMass,
     };
 
-    // Launch Rail Constraint (keep — this constrains acceleration while the
-    // FSM's RAIL_EXIT has not fired)
-    // Signed displacement along the rail axis, projected from the rail base
-    // (pad at origin): s = dot(r - r_rail0, u_rail). Rail base is at origin.
+    // Launch Rail Constraint (display kinematics while the FSM's RAIL_EXIT
+    // has not fired): signed displacement along the rail axis, projected
+    // from the rail base (pad at origin): s = dot(r - r_rail0, u_rail).
     const distanceAlongRail =
       pos.x * railVector.x + pos.y * railVector.y + pos.z * railVector.z;
 
@@ -344,114 +630,14 @@ export function simulate6DofFlight(
           z: forwardAccel * railVector.z,
         };
 
-        // Track rail-constrained net force for the kernel (P0-1: the
-        // constrained force, not the free-body force, must drive translation)
-
-        // Suppress rotations on rail
+        // Suppress rotations on rail (display + next-step basis)
         omega = { p: 0, q: 0, r: 0 };
         q = normalizeQuaternion(initialQ);
       }
     }
 
-
     const scalarAccel = Math.sqrt(accelWorld.x * accelWorld.x + accelWorld.y * accelWorld.y + accelWorld.z * accelWorld.z);
     if (scalarAccel > maxAccel) maxAccel = scalarAccel;
-
-    // Production FSM: one-shot direction-filtered event detection with
-    // root-localized crossing times (P0-04/05)
-    const ev = detectEvents(eventState, prevSample, {
-      t,
-      altitudeAlongRail: distanceAlongRail,
-      railLength,
-      burnTime: motor.burnTime,
-      verticalVelocity: vel.z,
-      altitude: pos.z,
-      mainDeployAlt,
-    });
-    eventState = ev.state;
-    const tRailExit = ev.events.find(e => e.name === 'RAIL_EXIT')?.time ?? t;
-    const tBurnout = ev.events.find(e => e.name === 'MOTOR_BURNOUT')?.time ?? t;
-    const tApogee = ev.events.find(e => e.name === 'APOGEE_DROGUE')?.time ?? t;
-    const tMain = ev.events.find(e => e.name === 'MAIN_DEPLOY')?.time ?? t;
-    const tTouchdown = ev.events.find(e => e.name === 'TOUCHDOWN')?.time ?? t;
-
-    // Capture the CURRENT pre-step state as the prev sample for the next tick's
-    // crossing detection (must happen BEFORE integration write-back).
-    prevSample = {
-      t,
-      altitudeAlongRail: distanceAlongRail,
-      verticalVelocity: vel.z,
-      altitude: pos.z,
-    };
-
-    if (ev.fires.includes('RAIL_EXIT')) {
-      hasLeftRail = true;
-      const scalarSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
-      railExitVel = scalarSpeed;
-      weathercockAngleDeg = totalAlphaDeg;
-      events.push({
-        time: tRailExit,
-        name: 'Launch Rail Departure',
-        altitude: pos.z,
-        velocity: scalarSpeed,
-        description: `Exited ${railLength.toFixed(1)}m launch rail at ${scalarSpeed.toFixed(1)} m/s (safe threshold >= 15 m/s). Initial crosswind weathercocking: ${totalAlphaDeg.toFixed(1)}°.`,
-      });
-    }
-
-    if (ev.fires.includes('MOTOR_BURNOUT')) {
-      burnoutAlt = pos.z;
-      burnoutVel = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
-      events.push({
-        time: tBurnout,
-        name: 'Motor Burnout',
-        altitude: pos.z,
-        velocity: burnoutVel,
-        description: `Motor burnout at ${pos.z.toFixed(0)}m AGL. Burnout velocity: ${burnoutVel.toFixed(0)} m/s (Mach ${(burnoutVel / atmos.speedOfSound).toFixed(2)}). Transitioning to unpowered coast.`,
-      });
-    }
-
-    if (ev.fires.includes('APOGEE_DROGUE')) {
-      isApogeeReached = true;
-      maxAltitude = pos.z;
-      apogeeTime = tApogee;
-      apogeePos = { ...pos };
-      isDrogueDeployed = true;
-      // No rate reset: the drogue's drag acts through the loads assembly at
-      // the next stage-RHS evaluation (momentum-conserving; the parachute
-      // drag decelerates/rotates the vehicle physically).
-      events.push({
-        time: tApogee,
-        name: 'Apogee & Drogue Deployment',
-        altitude: pos.z,
-        velocity: Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z),
-        description: `Apogee reached at ${pos.z.toFixed(0)}m (${(pos.z * 3.28084).toFixed(0)} ft) AGL. High-speed drogue parachute ejected.`,
-      });
-    }
-
-    if (ev.fires.includes('MAIN_DEPLOY')) {
-      isMainDeployed = true;
-      events.push({
-        time: tMain,
-        name: 'Main Parachute Deployment',
-        altitude: pos.z,
-        velocity: Math.abs(vel.z),
-        description: `Main parachute opened at ${pos.z.toFixed(0)}m AGL. Decelerating descent for safe landing.`,
-      });
-    }
-
-    if (ev.fires.includes('TOUCHDOWN')) {
-      pos.z = 0;
-      const finalImpactSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
-      const lateralDrift = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
-      events.push({
-        time: tTouchdown,
-        name: 'Ground Touchdown',
-        altitude: 0,
-        velocity: finalImpactSpeed,
-        description: `Touchdown at ${finalImpactSpeed.toFixed(1)} m/s. Total lateral wind drift: ${lateralDrift.toFixed(0)}m from pad.`,
-      });
-      break;
-    }
 
     // Telemetry sampling (every 0.05s)
     if (Math.round(t / dt) % 5 === 0 || isApogeeReached || !hasLeftRail) {
@@ -476,57 +662,21 @@ export function simulate6DofFlight(
       });
     }
 
-    // IDENTITY mapping: kernel is frame-agnostic Cartesian RK4 operating in the
-    // simulator's display frame {x: East, y: Up, z: North}. r/v/forceN/quaternion
-    // pass through unchanged so body->nav attitude coupling stays consistent.
-    // Body rates/inertia use the certified label mapping:
-    //   omega {p=roll, q=pitch, r=yaw} <-> kernel w {x=pitch, y=roll, z=yaw}
-    //   Ixx=roll-axial, Iyy=Izz=transverse -> kernel inertiaB {pitch, roll, yaw}
-    // Identity low-level load for rail-free basic validity; when loadsAt is
-    // present this is overridden at every stage.
-    const kernelInState = {
-      r: { x: pos.x, y: pos.y, z: pos.z },
-      v: { x: vel.x, y: vel.y, z: vel.z },
-      q: { w: q.w, x: q.x, y: q.y, z: q.z },
-      w: simOmegaToKernel(omega),
+    // Checkpoint the resolved state at t as the NEXT bracket's base.
+    prevSample = {
+      t,
+      altitudeAlongRail: distanceAlongRail,
+      verticalVelocity: vel.z,
+      altitude: pos.z,
     };
+    prevFullState = toKernel(pos, vel, q, omega);
+    prevEventState = { ...eventState };
 
-    // Stage-RHS (P0-2): recompute full loads at every RK4 stage from that
-    // stage's state and time. Pre-rail, project net force along the rail so
-    // the constrained force actually drives translation (P0-1).
-    const loadsAtStage: LoadsAt = (tStage, stStage) => {
-      const flags = { drogueDeployed: isDrogueDeployed, mainDeployed: isMainDeployed };
-      const L: Loads = computeFlightLoads(tStage, stStage as StageKinematicState, flags, {
-        vehicle,
-        motor,
-        launchAltitudeASL,
-        windSpeedSurface,
-        windAzimuthDeg,
-        finCantRad,
-      }, pv);
-      if (!eventState.hasLeftRail) {
-        // On-rail: project force along rail, zero body moments (the rail
-        // constrains rotation; otherwise stage-RHS torque injection plus the
-        // post-step rail-lock zeroing accumulates spin and diverges).
-        const railUnit: Vec3 = { x: railVector.x, y: railVector.y, z: railVector.z };
-        const fdot = L.forceN.x * railUnit.x + L.forceN.y * railUnit.y + L.forceN.z * railUnit.z;
-        const fProj = Math.max(0, fdot);
-        return {
-          forceN: { x: fProj * railUnit.x, y: fProj * railUnit.y, z: fProj * railUnit.z },
-          momentB: { x: 0, y: 0, z: 0 },
-          inertiaB: L.inertiaB,
-          mass: L.mass,
-        };
-      }
-      return L;
-    };
-
-    const next = integrateRigidStep(kernelInState, {
-      forceN: { x: macroDetail.forceN.x, y: macroDetail.forceN.y, z: macroDetail.forceN.z },
-      momentB: { x: macroDetail.momentB.x, y: macroDetail.momentB.y, z: macroDetail.momentB.z },
-      inertiaB: macroDetail.inertiaB,
-      mass: macroDetail.mass,
-    }, dt, loadsAtStage, t);
+    // ENU identity mapping: r/v/q pass through in navigation coordinates
+    // {x: East, y: North, z: Up}. Body-rate labels remain explicit:
+    // omega {p=roll, q=pitch, r=yaw} <-> kernel {x=pitch, y=roll, z=yaw}.
+    const kernelInState = toKernel(pos, vel, q, omega);
+    const next = stepState(kernelInState, t, dt);
 
     // IDENTITY write-back: r/v/q propagate unchanged; body-rate label inverse
     pos.x = next.r.x; pos.y = next.r.y; pos.z = next.r.z;
@@ -537,25 +687,12 @@ export function simulate6DofFlight(
     omega.q = o.q;
     omega.r = o.r;
 
-    // Quasi-steady-state roll (stiff-dynamics limit, NORMATIVE).
-    // Roll timescale tau = I_roll / (q S r^2 C_lp) ~ 1e-4 s at this model
-    // scale; at dt>=0.005 explicit fixed-step RK4 can resolve it, at dt=0.01
-    // it is inside the stability bound and diverges. When tau_roll < dt,
-    // integrate the fast-rotating roll as equilibrated (p -> p_eq =
-    // sin(cant)/r) rather than explicitly — the roll damps to equilibrium
-    // within one macro-step, so holding equilibrium is MORE correct than a
-    // numerically unstable explicit step.
-    if (eventState.hasLeftRail) {
-      const rollDampCoeffMacro = qInf * refArea * rBody * rBody * 4.0;
-      const IrollMacro = macroDetail.inertiaB.y; // kernel roll inertia
-      const tauRoll = rollDampCoeffMacro > 0 ? IrollMacro / rollDampCoeffMacro : 1e-3;
-      if (tauRoll < dt) {
-        const pEq = Math.sin(finCantRad) / Math.max(1e-6, rBody);
-        omega.p = Math.sign(omega.p) * Math.min(Math.abs(omega.p), Math.abs(pEq));
-      }
-    }
+    // NOTE: roll is integrated purely by the coupled stage-RHS (roll torque
+    // from fin cant, dimensionally-correct pd/(2V) roll damping). The
+    // round-13 §4 post-step roll limiter is REMOVED: its timescale
+    // (I / q S r^2 C_lp) and equilibrium (p = sin(cant)/r) are dimensionally
+    // wrong and it overwrote the integrator's solved angular state.
 
-    if (pos.z < 0 && !isApogeeReached) pos.z = 0;
 
     t += dt;
   }

@@ -299,11 +299,27 @@ export function rotateWorldToBody(R: number[][], v: Vec3): Vec3 {
 /**
  * Dormand-Prince RK 5(4) adaptive integration (NORMATIVE Gate 2).
  *
- * Adds the contracted adaptive integrator: embedded 5th/4th-order error
- * estimate over the coupled 13-component state, per-axis absolute tolerances,
- * and step control (0.2x/5x clamp, 8-step shrink factor). Quaternion update
- * stays additive-normalized. `integrateRigidStep` (fixed RK4) remains for
- * benchmark parity; the adaptive integrator supersedes it for production.
+ * Adaptive embedded 5th/4th-order estimate over the coupled 13-component
+ * state with bounded rejection. Repairs shipped in this revision:
+ *   - the attitude error is the GEODESIC angle between the two full
+ *     candidate attitudes q5 = normalize(q + dq5) and q4 = normalize(q + dq4)
+ *     (derivative increments are not orientations; comparing the normalized
+ *     candidates captures both magnitude and direction of the discrepancy);
+ *   - rejection is bounded: consecutive-rejection and total-trial caps, a
+ *     representable-progress floor tied to |t| (t + h must advance t), and
+ *     growth/shrink step control based on the ACTUAL trial size h, never an
+ *     unclipped dt;
+ *   - every stage load-callback result is validated (finite components,
+ *     positive finite mass, strictly positive inertias, finite inertia
+ *     derivative);
+ *   - finite error estimates, accepted-state validation, finite ordered
+ *     t0/tEnd, positive finite tolerances, maxStep, dtInit;
+ *   - minimal dense output: per accepted step a 4th-order-accurate cubic
+ *     Hermite bracket (state + RHS derivative at both ends; the FSAL stage
+ *     supplies the endpoint derivative at no extra evaluation) for event
+ *     localization.
+ * `integrateRigidStep` (fixed RK4) remains for benchmark parity; the adaptive
+ * integrator supersedes it for production.
  */
 
 export interface AdaptiveTolerances {
@@ -313,12 +329,39 @@ export interface AdaptiveTolerances {
   w: number;   // angular rate (rad/s)
 }
 
+/** Coupled rigid-body RHS (translational + rotational derivatives). */
+export interface StateDerivative {
+  dr: Vec3;
+  dv: Vec3;
+  dq: Quat;
+  dw: Vec3;
+}
+
+/** One accepted adaptive step recorded for dense output / event localization. */
+export interface AdaptiveDenseStep {
+  t0: number;
+  /** actual trial size used for the accepted step (s) */
+  h: number;
+  y0: RigidState;
+  /** RHS derivative at (t0, y0) — stage-1 k */
+  f0: StateDerivative;
+  y1: RigidState;
+  /** RHS derivative at (t0+h, y1) — FSAL stage-7 k, zero extra evaluation */
+  f1: StateDerivative;
+}
+
 export interface AdaptiveResult {
   state: RigidState;
   finalTime: number;
   steps: number;
   rejectedSteps: number;
+  /** dense-output brackets, one per accepted step, in time order */
+  dense: AdaptiveDenseStep[];
 }
+
+/** Bounded-rejection caps: a stalled step sequence fails closed promptly. */
+const MAX_ADAPT_CONSECUTIVE_REJECTIONS = 500;
+const MAX_ADAPT_TRIALS = 5_000;
 
 const A_DP: number[] = [0, 1/5, 3/10, 4/5, 8/9, 1, 1];
 const B_DP: number[][] = [
@@ -336,9 +379,8 @@ const C4_DP: number[] = [5179/57600, 0, 7571/16695, 393/640, -92097/339200, 187/
 function normVec(v: Vec3): number {
   return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }
+/** Geodesic rotation angle between two unit quaternions: angle(qa ⊗ qb⁻¹). */
 function relQuatAngle(qa: Quat, qb: Quat): number {
-  // Relative rotation between two quaternion increments: angle(qa ⊗ qb⁻¹),
-  // i.e. how far the 5th- and 4th-order attitude predictions diverge.
   const qab = {
     w: qa.w * qb.w + qa.x * qb.x + qa.y * qb.y + qa.z * qb.z,
     x: qa.w * qb.x - qa.x * qb.w - qa.y * qb.z + qa.z * qb.y,
@@ -350,9 +392,42 @@ function relQuatAngle(qa: Quat, qb: Quat): number {
 }
 function subVec(a: Vec3, b: Vec3): Vec3 { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
 
+/** Strict validation of a callback-returned load set (mass/inertia/finiteness). */
+function validateLoads(L: Loads): void {
+  const finite =
+    Number.isFinite(L.forceN.x) && Number.isFinite(L.forceN.y) && Number.isFinite(L.forceN.z) &&
+    Number.isFinite(L.momentB.x) && Number.isFinite(L.momentB.y) && Number.isFinite(L.momentB.z) &&
+    Number.isFinite(L.inertiaB.x) && Number.isFinite(L.inertiaB.y) && Number.isFinite(L.inertiaB.z) &&
+    (L.inertiaDotB === undefined ||
+      (Number.isFinite(L.inertiaDotB.x) && Number.isFinite(L.inertiaDotB.y) && Number.isFinite(L.inertiaDotB.z)));
+  if (!finite) {
+    throw new Error('adaptive integrator: stage load callback returned a non-finite component');
+  }
+  if (!(L.mass > 0 && Number.isFinite(L.mass))) {
+    throw new Error('adaptive integrator: stage load callback returned non-positive or non-finite mass');
+  }
+  if (L.inertiaB.x <= 0 || L.inertiaB.y <= 0 || L.inertiaB.z <= 0) {
+    throw new Error('adaptive integrator: stage load callback returned non-positive principal inertia');
+  }
+}
+
+/** Validate an accepted propagated state: finite, unit attitude. */
+function validateAcceptedState(st: RigidState): void {
+  const finite =
+    Number.isFinite(st.r.x) && Number.isFinite(st.r.y) && Number.isFinite(st.r.z) &&
+    Number.isFinite(st.v.x) && Number.isFinite(st.v.y) && Number.isFinite(st.v.z) &&
+    Number.isFinite(st.w.x) && Number.isFinite(st.w.y) && Number.isFinite(st.w.z) &&
+    Number.isFinite(st.q.w) && Number.isFinite(st.q.x) && Number.isFinite(st.q.y) && Number.isFinite(st.q.z);
+  if (!finite) throw new Error('adaptive integrator: accepted state is non-finite');
+  const qn = Math.sqrt(st.q.w * st.q.w + st.q.x * st.q.x + st.q.y * st.q.y + st.q.z * st.q.z);
+  if (Math.abs(qn - 1) > 1e-6) {
+    throw new Error('adaptive integrator: accepted attitude is not unit-norm');
+  }
+}
+
 /**
  * Integrate from t0 with dynamic step sizing to reach tEnd.
- * Each accepted step stores the state; returns final state.
+ * Each accepted step records a dense-output bracket; returns the final state.
  */
 export function integrateRigidAdaptive(
   s0: RigidState,
@@ -363,16 +438,47 @@ export function integrateRigidAdaptive(
   maxStep: number = 0.05,
   dtInit: number = 0.005
 ): AdaptiveResult {
-  // normalize + validate entry
-  let s = { ...s0, q: normalizeQuaternion({ ...s0.q }) };
-  validateStateAndLoads(s, loadsAt(t0, s), dtInit);
+  // Solver-control validation: finite, ordered times; positive finite
+  // tolerances and step controls.
+  if (!Number.isFinite(t0)) throw new Error('adaptive integrator: t0 must be finite');
+  if (!Number.isFinite(tEnd) || tEnd <= t0) {
+    throw new Error('adaptive integrator: tEnd must be finite and strictly greater than t0');
+  }
+  const tolFinitePositive =
+    Number.isFinite(tol.r) && tol.r > 0 &&
+    Number.isFinite(tol.v) && tol.v > 0 &&
+    Number.isFinite(tol.q) && tol.q > 0 &&
+    Number.isFinite(tol.w) && tol.w > 0;
+  if (!tolFinitePositive) {
+    throw new Error('adaptive integrator: all tolerances must be finite and strictly positive');
+  }
+  if (!(Number.isFinite(maxStep) && maxStep > 0)) {
+    throw new Error('adaptive integrator: maxStep must be finite and strictly positive');
+  }
+  if (!(Number.isFinite(dtInit) && dtInit > 0)) {
+    throw new Error('adaptive integrator: dtInit must be finite and strictly positive');
+  }
+
+  // Match the fixed-step strict entry contract: normalization corrects only
+  // floating-point drift; it must never turn an arbitrary 4-vector into a
+  // fabricated attitude before the first loads callback.
+  const qNorm0 = Math.hypot(s0.q.w, s0.q.x, s0.q.y, s0.q.z);
+  if (!(qNorm0 > 1e-9) || Math.abs(qNorm0 - 1) > 1e-6) {
+    throw new Error(
+      'adaptive integrator: attitude must be a near-unit quaternion (|q|=1) at entry; normalize it at the caller boundary'
+    );
+  }
+  let s: RigidState = { ...s0, q: normalizeQuaternion({ ...s0.q }) };
+  validateAcceptedState(s);
   let t = t0;
-  let dt = dtInit;
+  let dt = Math.min(dtInit, maxStep);
   let steps = 0;
   let rejected = 0;
+  let rejectStreak = 0;
+  const dense: AdaptiveDenseStep[] = [];
 
   const accelFor = (L: Loads): Vec3 => ({ x: L.forceN.x / L.mass, y: L.forceN.y / L.mass, z: L.forceN.z / L.mass });
-  const deriv = (st: RigidState, L: Loads): { dr: Vec3; dv: Vec3; dq: Quat; dw: Vec3 } => ({
+  const deriv = (st: RigidState, L: Loads): StateDerivative => ({
     dr: st.v,
     dv: accelFor(L),
     dq: quaternionDerivative(st.q, st.w),
@@ -380,18 +486,23 @@ export function integrateRigidAdaptive(
   });
 
   while (t < tEnd - 1e-12) {
+    // Actual trial size: bounded by step control, maxStep, and remaining span.
     const h = Math.min(dt, maxStep, tEnd - t);
-    const ks: Array<{ dr: Vec3; dv: Vec3; dq: Quat; dw: Vec3 }> = [];
+    // Representable-progress floor: below this, t + h cannot advance t in
+    // floating point, so a rejection landing here can never converge.
+    const floor = Number.EPSILON * Math.max(1, Math.abs(t), Math.abs(tEnd));
 
-    // stage states
-    const stageStates: RigidState[] = [];
+    const ks: StateDerivative[] = [];
+
+    // Stage states + stage-load validation: the callback result at EVERY
+    // stage (including stage 0) is validated before it feeds a derivative.
     for (let i = 0; i < 7; i++) {
       const ti = i === 0 ? t : t + A_DP[i] * h;
+      let sti: RigidState;
       if (i === 0) {
-        ks.push(deriv(s, loadsAt(ti, s)));
-        stageStates.push(s);
+        sti = s;
       } else {
-        // accumulate k-lin combination
+        // accumulate k-linear combination
         const base = { r: { ...s.r }, v: { ...s.v }, q: { ...s.q }, w: { ...s.w } };
         let rr = { x: 0.0, y: 0.0, z: 0.0 };
         let vv = { x: 0.0, y: 0.0, z: 0.0 };
@@ -408,18 +519,21 @@ export function integrateRigidAdaptive(
           qq.y += h * b * dqj.y;
           qq.z += h * b * dqj.z;
         }
-        const sti: RigidState = {
+        sti = {
           r: { x: base.r.x + rr.x, y: base.r.y + rr.y, z: base.r.z + rr.z },
           v: { x: base.v.x + vv.x, y: base.v.y + vv.y, z: base.v.z + vv.z },
+          // Project every trial stage before a consumer turns q into a
+          // rotation matrix. This matches fixed RK4 and keeps loadsAt on SO(3).
           q: addQuat(base.q, qq, 1.0),
           w: { x: base.w.x + ww.x, y: base.w.y + ww.y, z: base.w.z + ww.z },
         };
-        stageStates.push(sti);
-        ks.push(deriv(sti, loadsAt(ti, sti)));
       }
+      const L = loadsAt(ti, sti);
+      validateLoads(L);
+      ks.push(deriv(sti, L));
     }
 
-    // 5th-order (C5) and 4th-order (C4) combinations
+    // 5th-order (C5) and 4th-order (C4) increment combinations.
     let r5 = { x: 0.0, y: 0.0, z: 0.0 };
     let v5 = { x: 0.0, y: 0.0, z: 0.0 };
     let w5 = { x: 0.0, y: 0.0, z: 0.0 };
@@ -446,17 +560,45 @@ export function integrateRigidAdaptive(
       q4.z += h * C4_DP[i] * dqi.z;
     }
 
-    // error vector = fifth-order estimate minus fourth-order
+    // FULL candidate attitudes (normalized) — not raw derivative increments:
+    // q5 = normalize(q + dq5), q4 = normalize(q + dq4).
+    const q5cand = normalizeQuaternion({
+      w: s.q.w + q5.w, x: s.q.x + q5.x, y: s.q.y + q5.y, z: s.q.z + q5.z,
+    });
+    const q4cand = normalizeQuaternion({
+      w: s.q.w + q4.w, x: s.q.x + q4.x, y: s.q.y + q4.y, z: s.q.z + q4.z,
+    });
+
+    // Error vector = fifth-order estimate minus fourth-order (geodesic angle
+    // for attitude).
     const errR = normVec(subVec(r5, r4));
     const errV = normVec(subVec(v5, v4));
     const errW = normVec(subVec(w5, w4));
-    // Attitude divergence = relative rotation between the 5th- and 4th-order
-    // quaternion increments (handles stationary state: increments both zero
-    // => zero rotation => errQ = 0, no infinite rejection).
-    const errQ = relQuatAngle(
-      { w: q5.w, x: q5.x, y: q5.y, z: q5.z },
-      { w: q4.w, x: q4.x, y: q4.y, z: q4.z }
-    );
+    const errQ = relQuatAngle(q5cand, q4cand);
+
+    // Finite-error validation: a non-finite estimate (e.g. overflowed stage
+    // difference) must never drive step control; treat as a strong rejection.
+    const errsFinite =
+      Number.isFinite(errR) && Number.isFinite(errV) && Number.isFinite(errW) && Number.isFinite(errQ);
+    if (!errsFinite) {
+      rejected++;
+      rejectStreak++;
+      if (rejectStreak > MAX_ADAPT_CONSECUTIVE_REJECTIONS) {
+        throw new Error(
+          'adaptive integrator: ' + MAX_ADAPT_CONSECUTIVE_REJECTIONS +
+          ' consecutive rejections with non-finite error estimates; loads model is not integrable'
+        );
+      }
+      const shrunk = h * 0.2;
+      if (shrunk <= floor) {
+        throw new Error(
+          'adaptive integrator: non-finite error estimate at the representable step floor (' + shrunk.toExponential(3) +
+          ' s); tolerance/loads combination is not integrable'
+        );
+      }
+      dt = shrunk;
+      continue;
+    }
 
     const rho = Math.min(
       errR <= 0 ? Infinity : Math.pow(tol.r / errR, 0.2),
@@ -464,36 +606,110 @@ export function integrateRigidAdaptive(
       errW <= 0 ? Infinity : Math.pow(tol.w / errW, 0.2),
       errQ <= 0 ? Infinity : Math.pow(tol.q / errQ, 0.2)
     );
-    const acceptable = errR <= tol.r && errV <= tol.v && errW <= tol.w && errQ <= tol.q;
 
-    if (acceptable) {
-      s = {
+    if (errR <= tol.r && errV <= tol.v && errW <= tol.w && errQ <= tol.q) {
+      // Accepted: applied state is the normalized 5th-order candidate.
+      const yPrev = s;
+      const y1: RigidState = {
         r: { x: s.r.x + r5.x, y: s.r.y + r5.y, z: s.r.z + r5.z },
         v: { x: s.v.x + v5.x, y: s.v.y + v5.y, z: s.v.z + v5.z },
-        q: normalizeQuaternion({
-          w: s.q.w + q5.w,
-          x: s.q.x + q5.x,
-          y: s.q.y + q5.y,
-          z: s.q.z + q5.z,
-        }),
+        q: q5cand,
         w: { x: s.w.x + w5.x, y: s.w.y + w5.y, z: s.w.z + w5.z },
       };
+      validateAcceptedState(y1); // accepted-state validation: reject baked-in NaN/Inf/non-unit
+      // FSAL stage (i = 6) evaluates the RHS exactly at the accepted 5th-order
+      // candidate, so the dense bracket's endpoint derivative is free.
+      dense.push({ t0: t, h, y0: yPrev, f0: ks[0], y1, f1: ks[6] });
+      s = y1;
       t += h;
       steps++;
-      dt = Math.max(dt * 0.2, Math.min(dt * 5.0, dt * Math.max(0.2, Math.min(5.0, 0.9 * rho))));
-      dt = Math.min(dt, maxStep);
+      rejectStreak = 0;
+      // Step control ON THE ACTUAL TRIAL h (not an unclipped dt), bounded by
+      // an 0.2x/5x clamp and maxStep.
+      const growth = Number.isFinite(rho) ? Math.max(0.2, Math.min(5.0, 0.9 * rho)) : 5.0;
+      dt = Math.min(maxStep, h * growth);
     } else {
       rejected++;
-      const dtNew = dt * Math.max(0.2, 0.9 * rho);
-      if (dtNew < 1e-12) {
+      rejectStreak++;
+      if (rejectStreak > MAX_ADAPT_CONSECUTIVE_REJECTIONS) {
         throw new Error(
-          'adaptive integrator: step rejected below numerical floor (1e-12 s); ' +
-          'loads/tolerance combination is not integrable at this sensitivity'
+          'adaptive integrator: ' + MAX_ADAPT_CONSECUTIVE_REJECTIONS +
+          ' consecutive rejected trials at nondecreasing size; tolerance/loads combination is not integrable'
         );
       }
-      dt = Math.max(1e-6, dtNew);
+      // Shrink the ACTUAL trial h; never clamp back up to a stale dt.
+      const dtNew = h * Math.max(0.2, 0.9 * rho);
+      if (dtNew <= floor) {
+        throw new Error(
+          'adaptive integrator: rejected step cannot make representable progress (h = ' +
+          dtNew.toExponential(3) + ' s at floor ' + floor.toExponential(3) +
+          '); tolerance is unachievable with this loads model'
+        );
+      }
+      dt = dtNew;
+    }
+
+    if (steps + rejected > MAX_ADAPT_TRIALS) {
+      throw new Error(
+        'adaptive integrator: exceeded ' + MAX_ADAPT_TRIALS + ' total trials; integration did not terminate'
+      );
     }
   }
 
-  return { state: s, finalTime: t, steps, rejectedSteps: rejected };
+  return { state: s, finalTime: t, steps, rejectedSteps: rejected, dense };
+}
+
+/**
+ * Evaluate the 4th-order cubic Hermite dense output at time `t` within the
+ * recorded integration span. The interpolant matches state AND RHS derivative
+ * at both ends of each accepted step, so pointwise error is O(h^4) — the
+ * contracted dense-output order for event localization.
+ * Throws outside the span; t exactly on a step boundary reads the step that
+ * ends there.
+ */
+export function denseOutputAt(dense: readonly AdaptiveDenseStep[], t: number): RigidState {
+  if (dense.length === 0) throw new Error('dense output: no accepted steps recorded');
+  const spanT0 = dense[0].t0;
+  const spanT1 = dense[dense.length - 1].t0 + dense[dense.length - 1].h;
+  if (!(t >= spanT0 && t <= spanT1)) {
+    throw new Error('dense output: query time ' + t + ' is outside integration span [' + spanT0 + ', ' + spanT1 + ']');
+  }
+  let idx = dense.length - 1;
+  for (let i = 0; i < dense.length; i++) {
+    if (t <= dense[i].t0 + dense[i].h + 1e-12) { idx = i; break; }
+  }
+  const d = dense[idx];
+  const u = d.h > 0 ? (t - d.t0) / d.h : 0;
+  const u2 = u * u, u3 = u2 * u;
+  const h00 = 2 * u3 - 3 * u2 + 1;   // weight of y0
+  const h10 = u3 - 2 * u2 + u;       // weight of h*f0
+  const h01 = -2 * u3 + 3 * u2;      // weight of y1
+  const h11 = u3 - u2;               // weight of h*f1
+  // 13 component call sites share this one lockstep Hermite formula.
+  const herm = (c0: number, dc0: number, c1: number, dc1: number): number =>
+    h00 * c0 + h10 * dc0 + h01 * c1 + h11 * dc1;
+  const qh = {
+    w: herm(d.y0.q.w, d.f0.dq.w * d.h, d.y1.q.w, d.f1.dq.w * d.h),
+    x: herm(d.y0.q.x, d.f0.dq.x * d.h, d.y1.q.x, d.f1.dq.x * d.h),
+    y: herm(d.y0.q.y, d.f0.dq.y * d.h, d.y1.q.y, d.f1.dq.y * d.h),
+    z: herm(d.y0.q.z, d.f0.dq.z * d.h, d.y1.q.z, d.f1.dq.z * d.h),
+  };
+  return {
+    r: {
+      x: herm(d.y0.r.x, d.f0.dr.x * d.h, d.y1.r.x, d.f1.dr.x * d.h),
+      y: herm(d.y0.r.y, d.f0.dr.y * d.h, d.y1.r.y, d.f1.dr.y * d.h),
+      z: herm(d.y0.r.z, d.f0.dr.z * d.h, d.y1.r.z, d.f1.dr.z * d.h),
+    },
+    v: {
+      x: herm(d.y0.v.x, d.f0.dv.x * d.h, d.y1.v.x, d.f1.dv.x * d.h),
+      y: herm(d.y0.v.y, d.f0.dv.y * d.h, d.y1.v.y, d.f1.dv.y * d.h),
+      z: herm(d.y0.v.z, d.f0.dv.z * d.h, d.y1.v.z, d.f1.dv.z * d.h),
+    },
+    q: normalizeQuaternion(qh),
+    w: {
+      x: herm(d.y0.w.x, d.f0.dw.x * d.h, d.y1.w.x, d.f1.dw.x * d.h),
+      y: herm(d.y0.w.y, d.f0.dw.y * d.h, d.y1.w.y, d.f1.dw.y * d.h),
+      z: herm(d.y0.w.z, d.f0.dw.z * d.h, d.y1.w.z, d.f1.dw.z * d.h),
+    },
+  };
 }

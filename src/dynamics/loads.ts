@@ -5,14 +5,28 @@
  * sixDofSimulator.ts. Both the flight simulator and verification benchmark
  * VV-004 consume this module — there is no test-local load assembly.
  *
- * Operates in the simulator display frame {x: East, y: Up, z: North}
- * (frame-agnostic Cartesian kernel). Body frame: +Y_B longitudinal noseward,
- * +X_B pitch, +Z_B yaw. Returns kernel-form Loads.
+ * Operates in the canonical right-handed ENU navigation frame {x: East,
+ * y: North, z: Up} (normative contract §1.1b; gravity acts along -z).
+ * Body frame: +Y_B longitudinal noseward, +X_B pitch, +Z_B yaw. Returns
+ * kernel-form Loads (inertiaB = {pitch, roll, yaw}).
+ *
+ * Round-13 audit §3.5/§3.6 repair scope:
+ *  - mass properties referenced to the INSTANTANEOUS combined CG x_c(t),
+ *    with both component inertias parallel-axis translated to it;
+ *  - d(I)/dt differentiated from the SAME linear depletion law used for I(t),
+ *    including the moving-reference d(x_c)/dt terms (no factor-of-two);
+ *  - complete wind-axis drag vector F_D,B = -D v_air,B/|v_air,B| on every
+ *    channel (free flight AND parachute path), alongside the body-normal force;
+ *  - signed paired incidence alpha = atan2(v_B,z, v_B,y), beta per contract
+ *    §6 — never folded; vehicle + Mach dependent normal slope (no cna = 12);
+ *  - load-level validity classification at aero-table Mach clamps;
+ *  - damping moments vanish at zero airspeed (no Math.max(1, V) floor).
  */
 
 import { RocketVehicle, ParachuteComponent } from '../core/types';
 import { MotorSpec, getMotorThrustAt, getMotorMassAt } from '../propulsion/motorDatabase';
 import { computeAerodynamicCurves } from '../aero/transonicAero';
+import { computeRocketStability } from '../aero/barrowman';
 import { getAtmosphereAt } from '../sim/flightSimulator';
 import { aggregateVehicleMass } from '../core/mass';
 import {
@@ -42,7 +56,7 @@ export interface LoadsAssemblyConfig {
   windSpeedSurface: number;
   windAzimuthDeg: number;
   finCantRad: number;
-  /** Direct wind vector override (m/s, display frame) for testability (Galilean invariance). */
+  /** Direct ENU wind override (m/s) for testability (Galilean invariance). */
   windOverride?: Vec3;
 }
 
@@ -79,6 +93,10 @@ export interface PreparedVehicle {
   Ixx_dry: number; // roll-axial (kg m^2)
   Iyy_dry: number; // transverse pitch
   baselineCg: number;
+  /** Whole-vehicle slender-body normal-force slope CNα (Barrowman, per radian),
+   *  referenced to refArea. Vehicle-dependent base that the Mach-modified
+   *  normal slope used by the loads assembly is scaled from. */
+  cna0: number;
   drogue: ParachuteComponent | undefined;
   mainChute: ParachuteComponent | undefined;
   aeroPowered: ReturnType<typeof computeAerodynamicCurves>;
@@ -104,6 +122,7 @@ export function prepareVehicle(vehicle: RocketVehicle): PreparedVehicle {
     Ixx_dry,
     Iyy_dry,
     baselineCg: massRollup.cg,
+    cna0: computeRocketStability(vehicle).totalCNa,
     drogue: parachutes[0],
     mainChute: parachutes.length > 1 ? parachutes[1] : parachutes[0],
     aeroPowered: computeAerodynamicCurves(vehicle, true, 25),
@@ -136,16 +155,49 @@ function aeroAtMach(
   return { totalCd: last.totalCd, cp: last.cp };
 }
 
+/**
+ * Vehicle/Mach-dependent normal-force slope (audit §3.6): the Barrowman
+ * whole-vehicle CNα is the subsonic slender-body value. Above Mach 1 the fin
+ * lift effectiveness degrades as 1/sqrt(M^2-1) (master spec §6.2.3 / the same
+ * mechanism the drag engine uses for the supersonic CP migration); the factor
+ * is clamped at 1 so the transonic branch never amplifies the subsonic value.
+ */
+function normalSlopeAtMach(mach: number, cna0: number): number {
+  if (!Number.isFinite(mach) || mach <= 1.0) return cna0;
+  return cna0 * Math.min(1.0, 1.0 / Math.sqrt(mach * mach - 1.0));
+}
+
+/** Load-level validity classification (master spec §9.3.1 flow validity).
+ *  `VALID`: aero table Mach ∈ [0,4]; `EXTRAPOLATED`: 4 < M ≤ 6 (table clamped
+ *  at the supersonic endpoint); `UNSUPPORTED`: M > 6. An out-of-domain load is
+ *  never silently claimed nominal. */
+export type LoadValidity = 'VALID' | 'EXTRAPOLATED' | 'UNSUPPORTED';
+
 export interface FlightLoadsDetail extends Loads {
+  /** Gate-3 variable-inertia derivative; the production assembly always
+   *  returns it (differentiated from the production mass law). */
+  inertiaDotB: Vec3;
+  /** Instantaneous combined CG, meters from nose tip (contract §1.2 origin). */
+  combinedCg: number;
+  loadValidity: LoadValidity;
   kinematics: {
     airspeed: number;
     mach: number;
     qInf: number;
+    /** Signed paired pitch incidence, deg: α = atan2(v_B,z, v_B,y) (contract §6). */
     alphaDeg: number;
+    /** Signed paired yaw incidence, deg: β = atan2(v_B,x, hypot(v_B,y, v_B,z)). */
     betaDeg: number;
+    /** Signed total incidence (unfolded), deg: atan2(latSpeed, v_B,y). */
+    alphaTotalDeg: number;
     latSpeed: number;
+    /** Wind-axis drag magnitude D = q S_eff C_D (N). */
     dragAxial: number;
     thrust: number;
+    /** Effective aero center of pressure this step (m from nose tip). */
+    cp: number;
+    /** Effective normal-force slope used this step (/rad); 0 under recovery. */
+    cna: number;
   };
 }
 
@@ -162,35 +214,60 @@ export function computeFlightLoads(
   const powered = tStage < cfg.motor.burnTime;
   const thrust = getMotorThrustAt(cfg.motor, tStage);
   const motorSt = getMotorMassAt(cfg.motor, tStage);
-  const mass = pv.vehicleDryMass + motorSt.currentMass;
+
+  // ------------------------------------------------------------------
+  // Instantaneous combined CG and mass properties (audit §3.5).
+  // Production mass law IS getMotorMassAt: a piecewise-linear depletion
+  // (dryMass + propellantMass*(1 - t/burnTime)) on the burn interval. The
+  // body-frame origin is the instantaneous combined CG ("contract §1.2
+  // body frame origin at instantaneous Center of Mass"):
+  //   x_c(t) = (m_d x_d + m_m(t) x_m) / (m_d + m_m(t))
+  // Both component inertias (dry body AND motor) are parallel-axis
+  // translated to x_c — never to the dry baseline CG.
+  // ------------------------------------------------------------------
+  const mDry = pv.vehicleDryMass;
+  const mMot = motorSt.currentMass;
+  const mass = mDry + mMot;
   const mRad = cfg.motor.diameter / 2;
-  const Ixx_mot = 0.5 * motorSt.currentMass * mRad * mRad;
-  // Motor transverse inertia about its own centroid, then PARALLEL-AXIS
-  // translated to the baseline vehicle CG (motor mounted aft of CG by
-  // motor center offset; audit §5.1). Izz = Iyy under axisymmetry.
-  const Iyy_mot_c = (motorSt.currentMass * (3 * mRad * mRad + cfg.motor.length * cfg.motor.length)) / 12;
-  // Motor CG offset from vehicle CG: motor axial base at vehicle aft, so its
-  // center sits at (totalLength - motor.length/2) from nose; baseline cg from nose.
-  const motorCgFromNose = Math.max(0, pv.totalLength - cfg.motor.length / 2);
-  const dMot = motorCgFromNose - pv.baselineCg; // signed (m)
-  const Iyy_mot = Iyy_mot_c + motorSt.currentMass * dMot * dMot;
-  const Ixx = pv.Ixx_dry + Ixx_mot; // roll-axial (insensitive to axial offset)
-  const Iyy = pv.Iyy_dry + Iyy_mot; // transverse pitch (parallel-axis corrected)
+  const mLen = cfg.motor.length;
+  const xMot = Math.max(0.0, pv.totalLength - mLen / 2); // motor centroid, m from nose
+  const xDry = pv.baselineCg;                            // dry vehicle CG, m from nose
+  const xC = (mDry * xDry + mMot * xMot) / mass;         // instantaneous combined CG
+  const dDry = xDry - xC; // signed axial offsets -> combined CG
+  const dMot = xMot - xC;
+
+  // Component inertias about their OWN centroids.
+  const Ixx_mot_c = 0.5 * mMot * mRad * mRad;
+  const Iyy_mot_c = (mMot * (3 * mRad * mRad + mLen * mLen)) / 12;
+  // Total inertia about the instantaneous combined CG (parallel-axis on the
+  // axial offset; roll-axial inertia is invariant to axial translation).
+  const Ixx = pv.Ixx_dry + Ixx_mot_c;
+  const Iyy = pv.Iyy_dry + mDry * dDry * dDry + Iyy_mot_c + mMot * dMot * dMot;
   const Izz = Iyy;
 
-  // Gate 3: variable-inertia term from motor mass depletion.
-  // Constant-flow depletion is the DISCHARGE MODEL in production use
-  // (contract §5 motor model): dm/dt = -m_prop / t_burn while burning.
-  // The parallel-axis term contributes d(Iyy)/dt = 2 m_mot d_mot (d_mot/dt),
-  // which with d_mot constant reduces to the mass-flow term only; we account
-  // for the mass-linked d(I)/dt via the two terms below.
-  const dmDt = powered ? -cfg.motor.propellantMass / cfg.motor.burnTime : 0;
+  // ---------------- inertiaDot from the SAME mass law -----------------
+  // Differentiating getMotorMassAt on the right-hand burn interval:
+  //   dm/dt = -m_prop / t_burn   for 0 <= t < burnTime; 0 afterward
+  // and, because the combined CG moves as the motor drains:
+  //   d(x_c)/dt = (dm/dt) * m_d * (x_m - x_d) / (m_d + m_m)^2
+  // with d_d = x_d - x_c, d_m = x_m - x_c both satisfying d(d)/dt = -d(x_c)/dt:
+  //   d(m_d d_d^2)/dt = 2 m_d d_d (d_d_dot)
+  //   d(m_m d_m^2)/dt = (dm/dt) d_m^2 + 2 m_m d_m (d_m_dot)
+  // (the audit §3.5 factor-of-two defect came from "2 dm d^2" at CONSTANT
+  //  offset — here the offset moves, so both terms of the product rule appear
+  //  exactly once and the reference motion is included).
+  const dmDt =
+    tStage >= 0 && tStage < cfg.motor.burnTime
+      ? -cfg.motor.propellantMass / cfg.motor.burnTime
+      : 0.0;
+  const dIyy_mot_c_dt = ((3 * mRad * mRad + mLen * mLen) / 12) * dmDt;
+  const xCDot = (dmDt * mDry * (xMot - xDry)) / (mass * mass);
+  const dDryDot = -xCDot;
+  const dMotDot = -xCDot;
+  const dIyy = dIyy_mot_c_dt + 2 * mDry * dDry * dDryDot + dmDt * dMot * dMot + 2 * mMot * dMot * dMotDot;
   const dIxx_mot_dt = 0.5 * mRad * mRad * dmDt;
-  const dIyy_mot_dt =
-    (3 * mRad * mRad + cfg.motor.length * cfg.motor.length) / 12 * dmDt +
-    2 * dmDt * dMot * dMot; // d(m·d_mot²)/dt with d_mot constant = 2·dm·d²
   // inertias stored as {pitch, roll, yaw} in kernel convention
-  const inertiaDotB = { x: dIyy_mot_dt, y: dIxx_mot_dt, z: dIyy_mot_dt };
+  const inertiaDotB = { x: dIyy, y: dIxx_mot_dt, z: dIyy };
 
   const R = quaternionToMatrix({ w: st.q.w, x: st.q.x, y: st.q.y, z: st.q.z });
   const wind = cfg.windOverride ?? getWindVectorAt(st.r.z, cfg.windSpeedSurface, cfg.windAzimuthDeg);
@@ -199,12 +276,13 @@ export function computeFlightLoads(
   const airspeed = Math.sqrt(relBody.x * relBody.x + relBody.y * relBody.y + relBody.z * relBody.z);
   const mach = airspeed / atmos.speedOfSound;
   const qInf = 0.5 * atmos.density * airspeed * airspeed;
-  // Certified paired incidence (contract §6): α about the X_B (pitch) axis,
-  // β about the Z_B (yaw) axis, from body-frame air-relative velocity.
   const latSpeed = Math.sqrt(relBody.x * relBody.x + relBody.z * relBody.z);
-  // Signed paired incidence (contract §6): α about X_B (pitch), β about Z_B (yaw)
-  const beta = Math.atan2(relBody.x, Math.max(1e-6, Math.hypot(relBody.y, relBody.z)));
-  const alphaTotal = Math.atan2(latSpeed, Math.max(1e-6, Math.abs(relBody.y)));
+  // Certified signed PAIRED incidence (contract §6) — α about the X_B pitch
+  // axis, β about the Z_B yaw axis. Never folded, never clamped.
+  const alpha = Math.atan2(relBody.z, relBody.y);
+  const beta = Math.atan2(relBody.x, Math.sqrt(relBody.y * relBody.y + relBody.z * relBody.z));
+  const alphaTotal = Math.atan2(latSpeed, relBody.y); // unfolded incidence magnitude
+  const alphaTotalDeg = (alphaTotal * 180) / Math.PI;
 
   const aero = aeroAtMach(mach, powered, pv);
   let cd = aero.totalCd;
@@ -217,42 +295,83 @@ export function computeFlightLoads(
     effArea = (Math.PI / 4) * Math.pow(pv.drogue.diameter, 2);
     cd = pv.drogue.cd || 0.8;
   }
-
   const dragAxial = qInf * effArea * cd; // wind-axis drag magnitude (N)
+  // Validity belongs to the ACTIVE aerodynamic model. Free-flight slender-
+  // body loads are nominal only through M=4 and 15° total incidence; the
+  // transition envelope ends at M=6 or 30°. Recovery uses the canopy drag
+  // model, so body incidence is not a validity input while a chute is live.
+  const recovery = flags.drogueDeployed || flags.mainDeployed;
+  const incidenceForValidity = recovery ? 0 : alphaTotalDeg;
+  let loadValidity: LoadValidity =
+    mach > 6.0 || incidenceForValidity > 30.0
+      ? 'UNSUPPORTED'
+      : mach > 4.0 || incidenceForValidity > 15.0
+        ? 'EXTRAPOLATED'
+        : 'VALID';
 
-  // Wind-axis -> body transform (contract §6): drag opposes the air-relative
-  // velocity unit vector; lift acts along the body Y-Z plane normal to it.
+  // Wind-axis -> body transform (audit §3.6): the COMPLETE drag vector
+  //   F_D,B = -D * v_air,B / |v_air,B|
+  // opposes the air-relative velocity in EVERY channel (not merely the axial
+  // one), in free flight and on the parachute path alike. The body-normal
+  // force (transverse plane, slender-body normal slope) is added alongside —
+  // never substituted for the transverse drag components.
   let aeroBody = { x: 0.0, y: 0.0, z: 0.0 };
-  if (airspeed < 1e-6 || latSpeed < 1e-9) {
-    // No relative airflow / purely axial flow: zero transverse aero forces
-    aeroBody.y = -dragAxial * (airspeed > 1e-6 ? relBody.y / airspeed : 0);
-  } else {
-    // Drag opposes airflow, axial component only (wind-axis -> body, §6)
-    aeroBody.y = -dragAxial * (relBody.y / airspeed);
-    // Normal force magnitude from total incidence, in the transverse X-Z
-    // plane (signed by longitudinal air-speed direction to fold reverse flow
-    // correctly): direction = -transverse velocity / latSpeed
-    const cna = 12.0; // documented normal-force slope (Mach-averaged, screened)
-    const normalMag = qInf * pv.refArea * cna * Math.sin(alphaTotal) * Math.sign(relBody.y);
-    const nx = latSpeed > 0 ? -normalMag * (relBody.x / latSpeed) : 0;
-    const nz = latSpeed > 0 ? -normalMag * (relBody.z / latSpeed) : 0;
-    aeroBody.x = nx;
-    aeroBody.z = nz;
+  let cna = 0.0;
+  // Model-domain handling (audit §6B): slender-body nose-first aero is
+  // undefined for DOMINANT reverse axial flow — flow coming from a cone
+  // within 45° of the pure aft axis (v_air,B,y < 0 AND |v_y| >= latSpeed).
+  // Such a load fails closed at the validity flag (UNSUPPORTED), never
+  // silently folded into small incidence or claimed nominal. The stage must
+  // stay finite and integrable: the complete drag vector still applies
+  // (blunt-base drag) while the slender-body normal-force law is suppressed
+  // (zero transverse normal force). Post-stall broadside flow
+  // (|v_y| < latSpeed) stays computable through the signed-aoa laws. Under a
+  // deployed recovery canopy the rocket body is slung beneath the chute; the
+  // canopy drag vector (below) is the valid model there, so tail-first flow
+  // is allowed.
+  const tailFirstFreeFlight = !recovery && relBody.y < 0.0 && -relBody.y >= latSpeed;
+  if (tailFirstFreeFlight) {
+    loadValidity = 'UNSUPPORTED';
+  }
+  if (airspeed > 1e-6) {
+    const invV = 1.0 / airspeed;
+    aeroBody.x = -dragAxial * relBody.x * invV;
+    aeroBody.y = -dragAxial * relBody.y * invV;
+    aeroBody.z = -dragAxial * relBody.z * invV;
+    // Body-normal force: transverse-plane resistance q S C_Nα sin(α_total)
+    // with the vehicle AND Mach dependent slope (audit §3.6 — cna = 12 gone).
+    // Free flight only, and only inside the slender-body model domain: in
+    // recovery the canopy constrains the body, and in dominant reverse flow
+    // the normal-force law is undefined — both suppress it (canopy-constrained
+    // body / blunt-base drag only).
+    if (!recovery && !tailFirstFreeFlight) {
+      cna = normalSlopeAtMach(mach, pv.cna0);
+      if (latSpeed > 1e-9) {
+        const normalMag = qInf * pv.refArea * cna * Math.sin(alphaTotal);
+        const invLat = 1.0 / latSpeed;
+        aeroBody.x += -normalMag * relBody.x * invLat;
+        aeroBody.z += -normalMag * relBody.z * invLat;
+      }
+    }
   }
 
   const forceBodyN = rotateBodyToWorld(R, { x: aeroBody.x, y: aeroBody.y + thrust, z: aeroBody.z });
   forceBodyN.z -= mass * 9.80665;
 
-  const dStatic = cp - pv.baselineCg;
+  // Static aero moment arm from the INSTANTANEOUS combined CG (audit §3.5) —
+  // never from the dry baseline CG.
+  const dStatic = cp - xC;
   const roll = st.w.y;
   const pitch = st.w.x;
   const yaw = st.w.z;
-  const pitchDamp = 0.5 * atmos.density * Math.max(1, airspeed) * pv.refArea * pv.totalLength * pv.totalLength * 1.5 * pitch;
-  const yawDamp = 0.5 * atmos.density * Math.max(1, airspeed) * pv.refArea * pv.totalLength * pv.totalLength * 1.5 * yaw;
-  // Roll damping: dimensionally correct N·m via nondimensional rate p·d/(2V)
-  // (contract §6 convention): L_p = qInf S d C_lp p d / (2 V)
+  // Damping moments scale with airspeed (q S L² ∝ V): at zero airspeed the
+  // damping must vanish — no Math.max(1, airspeed) floor (audit §3.6).
+  const pitchDamp = 0.5 * atmos.density * airspeed * pv.refArea * pv.totalLength * pv.totalLength * 1.5 * pitch;
+  const yawDamp = 0.5 * atmos.density * airspeed * pv.refArea * pv.totalLength * pv.totalLength * 1.5 * yaw;
+  // Roll damping (contract §6 convention): L_p = q S d C_lp p d / (2 V)
+  // = 0.25 ρ V S d² C_lp p — V-cancelled form vanishes at V = 0.
   const clp = 4.0; // roll-damping coefficient derivative (screened empirical)
-  const rollDamp = (qInf * pv.refArea * pv.rBody * pv.rBody * clp * roll) / (2 * Math.max(1.0, airspeed));
+  const rollDamp = 0.25 * atmos.density * airspeed * pv.refArea * pv.rBody * pv.rBody * clp * roll;
   const rollTorque = qInf * pv.refArea * pv.rBody * Math.sin(cfg.finCantRad) * 4.0;
 
   return {
@@ -265,15 +384,20 @@ export function computeFlightLoads(
     inertiaB: { x: Iyy, y: Ixx, z: Izz }, // kernel {pitch, roll, yaw}
     inertiaDotB,
     mass,
+    combinedCg: xC,
+    loadValidity,
     kinematics: {
       airspeed,
       mach,
       qInf,
-      alphaDeg: (alphaTotal * 180) / Math.PI,
+      alphaDeg: (alpha * 180) / Math.PI,
       betaDeg: (beta * 180) / Math.PI,
+      alphaTotalDeg,
       latSpeed,
       dragAxial,
       thrust,
+      cp,
+      cna,
     },
   };
 }
