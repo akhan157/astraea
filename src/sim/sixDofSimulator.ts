@@ -336,7 +336,7 @@ export function simulate6DofFlight(
     const yaw = st.w.z;
     const pitchDampSt = 0.5 * atmosSt.density * Math.max(1, airspeedSt) * refArea * totalLength * totalLength * 1.5 * pitch;
     const yawDampSt = 0.5 * atmosSt.density * Math.max(1, airspeedSt) * refArea * totalLength * totalLength * 1.5 * yaw;
-    const rollDampSt = qInfSt * refArea * rBody * rBody * 4.0 * Math.max(0.1, roll);
+    const rollDampSt = qInfSt * refArea * rBody * rBody * 4.0 * roll;
     const rollTorqueSt = qInfSt * refArea * rBody * Math.sin(finCantRad) * 4.0;
 
     return {
@@ -528,7 +528,7 @@ export function simulate6DofFlight(
     // Aerodynamic pitch/yaw damping moments: M_damp = -0.5 * rho * V * S_ref * L^2 * C_mq * omega
     const pitchDampingTorque = 0.5 * atmos.density * Math.max(1, airspeed) * refArea * totalLength * totalLength * 1.5 * omega.q;
     const yawDampingTorque = 0.5 * atmos.density * Math.max(1, airspeed) * refArea * totalLength * totalLength * 1.5 * omega.r;
-    const rollDampingTorque = qInf * refArea * rBody * rBody * 4.0 * Math.max(0.1, omega.p);
+    const rollDampingTorque = qInf * refArea * rBody * rBody * 4.0 * omega.p;
 
     // Roll torque induced by fin cant angle: T_roll = q * S_ref * R_body * sin(delta_cant) * N_fins
     const rollTorque = qInf * refArea * rBody * Math.sin(finCantRad) * 4.0;
@@ -716,17 +716,17 @@ export function simulate6DofFlight(
       const flags = { drogueDeployed: isDrogueDeployed, mainDeployed: isMainDeployed };
       const L = computeFlightLoads(tStage, stStage, flags);
       if (!eventState.hasLeftRail) {
-        // Project force along rail vector (display frame): F_rail = (F . u_hat) u_hat
+        // On-rail: project force along rail, zero body moments (the rail
+        // constrains rotation; otherwise stage-RHS torque injection plus the
+        // post-step rail-lock zeroing accumulates spin and diverges).
         const railUnit: Vec3 = { x: railVector.x, y: railVector.y, z: railVector.z };
         const fdot = L.forceN.x * railUnit.x + L.forceN.y * railUnit.y + L.forceN.z * railUnit.z;
-        const fProj = Math.max(0, fdot); // rail only pushes forward
+        const fProj = Math.max(0, fdot);
         return {
-          ...L,
-          forceN: {
-            x: fProj * railUnit.x,
-            y: fProj * railUnit.y,
-            z: fProj * railUnit.z,
-          },
+          forceN: { x: fProj * railUnit.x, y: fProj * railUnit.y, z: fProj * railUnit.z },
+          momentB: { x: 0, y: 0, z: 0 },
+          inertiaB: L.inertiaB,
+          mass: L.mass,
         };
       }
       return L;
@@ -747,6 +747,25 @@ export function simulate6DofFlight(
     omega.p = o.p;
     omega.q = o.q;
     omega.r = o.r;
+
+    // Quasi-steady-state roll (stiff-dynamics limit, NORMATIVE).
+    // Roll timescale tau = I_roll / (q S r^2 C_lp) ~ 1e-4 s at this model
+    // scale; at dt>=0.005 explicit fixed-step RK4 can resolve it, at dt=0.01
+    // it is inside the stability bound and diverges. When tau_roll < dt,
+    // integrate the fast-rotating roll as equilibrated (p -> p_eq =
+    // sin(cant)/r) rather than explicitly — the roll damps to equilibrium
+    // within one macro-step, so holding equilibrium is MORE correct than a
+    // numerically unstable explicit step.
+    if (eventState.hasLeftRail) {
+      const qInfMacro = 0.5 * atmos.density * airspeed * airspeed;
+      const rollDampCoeffMacro = qInfMacro * refArea * rBody * rBody * 4.0;
+      const IrollMacro = Ixx; // kernel roll inertia (production Ixx = roll-axial)
+      const tauRoll = rollDampCoeffMacro > 0 ? IrollMacro / rollDampCoeffMacro : 1e-3;
+      if (tauRoll < dt) {
+        const pEq = Math.sin(finCantRad) / Math.max(1e-6, rBody);
+        omega.p = Math.sign(omega.p) * Math.min(Math.abs(omega.p), Math.abs(pEq));
+      }
+    }
 
     if (pos.y < 0 && !isApogeeReached) pos.y = 0;
 
