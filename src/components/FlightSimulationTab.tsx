@@ -4,7 +4,7 @@
  * real motor thrust curves, transonic drag breakdown, and competition safety gates.
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useRocketStore } from '../store/rocketStore';
 import { CERTIFIED_MOTORS, MotorSpec } from '../propulsion/motorDatabase';
 import { simulate6DofFlight, SixDofSimulationResult } from '../sim/sixDofSimulator';
@@ -28,6 +28,8 @@ interface FlightSimulationTabProps {
 
 export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen, onClose }) => {
   const vehicle = useRocketStore((s) => s.vehicle);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const [selectedMotorId, setSelectedMotorId] = useState<string>('estes_c6');
   const [railLength, setRailLength] = useState<number>(2.4); // meters
@@ -38,13 +40,82 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
   const [finCant, setFinCant] = useState<number>(0.0); // deg
   const [mainDeployAlt, setMainDeployAlt] = useState<number>(250); // meters AGL
   const [simResult, setSimResult] = useState<SixDofSimulationResult | null>(null);
+  const [lastRunInputKey, setLastRunInputKey] = useState<string | null>(null);
 
   const activeMotor: MotorSpec = CERTIFIED_MOTORS[selectedMotorId] || CERTIFIED_MOTORS.estes_c6;
+
+  const simulationInputKey = useMemo(
+    () =>
+      JSON.stringify({
+        vehicle,
+        selectedMotorId,
+        railLength,
+        railElevation,
+        railAzimuth,
+        windSpeed,
+        windAzimuth,
+        finCant,
+        mainDeployAlt,
+      }),
+    [
+      vehicle,
+      selectedMotorId,
+      railLength,
+      railElevation,
+      railAzimuth,
+      windSpeed,
+      windAzimuth,
+      finCant,
+      mainDeployAlt,
+    ],
+  );
+  const resultsAreStale = simResult !== null && lastRunInputKey !== simulationInputKey;
 
   // Precompute high-Mach aerodynamic curve
   const aeroCurves = useMemo(() => {
     return computeAerodynamicCurves(vehicle, false, 30);
   }, [vehicle]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab' || !dialogRef.current) return;
+
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), select:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => !element.hasAttribute('hidden'));
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
+  }, [isOpen, onClose]);
 
   const handleRunSimulation = () => {
     const res = simulate6DofFlight(vehicle, activeMotor, {
@@ -57,14 +128,20 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
       mainDeployAltitudeAGL: mainDeployAlt,
     });
     setSimResult(res);
+    setLastRunInputKey(simulationInputKey);
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md">
-      <div className="w-full max-w-5xl max-h-[92vh] bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden select-none animate-in fade-in zoom-in-95 duration-200">
-        {/* Modal Header */}
+      <div
+        className="w-full max-w-5xl max-h-[92vh] bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden select-none animate-in fade-in zoom-in-95 duration-200"
+        role="dialog"
+        ref={dialogRef}
+        aria-modal="true"
+        aria-labelledby="flight-simulation-title"
+      >
         <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/90">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
@@ -72,7 +149,10 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+                <h2
+                  id="flight-simulation-title"
+                  className="text-sm font-bold text-white uppercase tracking-wider font-mono"
+                >
                   6-DOF Flight Dynamics & Aerodynamics Engine
                 </h2>
                 <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono font-bold">
@@ -87,7 +167,9 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition cursor-pointer"
+            aria-label="Close flight simulation"
+            className="min-w-11 min-h-11 p-2.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 transition cursor-pointer"
+            ref={closeButtonRef}
           >
             <X className="w-5 h-5" />
           </button>
@@ -106,8 +188,9 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                 </label>
                 <select
                   value={selectedMotorId}
+                  aria-label="Certified rocket motor"
                   onChange={(e) => setSelectedMotorId(e.target.value)}
-                  className="w-full bg-zinc-800 text-zinc-100 px-3 py-2 rounded-lg border border-zinc-700 focus:border-cyan-500 focus:outline-none font-medium cursor-pointer"
+                  className="w-full min-h-11 bg-zinc-800 text-zinc-100 px-3 py-2 rounded-lg border border-zinc-600 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 font-medium cursor-pointer"
                 >
                   {Object.values(CERTIFIED_MOTORS).map((m) => (
                     <option key={m.id} value={m.id}>
@@ -128,8 +211,9 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   max="500"
                   step="25"
                   value={mainDeployAlt}
+                  aria-label="Main parachute deployment altitude in meters above ground level"
                   onChange={(e) => setMainDeployAlt(parseFloat(e.target.value))}
-                  className="w-full accent-cyan-500 cursor-pointer"
+                  className="w-full min-h-11 accent-cyan-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
                 />
               </div>
             </div>
@@ -149,8 +233,9 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   max="90"
                   step="0.5"
                   value={railElevation}
+                  aria-label="Launch rail elevation in degrees"
                   onChange={(e) => setRailElevation(parseFloat(e.target.value))}
-                  className="w-full accent-cyan-500 cursor-pointer"
+                  className="w-full min-h-11 accent-cyan-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
                 />
               </div>
 
@@ -167,8 +252,9 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   max="360"
                   step="5"
                   value={railAzimuth}
+                  aria-label="Launch rail azimuth in degrees"
                   onChange={(e) => setRailAzimuth(parseFloat(e.target.value))}
-                  className="w-full accent-cyan-500 cursor-pointer"
+                  className="w-full min-h-11 accent-cyan-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
                 />
               </div>
 
@@ -183,8 +269,9 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   max="5.0"
                   step="0.2"
                   value={railLength}
+                  aria-label="Launch rail length in meters"
                   onChange={(e) => setRailLength(parseFloat(e.target.value))}
-                  className="w-full accent-cyan-500 cursor-pointer"
+                  className="w-full min-h-11 accent-cyan-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
                 />
               </div>
             </div>
@@ -204,8 +291,9 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   max="12"
                   step="0.5"
                   value={windSpeed}
+                  aria-label="Surface crosswind speed in meters per second"
                   onChange={(e) => setWindSpeed(parseFloat(e.target.value))}
-                  className="w-full accent-amber-500 cursor-pointer"
+                  className="w-full min-h-11 accent-amber-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
                 />
               </div>
 
@@ -220,8 +308,9 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   max="360"
                   step="10"
                   value={windAzimuth}
+                  aria-label="Wind direction from in degrees"
                   onChange={(e) => setWindAzimuth(parseFloat(e.target.value))}
-                  className="w-full accent-amber-500 cursor-pointer"
+                  className="w-full min-h-11 accent-amber-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
                 />
               </div>
 
@@ -236,8 +325,9 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   max="2.0"
                   step="0.1"
                   value={finCant}
+                  aria-label="Fin cant spin angle in degrees"
                   onChange={(e) => setFinCant(parseFloat(e.target.value))}
-                  className="w-full accent-cyan-500 cursor-pointer"
+                  className="w-full min-h-11 accent-cyan-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
                 />
               </div>
             </div>
@@ -247,7 +337,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
           <div className="flex justify-center">
             <button
               onClick={handleRunSimulation}
-              className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
+              className="min-h-11 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>Run 6-DOF Trajectory Simulation</span>
@@ -257,7 +347,71 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
           {/* Simulation Output KPIs */}
           {simResult && (
             <div className="space-y-6 animate-in fade-in duration-300">
-              {/* Primary Flight Metrics Banner */}
+              {/* Outcome, model validity, and freshness are independent (§2.6). */}
+              <div
+                className="min-h-9 p-3 bg-zinc-950/80 rounded-xl border border-zinc-700 flex flex-wrap items-center gap-2"
+                role="status"
+                aria-live="polite"
+              >
+                <span className="text-[10px] text-zinc-400 uppercase font-semibold mr-1">Flight Status</span>
+                {(() => {
+                  const v = simResult.validity;
+                  const badge =
+                    v === 'PASS'
+                      ? {
+                          c: resultsAreStale
+                            ? 'text-amber-300 bg-amber-500/10 border-amber-500/30'
+                            : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
+                          icon: resultsAreStale
+                            ? <AlertTriangle className="w-3.5 h-3.5" />
+                            : <CheckCircle2 className="w-3.5 h-3.5" />,
+                          label: resultsAreStale ? 'PASS · prior run' : 'PASS · criterion satisfied',
+                        }
+                      : v === 'UNKNOWN'
+                        ? {
+                            c: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
+                            icon: <AlertTriangle className="w-3.5 h-3.5" />,
+                            label: 'UNKNOWN · insufficient evidence',
+                          }
+                        : v === 'FAIL'
+                          ? {
+                              c: 'text-rose-400 bg-rose-500/10 border-rose-500/30',
+                              icon: <X className="w-3.5 h-3.5" />,
+                              label: 'FAIL · limit exceeded',
+                            }
+                          : {
+                              c: 'text-zinc-300 bg-zinc-700/20 border-zinc-600/40',
+                              icon: <X className="w-3.5 h-3.5" />,
+                              label: 'N/A · criterion excluded',
+                            };
+                  return (
+                    <span className={`px-2 py-1 rounded border text-[10px] font-mono font-bold inline-flex items-center gap-1 ${badge.c}`}>
+                      {badge.icon}
+                      {badge.label}
+                    </span>
+                  );
+                })()}
+                <span
+                  className={`text-[10px] px-2 py-1 rounded border font-mono ${
+                    simResult.enveloped
+                      ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+                      : 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                  }`}
+                >
+                  {simResult.enveloped ? 'VALID · M∈[0,4], α≤30°' : 'OUT-OF-DOMAIN · not certifiable'}
+                </span>
+                <span
+                  className={`text-[10px] px-2 py-1 rounded border font-mono ${
+                    resultsAreStale
+                      ? 'text-amber-300 bg-amber-500/10 border-amber-500/30'
+                      : 'text-cyan-300 bg-cyan-500/10 border-cyan-500/30'
+                  }`}
+                >
+                  {resultsAreStale ? 'STALE · configuration changed' : 'CURRENT · inputs match run'}
+                </span>
+              </div>
+
+              {/* Airframe/Status gates */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
                   <div className="text-[10px] text-zinc-500 uppercase font-semibold">Apogee Altitude</div>
@@ -310,7 +464,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                     {simResult.landingDistance.toFixed(0)} m
                   </div>
                   <div className="text-[10px] text-zinc-400 font-mono">
-                    [{simResult.landingPosition.x.toFixed(0)}E, {simResult.landingPosition.z.toFixed(0)}N]
+                    [{simResult.landingPosition.x.toFixed(0)}E, {simResult.landingPosition.y.toFixed(0)}N]
                   </div>
                 </div>
 
@@ -339,7 +493,12 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                     <span className="text-[10px] font-mono text-cyan-400">Euler-Poinsot Quaternion ODE</span>
                   </div>
                   <div className="h-44 w-full bg-zinc-900/60 rounded-lg p-2 relative flex items-center justify-center">
-                    <svg className="w-full h-full overflow-visible" viewBox="0 0 400 140">
+                    <svg
+                      className="w-full h-full overflow-visible"
+                      viewBox="0 0 400 140"
+                      role="img"
+                      aria-label={`Altitude trajectory from launch to ${simResult.apogeeAltitude.toFixed(0)} meters over ${simResult.flightDuration.toFixed(0)} seconds`}
+                    >
                       <line x1="40" y1="20" x2="390" y2="20" stroke="#27272a" strokeDasharray="3" />
                       <line x1="40" y1="70" x2="390" y2="70" stroke="#27272a" strokeDasharray="3" />
                       <line x1="40" y1="120" x2="390" y2="120" stroke="#3f3f46" />
@@ -379,7 +538,12 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                     <span className="text-[10px] font-mono text-amber-400">Van Driest II + Ackeret Wave Drag</span>
                   </div>
                   <div className="h-44 w-full bg-zinc-900/60 rounded-lg p-2 relative flex items-center justify-center">
-                    <svg className="w-full h-full overflow-visible" viewBox="0 0 400 140">
+                    <svg
+                      className="w-full h-full overflow-visible"
+                      viewBox="0 0 400 140"
+                      role="img"
+                      aria-label="Total drag coefficient from Mach zero to Mach four with the transonic region marked"
+                    >
                       <line x1="40" y1="20" x2="390" y2="20" stroke="#27272a" strokeDasharray="3" />
                       <line x1="40" y1="70" x2="390" y2="70" stroke="#27272a" strokeDasharray="3" />
                       <line x1="40" y1="120" x2="390" y2="120" stroke="#3f3f46" />
