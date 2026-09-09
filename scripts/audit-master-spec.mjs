@@ -23,7 +23,12 @@ WHAT CHANGED:
 6. VV-005 conserves linear+angular momentum about the fixed origin under on-axis, off-axis, non-identity-attitude, and transverse-separation-impulse cases using STRICTLY body-frame impulse algebra (R_NB I w spin term + rho x m v orbital term) with equal-and-opposite impulses at a common contact point.
 7. VV-006 includes non-linear descending-altitude quadratic-root localization and rail-exit (ascending direction filter) to 1e-5 s.
 
-VERIFICATION: 42/42 tests pass, production build clean.
+8. KERNEL HARDENING (your findings 2.4 and 2.6 in round 7):
+   - ADDED stage-dependent RHS: integrateRigidStep() now accepts an optional loadsAt(tStage, state) factory; when provided, force/moment/mass/inertia are RE-EVALUATED at every RK4 stage state and time, restoring 4th-order accuracy for attitude- and time-dependent forcing. When omitted, loads are frozen (constant-force class only, documented).
+   - ADDED strict validation: normalizeQuaternion() THROWS on degenerate (|q|~0) or nonfinite quaternions instead of fabricating identity; validateStateAndLoads() rejects nonfinite state/load components, nonpositive or nonfinite mass, nonpositive dt, and nonpositive principal inertias. No silent physical-state fabrication remains.
+
+VERIFICATION: 43/43 tests pass, production build clean.
+
 
 
 === NORMATIVE PHYSICAL CONTRACT (authored per your Gate C) ===

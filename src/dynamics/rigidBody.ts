@@ -225,6 +225,40 @@ export function rotateBodyToWorld(R: number[][], v: Vec3): Vec3 {
   };
 }
 
+/**
+ * Production display adapter (NORMATIVE): maps the flight simulator's display
+ * Vector3D convention — {x: East, y: Up/altitude, z: North} — into the kernel's
+ * ENU convention {x: East, y: North, z: Up} for position and velocity.
+ * (Display y <-> kernel z, display z <-> kernel y; identity on x.)
+ */
+export function displayToKernel(v: Vec3): Vec3 {
+  return { x: v.x, y: v.z, z: v.y };
+}
+
+/** Inverse of displayToKernel: kernel ENU -> display {E, Up, N}. */
+export function kernelToDisplay(v: Vec3): Vec3 {
+  return { x: v.x, y: v.z, z: v.y };
+}
+
+/**
+ * Production body-rate + inertia adapter (NORMATIVE).
+ * Display/simulator omega: {p: roll, q: pitch, r: yaw}, with principal inertia
+ * I_roll-axial (Ixx) and transverse I_pitch/I_yaw (Iyy, Izz).
+ * Kernel convention: w = {x: pitch, y: roll, z: yaw}, inertiaB = {pitch, roll, yaw}.
+ */
+export function simOmegaToKernel(o: { p: number; q: number; r: number }): Vec3 {
+  return { x: o.q, y: o.p, z: o.r };
+}
+
+/** Inverse of simOmegaToKernel. */
+export function kernelOmegaToSim(w: Vec3): { p: number; q: number; r: number } {
+  return { p: w.y, q: w.x, r: w.z };
+}
+
+/** Simulator inertia (Ixx=roll, Iyy=pitch, Izz=yaw) -> kernel inertiaB {pitch, roll, yaw}. */
+export function simInertiaToKernel(I: { x: number; y: number; z: number }): Vec3 {
+  return { x: I.y, y: I.x, z: I.z };
+}
 /** Rotate a vector from navigation frame to body frame: v_B = R^T v_N. */
 export function rotateWorldToBody(R: number[][], v: Vec3): Vec3 {
   return {
