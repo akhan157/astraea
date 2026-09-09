@@ -580,7 +580,7 @@ describe('VV-010 Coupled Rotating-Body-Force RK4 Convergence (loadsAt)', () => {
   const tEnd = 1.0;
 
   // Body->nav rotation for constant spin about body z: q(t)=cos(Ot/2)+sin(Ot/2) k
-  const bodyForceAt = (tStage: number, st: RigidState): Loads => {
+  const bodyForceAt = (tStage: number, _st: RigidState): Loads => {
     const half = (Omega * tStage) / 2;
     const c = Math.cos(half);
     const s = Math.sin(half);
