@@ -245,22 +245,6 @@ export function rotateBodyToWorld(R: number[][], v: Vec3): Vec3 {
 }
 
 /**
- * Production display adapter (NORMATIVE).
- * Display convention: {x: East (rendered left), y: Up/altitude, z: North}.
- * Kernel convention: {x: East, y: North, z: Up} (right-handed ENU).
- * The mapping is the proper rotation (det = +1):
- *   displayToKernel(v) = (-v.x, v.z, v.y)
- */
-export function displayToKernel(v: Vec3): Vec3 {
-  return { x: -v.x, y: v.z, z: v.y };
-}
-
-/** Inverse: kernel ENU -> display {x: East(rendered left), y: Up, z: North}. */
-export function kernelToDisplay(v: Vec3): Vec3 {
-  return { x: -v.x, y: v.z, z: v.y };
-}
-
-/**
  * Production body-rate + inertia adapter (NORMATIVE).
  * Display/simulator omega: {p: roll, q: pitch, r: yaw}, with principal inertia
  * I_roll-axial (Ixx) and transverse I_pitch/I_yaw (Iyy, Izz).

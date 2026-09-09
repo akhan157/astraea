@@ -21,7 +21,7 @@ import { MotorSpec, getMotorThrustAt, getMotorMassAt } from '../propulsion/motor
 import { computeAerodynamicCurves } from '../aero/transonicAero';
 import { aggregateVehicleMass } from '../core/mass';
 import { getAtmosphereAt } from './flightSimulator';
-import { integrateRigidStep, normalizeQuaternion as normQ, displayToKernel, kernelToDisplay, simOmegaToKernel, kernelOmegaToSim, simInertiaToKernel } from '../dynamics/rigidBody';
+import { integrateRigidStep, normalizeQuaternion as normQ, simOmegaToKernel, kernelOmegaToSim, simInertiaToKernel } from '../dynamics/rigidBody';
 
 export interface Vector3D {
   x: number; // East (m)
@@ -577,30 +577,31 @@ export function simulate6DofFlight(
     }
 
     // Numerical State Integration via production rigid-body kernel (NORMATIVE).
-    // Adapters exported from rigidBody.ts implement the proper display<->ENU
-    // rotation (det=+1), body-rate relabel, and inertia permutation.
+    // IDENTITY mapping: kernel is frame-agnostic Cartesian RK4 operating in the
+    // simulator's display frame {x: East, y: Up, z: North}. r/v/forceN/quaternion
+    // pass through unchanged so body->nav attitude coupling stays consistent.
+    // Body rates/inertia use the certified label mapping:
+    //   omega {p=roll, q=pitch, r=yaw} <-> kernel w {x=pitch, y=roll, z=yaw}
+    //   Ixx=roll-axial, Iyy=Izz=transverse -> kernel inertiaB {pitch, roll, yaw}
     const next = integrateRigidStep(
       {
-        r: displayToKernel({ x: pos.x, y: pos.y, z: pos.z }),
-        v: displayToKernel({ x: vel.x, y: vel.y, z: vel.z }),
+        r: { x: pos.x, y: pos.y, z: pos.z },
+        v: { x: vel.x, y: vel.y, z: vel.z },
         q: { w: q.w, x: q.x, y: q.y, z: q.z },
         w: simOmegaToKernel(omega),
       },
       {
-        forceN: displayToKernel({ x: totalForceWorld.x, y: totalForceWorld.y, z: totalForceWorld.z }),
+        forceN: { x: totalForceWorld.x, y: totalForceWorld.y, z: totalForceWorld.z },
         momentB: { x: momentBody.x, y: momentBody.y, z: momentBody.z },
-        // production Ixx=roll-axial, Iyy=Izz=transverse -> kernel {pitch, roll, yaw}
         inertiaB: simInertiaToKernel({ x: Ixx, y: Iyy, z: Izz }),
         mass: totalMass,
       },
       dt
     );
 
-    // Map kernel ENU back to production display {E, Up, N} + body rates
-    const dPos = kernelToDisplay(next.r);
-    const dVel = kernelToDisplay(next.v);
-    pos.x = dPos.x; pos.y = dPos.y; pos.z = dPos.z;
-    vel.x = dVel.x; vel.y = dVel.y; vel.z = dVel.z;
+    // IDENTITY write-back: r/v/q propagate unchanged; body-rate label inverse
+    pos.x = next.r.x; pos.y = next.r.y; pos.z = next.r.z;
+    vel.x = next.v.x; vel.y = next.v.y; vel.z = next.v.z;
     q.w = next.q.w; q.x = next.q.x; q.y = next.q.y; q.z = next.q.z;
     const o = kernelOmegaToSim(next.w);
     omega.p = o.p;
