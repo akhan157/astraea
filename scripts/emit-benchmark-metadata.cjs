@@ -309,10 +309,15 @@ function parseVitestJson(json) {
   };
 }
 
-/** Per-VV measurement records derived from executed test-case results (raw vitest JSON). */
+/** Per-VV measurement records from the executed legacy benchmark file only. */
 function vvSuiteRecordsFromJson(json) {
   const recs = {};
   for (const f of json?.testResults ?? []) {
+    // Suite records belong to src/sim/vv-benchmarks.test.ts: any other file
+    // whose titles merely mention a VV id (emitter self-tests, acceptance
+    // suites) must not inflate or dilute the legacy execution counts.
+    const p = String(f.name ?? '').replace(/\\/g, '/');
+    if (!(p === 'src/sim/vv-benchmarks.test.ts' || p.endsWith('/src/sim/vv-benchmarks.test.ts'))) continue;
     for (const a of f.assertionResults ?? []) {
       const id = vvIdFromAssertion(a);
       if (!id) continue;

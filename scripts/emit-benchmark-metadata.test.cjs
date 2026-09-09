@@ -321,7 +321,7 @@ t('decimal digits are captured from the digits position', () => {
   assert.deepEqual(evidence.verification.vvMeasurements['014'].decimalDigitsDeclared, [3]);
 });
 
-t('dynamic inventory: source AND executed include VV-014/VV-015', () => {
+t('dynamic inventory: source AND executed include the adaptive and descent suites', () => {
   const src = BASE_SOURCE;
   const ids = extractSourceSuites(src);
   assert.ok(ids.includes('014'), 'VV-014 must be in source inventory');
