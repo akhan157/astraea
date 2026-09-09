@@ -377,6 +377,7 @@ describe('VV-005 Staging Momentum Conservation', () => {
       const rho2N = rho2B.clone().applyQuaternion(qq);
       const rContactN = rContactB.clone().applyQuaternion(qq);
       const nN = nB.clone().applyQuaternion(qq);
+      void rContactN; void nN; // nav-frame forms unused in body-frame formulation, kept for auditability
 
       // Inertial angular-momentum function: H = Σ [ R_NB I_i ω_i + ρ_i × m_i v_i ]
       const totalH = (v1: THREE.Vector3, v2: THREE.Vector3, w1B: THREE.Vector3, w2B: THREE.Vector3) => {
