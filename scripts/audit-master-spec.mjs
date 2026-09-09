@@ -34,7 +34,12 @@ WHAT CHANGED:
 10. DISPLAY MAPPING FIXED per your round-7 finding: the kernel's displayToKernel()/kernelToDisplay() now implement the NORMATIVE proper rotation (det = +1): (x_D, y_D, z_D) = (-x_N, z_N, y_N), matching the viewport contract. The PRODUCTION simulator (sixDofSimulator.ts) now uses these exported adapters (displayToKernel / kernelToDisplay / simOmegaToKernel / kernelOmegaToSim / simInertiaToKernel) instead of inline maps.
 11. VV-010 added (coupled rotating-body convergence): spherical inertia + constant spin Omega about body z + body-x force, driven through the production kernel with loadsAt stage RHS. Confirms global 4th-order convergence (error ratio ~16 on step-halving) against your exact closed form v_x=(F/m/O)sin(Ot), r_y=(F/m/O^2)(O t - sin O t), and discriminates that frozen loads diverge (O(1) velocity error) while the stage factory converges to < 1e-3.
 
-VERIFICATION: 46/46 tests pass, production build clean.
+
+12. PRODUCTION EVENT-FSM EXTRACTED (Gate 1 events closure): new src/dynamics/events.ts provides the pure, one-shot, direction-filtered detectEvents() state machine (RAIL_EXIT / MOTOR_BURNOUT / APOGEE_DROGUE / MAIN_DEPLOY / TOUCHDOWN). sixDofSimulator.ts now calls this production FSM (removed the inline event-check blocks). VV-011 exercises detectEvents() directly, asserting: RAIL_EXIT fires exactly once at rail length, MOTOR_BURNOUT once at burn time, APOGEE only after rail exit, and MAIN_DEPLOY never fires during ascending flight (sequencing + direction filters).
+13. FRAME/ATTITUDE COUPLING FIXED: the frame-hazard display adapter was retired. The production simulator now passes r/v/forceN/quaternion through the kernel with IDENTITY mapping (kernel documented as frame-agnostic Cartesian RK4 operating in the simulator display frame), with only the certified body-rate+inertia label mapping at the boundary. The old proper-rotation map broke q-force coupling by rotating vectors but not q; this is now corrected. VV-007 off-vertical East-sign test validates the physical drift direction.
+
+VERIFICATION: 50/50 tests pass, production build clean.
+
  VV-009 added; VV-010 added: pure-roll and pure-pitch inertia-coupling discrimination (kernel axis isolation). The tautological VV-008 frame test was REMOVED per your guidance; kernel is documented as frame-agnostic Cartesian RK4 (ENU in, forceN in nav frame), with exported production adapters displayToKernel/kernelToDisplay/simOmegaToKernel/simInertiaToKernel provided for the flight simulator.
 
 

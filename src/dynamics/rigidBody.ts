@@ -142,6 +142,25 @@ export function integrateRigidStep(
   }
   const startTime = t0 ?? 0;
 
+  // Attitude invariant: enforce a validated, normalized quaternion BEFORE any
+  // RHS callback. Reject quaternions whose norm deviates by more than 1e-6
+  // from unity (a non-unit input would silently produce a non-orthogonal
+  // first-stage rotation), then normalize ONCE and use it consistently.
+  const qNorm0 = Math.sqrt(s.q.w * s.q.w + s.q.x * s.q.x + s.q.y * s.q.y + s.q.z * s.q.z);
+  if (!(qNorm0 > 1e-6) || Math.abs(qNorm0 - 1) > 1e-6) {
+    throw new Error(
+      'strict rigid-body kernel: attitude must be a near-unit quaternion (|q|=1) at entry; use normalizeQuaternion() on the caller side'
+    );
+  }
+  const q0n = { w: s.q.w / qNorm0, x: s.q.x / qNorm0, y: s.q.y / qNorm0, z: s.q.z / qNorm0 };
+
+  const sNorm: RigidState = {
+    r: { ...s.r },
+    v: { ...s.v },
+    q: q0n,
+    w: { ...s.w },
+  };
+
   const accelFor = (L: Loads): Vec3 => ({
     x: L.forceN.x / L.mass,
     y: L.forceN.y / L.mass,
@@ -159,37 +178,37 @@ export function integrateRigidStep(
     x: a.x + b.x * h, y: a.y + b.y * h, z: a.z + b.z * h,
   });
 
-  const L0 = loadsAt ? loadsAt(startTime, s) : loads;
-  if (loadsAt) validateStateAndLoads(s, L0, dt); // entry already validated `loads`; only factory output needs re-check
-  const d1 = deriv(s, L0, startTime);
+  const L0 = loadsAt ? loadsAt(startTime, sNorm) : loads;
+  if (loadsAt) validateStateAndLoads(sNorm, L0, dt); // entry already validated `loads`; only factory output needs re-check
+  const d1 = deriv(sNorm, L0, startTime);
   const tHalf = startTime + dt / 2;
   const tFull = startTime + dt;
 
   const s1: RigidState = {
-    r: addVec(s.r, d1.dr, dt / 2),
-    v: addVec(s.v, d1.dv, dt / 2),
-    q: addQuat(s.q, d1.dq, dt / 2),
-    w: addVec(s.w, d1.dw, dt / 2),
+    r: addVec(sNorm.r, d1.dr, dt / 2),
+    v: addVec(sNorm.v, d1.dv, dt / 2),
+    q: addQuat(sNorm.q, d1.dq, dt / 2),
+    w: addVec(sNorm.w, d1.dw, dt / 2),
   };
   const L1 = loadsAt ? loadsAt(tHalf, s1) : loads;
   validateStateAndLoads(s1, L1, dt);
   const d2 = deriv(s1, L1, tHalf);
 
   const s2: RigidState = {
-    r: addVec(s.r, d2.dr, dt / 2),
-    v: addVec(s.v, d2.dv, dt / 2),
-    q: addQuat(s.q, d2.dq, dt / 2),
-    w: addVec(s.w, d2.dw, dt / 2),
+    r: addVec(sNorm.r, d2.dr, dt / 2),
+    v: addVec(sNorm.v, d2.dv, dt / 2),
+    q: addQuat(sNorm.q, d2.dq, dt / 2),
+    w: addVec(sNorm.w, d2.dw, dt / 2),
   };
   const L2 = loadsAt ? loadsAt(tHalf, s2) : loads;
   validateStateAndLoads(s2, L2, dt);
   const d3 = deriv(s2, L2, tHalf);
 
   const s3: RigidState = {
-    r: addVec(s.r, d3.dr, dt),
-    v: addVec(s.v, d3.dv, dt),
-    q: addQuat(s.q, d3.dq, dt),
-    w: addVec(s.w, d3.dw, dt),
+    r: addVec(sNorm.r, d3.dr, dt),
+    v: addVec(sNorm.v, d3.dv, dt),
+    q: addQuat(sNorm.q, d3.dq, dt),
+    w: addVec(sNorm.w, d3.dw, dt),
   };
   const L3 = loadsAt ? loadsAt(tFull, s3) : loads;
   validateStateAndLoads(s3, L3, dt);
@@ -199,18 +218,18 @@ export function integrateRigidStep(
     (d1v + 2 * d2v + 2 * d3v + d4v) * dt / 6;
 
   const out: RigidState = {
-    r: { x: s.r.x + blend(d1.dr.x, d2.dr.x, d3.dr.x, d4.dr.x), y: s.r.y + blend(d1.dr.y, d2.dr.y, d3.dr.y, d4.dr.y), z: s.r.z + blend(d1.dr.z, d2.dr.z, d3.dr.z, d4.dr.z) },
-    v: { x: s.v.x + blend(d1.dv.x, d2.dv.x, d3.dv.x, d4.dv.x), y: s.v.y + blend(d1.dv.y, d2.dv.y, d3.dv.y, d4.dv.y), z: s.v.z + blend(d1.dv.z, d2.dv.z, d3.dv.z, d4.dv.z) },
+    r: { x: sNorm.r.x + blend(d1.dr.x, d2.dr.x, d3.dr.x, d4.dr.x), y: sNorm.r.y + blend(d1.dr.y, d2.dr.y, d3.dr.y, d4.dr.y), z: sNorm.r.z + blend(d1.dr.z, d2.dr.z, d3.dr.z, d4.dr.z) },
+    v: { x: sNorm.v.x + blend(d1.dv.x, d2.dv.x, d3.dv.x, d4.dv.x), y: sNorm.v.y + blend(d1.dv.y, d2.dv.y, d3.dv.y, d4.dv.y), z: sNorm.v.z + blend(d1.dv.z, d2.dv.z, d3.dv.z, d4.dv.z) },
     q: normalizeQuaternion({
-      w: s.q.w + blend(d1.dq.w, d2.dq.w, d3.dq.w, d4.dq.w),
-      x: s.q.x + blend(d1.dq.x, d2.dq.x, d3.dq.x, d4.dq.x),
-      y: s.q.y + blend(d1.dq.y, d2.dq.y, d3.dq.y, d4.dq.y),
-      z: s.q.z + blend(d1.dq.z, d2.dq.z, d3.dq.z, d4.dq.z),
+      w: sNorm.q.w + blend(d1.dq.w, d2.dq.w, d3.dq.w, d4.dq.w),
+      x: sNorm.q.x + blend(d1.dq.x, d2.dq.x, d3.dq.x, d4.dq.x),
+      y: sNorm.q.y + blend(d1.dq.y, d2.dq.y, d3.dq.y, d4.dq.y),
+      z: sNorm.q.z + blend(d1.dq.z, d2.dq.z, d3.dq.z, d4.dq.z),
     }),
     w: {
-      x: s.w.x + blend(d1.dw.x, d2.dw.x, d3.dw.x, d4.dw.x),
-      y: s.w.y + blend(d1.dw.y, d2.dw.y, d3.dw.y, d4.dw.y),
-      z: s.w.z + blend(d1.dw.z, d2.dw.z, d3.dw.z, d4.dw.z),
+      x: sNorm.w.x + blend(d1.dw.x, d2.dw.x, d3.dw.x, d4.dw.x),
+      y: sNorm.w.y + blend(d1.dw.y, d2.dw.y, d3.dw.y, d4.dw.y),
+      z: sNorm.w.z + blend(d1.dw.z, d2.dw.z, d3.dw.z, d4.dw.z),
     },
   };
   // Final output validation: reject nonfinite propagated state.
