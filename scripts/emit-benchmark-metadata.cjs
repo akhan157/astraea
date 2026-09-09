@@ -695,6 +695,16 @@ function computeEvidence(opts = {}) {
         const preSource = inventorySourcesPre[match] ?? null;
         if (preSource === null) {
           missing.push(`tests: inventory file ${match} missing or unreadable in the pre-execution snapshot`);
+        } else if (match === 'scripts/emit-benchmark-metadata.test.cjs') {
+          // Dual-execution suite (audit §9.4): the file registers its CASES
+          // plus a cleanup case dynamically under Vitest, while its source
+          // also embeds fixture `it(` literals — textual case counting has
+          // no exact-count semantics here. Presence, non-emptiness, and a
+          // clean pass are required; the substantive gate is the exit-0
+          // self-test run inside the certified command.
+          if (countSourceAssertions(preSource) === 0) {
+            missing.push(`tests: inventory file ${match} declares zero test cases in source — an empty source proves nothing`);
+          }
         } else {
           const sourceCount = countSourceAssertions(preSource);
           if (sourceCount === 0) {
