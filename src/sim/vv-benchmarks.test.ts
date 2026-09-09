@@ -18,6 +18,7 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
 import { integrateRigidStep, RigidState, Loads, normalizeQuaternion, quaternionToMatrix } from '../dynamics/rigidBody';
+import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
 
 // ---------------------------------------------------------------------------
 // Production-Linked 6-DOF core.
@@ -231,61 +232,66 @@ describe('VV-003 Quaternion Antipodal Invariance', () => {
 // VV-004: Galilean Invariance of Aerodynamic Loads
 // ---------------------------------------------------------------------------
 
-import { computeAerodynamicCurves } from '../aero/transonicAero';
-import { getAtmosphereAt } from './flightSimulator';
 import { PRESET_ESTES_ALPHA } from '../store/rocketStore';
 
-describe('VV-004 Galilean Invariance of Aero Loads', () => {
-  it('produces identical aerodynamic LOAD VECTORS under uniform frame translation', () => {
-    // Air-relative velocity invariance is the kinematic prerequisite
-    const vVehicle = new THREE.Vector3(90, 0, 200);
-    const vWind = new THREE.Vector3(4, -2, 0);
-    const delta = new THREE.Vector3(35, 12, -7);
-    const airRel1 = vVehicle.clone().sub(vWind);
-    const airRel2 = vVehicle.clone().add(delta).sub(vWind.clone().add(delta));
-    expect(airRel1.distanceTo(airRel2)).toBeLessThanOrEqual(1e-12);
+import { computeFlightLoads, prepareVehicle, StageKinematicState, LoadsAssemblyConfig } from '../dynamics/loads';
 
-    // Production aero load path: compute total drag-force vector twice, once
-    // under each uniformly translated frame. Air-relative speed/mach/dynamic
-    // pressure must be frame-invariant, so the assembled load vector must match.
-    function totalDragForceVector(vVehicleN: THREE.Vector3, vWindN: THREE.Vector3): THREE.Vector3 {
-      // AIR-RELATIVE velocity (Galilean invariant under common boost)
-      const airRelN = vVehicleN.clone().sub(vWindN);
-      const speed = airRelN.length();
-      if (speed < 1e-9) return new THREE.Vector3();
-      const uhat = airRelN.clone().normalize(); // wind-axis direction of motion
+describe('VV-004 Galilean Invariance of Aero Loads (production loads assembly)', () => {
+  it('identical air-relative velocity under common boost yields identical production load vectors', () => {
+    // Production loads assembly: the SAME module the flight simulator uses.
+    const pv = prepareVehicle(PRESET_ESTES_ALPHA);
+    const cfg: LoadsAssemblyConfig = {
+      vehicle: PRESET_ESTES_ALPHA,
+      motor: CERTIFIED_MOTORS.estes_c6,
+      launchAltitudeASL: 0,
+      windSpeedSurface: 3.0,
+      windAzimuthDeg: 90.0,
+      finCantRad: 0,
+    };
+    const flags = { drogueDeployed: false, mainDeployed: false };
 
-      const atmos = getAtmosphereAt(0);
-      const mach = speed / atmos.speedOfSound;
-      const curves = computeAerodynamicCurves(PRESET_ESTES_ALPHA, false, 25);
-      const cs = curves.dragCurves;
-      let cd = cs[0].totalCd;
-      for (let i = 0; i < cs.length - 1; i++) {
-        if (mach >= cs[i].mach && mach <= cs[i + 1].mach) {
-          const t = (mach - cs[i].mach) / (cs[i + 1].mach - cs[i].mach);
-          cd = cs[i].totalCd + t * (cs[i + 1].totalCd - cs[i].totalCd);
-          break;
-        }
-      }
-      const tube = PRESET_ESTES_ALPHA.components.find((c) => c.type === 'bodytube');
-      const dRef = tube && tube.type === 'bodytube' ? tube.outerDiameter : 0.0248;
-      const A = Math.PI / 4 * dRef * dRef;
-      // Drag VECTOR opposes air-relative motion: F = -D uhat, D = 0.5 rho V^2 A Cd
-      const D = 0.5 * atmos.density * speed * speed * A * cd;
-      return uhat.clone().multiplyScalar(-D);
-    }
+    // Two (vehicle-velocity, wind) pairs with the SAME air-relative velocity:
+    //   airV = v - wind.
+    const vA = { x: 90, y: 0, z: 200 };
+    const wA = { x: 4, y: -2, z: 8 };
+    const boost = { x: 35, y: 12, z: -7 };
+    const vB = { x: vA.x + boost.x, y: vA.y + boost.y, z: vA.z + boost.z };
+    const wB = { x: wA.x + boost.x, y: wA.y + boost.y, z: wA.z + boost.z };
+    // airV identical by construction:
+    expect(vB.x - wB.x).toBe(vA.x - wA.x);
+    expect(vB.y - wB.y).toBe(vA.y - wA.y);
+    expect(vB.z - wB.z).toBe(vA.z - wA.z);
 
-    const load1 = totalDragForceVector(vVehicle, vWind);
-    const load2 = totalDragForceVector(vVehicle.clone().add(delta), vWind.clone().add(delta));
+    const stA: StageKinematicState = {
+      r: { x: 0, y: 0, z: 0 },
+      v: vA,
+      q: { w: 1, x: 0, y: 0, z: 0 },
+      w: { x: 0, y: 0, z: 0 },
+    };
+    const stB: StageKinematicState = { ...stA, v: vB };
 
-    // VECTOR equality under common boost: magnitude AND direction must match
-    expect(load1.distanceTo(load2)).toBeLessThanOrEqual(1e-9 * Math.max(0.1, load1.length()));
-    expect(load1.length()).toBeGreaterThan(0.1);
+    const cfgA: LoadsAssemblyConfig = { ...cfg, windOverride: wA };
+    const cfgB: LoadsAssemblyConfig = { ...cfg, windOverride: wB };
 
-    // Directional discriminator: a pure relative-velocity change (wind only)
-    // must change the drag vector direction/magnitude.
-    const load3 = totalDragForceVector(vVehicle, vWind.clone().multiplyScalar(3.0));
-    expect(load1.distanceTo(load3)).toBeGreaterThan(0.1);
+    const fA = computeFlightLoads(0.5, stA, flags, cfgA, pv);
+    const fB = computeFlightLoads(0.5, stB, flags, cfgB, pv);
+
+    // Same airflow => same production load vector (magnitude AND direction).
+    const loadDiff = Math.hypot(
+      fA.forceN.x - fB.forceN.x,
+      fA.forceN.y - fB.forceN.y,
+      fA.forceN.z - fB.forceN.z
+    );
+    expect(loadDiff).toBeLessThanOrEqual(1e-9);
+    const magA = Math.hypot(fA.forceN.x, fA.forceN.y, fA.forceN.z);
+    expect(magA).toBeGreaterThan(1); // loads are live
+
+    // Directional discriminator: a pure CHANGE in air-relative velocity
+    // (wind only, same vehicle velocity) must change the load direction.
+    const stC: StageKinematicState = { ...stA, v: vA };
+    const cfgC: LoadsAssemblyConfig = { ...cfg, windOverride: { x: -20, y: 5, z: 15 } }; // entirely different relative air
+    const fC = computeFlightLoads(0.5, stC, flags, cfgC, pv);
+    expect(Math.hypot(fA.forceN.x - fC.forceN.x, fA.forceN.y - fC.forceN.y, fA.forceN.z - fC.forceN.z)).toBeGreaterThan(1);
   });
 });
 
@@ -390,7 +396,6 @@ describe('VV-005 Staging Momentum Conservation', () => {
 // ---------------------------------------------------------------------------
 
 import { simulate6DofFlight } from './sixDofSimulator';
-import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
 
 describe('VV-007 Production Solver Linkage', () => {
   it('executes production simulate6DofFlight with finite, bounded trajectory', () => {
