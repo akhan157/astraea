@@ -1,20 +1,26 @@
 /**
- * Trajectory Studio — trajectory + weather panel for a passed vehicle/motor
- * pair. Self-contained: the caller owns the RocketVehicle and MotorSpec; this
- * component touches no store and rewires no simulation.
+ * Trajectory Studio — trajectory + weather panel for the ACTIVE vehicle and
+ * shared flight-motor selection (Round-19: reads the RocketStore directly,
+ * takes no vehicle/motor props). App remounts the panel on vehicle.id so
+ * preset switches reset studio state.
  *
  * Sections:
  *   1. Manual wind-shear table (rows of {altitudeM, speedMs, directionFromDeg})
- *      driving a live windAtAltitude/windToENU readout at a probe altitude.
+ *      driving a live windAtAltitude/windToENU readout at a probe altitude
+ *      (defaults to 0 m — surface semantics).
  *   2. Live Open-Meteo sounding fetch — layer count or error text (no API key).
  *   3. Monte Carlo dispersion over the authoritative 6-DOF simulator with a
- *      user nRuns (50 default, 200 cap) and perturbation sigmas.
+ *      user nRuns (50 default, 200 cap) and perturbation sigmas. Wind
+ *      precedence: a fetched sounding supplies the surface-wind slot
+ *      (interpolated at the probe altitude); the manual table is the
+ *      fallback. Results carry a FRESH/STALE badge keyed on every input.
  *   4. Boattail flow-separation and protuberance-drag advisories.
  */
 
 import React, { useMemo, useState } from 'react';
-import type { RocketVehicle } from '../core/types';
 import type { MotorSpec } from '../propulsion/motorDatabase';
+import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
+import { useRocketStore } from '../store/rocketStore';
 import type { SixDofOptions } from '../sim/sixDofSimulator';
 import type { DispersionResult } from '../sim/monteCarlo';
 import { runMonteCarlo } from '../sim/monteCarlo';
@@ -51,15 +57,25 @@ const MC_NRUNS_MAX = 200;
 
 const clampNRuns = (raw: number): number => Math.min(MC_NRUNS_MAX, Math.max(1, Math.floor(raw)));
 
-export interface TrajectoryStudioProps {
-  vehicle: RocketVehicle;
-  motor: MotorSpec;
-}
+/**
+ * TrajectoryStudio reads the ACTIVE vehicle and shared flight-motor selection
+ * from the RocketStore (Round-19 coherence) — the caller passes no props.
+ * App keys the panel on `vehicle.id` (`<TrajectoryStudio key={vehicle.id} />`)
+ * so a preset/import switch remounts it and resets all studio-local state
+ * (wind rows, probe, sounding, MC result) instead of silently reusing it.
+ */
+export function TrajectoryStudio(): React.JSX.Element {
+  const vehicle = useRocketStore((s) => s.vehicle);
+  const selectedMotorId = useRocketStore((s) => s.selectedMotorId);
+  const customMotors = useRocketStore((s) => s.customMotors);
+  const catalog: Record<string, MotorSpec> = { ...CERTIFIED_MOTORS, ...customMotors };
+  const motor: MotorSpec = catalog[selectedMotorId] ?? CERTIFIED_MOTORS.estes_c6;
 
-export function TrajectoryStudio({ vehicle, motor }: TrajectoryStudioProps): React.JSX.Element {
   // --- 1. Manual wind shear table + probe readout ---
   const [windRows, setWindRows] = useState<WindRow[]>(DEFAULT_WIND_ROWS);
-  const [probeAltitudeM, setProbeAltitudeM] = useState<number>(500);
+  // Probe defaults to 0 m: surface semantics for the surface-wind slot the
+  // 6-DOF simulator consumes (power-law shear is applied above it).
+  const [probeAltitudeM, setProbeAltitudeM] = useState<number>(0);
 
   // WindLayer fills in atmosphere fields the interpolation never reads so
   // the manual {altitude, speed, from} triple can drive windAtAltitude.
@@ -129,19 +145,70 @@ export function TrajectoryStudio({ vehicle, motor }: TrajectoryStudioProps): Rea
   const [mcImpulseSigmaPct, setMcImpulseSigmaPct] = useState<number>(3.0);
   const [mcRunning, setMcRunning] = useState<boolean>(false);
   const [mcResult, setMcResult] = useState<DispersionResult | null>(null);
+  const [lastMcInputKey, setLastMcInputKey] = useState<string | null>(null);
   const [mcError, setMcError] = useState<string | null>(null);
+
+  // FRESH/STALE contract (shared with FlightSim): every dispersion-relevant
+  // input — vehicle, shared motor, run count, sigmas, probe altitude, wind
+  // rows, AND the sounding profile — folds into one key. Any change after a
+  // run flags the results stale; only a rerun refreshes the badge.
+  const mcInputKey = useMemo(
+    () =>
+      JSON.stringify({
+        vehicle,
+        motorId: motor.id,
+        nRuns: clampNRuns(mcNRuns),
+        windSigma: mcWindSigmaDeg,
+        railSigma: mcRailSigmaDeg,
+        impulseSigma: mcImpulseSigmaPct,
+        probeAltitudeM,
+        windRows,
+        soundingStatus,
+        soundingLayers,
+      }),
+    [
+      vehicle,
+      motor.id,
+      mcNRuns,
+      mcWindSigmaDeg,
+      mcRailSigmaDeg,
+      mcImpulseSigmaPct,
+      probeAltitudeM,
+      windRows,
+      soundingStatus,
+      soundingLayers,
+    ],
+  );
+  const mcResultsAreStale = mcResult !== null && lastMcInputKey !== mcInputKey;
+
+  // Wind precedence (Round-19): a live sounding, once fetched, supplies the
+  // wind the MC consumes — interpolated at the probe altitude into the
+  // simulator's surface-wind slot (the sim applies its own power-law shear
+  // above it). The manual table is the fallback when no sounding is loaded
+  // or the interpolation fails (degenerate profile). Sounding > manual.
+  const soundingOk = soundingStatus === 'ok' && soundingLayers.length > 0;
+  const mcSurfaceWind = useMemo(() => {
+    if (soundingOk) {
+      try {
+        return windAtAltitude(soundingLayers, probeAltitudeM);
+      } catch {
+        // Degenerate sounding profile: fall back to the manual table.
+        return probeWind ?? { speedMs: 0, directionFromDeg: 0 };
+      }
+    }
+    return probeWind ?? { speedMs: 0, directionFromDeg: 0 };
+  }, [soundingOk, soundingLayers, probeAltitudeM, probeWind]);
 
   const handleRunMonteCarlo = () => {
     if (mcRunning) return;
-    // Surface wind follows the manual table's probe readout so the shear
-    // editor and the dispersion section speak the same wind field. Vertical
+    // Surface wind feeds the simulator's windSpeedSurface slot. Vertical
     // rail: a zero-wind, zero-sigma run lands at the pad.
     const options: SixDofOptions = {
       railLength: 2.4,
       railElevationDeg: 90.0,
       railAzimuthDeg: 90.0,
-      windSpeedSurface: probeWind?.speedMs ?? 0,
-      windAzimuthDeg: probeWind?.directionFromDeg ?? 0,
+      windSpeedSurface: mcSurfaceWind.speedMs,
+      windAzimuthDeg: mcSurfaceWind.directionFromDeg,
       mainDeployAltitudeAGL: 250,
       finCantAngleDeg: 0.0,
     };
@@ -159,8 +226,10 @@ export function TrajectoryStudio({ vehicle, motor }: TrajectoryStudioProps): Rea
         MC_SEED,
       );
       setMcResult(result);
+      setLastMcInputKey(mcInputKey);
     } catch (err) {
       setMcResult(null);
+      setLastMcInputKey(null);
       setMcError(err instanceof Error ? err.message : String(err));
     } finally {
       setMcRunning(false);
@@ -454,6 +523,11 @@ export function TrajectoryStudio({ vehicle, motor }: TrajectoryStudioProps): Rea
             />
           </label>
         </div>
+        <div className="mt-1.5 text-[10px] font-mono text-zinc-500" role="status">
+          Wind for MC: {soundingOk
+            ? `live sounding, interpolated @ ${probeAltitudeM} m (sounding takes precedence over the manual table)`
+            : 'manual wind table (surface probe)'}
+        </div>
         <div className="mt-2.5">
           <button
             onClick={handleRunMonteCarlo}
@@ -472,9 +546,18 @@ export function TrajectoryStudio({ vehicle, motor }: TrajectoryStudioProps): Rea
         )}
         {mcResult && (
           <div className="mt-2.5 space-y-2.5">
-            <div className="flex items-center gap-1.5 text-[11px] font-mono text-emerald-400" role="status" aria-live="polite">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>{mcResult.successfulRuns} succeeded · {mcResult.failedRuns} failed</span>
+            <div className="flex items-center gap-1.5 text-[11px] font-mono" role="status" aria-live="polite">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-emerald-400">{mcResult.successfulRuns} succeeded · {mcResult.failedRuns} failed</span>
+              <span
+                className={`px-2 py-0.5 rounded border text-[10px] font-mono font-bold ${
+                  mcResultsAreStale
+                    ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                    : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+                }`}
+              >
+                {mcResultsAreStale ? 'STALE — inputs changed since run' : 'FRESH — matches current inputs'}
+              </span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
               <div className="p-2.5 bg-zinc-950/80 rounded-lg border border-zinc-800">

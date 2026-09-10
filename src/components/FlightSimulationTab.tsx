@@ -7,6 +7,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useRocketStore } from '../store/rocketStore';
 import { CERTIFIED_MOTORS, MotorSpec } from '../propulsion/motorDatabase';
+import type { BodyTubeComponent } from '../core/types';
 import { aggregateVehicleMass } from '../core/mass';
 import { simulate6DofFlight, SixDofSimulationResult } from '../sim/sixDofSimulator';
 import { computeAerodynamicCurves } from '../aero/transonicAero';
@@ -29,10 +30,14 @@ interface FlightSimulationTabProps {
 
 export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen, onClose }) => {
   const vehicle = useRocketStore((s) => s.vehicle);
+  // Shared flight-motor selection: one store id drives FlightSim,
+  // PropulsionStudio, and TrajectoryStudio (Round-19 coherence).
+  const selectedMotorId = useRocketStore((s) => s.selectedMotorId);
+  const selectMotor = useRocketStore((s) => s.selectMotor);
+  const customMotors = useRocketStore((s) => s.customMotors);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  const [selectedMotorId, setSelectedMotorId] = useState<string>('estes_c6');
   const [railLength, setRailLength] = useState<number>(2.4); // meters
   const [railElevation, setRailElevation] = useState<number>(85.0); // deg (85 deg off vertical)
   const [railAzimuth, setRailAzimuth] = useState<number>(90.0); // deg (East)
@@ -43,7 +48,44 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
   const [simResult, setSimResult] = useState<SixDofSimulationResult | null>(null);
   const [lastRunInputKey, setLastRunInputKey] = useState<string | null>(null);
   const [simError, setSimError] = useState<{ message: string; inputs: string; snapshot: string; at: string } | null>(null);
-  const activeMotor: MotorSpec = CERTIFIED_MOTORS[selectedMotorId] || CERTIFIED_MOTORS.estes_c6;
+  const catalog: Record<string, MotorSpec> = { ...CERTIFIED_MOTORS, ...customMotors };
+  const activeMotor: MotorSpec = catalog[selectedMotorId] || CERTIFIED_MOTORS.estes_c6;
+
+  // Motor-mount prefilter (Round-19): a run that simulate6DofFlight would
+  // reject on hardware grounds is never offered. The mount bore mirrors
+  // resolveMotorCentroid's true-bore rule (innerDiameter, else outer - 3 mm);
+  // zero mounts = aft-end fallback (no constraint), 2+ mounts = ambiguity
+  // (prepareVehicle throws), solid tube = no motor can seat.
+  const mountAssessment = useMemo(() => {
+    const mounts = vehicle.components.filter(
+      (c): c is BodyTubeComponent => c.type === 'bodytube' && c.isMotorMount === true,
+    );
+    if (mounts.length === 1) {
+      const bore = mounts[0].innerDiameter ?? Math.max(0, mounts[0].outerDiameter - 0.003);
+      return { mounts, boreM: bore > 0 ? bore : null, solidMount: bore <= 0, ambiguous: false };
+    }
+    return { mounts, boreM: null, solidMount: false, ambiguous: mounts.length > 1 };
+  }, [vehicle]);
+  /** Why motor `m` cannot physically seat on this vehicle, or null if it can. */
+  const reasonMotorExcluded = (m: MotorSpec): string | null => {
+    if (mountAssessment.ambiguous) return null; // handled by the global ambiguity banner
+    const mount = mountAssessment.mounts[0];
+    if (!mount) return null; // aft-end fallback: no bore constraint
+    const bore = mountAssessment.boreM;
+    if (bore === null) return `mount '${mount.name}' is a solid tube (no bore) — no motor can be seated`;
+    if (m.diameter > bore) {
+      return `motor ⌀${(m.diameter * 1000).toFixed(0)} mm exceeds mount '${mount.name}' bore ⌀${(bore * 1000).toFixed(0)} mm`;
+    }
+    const overlap = Math.min(m.length, mount.length);
+    if (overlap < 0.5 * m.length) {
+      return `motor length ${(m.length * 1000).toFixed(0)} mm is not retained by mount '${mount.name}' (needs >= 50% of ${(mount.length * 1000).toFixed(0)} mm)`;
+    }
+    return null;
+  };
+  const activeMotorExcludedReason =
+    mountAssessment.ambiguous ? null : reasonMotorExcluded(activeMotor);
+  const runEligible =
+    !mountAssessment.ambiguous && activeMotorExcludedReason === null;
 
   const simulationInputKey = useMemo(
     () =>
@@ -176,6 +218,24 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
     // input snapshot (vehicle geometry/mass, motor data, options), and
     // timestamp. Stale SAFE/PASS output must never survive a failed rerun.
     const inputSummary = describeRunInputs();
+    // Round-19 motor-mount prefilter: never start a run the simulator would
+    // reject on hardware grounds (multi-mount ambiguity, bore exceed,
+    // retention). The Run button is disabled in these states; this guard
+    // keeps the invariant under programmatic calls.
+    if (!runEligible) {
+      const reason = mountAssessment.ambiguous
+        ? `multiple motor mounts flagged (${mountAssessment.mounts.map((m) => m.name).join(', ')}) — motor assignment must be unique`
+        : activeMotorExcludedReason ?? 'selected motor cannot seat in this mount';
+      setSimResult(null);
+      setLastRunInputKey(null);
+      setSimError({
+        message: `Motor-mount prefilter: ${reason}`,
+        inputs: inputSummary,
+        snapshot: snapshotRunInputs(),
+        at: new Date().toISOString(),
+      });
+      return;
+    }
     try {
       const res = simulate6DofFlight(vehicle, activeMotor, {
         railLength,
@@ -254,20 +314,37 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5">
                   <Flame className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Certified Rocket Motor</span>
+                  <span>Rocket Motor (Certified + Imported)</span>
                 </label>
                 <select
                   value={selectedMotorId}
-                  aria-label="Certified rocket motor"
-                  onChange={(e) => setSelectedMotorId(e.target.value)}
+                  aria-label="Rocket motor"
+                  onChange={(e) => selectMotor(e.target.value)}
                   className="w-full min-h-11 bg-zinc-800 text-zinc-100 px-3 py-2 rounded-lg border border-zinc-600 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 font-medium cursor-pointer"
                 >
-                  {Object.values(CERTIFIED_MOTORS).map((m) => (
-                    <option key={m.id} value={m.id}>
-                      [{m.impulseClass}] {m.designation} — {m.totalImpulse} Ns (⌀{(m.diameter * 1000).toFixed(0)}mm)
-                    </option>
-                  ))}
+                  {Object.values(catalog).map((m) => {
+                    const excludedReason = mountAssessment.ambiguous ? null : reasonMotorExcluded(m);
+                    return (
+                      <option
+                        key={m.id}
+                        value={m.id}
+                        disabled={excludedReason !== null}
+                        title={excludedReason ?? undefined}
+                      >
+                        [{m.impulseClass}] {m.designation} — {m.totalImpulse} Ns (⌀{(m.diameter * 1000).toFixed(0)}mm)
+                        {excludedReason !== null ? ' — cannot fit this mount' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
+                {mountAssessment.mounts.length === 1 && !mountAssessment.ambiguous && (
+                  <div className="text-[10px] font-mono text-zinc-500">
+                    {mountAssessment.boreM === null
+                      ? `Mount '${mountAssessment.mounts[0].name}' is a solid tube — no motor can be seated.`
+                      : `Motor-mount bore ⌀${(mountAssessment.boreM * 1000).toFixed(0)}mm · ` +
+                        `${Object.values(catalog).filter((m) => reasonMotorExcluded(m) !== null).length} of ${Object.values(catalog).length} motors excluded (bore/length)`}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -403,11 +480,47 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
             </div>
           </div>
 
+          {/* Mount-state advisories (Round-19): hardware states that change
+              the simulation contract are surfaced BEFORE the run — zero-mount
+              aft fallback, multi-mount ambiguity (run disabled), solid/too-
+              tight mount (run disabled). Never offer a run that is
+              guaranteed to throw. */}
+          {mountAssessment.ambiguous && (
+            <div
+              className="p-3 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-xs font-mono"
+              role="status"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 inline-block mr-1.5" />
+              Multiple motor mounts flagged ({mountAssessment.mounts.map((m) => m.name).join(', ')}) — motor assignment must be unique
+              (prepareVehicle would reject this vehicle). Simulation is disabled. Clear stray “Is Motor Mount” flags in the Properties inspector.
+            </div>
+          )}
+          {!mountAssessment.ambiguous && mountAssessment.mounts.length === 0 && (
+            <div
+              className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/40 text-amber-300 text-xs"
+              role="status"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 inline-block mr-1.5" />
+              No motor mount flagged — the motor seats at the vehicle aft end (documented fallback placement).
+              Mark a body tube as “Is Motor Mount” in Properties to apply bore-fit screening.
+            </div>
+          )}
+          {!mountAssessment.ambiguous && !runEligible && (
+            <div
+              className="p-3 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-xs font-mono"
+              role="status"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 inline-block mr-1.5" />
+              {activeMotorExcludedReason} — select a fitting motor to enable the run.
+            </div>
+          )}
+
           {/* Action Button */}
           <div className="flex justify-center">
             <button
               onClick={handleRunSimulation}
-              className="min-h-11 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+              disabled={!runEligible}
+              className="min-h-11 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 disabled:opacity-40 disabled:cursor-not-allowed enabled:pointer-events-auto"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>Run 6-DOF Trajectory Simulation</span>

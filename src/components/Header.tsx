@@ -40,6 +40,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSim, studio = 'cad', onStu
   const vehicle = useRocketStore((s) => s.vehicle);
   const setVehicle = useRocketStore((s) => s.setVehicle);
   const loadPreset = useRocketStore((s) => s.loadPreset);
+  // Controlled preset select (Round-19): the displayed key is DERIVED from
+  // the current vehicle by id, so every vehicle source — preset load, .ork/
+  // .rkt/.json import, drag-drop, undo/redo — reflects itself. A preset
+  // switch replaces the vehicle and thereby resets downstream state: App
+  // remounts TrajectoryStudio (key={vehicle.id}, clearing wind rows, probe,
+  // sounding, and MC results) and FlightSim results go STALE (the vehicle is
+  // part of the simulation input key). A stale preset name is never shown
+  // for a vehicle that is no longer that preset.
+  const currentPresetKey = Object.keys(PRESETS).find((key) => PRESETS[key].id === vehicle.id) ?? '';
   const importCustomMotor = useRocketStore((s) => s.importCustomMotor);
   const undo = useRocketStore((s) => s.undo);
   const redo = useRocketStore((s) => s.redo);
@@ -144,10 +153,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSim, studio = 'cad', onStu
           <FolderOpen className="w-3.5 h-3.5 text-zinc-400 ml-1.5" />
           <span className="text-[11px] text-zinc-400">Preset:</span>
           <select
+            value={currentPresetKey}
             onChange={(e) => loadPreset(e.target.value)}
+            aria-label="Vehicle preset"
             className="bg-transparent text-xs text-zinc-200 focus:outline-none cursor-pointer pr-2 font-medium"
-            defaultValue="estes_alpha"
           >
+            <option value="" disabled className="bg-zinc-900 text-zinc-500">
+              Custom / imported
+            </option>
             {Object.entries(PRESETS).map(([key, p]) => (
               <option key={key} value={key} className="bg-zinc-900 text-zinc-200">
                 {p.name}

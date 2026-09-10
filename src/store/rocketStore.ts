@@ -226,8 +226,13 @@ export const PRESETS: Record<string, RocketVehicle> = {
 interface RocketStoreState {
   vehicle: RocketVehicle;
   selectedComponentId: string | null;
+  /** Shared flight motor selection (FlightSimulationTab, PropulsionStudio,
+   *  TrajectoryStudio all read/drive this one id). Defaults to the Estes C6. */
+  selectedMotorId: string;
   customMotors: Record<string, MotorSpec>;
   importCustomMotor: (motor: MotorSpec) => void;
+  // Shared actions
+  selectMotor: (id: string) => void;
   stability: StabilityAnalysis;
   viewMode: ViewMode;
   showCG: boolean;
@@ -266,9 +271,11 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
   return {
     vehicle: initialVehicle,
     selectedComponentId: initialVehicle.components[0].id,
+    selectedMotorId: 'estes_c6',
     customMotors: {},
     importCustomMotor: (motor) =>
       set((state) => ({ customMotors: { ...state.customMotors, [motor.id]: motor } })),
+    selectMotor: (id) => set({ selectedMotorId: id }),
     stability: initialStability,
     viewMode: 'solid',
     showCG: true,
@@ -391,6 +398,7 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
       set({
         vehicle: initialVehicle,
         selectedComponentId: initialVehicle.components[0].id,
+        selectedMotorId: 'estes_c6',
         stability: initialStability,
         history: [],
         future: [],

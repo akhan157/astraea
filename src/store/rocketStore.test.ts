@@ -50,6 +50,15 @@ describe('RocketStore (Zustand & History)', () => {
     expect((useRocketStore.getState().vehicle.components[0] as NoseconeComponent).length).toBe(0.25);
   });
 
+  it('selects the shared flight motor by id and resets it to the C6 default', () => {
+    const state = useRocketStore.getState();
+    expect(state.selectedMotorId).toBe('estes_c6');
+    state.selectMotor('cesaroni_i205');
+    expect(useRocketStore.getState().selectedMotorId).toBe('cesaroni_i205');
+    useRocketStore.getState().resetStore();
+    expect(useRocketStore.getState().selectedMotorId).toBe('estes_c6');
+  });
+
   it('registers imported custom motors by id without touching vehicle history', () => {
     const state = useRocketStore.getState();
     const historyLen = state.history.length;

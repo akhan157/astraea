@@ -60,8 +60,11 @@ function burnAreaPolyline(trace: GrainRegressionTrace): string {
 
 export function PropulsionStudio({}: {}): JSX.Element {
   const customMotors = useRocketStore((s) => s.customMotors);
+  // Shared flight-motor selection (Round-19): PropulsionStudio drives the
+  // same store id that FlightSim and Trajectory read — one picker, one motor.
+  const selectedMotorId = useRocketStore((s) => s.selectedMotorId);
+  const selectMotor = useRocketStore((s) => s.selectMotor);
   const catalog: Record<string, MotorSpec> = { ...CERTIFIED_MOTORS, ...customMotors };
-  const [selectedMotorId, setSelectedMotorId] = useState<string>('estes_c6');
   const [outerDmm, setOuterDmm] = useState('54');
   const [coreDmm, setCoreDmm] = useState('18');
   const [lengthMm, setLengthMm] = useState('300');
@@ -161,7 +164,7 @@ export function PropulsionStudio({}: {}): JSX.Element {
             <select
               value={selectedMotorId}
               aria-label="Certified motor"
-              onChange={(e) => setSelectedMotorId(e.target.value)}
+              onChange={(e) => selectMotor(e.target.value)}
               className="w-full min-h-11 bg-zinc-800 text-zinc-100 px-3 py-2 rounded-lg border border-zinc-600 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 font-medium cursor-pointer"
             >
               {Object.values(catalog).map((m) => (

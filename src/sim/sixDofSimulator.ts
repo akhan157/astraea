@@ -675,24 +675,33 @@ export function simulate6DofFlight(
         // No rate reset: the drogue's drag acts through the loads assembly
         // at the next stage-RHS evaluation (momentum-conserving; the
         // parachute drag decelerates/rotates the vehicle physically).
-        events.push({
-          time: timeOf,
-          name: 'Apogee & Drogue Deployment',
-          altitude: root.r.z,
-          velocity: Math.sqrt(root.v.x * root.v.x + root.v.y * root.v.y + root.v.z * root.v.z),
-          description: `Physical peak ${showAlt.toFixed(0)}m (${(showAlt * 3.28084).toFixed(0)} ft) AGL at ${showTime.toFixed(2)}s; recovery activated at ${timeOf.toFixed(2)}s (alt ${root.r.z.toFixed(0)}m). High-speed drogue parachute ejected.`,
-        });
+        // Deployment event TEXT is gated on an actual drogue canopy
+        // (Round-19): a chuteless vehicle still passes apogee and the FSM
+        // still transitions, but no event may name a parachute that does not
+        // exist on the vehicle. Physics is unchanged — loads.ts already gates
+        // recovery drag on hardware (pv.drogue !== undefined).
+        if (pv.drogue !== undefined) {
+          events.push({
+            time: timeOf,
+            name: 'Apogee & Drogue Deployment',
+            altitude: root.r.z,
+            velocity: Math.sqrt(root.v.x * root.v.x + root.v.y * root.v.y + root.v.z * root.v.z),
+            description: `Physical peak ${showAlt.toFixed(0)}m (${(showAlt * 3.28084).toFixed(0)} ft) AGL at ${showTime.toFixed(2)}s; recovery activated at ${timeOf.toFixed(2)}s (alt ${root.r.z.toFixed(0)}m). High-speed drogue parachute ejected.`,
+          });
+        }
         break;
       }
       case 'MAIN_DEPLOY': {
         isMainDeployed = true;
-        events.push({
-          time: timeOf,
-          name: 'Main Parachute Deployment',
-          altitude: root.r.z,
-          velocity: Math.abs(root.v.z),
-          description: `Main parachute opened at ${root.r.z.toFixed(0)}m AGL. Decelerating descent for safe landing.`,
-        });
+        if (pv.mainChute !== undefined) {
+          events.push({
+            time: timeOf,
+            name: 'Main Parachute Deployment',
+            altitude: root.r.z,
+            velocity: Math.abs(root.v.z),
+            description: `Main parachute opened at ${root.r.z.toFixed(0)}m AGL. Decelerating descent for safe landing.`,
+          });
+        }
         break;
       }
       case 'TOUCHDOWN': {

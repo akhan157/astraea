@@ -364,6 +364,24 @@ const BodyTubeControls: React.FC<ControlProps<BodyTubeComponent>> = ({ comp, onC
       max={298}
       onChange={(innerDiameter) => onChange({ innerDiameter })}
     />
+
+    <div className="flex items-center justify-between">
+      <span className="text-[11px] font-semibold text-zinc-300">
+        Is Motor Mount
+      </span>
+      <input
+        type="checkbox"
+        checked={comp.isMotorMount === true}
+        onChange={(e) => onChange({ isMotorMount: e.target.checked })}
+        aria-label="Is motor mount"
+        className="rounded accent-cyan-500 cursor-pointer"
+      />
+    </div>
+    <p className="text-[10px] text-zinc-500">
+      The motor seats at this tube&apos;s aft end; its inner diameter is the
+      bore that pre-filters motor fit in Flight Simulation. Exactly one mount
+      may be flagged.
+    </p>
   </div>
 );
 

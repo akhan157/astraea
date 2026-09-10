@@ -1,9 +1,10 @@
 /**
  * TrajectoryStudio surface suite (jsdom).
  *
- * Exercises the exported TrajectoryStudio panel against an inline Estes
- * Alpha-class vehicle (no store dependency) and the certified Estes C6 motor:
- *   1. All four sections render with the passed vehicle/motor identity.
+ * The panel reads the ACTIVE vehicle + shared flight-motor selection from
+ * the RocketStore (Round-19 coherence — no vehicle/motor props). The store
+ * is primed with an inline Estes Alpha-class vehicle before each render:
+ *   1. All four sections render with the store vehicle/motor identity.
  *   2. The wind probe readout tracks the manual table (add/remove rows) and
  *      the altitude slider, via the real windAtAltitude/windToENU chain.
  *   3. Live sounding shows the layer count on a valid fetch and error text on
@@ -11,13 +12,16 @@
  *   4. Monte Carlo with nRuns=5 and zero sigmas completes synchronously and
  *      shows a pad-consistent mean landing with zero spread (vertical rail +
  *      zero-wind default field).
- *   5. Protuberance drag and boattail separation advisories react to inputs.
+ *   5. A fetched sounding drives the MC wind (sounding > manual precedence)
+ *      and drifts the mean landing away from the pad.
+ *   6. MC results carry a FRESH/STALE badge keyed on every input change.
+ *   7. Protuberance drag and boattail separation advisories react to inputs.
  */
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { TrajectoryStudio } from './TrajectoryStudio';
-import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
+import { useRocketStore } from '../store/rocketStore';
 import { computeProtuberanceDrag } from '../aero/protuberance';
 import type { RocketVehicle } from '../core/types';
 
@@ -79,14 +83,30 @@ const ALPHA_CLASS_VEHICLE: RocketVehicle = {
   ],
 };
 
-const renderStudio = () => render(<TrajectoryStudio vehicle={ALPHA_CLASS_VEHICLE} motor={CERTIFIED_MOTORS.estes_c6} />);
+/** Prime the store with the alpha-class vehicle + the C6 flight motor. */
+const renderStudio = () => {
+  const store = useRocketStore.getState();
+  store.resetStore();
+  store.setVehicle(ALPHA_CLASS_VEHICLE);
+  store.selectMotor('estes_c6');
+  return render(<TrajectoryStudio key={ALPHA_CLASS_VEHICLE.id} />);
+};
+
+const runCountInput = () => screen.getByLabelText('Monte Carlo run count') as HTMLInputElement;
+const zeroSigmaRun = () => {
+  fireEvent.change(runCountInput(), { target: { value: '5' } });
+  fireEvent.change(screen.getByLabelText('Wind direction sigma (deg)'), { target: { value: '0' } });
+  fireEvent.change(screen.getByLabelText('Rail angle sigma (deg)'), { target: { value: '0' } });
+  fireEvent.change(screen.getByLabelText('Impulse sigma (%)'), { target: { value: '0' } });
+  fireEvent.click(screen.getByRole('button', { name: /run monte carlo/i }));
+};
 
 describe('TrajectoryStudio', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it('renders all four sections with the passed vehicle and motor', () => {
+  it('renders all four sections with the store vehicle and motor', () => {
     renderStudio();
     expect(screen.getByText('Trajectory & Weather Studio')).toBeTruthy();
     expect(screen.getByText('Estes Alpha Class')).toBeTruthy();
@@ -96,8 +116,9 @@ describe('TrajectoryStudio', () => {
     expect(screen.getByText('Monte Carlo Dispersion')).toBeTruthy();
     expect(screen.getByText('Boattail Flow Separation')).toBeTruthy();
     expect(screen.getByText('Protuberance Drag')).toBeTruthy();
-    // Defaults: 50 runs, 200 cap, single wind row.
-    expect((screen.getByLabelText('Monte Carlo run count') as HTMLInputElement).value).toBe('50');
+    // Defaults: 50 runs, single wind row, probe at 0 m (surface).
+    expect(runCountInput().value).toBe('50');
+    expect((screen.getByLabelText('Wind probe altitude (m)') as HTMLInputElement).value).toBe('0');
   });
 
   it('drives the wind probe readout from the manual table rows, add/remove, and altitude slider', () => {
@@ -142,6 +163,8 @@ describe('TrajectoryStudio', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: /fetch live sounding/i }));
     await waitFor(() => expect(screen.getByText('2 pressure levels fetched')).toBeTruthy(), { timeout: 5000 });
+    // The MC wind source flips to the live sounding (precedence note).
+    expect(screen.getByText(/live sounding, interpolated @ 0 m/)).toBeTruthy();
   });
 
   it('shows error text when the sounding fetch fails', async () => {
@@ -157,15 +180,13 @@ describe('TrajectoryStudio', () => {
       () => expect(screen.getByText('Sounding failed: network unavailable')).toBeTruthy(),
       { timeout: 5000 },
     );
+    // Manual table remains the MC wind source after a failed fetch.
+    expect(screen.getByText('Wind for MC: manual wind table (surface probe)')).toBeTruthy();
   });
 
   it('runs a zero-sigma Monte Carlo with nRuns=5 and shows a pad-consistent mean landing', async () => {
     renderStudio();
-    fireEvent.change(screen.getByLabelText('Monte Carlo run count'), { target: { value: '5' } });
-    fireEvent.change(screen.getByLabelText('Wind direction sigma (deg)'), { target: { value: '0' } });
-    fireEvent.change(screen.getByLabelText('Rail angle sigma (deg)'), { target: { value: '0' } });
-    fireEvent.change(screen.getByLabelText('Impulse sigma (%)'), { target: { value: '0' } });
-    fireEvent.click(screen.getByRole('button', { name: /run monte carlo/i }));
+    zeroSigmaRun();
 
     // Synchronous run: block until the result panel renders (bounded by the
     // real 6-DOF simulator's runtime for 5 runs).
@@ -184,6 +205,69 @@ describe('TrajectoryStudio', () => {
     expect(screen.getByLabelText('Sigma 1 (m)').textContent).toBe('0.0 m');
     expect(screen.getByLabelText('Sigma 2 (m)').textContent).toBe('0.0 m');
     expect(screen.getByLabelText('r50 (m)').textContent).toBe('0 m');
+    // The badge reads FRESH while inputs match the run.
+    expect(screen.getByText('FRESH — matches current inputs')).toBeTruthy();
+  }, 300000);
+
+  it('uses the fetched live sounding for MC wind (sounding > manual)', async () => {
+    renderStudio();
+    // Strong surface wind sounding (15 m/s FROM west at the 1000 hPa level):
+    // probe altitude 0 clamps to the lowest layer, so MC flies a 15 m/s
+    // westward-blow wind — nothing like the zero-wind manual table.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          hourly: {
+            temperature_1000hPa: [20],
+            wind_speed_1000hPa: [15],
+            wind_direction_1000hPa: [270],
+            temperature_850hPa: [10],
+            wind_speed_850hPa: [20],
+            wind_direction_850hPa: [250],
+          },
+        }),
+      })),
+    );
+    fireEvent.click(screen.getByRole('button', { name: /fetch live sounding/i }));
+    await waitFor(() => expect(screen.getByText('2 pressure levels fetched')).toBeTruthy(), {
+      timeout: 5000,
+    });
+
+    zeroSigmaRun();
+    await waitFor(
+      () => expect(screen.getByText('5 succeeded · 0 failed')).toBeTruthy(),
+      { timeout: 180000 },
+    );
+    // The sounding drives the surface wind: the cloud drifts east (wind FROM
+    // 270° blows toward 90°/east) — decisively far from the manual-table pad.
+    const mean = screen.getByLabelText('Mean landing (m)').textContent ?? '';
+    const match = /E (-?\d+(?:\.\d+)?) · N (-?\d+(?:\.\d+)?)/.exec(mean);
+    expect(match).toBeTruthy();
+    const east = Number(match![1]);
+    expect(east).toBeGreaterThan(50);
+  }, 300000);
+
+  it('flags MC results STALE on any input change and refreshes on rerun', async () => {
+    renderStudio();
+    zeroSigmaRun();
+    await waitFor(
+      () => expect(screen.getByText('5 succeeded · 0 failed')).toBeTruthy(),
+      { timeout: 180000 },
+    );
+    expect(screen.getByText('FRESH — matches current inputs')).toBeTruthy();
+
+    // Moving the probe (a dispersion input) stale-markers the results.
+    fireEvent.change(screen.getByLabelText('Wind probe altitude (m)'), { target: { value: '200' } });
+    expect(screen.getByText('STALE — inputs changed since run')).toBeTruthy();
+
+    // A rerun at the new inputs refreshes the badge.
+    fireEvent.change(screen.getByLabelText('Wind probe altitude (m)'), { target: { value: '0' } });
+    fireEvent.click(screen.getByRole('button', { name: /run monte carlo/i }));
+    await waitFor(() => expect(screen.getByText('FRESH — matches current inputs')).toBeTruthy(), {
+      timeout: 180000,
+    });
   }, 300000);
 
   it('computes protuberance drag and flags boattail separation from the transition geometry', () => {

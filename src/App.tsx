@@ -14,7 +14,6 @@ import { PropulsionStudio } from './components/PropulsionStudio';
 import { TrajectoryStudio } from './components/TrajectoryStudio';
 import { EvidenceStudio } from './components/EvidenceStudio';
 import { useRocketStore } from './store/rocketStore';
-import { CERTIFIED_MOTORS } from './propulsion/motorDatabase';
 import { parseOrkFile } from './formats/orkParser';
 import { parseRktString } from './formats/rktParser';
 import { UploadCloud } from 'lucide-react';
@@ -127,9 +126,10 @@ export const App: React.FC = () => {
         ) : (
           <main className="flex-1 relative h-full overflow-y-auto p-4 bg-zinc-950">
             {studio === 'propulsion' && <PropulsionStudio />}
-            {studio === 'trajectory' && (
-              <TrajectoryStudio vehicle={vehicle} motor={CERTIFIED_MOTORS.estes_c6} />
-            )}
+            {/* Keyed on vehicle.id (Round-19): a preset/import/undo vehicle
+                switch remounts the studio, resetting wind rows, probe,
+                sounding, and MC results instead of silently reusing them. */}
+            {studio === 'trajectory' && <TrajectoryStudio key={vehicle.id} />}
             {studio === 'evidence' && <EvidenceStudio />}
           </main>
         )}

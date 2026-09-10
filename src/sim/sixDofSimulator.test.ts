@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { simulate6DofFlight } from './sixDofSimulator';
 import { PRESET_ESTES_ALPHA } from '../store/rocketStore';
 import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
+import type { RocketVehicle } from '../core/types';
 
 describe('6-DOF (Six Degrees of Freedom) Flight Simulator', () => {
   it('simulates 3D trajectory with launch rail elevation and wind drift', () => {
@@ -255,5 +256,28 @@ describe('6-DOF production adversarial sweeps (Round-17 audit §7/§10)', () => 
     expect(main!.time).toBeGreaterThanOrEqual(apogee!.time);
     expect(main!.time - apogee!.time).toBeLessThan(0.05);
     expect(res.terminated).toBe(true);
+  });
+
+  it('emits no drogue/main deployment events for a chuteless vehicle', () => {
+    // Round-19: deployment event TEXT is gated on an actual canopy. A
+    // chuteless vehicle still tracks apogee and terminates at touchdown, but
+    // no event may name a parachute that does not exist on the vehicle —
+    // physics (flags/loads) is unchanged.
+    const noChute: RocketVehicle = {
+      ...PRESET_ESTES_ALPHA,
+      id: 'alpha-no-chute',
+      components: PRESET_ESTES_ALPHA.components.filter((c) => c.type !== 'parachute'),
+    };
+    const res = simulate6DofFlight(noChute, CERTIFIED_MOTORS.estes_c6, {
+      railLength: 1.0,
+      railElevationDeg: 85.0,
+      windSpeedSurface: 2.0,
+    });
+    expect(
+      res.events.some((e) => e.name.includes('Drogue Deployment') || e.name.includes('Main Parachute')),
+    ).toBe(false);
+    expect(res.terminated).toBe(true);
+    expect(res.apogeeAltitude).toBeGreaterThan(50);
+    expect(res.events.some((e) => e.name === 'Ground Touchdown')).toBe(true);
   });
 });
