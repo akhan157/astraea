@@ -163,6 +163,24 @@ function baseFixture(over = {}) {
     'src/formats/orkParser.test.ts': "describe('ork format', () => { it('parses components', () => {}); });\n",
     'src/formats/rktParser.test.ts': "describe('rkt format', () => { it('parses motors', () => {}); });\n",
     'src/store/rocketStore.test.ts': "describe('vehicle store', () => { it('holds presets', () => {}); });\n",
+    'src/aero/protuberance.test.ts': "describe('protuberance drag', () => { it('immerses lugs', () => {}); });\n",
+    'src/sim/weather.test.ts': "describe('weather soundings', () => { it('parses layers', () => {}); });\n",
+    'src/sim/monteCarlo.test.ts': "describe('dispersion engine', () => { it('scatters landings', () => {}); });\n",
+    'src/formats/rasaero.test.ts': "describe('rasaero export', () => { it('emits stations', () => {}); });\n",
+    'src/propulsion/grainRegression.test.ts': "describe('grain regression', () => { it('regresses bates', () => {}); });\n",
+    'src/propulsion/nozzleChemistry.test.ts': "describe('nozzle chemistry', () => { it('sizes performance', () => {}); });\n",
+    'src/recovery/recovery.test.ts': "describe('recovery packing', () => { it('sizes bays', () => {}); });\n",
+    'src/evidence/evidence.test.ts': "describe('flight evidence', () => { it('calibrates drag', () => {}); });\n",
+    'src/aero/protuberance.ts': 'export const computeProtuberanceDrag = () => 0;\n',
+    'src/sim/weather.ts': 'export const parseOpenMeteoSounding = () => [];\n',
+    'src/sim/monteCarlo.ts': 'export const runMonteCarlo = () => ({});\n',
+    'src/formats/rasaero.ts': 'export const exportCdx1 = () => "";\n',
+    'src/propulsion/grainRegression.ts': 'export const regressBates = () => ({});\n',
+    'src/propulsion/nozzleChemistry.ts': 'export const apcpEquilibrium = () => ({});\n',
+    'src/recovery/packing.ts': 'export const bayVolume = () => 0;\n',
+    'src/recovery/charges.ts': 'export const bpMass = () => 0;\n',
+    'src/evidence/altimetry.ts': 'export const parseAltimeterCsv = () => [];\n',
+    'src/evidence/calibration.ts': 'export const calibrateCd = () => ({});\n',
     'scripts/emit-benchmark-metadata.test.cjs': "describe('emitter evidence', () => { it('fails closed', () => {}); });\n",
     ...over,
   };
@@ -217,6 +235,14 @@ function makeVitestJson({
     'src/formats/orkParser.test.ts',
     'src/formats/rktParser.test.ts',
     'src/store/rocketStore.test.ts',
+    'src/aero/protuberance.test.ts',
+    'src/sim/weather.test.ts',
+    'src/sim/monteCarlo.test.ts',
+    'src/formats/rasaero.test.ts',
+    'src/propulsion/grainRegression.test.ts',
+    'src/propulsion/nozzleChemistry.test.ts',
+    'src/recovery/recovery.test.ts',
+    'src/evidence/evidence.test.ts',
     'scripts/emit-benchmark-metadata.test.cjs',
   ];
   const fileResults = acceptanceFiles
@@ -547,13 +573,13 @@ t('vitest per-file totals parsed from assertionResults, not f.assertions', () =>
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
-  assert.equal(parsed.files.length, 16);
+  assert.equal(parsed.files.length, 24);
   const vvFile = parsed.files.find((file) => file.file === 'vv-benchmarks.test.ts');
   assert.equal(vvFile.testCases.total, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.passed, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.failed, 0);
   assert.equal(vvFile.testCases.unknown, 0);
-  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 15);
+  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 23);
 });
 
 t('vitest JSON unparseable => certification fails', () => {
