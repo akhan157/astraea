@@ -89,6 +89,30 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/core/mass.test.ts',
   'src/components/FlightSimulationTab.test.tsx',
   'scripts/emit-benchmark-metadata.test.cjs',
+  // All 30 FIXED_TEST_FILE_INVENTORY suites are cited (sha256) so the
+  // artifact's hashes.files covers every collected suite, not only the
+  // gate-bound files (audit §9.4 completeness; M1).
+  'src/aero/barrowman.test.ts',
+  'src/aero/finFlutter.test.ts',
+  'src/aero/transonicAero.test.ts',
+  'src/sim/flightSimulator.test.ts',
+  'src/formats/orkParser.test.ts',
+  'src/formats/rktParser.test.ts',
+  'src/store/rocketStore.test.ts',
+  'src/aero/protuberance.test.ts',
+  'src/sim/weather.test.ts',
+  'src/sim/monteCarlo.test.ts',
+  'src/formats/rasaero.test.ts',
+  'src/propulsion/grainRegression.test.ts',
+  'src/propulsion/nozzleChemistry.test.ts',
+  'src/recovery/recovery.test.ts',
+  'src/evidence/evidence.test.ts',
+  'src/components/PropulsionStudio.test.tsx',
+  'src/components/TrajectoryStudio.test.tsx',
+  'src/components/EvidenceStudio.test.tsx',
+  'src/components/InteropExportPanel.test.tsx',
+  'src/formats/engParser.test.ts',
+  'src/formats/blueprint.test.ts',
   'src/dynamics/rigidBody.ts',
   'src/dynamics/loads.ts',
   'src/dynamics/events.ts',
@@ -725,17 +749,12 @@ function computeEvidence(opts = {}) {
         const preSource = inventorySourcesPre[match] ?? null;
         if (preSource === null) {
           missing.push(`tests: inventory file ${match} missing or unreadable in the pre-execution snapshot`);
-        } else if (match === 'scripts/emit-benchmark-metadata.test.cjs') {
-          // Dual-execution suite (audit §9.4): the file registers its CASES
-          // plus a cleanup case dynamically under Vitest, while its source
-          // also embeds fixture `it(` literals — textual case counting has
-          // no exact-count semantics here. Presence, non-emptiness, and a
-          // clean pass are required; the substantive gate is the exit-0
-          // self-test run inside the certified command.
-          if (countSourceAssertions(preSource) === 0) {
-            missing.push(`tests: inventory file ${match} declares zero test cases in source — an empty source proves nothing`);
-          }
         } else {
+          // Every collected suite — including the emitter's own
+          // scripts/emit-benchmark-metadata.test.cjs — is bound to its source
+          // case count: the file registers each case with its own literal
+          // it(/test( token plus one cleanup case, so textual counting has
+          // exact-count semantics identical to every other suite (M2).
           const sourceCount = countSourceAssertions(preSource);
           if (sourceCount === 0) {
             missing.push(`tests: inventory file ${match} declares zero test cases in source — an empty source proves nothing`);

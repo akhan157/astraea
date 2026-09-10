@@ -12,9 +12,17 @@
  * r = a*Pc^n restricted to n = 0, i.e. the per-step time increment is
  * webStep/burnRateCoeff and the rate feeds chamberPressure directly.
  *
+ * IMPORTANT: `burnRateCoeff` is a VALIDATED, time-axis-only input. The
+ * geometry trace returned by regressBates/regressStar is a function of the
+ * burned web depth only — portArea, burnArea and volumeRemaining are computed
+ * purely from geometry and do NOT depend on burnRateCoeff. The coefficient
+ * only maps web depth to a wall-clock time increment (webStep/burnRateCoeff);
+ * it never alters the shape or scale of the geometry trace.
+ *
  * SI throughout: meters, meters^2, meters^3, and (chamberPressure) Pa.
  * Fail-closed: every geometry/ballistics input is validated; non-finite or
- * non-positive values throw RangeError.
+ * non-positive values throw RangeError, and chamberPressure additionally
+ * throws on a non-finite/overflow result.
  */
 
 /** BATES (cylindrical core) grain geometry. */
@@ -192,5 +200,14 @@ export function chamberPressure(
   requirePositive(cstar, 'cstar');
   requirePositive(throatArea, 'throatArea');
   const massFlow = propDensity * burnArea * burnRate; // kg/s
-  return (massFlow * cstar) / throatArea; // Pa
+  const pc = (massFlow * cstar) / throatArea; // Pa
+  // Fail-closed on the result, not just the inputs: an intermediate overflow
+  // (finite inputs, non-finite product) or an over-wide pressure must throw
+  // rather than silently emit an incoherent value.
+  if (!Number.isFinite(pc) || pc <= 0) {
+    throw new RangeError(
+      `grain regression: chamberPressure produced a non-finite or non-positive result (${pc} Pa) from finite positive inputs`,
+    );
+  }
+  return pc;
 }

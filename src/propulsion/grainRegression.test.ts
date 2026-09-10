@@ -206,6 +206,13 @@ describe('grain regression: fail-closed validation', () => {
       expect(() => chamberPressure(0.02, RATE, 1800, 1500, bad)).toThrow(RangeError);
     }
   });
+
+  it('throws on a non-finite/overflow pressure result from finite inputs', () => {
+    // Finite positive inputs whose product overflows to Infinity must fail
+    // closed on the RESULT, not silently emit Infinity.
+    expect(() => chamberPressure(Number.MAX_VALUE, RATE, 1800, 1500, 4e-4)).toThrow(RangeError);
+    expect(() => chamberPressure(1e200, 1e200, 1e200, 1e200, 1e-200)).toThrow(RangeError);
+  });
 });
 
 /** Type-level smoke: consumer receives the full regression trace shape. */

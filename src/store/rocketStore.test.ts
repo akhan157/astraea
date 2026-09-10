@@ -86,6 +86,48 @@ describe('RocketStore (Zustand & History)', () => {
     expect(updated.history.length).toBe(historyLen);
   });
 
+  it('re-importing an id with a different designation suffixes _2/_3 instead of overwriting', () => {
+    const state = useRocketStore.getState();
+    const base = {
+      id: 'test_custom_h128',
+      designation: 'Test H128',
+      manufacturer: 'TestWorks',
+      impulseClass: 'H',
+      diameter: 0.029,
+      length: 0.2,
+      totalImpulse: 180,
+      avgThrust: 128,
+      maxThrust: 200,
+      burnTime: 1.4,
+      propellantMass: 0.1,
+      totalMass: 0.2,
+      dryMass: 0.1,
+      thrustCurve: [
+        { time: 0, thrust: 0 },
+        { time: 1.4, thrust: 0 },
+      ],
+    };
+    state.importCustomMotor(base);
+    // Same id, different designation: must NOT overwrite the original.
+    state.importCustomMotor({ ...base, designation: 'Test H128 v2' });
+    let st = useRocketStore.getState();
+    expect(st.customMotors['test_custom_h128']?.designation).toBe('Test H128');
+    expect(st.customMotors['test_custom_h128_2']?.designation).toBe('Test H128 v2');
+    // Third distinct designation walks to _3.
+    state.importCustomMotor({ ...base, designation: 'Test H128 v3' });
+    st = useRocketStore.getState();
+    expect(st.customMotors['test_custom_h128']?.designation).toBe('Test H128');
+    expect(st.customMotors['test_custom_h128_2']?.designation).toBe('Test H128 v2');
+    expect(st.customMotors['test_custom_h128_3']?.designation).toBe('Test H128 v3');
+    expect(Object.keys(st.customMotors).length).toBe(3);
+    // Same id + same designation replaces in place (identical re-import).
+    state.importCustomMotor({ ...base, designation: 'Test H128', manufacturer: 'TestWorks2' });
+    st = useRocketStore.getState();
+    expect(st.customMotors['test_custom_h128']?.manufacturer).toBe('TestWorks2');
+    expect(Object.keys(st.customMotors).length).toBe(3);
+    expect(st.history.length).toBe(0);
+  });
+
   it('adds and removes components properly', () => {
     const state = useRocketStore.getState();
     const initialCount = state.vehicle.components.length;

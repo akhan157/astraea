@@ -273,9 +273,28 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
     selectedComponentId: initialVehicle.components[0].id,
     selectedMotorId: 'estes_c6',
     customMotors: {},
-    importCustomMotor: (motor) =>
-      set((state) => ({ customMotors: { ...state.customMotors, [motor.id]: motor } })),
     selectMotor: (id) => set({ selectedMotorId: id }),
+    importCustomMotor: (motor) => {
+      set((state) => {
+        // On an id collision with a DIFFERENT designation, suffix the new
+        // motor's id _2/_3/... so the existing record is never silently
+        // overwritten. Same id AND same designation replaces in place
+        // (a re-import of the identical motor).
+        const next = { ...state.customMotors };
+        if (motor.id in next && next[motor.id].designation !== motor.designation) {
+          let n = 2;
+          let candidate = `${motor.id}_${n}`;
+          while (candidate in next) {
+            n += 1;
+            candidate = `${motor.id}_${n}`;
+          }
+          next[candidate] = { ...motor, id: candidate };
+        } else {
+          next[motor.id] = motor;
+        }
+        return { customMotors: next };
+      });
+    },
     stability: initialStability,
     viewMode: 'solid',
     showCG: true,

@@ -48,6 +48,13 @@
  * 5. All inputs are SI: pressure in Pa, temperature in K, energy in J,
  *    molar amounts in kmol, mass in kg. Every public function validates
  *    inputs — a NaN, ±Inf or non-positive physical quantity throws.
+ *
+ * 6. Scope boundary: nothing in this module takes `burnRateCoeff` (the
+ *    grain-lane constant linear burn rate in src/propulsion/grainRegression.
+ *    ts). That coefficient is a validated, time-axis-only input: it maps
+ *    burned web depth to a wall-clock time increment and never participates
+ *    in — or alters — any geometry trace or chamber equilibrium computed
+ *    here.
  * ---------------------------------------------------------------------------
  */
 

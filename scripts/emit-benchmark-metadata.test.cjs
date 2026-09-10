@@ -21,6 +21,14 @@
  * suite directly (exit 0 = all pass, and this is what the certified command
  * executes), while collection under Vitest registers every case as a real
  * test — never a container marker.
+ *
+ * Count binding (M2): every case below is declared with its own literal
+ * `it` case token (open paren directly after the it identifier), plus one
+ * cleanup case, so the emitter's source-case count of this file equals its
+ * executed case count (44 + 1 = 45) exactly like every other collected
+ * suite. Fixture test-file contents are built through helpers that never
+ * spell out the it-token, so they cannot leak counted tokens into this
+ * file's own source.
  */
 
 'use strict';
@@ -38,12 +46,44 @@ const {
 } = require('./emit-benchmark-metadata.cjs');
 
 // ---------------------------------------------------------------------------
-// Case registry (deferred: runners below decide how to execute)
+// Dual-mode harness (deferred: direct node run vs Vitest collection)
 // ---------------------------------------------------------------------------
-
-const CASES = [];
-function t(name, fn) {
-  CASES.push({ name, fn });
+// Under Vitest the real describe/it globals register the cases below as
+// real tests. Under `node scripts/emit-benchmark-metadata.test.cjs` shims
+// execute each case immediately and report (exit 0 = all pass, which is what
+// the certified command requires). Every case is written with its own
+// literal it-token, so this file's source case count is exactly its executed
+// case count (44 cases + 1 cleanup = 45).
+const inVitest = typeof process !== 'undefined' && !!process.env.VITEST;
+if (!inVitest) {
+  // Shims are inert unless this file is the entry script, so requiring it
+  // as a module keeps zero side effects (matching the pre-harness behavior).
+  const run = require.main === module;
+  let runCount = 0;
+  const failures = [];
+  globalThis.describe = () => {};
+  globalThis.it = (name, fn) => {
+    if (!run) return;
+    runCount += 1;
+    try {
+      fn();
+      console.log(`ok - ${name}`);
+    } catch (e) {
+      failures.push(name);
+      console.error(`FAIL - ${name}`);
+      console.error(e && e.stack ? e.stack : e);
+    }
+  };
+  if (run) {
+    process.nextTick(() => {
+      if (failures.length > 0) {
+        console.error(`\n${failures.length} of ${runCount} tests FAILED`);
+        process.exitCode = 1;
+      } else {
+        console.log(`\nall ${runCount} tests passed`);
+      }
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -82,48 +122,57 @@ const BASE_PKG = JSON.stringify(
   2
 );
 
+// Token-safe fixture builders: fixture suite content must carry real
+// it-tokens when written to disk (the emitter counts them), but the literal
+// token bytes must never appear in THIS file — its own source count must
+// equal its 45 executed cases. The it identifier is spelled through a
+// variable, so the emitted bytes are never it followed by an open paren.
+const ITID = 'it';
+const itCaseLine = (name, body) => `  ${ITID}('${name}', () => { ${body}; });`;
+const specLine = (title, caseName) => `describe('${title}', () => { ${ITID}('${caseName}', () => {}); });\n`;
+
 const BASE_SOURCE = [
   "describe('VV-001 Fixture Suite One', () => {",
-  "  it('first case', () => { expect(a).toBeLessThanOrEqual(1); });",
+  itCaseLine('first case', 'expect(a).toBeLessThanOrEqual(1)'),
   '});',
   "describe('VV-002 Fixture Suite Two', () => {",
-  "  it('second case', () => { expect(b).toBeLessThanOrEqual(2); });",
+  itCaseLine('second case', 'expect(b).toBeLessThanOrEqual(2)'),
   '});',
   "describe('VV-003 Fixture Suite Three', () => {",
-  "  it('third case', () => { expect(c).toBeLessThanOrEqual(3); });",
+  itCaseLine('third case', 'expect(c).toBeLessThanOrEqual(3)'),
   '});',
   "describe('VV-004 Galilean Invariance of Aero Loads (production loads assembly)', () => {",
-  "  it('loads are frame independent', () => { expect(Math.abs(x)).toBeLessThanOrEqual(1e-9); });",
+  itCaseLine('loads are frame independent', 'expect(Math.abs(x)).toBeLessThanOrEqual(1e-9)'),
   '});',
   "describe('VV-005 Fixture Suite Five', () => {",
-  "  it('fifth case', () => { expect(e).toBeLessThanOrEqual(5); });",
+  itCaseLine('fifth case', 'expect(e).toBeLessThanOrEqual(5)'),
   '});',
   "describe('VV-006 Fixture Suite Six', () => {",
-  "  it('sixth case', () => { expect(f).toBeLessThanOrEqual(6); });",
+  itCaseLine('sixth case', 'expect(f).toBeLessThanOrEqual(6)'),
   '});',
   "describe('VV-007 Production Solver Linkage', () => {",
-  "  it('simulator executes', () => { expect(ok).toBe(true); });",
+  itCaseLine('simulator executes', 'expect(ok).toBe(true)'),
   '});',
   "describe('VV-009 Fixture Suite Nine', () => {",
-  "  it('ninth case', () => { expect(i).toBeLessThanOrEqual(9); });",
+  itCaseLine('ninth case', 'expect(i).toBeLessThanOrEqual(9)'),
   '});',
   "describe('VV-010 Coupled Rotating-Body-Force RK4 Convergence (loadsAt)', () => {",
-  "  it('converges fourth order', () => { expect(err).toBeLessThanOrEqual(1e-2); });",
+  itCaseLine('converges fourth order', 'expect(err).toBeLessThanOrEqual(1e-2)'),
   '});',
   "describe('VV-011 Fixture Suite Eleven', () => {",
-  "  it('eleventh case', () => { expect(k).toBeLessThanOrEqual(11); });",
+  itCaseLine('eleventh case', 'expect(k).toBeLessThanOrEqual(11)'),
   '});',
   "describe('VV-012 Production Event Localization', () => {",
-  "  it('localizes crossing', () => { expect(Math.abs(t - tExact)).toBeLessThanOrEqual(1e-5); });",
+  itCaseLine('localizes crossing', 'expect(Math.abs(t - tExact)).toBeLessThanOrEqual(1e-5)'),
   '});',
   "describe('VV-013 Gate 3 Variable-Inertia Term', () => {",
-  "  it('conserves angular momentum', () => { expect(relErr).toBeLessThanOrEqual(5e-3); });",
+  itCaseLine('conserves angular momentum', 'expect(relErr).toBeLessThanOrEqual(5e-3)'),
   '});',
   "describe('VV-014 Adaptive Integrator Termination + Convergence', () => {",
-  "  it('terminates stationary', () => { expect(Math.abs(r.x - 5)).toBeLessThanOrEqual(1e-8); });",
+  itCaseLine('terminates stationary', 'expect(Math.abs(r.x - 5)).toBeLessThanOrEqual(1e-8)'),
   '});',
   "describe('VV-015 Production Descent Validation', () => {",
-  "  it('reaches touchdown', () => { expect(v).toBeLessThan(10.0); });",
+  itCaseLine('reaches touchdown', 'expect(v).toBeLessThan(10.0)'),
   '});',
   '',
 ].join('\n');
@@ -147,30 +196,30 @@ function baseFixture(over = {}) {
     'src/core/types.ts': 'export const STANDARD_MATERIALS = {};\n',
     'src/store/rocketStore.ts': 'export const PRESET_ESTES_ALPHA = {};\n',
     'src/components/FlightSimulationTab.tsx': 'export const FlightSimulationTab = () => null;\n',
-    'src/dynamics/rigidBody.adaptive.test.ts': "describe('adaptive acceptance', () => { it('covers candidate attitude and rejection', () => {}); });\n",
-    'src/dynamics/loads.repair.test.ts': "describe('loads acceptance', () => { it('covers combined CG and load validity', () => {}); });\n",
-    'src/sim/event-restart.test.ts': "describe('event acceptance', () => { it('covers root restart and ordering', () => {}); });\n",
-    'src/sim/sixDofSimulator.test.ts': "describe('production contracts', () => { it('aligns touchdown at the root', () => {}); });\n",
-    'src/propulsion/motorDatabase.test.ts': "describe('motor depletion', () => { it('burns by impulse', () => {}); });\n",
+    'src/dynamics/rigidBody.adaptive.test.ts': specLine('adaptive acceptance', 'covers candidate attitude and rejection'),
+    'src/dynamics/loads.repair.test.ts': specLine('loads acceptance', 'covers combined CG and load validity'),
+    'src/sim/event-restart.test.ts': specLine('event acceptance', 'covers root restart and ordering'),
+    'src/sim/sixDofSimulator.test.ts': specLine('production contracts', 'aligns touchdown at the root'),
+    'src/propulsion/motorDatabase.test.ts': specLine('motor depletion', 'burns by impulse'),
     'scripts/emit-benchmark-metadata.cjs': 'module.exports = {};\n',
-    'scripts/emit-benchmark-metadata.test.cjs': "describe('emitter evidence', () => { it('fails closed', () => {}); });\n",
-    'src/core/mass.test.ts': "describe('mass fidelity', () => { it('places the cone centroid', () => {}); });\n",
-    'src/components/FlightSimulationTab.test.tsx': "describe('safety presentation', () => { it('renders badges', () => {}); });\n",
-    'src/aero/transonicAero.test.ts': "describe('aero curves', () => { it('tabulates drag', () => {}); });\n",
-    'src/aero/barrowman.test.ts': "describe('stability analysis', () => { it('places the neutral point', () => {}); });\n",
-    'src/aero/finFlutter.test.ts': "describe('fin flutter', () => { it('bounds divergence velocity', () => {}); });\n",
-    'src/sim/flightSimulator.test.ts': "describe('legacy simulator', () => { it('propagates descent', () => {}); });\n",
-    'src/formats/orkParser.test.ts': "describe('ork format', () => { it('parses components', () => {}); });\n",
-    'src/formats/rktParser.test.ts': "describe('rkt format', () => { it('parses motors', () => {}); });\n",
-    'src/store/rocketStore.test.ts': "describe('vehicle store', () => { it('holds presets', () => {}); });\n",
-    'src/aero/protuberance.test.ts': "describe('protuberance drag', () => { it('immerses lugs', () => {}); });\n",
-    'src/sim/weather.test.ts': "describe('weather soundings', () => { it('parses layers', () => {}); });\n",
-    'src/sim/monteCarlo.test.ts': "describe('dispersion engine', () => { it('scatters landings', () => {}); });\n",
-    'src/formats/rasaero.test.ts': "describe('rasaero export', () => { it('emits stations', () => {}); });\n",
-    'src/propulsion/grainRegression.test.ts': "describe('grain regression', () => { it('regresses bates', () => {}); });\n",
-    'src/propulsion/nozzleChemistry.test.ts': "describe('nozzle chemistry', () => { it('sizes performance', () => {}); });\n",
-    'src/recovery/recovery.test.ts': "describe('recovery packing', () => { it('sizes bays', () => {}); });\n",
-    'src/evidence/evidence.test.ts': "describe('flight evidence', () => { it('calibrates drag', () => {}); });\n",
+    'scripts/emit-benchmark-metadata.test.cjs': specLine('emitter evidence', 'fails closed'),
+    'src/core/mass.test.ts': specLine('mass fidelity', 'places the cone centroid'),
+    'src/components/FlightSimulationTab.test.tsx': specLine('safety presentation', 'renders badges'),
+    'src/aero/transonicAero.test.ts': specLine('aero curves', 'tabulates drag'),
+    'src/aero/barrowman.test.ts': specLine('stability analysis', 'places the neutral point'),
+    'src/aero/finFlutter.test.ts': specLine('fin flutter', 'bounds divergence velocity'),
+    'src/sim/flightSimulator.test.ts': specLine('legacy simulator', 'propagates descent'),
+    'src/formats/orkParser.test.ts': specLine('ork format', 'parses components'),
+    'src/formats/rktParser.test.ts': specLine('rkt format', 'parses motors'),
+    'src/store/rocketStore.test.ts': specLine('vehicle store', 'holds presets'),
+    'src/aero/protuberance.test.ts': specLine('protuberance drag', 'immerses lugs'),
+    'src/sim/weather.test.ts': specLine('weather soundings', 'parses layers'),
+    'src/sim/monteCarlo.test.ts': specLine('dispersion engine', 'scatters landings'),
+    'src/formats/rasaero.test.ts': specLine('rasaero export', 'emits stations'),
+    'src/propulsion/grainRegression.test.ts': specLine('grain regression', 'regresses bates'),
+    'src/propulsion/nozzleChemistry.test.ts': specLine('nozzle chemistry', 'sizes performance'),
+    'src/recovery/recovery.test.ts': specLine('recovery packing', 'sizes bays'),
+    'src/evidence/evidence.test.ts': specLine('flight evidence', 'calibrates drag'),
     'src/aero/protuberance.ts': 'export const computeProtuberanceDrag = () => 0;\n',
     'src/sim/weather.ts': 'export const parseOpenMeteoSounding = () => [];\n',
     'src/sim/monteCarlo.ts': 'export const runMonteCarlo = () => ({});\n',
@@ -181,14 +230,14 @@ function baseFixture(over = {}) {
     'src/recovery/charges.ts': 'export const bpMass = () => 0;\n',
     'src/evidence/altimetry.ts': 'export const parseAltimeterCsv = () => [];\n',
     'src/evidence/calibration.ts': 'export const calibrateCd = () => ({});\n',
-    'src/formats/engParser.test.ts': "describe('eng import', () => { it('parses rasp', () => {}); });\n",
-    'src/formats/blueprint.test.ts': "describe('blueprint export', () => { it('draws side view', () => {}); });\n",
+    'src/formats/engParser.test.ts': specLine('eng import', 'parses rasp'),
+    'src/formats/blueprint.test.ts': specLine('blueprint export', 'draws side view'),
     'src/formats/engParser.ts': 'export const parseRaspEng = () => ({});\n',
     'src/formats/blueprint.ts': 'export const exportBlueprintSvg = () => "";\n',
-    'src/components/EvidenceStudio.test.tsx': "describe('evidence studio', () => { it('parses logs', () => {}); });\n",
-    'src/components/InteropExportPanel.test.tsx': "describe('interop export', () => { it('emits matrix', () => {}); });\n",
-    'src/components/PropulsionStudio.test.tsx': "describe('propulsion studio', () => { it('lists motors', () => {}); });\n",
-    'src/components/TrajectoryStudio.test.tsx': "describe('trajectory studio', () => { it('runs dispersion', () => {}); });\n",
+    'src/components/EvidenceStudio.test.tsx': specLine('evidence studio', 'parses logs'),
+    'src/components/InteropExportPanel.test.tsx': specLine('interop export', 'emits matrix'),
+    'src/components/PropulsionStudio.test.tsx': specLine('propulsion studio', 'lists motors'),
+    'src/components/TrajectoryStudio.test.tsx': specLine('trajectory studio', 'runs dispersion'),
     'src/components/PropulsionStudio.tsx': 'export const PropulsionStudio = () => null;\n',
     'src/components/TrajectoryStudio.tsx': 'export const TrajectoryStudio = () => null;\n',
     'src/components/EvidenceStudio.tsx': 'export const EvidenceStudio = () => null;\n',
@@ -348,7 +397,7 @@ function ctx(root, { run, runTests, runEmitterSelfTests, readFile, readBytes, vi
 // Tests
 // ---------------------------------------------------------------------------
 
-t('green path: all required suites executed+passed => passed, all gates true', () => {
+it('green path: all required suites executed+passed => passed, all gates true', () => {
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
@@ -361,7 +410,7 @@ t('green path: all required suites executed+passed => passed, all gates true', (
   assert.equal(evidence.version, '2.1.0');
 });
 
-t('green path: artifact carries measured evidence fields', () => {
+it('green path: artifact carries measured evidence fields', () => {
   const root = baseFixture();
   const { evidence } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(evidence.commit.known, true);
@@ -392,7 +441,7 @@ t('green path: artifact carries measured evidence fields', () => {
   assert.equal(evidence.dependencies.lockfile.format, 'pnpm-yaml');
 });
 
-t('self-hash reproduces from the advertised basis; tampering breaks it', () => {
+it('self-hash reproduces from the advertised basis; tampering breaks it', () => {
   const root = baseFixture();
   const { evidence } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(verifyArtifactSelfHash(evidence), true);
@@ -400,7 +449,7 @@ t('self-hash reproduces from the advertised basis; tampering breaks it', () => {
   assert.equal(verifyArtifactSelfHash({ ...evidence, hashes: { files: evidence.hashes.files } }), false);
 });
 
-t('decimal digits are captured from the digits position', () => {
+it('decimal digits are captured from the digits position', () => {
   const digitsSource = BASE_SOURCE.replace(
     'expect(Math.abs(r.x - 5)).toBeLessThanOrEqual(1e-8);',
     'expect(Math.abs(r.x - 5)).toBeLessThanOrEqual(1e-8); expect(y).toBeCloseTo(1.5, 3);'
@@ -411,7 +460,7 @@ t('decimal digits are captured from the digits position', () => {
   assert.deepEqual(evidence.verification.vvMeasurements['014'].decimalDigitsDeclared, [3]);
 });
 
-t('dynamic inventory: source AND executed include the adaptive and descent suites', () => {
+it('dynamic inventory: source AND executed include the adaptive and descent suites', () => {
   const src = BASE_SOURCE;
   const ids = extractSourceSuites(src);
   assert.ok(ids.includes('014'), 'VV-014 must be in source inventory');
@@ -423,10 +472,10 @@ t('dynamic inventory: source AND executed include the adaptive and descent suite
   assert.deepEqual(evidence.verification.vvSuiteInventory.notExecuted, []);
 });
 
-t('every legacy suite is mandatory even when no gate requires it', () => {
+it('every legacy suite is mandatory even when no gate requires it', () => {
   const extra = `${BASE_SOURCE}\n` + [
     "describe('VV-099 Extra Legacy Suite', () => {",
-    "  it('extra case', () => { expect(1).toBeLessThanOrEqual(2); });",
+    itCaseLine('extra case', 'expect(1).toBeLessThanOrEqual(2)'),
     '});',
     '',
   ].join('\n');
@@ -438,7 +487,7 @@ t('every legacy suite is mandatory even when no gate requires it', () => {
   assert.ok(missing.some((m) => m.includes('VV-099') && m.includes('not executed')), `missing: ${missing}`);
 });
 
-t('missing required suite fails its gate (per-gate granularity), exit nonzero', () => {
+it('missing required suite fails its gate (per-gate granularity), exit nonzero', () => {
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson({ omitVv: ['014'] }) }));
   assert.equal(ok, false);
@@ -451,7 +500,7 @@ t('missing required suite fails its gate (per-gate granularity), exit nonzero', 
   assert.match(reason, /required 014 not executed/);
 });
 
-t('skipped required evidence fails gate and reports skip counts', () => {
+it('skipped required evidence fails gate and reports skip counts', () => {
   const root = baseFixture();
   const { evidence, passed: ok } = computeEvidence(ctx(root, { vitestJson: makeVitestJson({ skipVv: ['013'] }) }));
   assert.equal(ok, false);
@@ -461,7 +510,7 @@ t('skipped required evidence fails gate and reports skip counts', () => {
   assert.match(reason, /pending=1/);
 });
 
-t('failed required test case fails its gate and emits failure messages plus observed values', () => {
+it('failed required test case fails its gate and emits failure messages plus observed values', () => {
   const root = baseFixture();
   const { evidence, passed: ok } = computeEvidence(ctx(root, { vitestJson: makeVitestJson({ failVv: ['012'] }) }));
   assert.equal(ok, false);
@@ -472,7 +521,7 @@ t('failed required test case fails its gate and emits failure messages plus obse
   assert.ok(evidence.verification.vvMeasurements['012'].observedValues.includes(0.9));
 });
 
-t('unknown test-case status fails certification', () => {
+it('unknown test-case status fails certification', () => {
   const root = baseFixture();
   const json = makeVitestJson();
   json.testResults[0].assertionResults[0].status = 'mystery';
@@ -482,7 +531,7 @@ t('unknown test-case status fails certification', () => {
   assert.ok(missing.some((m) => m.includes('unknown')), `missing: ${missing}`);
 });
 
-t('unknown file status fails certification', () => {
+it('unknown file status fails certification', () => {
   const root = baseFixture();
   const json = makeVitestJson();
   json.testResults[1].status = 'weird';
@@ -491,7 +540,7 @@ t('unknown file status fails certification', () => {
   assert.ok(missing.some((m) => m.includes('not a recognized outcome')), `missing: ${missing}`);
 });
 
-t('reporter-aggregate disagreement fails certification', () => {
+it('reporter-aggregate disagreement fails certification', () => {
   const root = baseFixture();
   const json = makeVitestJson();
   json.numTotalTests += 5;
@@ -500,7 +549,7 @@ t('reporter-aggregate disagreement fails certification', () => {
   assert.ok(missing.some((m) => m.includes('numTotalTests') && m.includes('disagrees')), `missing: ${missing}`);
 });
 
-t('git failure => certification FAIL with unknown commit', () => {
+it('git failure => certification FAIL with unknown commit', () => {
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(
     ctx(root, { run: gitStub({ hashOk: false, statusOk: false }), vitestJson: makeVitestJson() })
@@ -512,7 +561,7 @@ t('git failure => certification FAIL with unknown commit', () => {
   assert.ok(missing.some((m) => m.includes('git: HEAD commit identity unknown')), `missing: ${missing}`);
 });
 
-t('dirty tree pins passed=false', () => {
+it('dirty tree pins passed=false', () => {
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(
     ctx(root, { run: gitStub({ statusOut: ' M docs/astra-round13-audit.md\n' }), vitestJson: makeVitestJson() })
@@ -522,7 +571,7 @@ t('dirty tree pins passed=false', () => {
   assert.ok(missing.some((m) => m.includes('working tree is dirty')));
 });
 
-t('post-execution tree drift breaks pre/post source binding', () => {
+it('post-execution tree drift breaks pre/post source binding', () => {
   const root = baseFixture();
   let statusCalls = 0;
   const base = gitStub();
@@ -539,7 +588,7 @@ t('post-execution tree drift breaks pre/post source binding', () => {
   assert.ok(missing.some((m) => m.includes('pre/post source binding violated')), `missing: ${missing}`);
 });
 
-t('post-execution file drift breaks pre/post source binding', () => {
+it('post-execution file drift breaks pre/post source binding', () => {
   const root = baseFixture();
   const seen = new Set();
   const driftBytes = (rel) => {
@@ -560,7 +609,7 @@ t('post-execution file drift breaks pre/post source binding', () => {
   assert.equal(evidence.sourceBinding.prePostHashesMatch, true);
 });
 
-t('build failure fails certification', () => {
+it('build failure fails certification', () => {
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson(), buildOk: false, buildExit: 2 }));
   assert.equal(ok, false);
@@ -568,7 +617,7 @@ t('build failure fails certification', () => {
   assert.ok(missing.some((m) => m.includes('build:')));
 });
 
-t('failing emitter self-tests fail certification', () => {
+it('failing emitter self-tests fail certification', () => {
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(
     ctx(root, { vitestJson: makeVitestJson(), runEmitterSelfTests: () => ({ ok: false, exitCode: 2 }) })
@@ -578,7 +627,7 @@ t('failing emitter self-tests fail certification', () => {
   assert.ok(missing.some((m) => m.includes('emitter self-tests failed')), `missing: ${missing}`);
 });
 
-t('missing lockfile fails certification', () => {
+it('missing lockfile fails certification', () => {
   const root = baseFixture({ 'pnpm-lock.yaml': null });
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, false);
@@ -586,7 +635,7 @@ t('missing lockfile fails certification', () => {
   assert.ok(missing.some((m) => m.includes('no lockfile present')), `missing: ${missing}`);
 });
 
-t('vitest per-file totals parsed from assertionResults, not f.assertions', () => {
+it('vitest per-file totals parsed from assertionResults, not f.assertions', () => {
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
@@ -599,7 +648,7 @@ t('vitest per-file totals parsed from assertionResults, not f.assertions', () =>
   assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 29);
 });
 
-t('vitest JSON unparseable => certification fails', () => {
+it('vitest JSON unparseable => certification fails', () => {
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(
     ctx(root, { runTests: () => ({ ok: true, exitCode: 0, json: null }) })
@@ -609,7 +658,7 @@ t('vitest JSON unparseable => certification fails', () => {
   assert.ok(missing.some((m) => m.includes('vitest JSON output missing')));
 });
 
-t('installed deps measured from node_modules, pnpm YAML lockfile never read as JSON', () => {
+it('installed deps measured from node_modules, pnpm YAML lockfile never read as JSON', () => {
   const root = baseFixture(); // pnpm-lock.yaml is YAML text: JSON.parse would throw
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, true, `missing: ${missing}`);
@@ -618,7 +667,7 @@ t('installed deps measured from node_modules, pnpm YAML lockfile never read as J
   assert.equal(evidence.dependencies.lockfile.present, true);
 });
 
-t('declared dep missing from node_modules => installed measurement incomplete => fail', () => {
+it('declared dep missing from node_modules => installed measurement incomplete => fail', () => {
   const root = baseFixture({
     'package.json': JSON.stringify({ name: 'x', dependencies: { three: '^0.185.1', ghost: '^1.0.0' } }, null, 2),
   });
@@ -629,7 +678,7 @@ t('declared dep missing from node_modules => installed measurement incomplete =>
   assert.ok(missing.some((m) => m.includes('installed measurement incomplete')));
 });
 
-t('test run exit code nonzero => fail even if JSON looks green', () => {
+it('test run exit code nonzero => fail even if JSON looks green', () => {
   const root = baseFixture();
   const json = makeVitestJson();
   const { evidence, passed: ok, missing } = computeEvidence(
@@ -640,7 +689,7 @@ t('test run exit code nonzero => fail even if JSON looks green', () => {
   assert.ok(missing.some((m) => m.includes('vitest exited nonzero')));
 });
 
-t('suite with source test cases but zero executed cases fails the gate', () => {
+it('suite with source test cases but zero executed cases fails the gate', () => {
   const root = baseFixture();
   const json = makeVitestJson({ omitVv: ['010'] });
   const { evidence, passed: ok } = computeEvidence(ctx(root, { vitestJson: json }));
@@ -649,7 +698,7 @@ t('suite with source test cases but zero executed cases fails the gate', () => {
   assert.equal(evidence.verification.gateCoverage.GATE_1R_LOADS_ASSEMBLY, false);
 });
 
-t('missing discriminating acceptance file fails its bound gate', () => {
+it('missing discriminating acceptance file fails its bound gate', () => {
   const rel = 'src/dynamics/rigidBody.adaptive.test.ts';
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(
@@ -661,7 +710,7 @@ t('missing discriminating acceptance file fails its bound gate', () => {
   assert.ok(missing.some((reason) => reason.includes(rel) && reason.includes('not executed')));
 });
 
-t('missing production-contracts acceptance file fails its gate', () => {
+it('missing production-contracts acceptance file fails its gate', () => {
   const rel = 'src/sim/sixDofSimulator.test.ts';
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(
@@ -673,7 +722,7 @@ t('missing production-contracts acceptance file fails its gate', () => {
   assert.ok(missing.some((reason) => reason.includes(rel) && reason.includes('not executed')));
 });
 
-t('deleting a mandatory legacy suite from source fails certification', () => {
+it('deleting a mandatory legacy suite from source fails certification', () => {
   // Fixed inventory (audit §7.4): silent retirement must not pass. Drop the
   // VV-005 describe from source while execution stays green otherwise.
   const pruned = BASE_SOURCE.replace(/describe\('VV-005[^]*?\n\}\);\n/, '');
@@ -690,7 +739,7 @@ t('deleting a mandatory legacy suite from source fails certification', () => {
   assert.ok(missing.some((m) => m.includes('VV-005') && m.includes('missing from source')), `missing: ${missing}`);
 });
 
-t('HEAD changing during execution breaks commit binding', () => {
+it('HEAD changing during execution breaks commit binding', () => {
   const root = baseFixture();
   let headCalls = 0;
   const base = gitStub();
@@ -707,7 +756,7 @@ t('HEAD changing during execution breaks commit binding', () => {
   assert.ok(missing.some((m) => m.includes('HEAD changed during build/test')), `missing: ${missing}`);
 });
 
-t('suite count below collected files fails certification', () => {
+it('suite count below collected files fails certification', () => {
   // numTotalTestSuites counts describe-blocks, not files: the honest check is
   // a sanity floor (every file contributes at least one suite).
   const root = baseFixture();
@@ -718,7 +767,7 @@ t('suite count below collected files fails certification', () => {
   assert.ok(missing.some((m) => m.includes('numTotalTestSuites') && m.includes('below collected files')), `missing: ${missing}`);
 });
 
-t('duplicate case identities fail certification', () => {
+it('duplicate case identities fail certification', () => {
   const root = baseFixture();
   const json = makeVitestJson();
   json.testResults[1].assertionResults.push({ ...json.testResults[1].assertionResults[0] });
@@ -729,7 +778,7 @@ t('duplicate case identities fail certification', () => {
   assert.ok(missing.some((m) => m.includes('duplicate case identity')), `missing: ${missing}`);
 });
 
-t('non-required file that did not cleanly pass fails certification', () => {
+it('non-required file that did not cleanly pass fails certification', () => {
   // transonicAero.test.ts is collected but bound to no gate: the all-files
   // rule (not a gate requirement) must reject its unclean pass.
   const root = baseFixture();
@@ -743,7 +792,7 @@ t('non-required file that did not cleanly pass fails certification', () => {
   assert.ok(missing.some((m) => m.includes('did not cleanly pass')), `missing: ${missing}`);
 });
 
-t('executed file with zero cases proves nothing', () => {
+it('executed file with zero cases proves nothing', () => {
   const root = baseFixture();
   const json = makeVitestJson();
   const target = json.testResults.find((r) => r.name.endsWith('transonicAero.test.ts'));
@@ -757,7 +806,7 @@ t('executed file with zero cases proves nothing', () => {
   assert.ok(missing.some((m) => m.includes('zero test cases')), `missing: ${missing}`);
 });
 
-t('missing aggregate counter fails certification', () => {
+it('missing aggregate counter fails certification', () => {
   const root = baseFixture();
   const json = makeVitestJson();
   delete json.numFailedTests;
@@ -766,7 +815,7 @@ t('missing aggregate counter fails certification', () => {
   assert.ok(missing.some((m) => m.includes('numFailedTests') && m.includes('missing or nonfinite')), `missing: ${missing}`);
 });
 
-t('installed version violating its declared range fails certification', () => {
+it('installed version violating its declared range fails certification', () => {
   const root = baseFixture({
     'node_modules/three/package.json': JSON.stringify({ name: 'three', version: '0.100.0' }),
   });
@@ -775,7 +824,7 @@ t('installed version violating its declared range fails certification', () => {
   assert.ok(missing.some((m) => m.includes('three@0.100.0') && m.includes('does not satisfy')), `missing: ${missing}`);
 });
 
-t('new acceptance suites are required and hashed', () => {
+it('new acceptance suites are required and hashed', () => {
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
@@ -795,9 +844,57 @@ t('new acceptance suites are required and hashed', () => {
   assert.equal(dropped.evidence.verification.gateCoverage.GATE_1R_LOADS_ASSEMBLY, false);
 });
 
-t('executed file outside the fixed inventory fails certification', () => {
+it('M1: every collected suite in the fixed inventory is cited in hashes.files', () => {
+  const { FIXED_TEST_FILE_INVENTORY } = require('./emit-benchmark-metadata.cjs');
+  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 30, 'acceptance list must stay at 30');
+  const root = baseFixture();
+  const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
+  assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
+  const citedTestFiles = Object.keys(evidence.hashes.files).filter((rel) => /\.test\.[cm]?[jt]sx?$/.test(rel));
+  for (const rel of FIXED_TEST_FILE_INVENTORY) {
+    assert.ok(rel in evidence.hashes.files, `${rel} must be cited (hashed)`);
+  }
+  assert.equal(citedTestFiles.length, 30, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
+});
+
+it('M2: emitter suite executed count binds to its source case count', () => {
+  const root = baseFixture();
+  const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
+  assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
+  // The emitter's own file is counted like every other suite: the fixture's
+  // 1-case emitter file must match its 1 executed case (no special-case
+  // bypass remains for the emitter suite).
+  const emitterFile = evidence.verification.testSummary.files.find(
+    (f) => f.file === 'emit-benchmark-metadata.test.cjs'
+  );
+  assert.equal(emitterFile.testCases.total, 1);
+});
+
+it('M2 negative: emitter suite count mismatch fails certification', () => {
+  const root = baseFixture();
+  const json = makeVitestJson();
+  const emitterFile = json.testResults.find((r) => r.name.endsWith('emit-benchmark-metadata.test.cjs'));
+  assert.ok(emitterFile, 'fixture must collect the emitter suite');
+  // Report 2 executed cases for the 1-case fixture source: exact-count
+  // binding must reject the mismatch instead of special-casing this file.
+  emitterFile.assertionResults.push({
+    ...emitterFile.assertionResults[0],
+    fullName: 'emitter extra',
+    title: 'extra',
+  });
+  json.numTotalTests += 1;
+  json.numPassedTests += 1;
+  const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
+  assert.equal(ok, false);
+  assert.ok(
+    missing.some((m) => m.includes('emit-benchmark-metadata.test.cjs') && m.includes('test-case-count mismatch')),
+    `missing: ${missing}`
+  );
+});
+
+it('executed file outside the fixed inventory fails certification', () => {
   const root = baseFixture({
-    'src/sim/sneaky.test.ts': "describe('sneaky', () => { it('runs', () => {}); });\n",
+    'src/sim/sneaky.test.ts': specLine('sneaky', 'runs'),
   });
   const json = makeVitestJson();
   json.testResults.push({
@@ -817,7 +914,7 @@ t('executed file outside the fixed inventory fails certification', () => {
   assert.ok(missing.some((m) => m.includes('sneaky.test.ts') && m.includes('outside the fixed test-file inventory')), `missing: ${missing}`);
 });
 
-t('inventory file missing from collection fails certification', () => {
+it('inventory file missing from collection fails certification', () => {
   const root = baseFixture();
   const { passed: ok, missing } = computeEvidence(
     ctx(root, { vitestJson: makeVitestJson({ omitFile: ['src/store/rocketStore.test.ts'] }) })
@@ -826,16 +923,16 @@ t('inventory file missing from collection fails certification', () => {
   assert.ok(missing.some((m) => m.includes('src/store/rocketStore.test.ts') && m.includes('not collected')), `missing: ${missing}`);
 });
 
-t('inventory source/executed count mismatch fails certification', () => {
+it('inventory source/executed count mismatch fails certification', () => {
   const root = baseFixture({
-    'src/store/rocketStore.test.ts': "describe('vehicle store', () => { it('holds presets', () => {}); it('holds materials', () => {}); });\n",
+    'src/store/rocketStore.test.ts': `describe('vehicle store', () => { ${ITID}('holds presets', () => {}); ${ITID}('holds materials', () => {}); });\n`,
   });
   const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, false);
   assert.ok(missing.some((m) => m.includes('src/store/rocketStore.test.ts') && m.includes('test-case-count mismatch')), `missing: ${missing}`);
 });
 
-t('empty inventory source fails certification', () => {
+it('empty inventory source fails certification', () => {
   const root = baseFixture({ 'src/store/rocketStore.test.ts': '// retired suite\n' });
   const json = makeVitestJson({ omitFile: ['src/store/rocketStore.test.ts'] });
   const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
@@ -843,7 +940,7 @@ t('empty inventory source fails certification', () => {
   assert.ok(missing.some((m) => m.includes('src/store/rocketStore.test.ts')), `missing: ${missing}`);
 });
 
-t('exotic declared range fails certification', () => {
+it('exotic declared range fails certification', () => {
   const root = baseFixture({
     'package.json': JSON.stringify({ name: 'x', dependencies: { three: '>=0.185.1 <1.0.0' } }, null, 2),
   });
@@ -852,7 +949,7 @@ t('exotic declared range fails certification', () => {
   assert.ok(missing.some((m) => m.includes('three') && m.includes('exotic range')), `missing: ${missing}`);
 });
 
-t('nonfinite file duration fails certification', () => {
+it('nonfinite file duration fails certification', () => {
   const root = baseFixture();
   const json = makeVitestJson();
   const target = json.testResults.find((r) => r.name.endsWith('transonicAero.test.ts'));
@@ -862,7 +959,7 @@ t('nonfinite file duration fails certification', () => {
   assert.ok(missing.some((m) => m.includes('transonicAero.test.ts') && m.includes('nonfinite duration')), `missing: ${missing}`);
 });
 
-t('residuals sidecar: valid ingested, malformed fails, absent labeled', () => {
+it('residuals sidecar: valid ingested, malformed fails, absent labeled', () => {
   const records = [{ suite: 'VV-014', case: 'terminates stationary', value: 1e-9 }];
   const good = baseFixture({ 'scripts/astraea-residuals.json': JSON.stringify({ records }) });
   const goodRes = computeEvidence(ctx(good, { vitestJson: makeVitestJson() }));
@@ -881,53 +978,16 @@ t('residuals sidecar: valid ingested, malformed fails, absent labeled', () => {
   assert.equal(absentRes.evidence.residualsSidecar.present, false);
 });
 
-t('unreadable solver pre-capture fails certification', () => {
+it('unreadable solver pre-capture fails certification', () => {
   const root = baseFixture({ 'src/dynamics/loads.ts': null });
   const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, false);
   assert.ok(missing.some((m) => m.includes('solver-config sources unreadable')), `missing: ${missing}`);
 });
-// Runners
-// ---------------------------------------------------------------------------
+// Final cleanup case: runs last in both modes, so fixture trees created by
+// the cases above are removed before the process/Vitest finishes.
+it('cleanup fixture trees', () => {
+  cleanup();
+});
 
-function runSuite() {
-  let passed = 0;
-  const failures = [];
-  for (const c of CASES) {
-    try {
-      c.fn();
-      passed += 1;
-      console.log(`ok - ${c.name}`);
-    } catch (e) {
-      failures.push({ name: c.name, e });
-      console.error(`FAIL - ${c.name}`);
-      console.error(e && e.stack ? e.stack : e);
-    }
-  }
-  try {
-    cleanup();
-  } finally {
-    if (failures.length > 0) {
-      console.error(`\n${failures.length} of ${passed + failures.length} tests FAILED`);
-      process.exitCode = 1;
-    } else {
-      console.log(`\nall ${passed} tests passed`);
-    }
-  }
-}
-
-if (process.env.VITEST) {
-  const { describe, it } = globalThis;
-  describe('scripts/emit-benchmark-metadata.test.cjs (node evidence suite)', () => {
-    for (const c of CASES) {
-      it(c.name, c.fn);
-    }
-    it('cleanup fixture trees', () => {
-      cleanup();
-    });
-  });
-} else if (require.main === module) {
-  runSuite();
-}
-
-module.exports = { runSuite };
+module.exports = {};
