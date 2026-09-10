@@ -12,18 +12,21 @@ listed here is implemented and covered by the test suite + evidence emitter.
 
 ## Shipped (no exception needed)
 
+All roadmap Phases 2–4 plus master-spec interop extras are implemented,
+tested, and wired into the 4-studio shell (30 test files / 333 tests,
+evidence emitter passed=true on a clean tree):
+
 - Subsonic/transonic/supersonic aero (Barrowman+Rogers, Van Driest II, wave,
   base+plume, protuberance, boattail monitor, fin flutter NACA TN 4197)
-- Certified motor DB + thrust interpolation + mass depletion
+- Certified motor DB + thrust interpolation + mass depletion; custom-motor
+  import registry (RASP `.eng`, RockSim `.rse`) wired to upload + studio catalog
 - BATES/star grain regression + chamber pressure; ideal nozzle chemistry (APCP)
 - 6-DOF adaptive trajectory, ISA atmosphere, live Open-Meteo soundings,
   manual wind tables, Monte Carlo dispersion
 - Dual-compartment packing math + black-powder sizing
 - Altimetry CSV ingestion, sim/flight alignment, Cd calibration
-- .ork bidirectional, .rkt import, .cdx1 + aero-matrix export, .eng/.rse
-  import (interop2 lane), blueprint SVG export (interop2 lane)
+- `.ork` bidirectional, `.rkt` import, `.cdx1` + aero-matrix + blueprint SVG export
 - 4-studio workstation shell (CAD, Propulsion, Trajectory, Evidence)
-
 ## Open exceptions
 
 ### E1. Background 500–1000-run Monte Carlo (Web Workers)

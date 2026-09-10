@@ -2,6 +2,17 @@
 **Document Version:** 1.0  
 **Date:** 2026-09-08  
 **Purpose:** Exhaustive Feature Inventory Across RASAero II, RockSim Pro, OpenRocket, RocketPy, openMotor, and NASA CEA to Guide Astraea's Roadmap toward Total Replacement of Legacy Tooling.
+**Completion status (product-completion program, 2026-09-10):** every
+*Planned* row in the matrix below is now **SHIPPED** and covered by the
+test suite + evidence emitter (30 files / 333 tests, emitter passed=true):
+protuberance drag, boattail monitor, `.cdx1` + aero-matrix export, live
+weather soundings + manual wind tables, Monte Carlo dispersion, BATES/star
+grain regression + chamber pressure, ideal nozzle chemistry (APCP),
+dual-compartment packing math + black-powder sizing, altimetry ingestion +
+sim overlay + Cd calibration, RASP `.eng` / RockSim `.rse` motor import,
+blueprint SVG export, and the 4-studio workstation shell. Residual
+non-implemented workflows live in `docs/superset-exception-ledger.md`
+(E1–E7), each with prerequisite, alternative, and re-visit condition.
 
 ---
 
