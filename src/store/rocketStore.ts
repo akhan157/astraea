@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { RocketVehicle, RocketComponent, StabilityAnalysis } from '../core/types';
+import type { MotorSpec } from '../propulsion/motorDatabase';
 import { computeRocketStability } from '../aero/barrowman';
 
 export type ViewMode = 'solid' | 'wireframe' | 'xray';
@@ -225,6 +226,8 @@ export const PRESETS: Record<string, RocketVehicle> = {
 interface RocketStoreState {
   vehicle: RocketVehicle;
   selectedComponentId: string | null;
+  customMotors: Record<string, MotorSpec>;
+  importCustomMotor: (motor: MotorSpec) => void;
   stability: StabilityAnalysis;
   viewMode: ViewMode;
   showCG: boolean;
@@ -263,6 +266,9 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
   return {
     vehicle: initialVehicle,
     selectedComponentId: initialVehicle.components[0].id,
+    customMotors: {},
+    importCustomMotor: (motor) =>
+      set((state) => ({ customMotors: { ...state.customMotors, [motor.id]: motor } })),
     stability: initialStability,
     viewMode: 'solid',
     showCG: true,

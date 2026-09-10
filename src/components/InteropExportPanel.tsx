@@ -7,7 +7,8 @@
  * approximation — Mach degradation of fin lift is modeled in CP, not in
  * this column) at AoA 0, CP from the power-off curve.
  */
-import React, { useMemo, useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { exportBlueprintSvg } from '../formats/blueprint';
 import type { RocketVehicle } from '../core/types';
 import { exportCdx1, exportAeroMatrix, type AeroMatrixRow } from '../formats/rasaero';
 import { computeAerodynamicCurves } from '../aero/transonicAero';
@@ -62,6 +63,16 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
     }
   };
 
+  const handleBlueprint = () => {
+    try {
+      setError(null);
+      download(`${slug}-blueprint.svg`, exportBlueprintSvg(vehicle), 'image/svg+xml');
+    } catch (err) {
+      setError(`Blueprint export failed: ${(err as Error).message}`);
+    }
+  };
+
+
   return (
     <div className="flex items-center gap-2">
       <button
@@ -77,6 +88,13 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
         title="Export aerodynamic matrix (.csv)"
       >
         Aero .csv
+      </button>
+      <button
+        onClick={handleBlueprint}
+        className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-700 transition"
+        title="Export dimensioned blueprint (.svg)"
+      >
+        Blueprint
       </button>
       {error && <span className="text-[11px] text-red-400">{error}</span>}
     </div>

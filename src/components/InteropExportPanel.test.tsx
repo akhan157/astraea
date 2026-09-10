@@ -47,4 +47,14 @@ describe('InteropExportPanel', () => {
     expect(text.split('\n')[0]).toBe('Mach,AoA,CD_power_off,CD_power_on,CNa,CP');
     expect(text.trim().split('\n').length).toBeGreaterThan(10);
   });
+  it('downloads a dimensioned blueprint .svg', async () => {
+    const createObjectURL = vi.fn((_blob: Blob) => 'blob:svg');
+    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL: vi.fn() });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);
+    fireEvent.click(screen.getByTitle(/\.svg/));
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    const text = await (createObjectURL.mock.calls[0][0]).text();
+    expect(text).toContain('<svg');
+  });
 });

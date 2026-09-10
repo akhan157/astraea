@@ -7,6 +7,7 @@ import React, { useRef } from 'react';
 import { useRocketStore, PRESETS } from '../store/rocketStore';
 import { parseOrkFile, exportToOrk } from '../formats/orkParser';
 import { parseRktString } from '../formats/rktParser';
+import { parseRaspEng, parseRseXml } from '../formats/engParser';
 import { InteropExportPanel } from './InteropExportPanel';
 import {
   Upload,
@@ -39,6 +40,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSim, studio = 'cad', onStu
   const vehicle = useRocketStore((s) => s.vehicle);
   const setVehicle = useRocketStore((s) => s.setVehicle);
   const loadPreset = useRocketStore((s) => s.loadPreset);
+  const importCustomMotor = useRocketStore((s) => s.importCustomMotor);
   const undo = useRocketStore((s) => s.undo);
   const redo = useRocketStore((s) => s.redo);
   const historyLen = useRocketStore((s) => s.history.length);
@@ -50,7 +52,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSim, studio = 'cad', onStu
 
     try {
       const buffer = await file.arrayBuffer();
-      if (file.name.endsWith('.rkt')) {
+      if (file.name.endsWith('.eng')) {
+        const motor = parseRaspEng(new TextDecoder().decode(buffer));
+        importCustomMotor(motor);
+        alert(`Imported motor ${motor.designation} (${motor.totalImpulse.toFixed(1)} N·s) — see Propulsion studio`);
+      } else if (file.name.endsWith('.rse')) {
+        const motor = parseRseXml(new TextDecoder().decode(buffer));
+        importCustomMotor(motor);
+        alert(`Imported motor ${motor.designation} (${motor.totalImpulse.toFixed(1)} N·s) — see Propulsion studio`);
+      } else if (file.name.endsWith('.rkt')) {
         const text = new TextDecoder().decode(buffer);
         const imported = parseRktString(text);
         setVehicle(imported);
@@ -202,7 +212,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSim, studio = 'cad', onStu
         <input
           ref={fileInputRef}
           type="file"
-          accept=".ork,.rkt,.json"
+          accept=".ork,.rkt,.json,.eng,.rse"
           onChange={handleFileUpload}
           className="hidden"
         />

@@ -50,6 +50,33 @@ describe('RocketStore (Zustand & History)', () => {
     expect((useRocketStore.getState().vehicle.components[0] as NoseconeComponent).length).toBe(0.25);
   });
 
+  it('registers imported custom motors by id without touching vehicle history', () => {
+    const state = useRocketStore.getState();
+    const historyLen = state.history.length;
+    state.importCustomMotor({
+      id: 'test_custom_h128',
+      designation: 'Test H128',
+      manufacturer: 'TestWorks',
+      impulseClass: 'H',
+      diameter: 0.029,
+      length: 0.2,
+      totalImpulse: 180,
+      avgThrust: 128,
+      maxThrust: 200,
+      burnTime: 1.4,
+      propellantMass: 0.1,
+      totalMass: 0.2,
+      dryMass: 0.1,
+      thrustCurve: [
+        { time: 0, thrust: 0 },
+        { time: 1.4, thrust: 0 },
+      ],
+    });
+    const updated = useRocketStore.getState();
+    expect(updated.customMotors['test_custom_h128']?.designation).toBe('Test H128');
+    expect(updated.history.length).toBe(historyLen);
+  });
+
   it('adds and removes components properly', () => {
     const state = useRocketStore.getState();
     const initialCount = state.vehicle.components.length;

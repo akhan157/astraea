@@ -21,6 +21,7 @@
  */
 import { useMemo, useState } from 'react';
 import type { JSX } from 'react';
+import { useRocketStore } from '../store/rocketStore';
 import { Flame, Gauge, Layers } from 'lucide-react';
 import { CERTIFIED_MOTORS, type MotorSpec } from '../propulsion/motorDatabase';
 import {
@@ -58,14 +59,15 @@ function burnAreaPolyline(trace: GrainRegressionTrace): string {
 }
 
 export function PropulsionStudio({}: {}): JSX.Element {
+  const customMotors = useRocketStore((s) => s.customMotors);
+  const catalog: Record<string, MotorSpec> = { ...CERTIFIED_MOTORS, ...customMotors };
   const [selectedMotorId, setSelectedMotorId] = useState<string>('estes_c6');
   const [outerDmm, setOuterDmm] = useState('54');
   const [coreDmm, setCoreDmm] = useState('18');
   const [lengthMm, setLengthMm] = useState('300');
   const [webStepMm, setWebStepMm] = useState('1');
 
-  const motor: MotorSpec = CERTIFIED_MOTORS[selectedMotorId] ?? CERTIFIED_MOTORS.estes_c6;
-
+  const motor: MotorSpec = catalog[selectedMotorId] ?? CERTIFIED_MOTORS.estes_c6;
   const grain = useMemo(() => {
     try {
       const outerDiameter = parseFloat(outerDmm) * MM;
@@ -162,14 +164,17 @@ export function PropulsionStudio({}: {}): JSX.Element {
               onChange={(e) => setSelectedMotorId(e.target.value)}
               className="w-full min-h-11 bg-zinc-800 text-zinc-100 px-3 py-2 rounded-lg border border-zinc-600 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 font-medium cursor-pointer"
             >
-              {Object.values(CERTIFIED_MOTORS).map((m) => (
+              {Object.values(catalog).map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.designation} — {m.totalImpulse} N·s
                 </option>
               ))}
             </select>
             <div className="text-[10px] font-mono text-zinc-500">
-              {Object.keys(CERTIFIED_MOTORS).length} certified records · RASP .eng thrust curves
+              {Object.keys(CERTIFIED_MOTORS).length} certified
+              {Object.keys(customMotors).length > 0 &&
+                ` + ${Object.keys(customMotors).length} imported`}
+              {' '}records · RASP .eng thrust curves
             </div>
           </div>
 
