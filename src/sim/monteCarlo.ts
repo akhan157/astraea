@@ -15,7 +15,11 @@
  *
  * Exception contract: any per-run exception (input validation, out-of-domain
  * rail elevation, negative impulse scale, …) is caught and counted in
- * `failedRuns`; the remaining runs are reduced into the statistics.
+ * `failedRuns`; the remaining runs are reduced into the statistics. When
+ * EVERY run fails, runMonteCarlo throws an Error whose message carries the
+ * first per-run failure — an all-NaN cloud would otherwise mask a
+ * systematic configuration error. Partial failure (n >= 1 runs succeed)
+ * keeps the existing behavior.
  */
 
 import { RocketVehicle } from '../core/types';
@@ -296,14 +300,24 @@ export function runMonteCarlo(
   const rng = mulberry32(seed);
   const landings: LandingPoint[] = [];
   let failedRuns = 0;
+  let firstFailureMessage: string | null = null;
   for (let i = 0; i < nRuns; i++) {
     try {
       const runInput = applyPerturbations(baseInput, sigmas, rng);
       const result: SixDofSimulationResult = simulate6DofFlight(runInput.vehicle, runInput.motor, runInput.options);
       landings.push({ x: result.landingPosition.x, y: result.landingPosition.y });
-    } catch {
+    } catch (err) {
       failedRuns++;
+      if (firstFailureMessage === null) {
+        firstFailureMessage = err instanceof Error ? err.message : String(err);
+      }
     }
+  }
+
+  if (failedRuns === nRuns && firstFailureMessage !== null) {
+    // Every run failed: the all-NaN cloud would silently hide a systematic
+    // configuration error. Surface the first failure instead.
+    throw new Error(`runMonteCarlo: all ${nRuns} runs failed; first failure: ${firstFailureMessage}`);
   }
 
   const stats = computeDispersionStatistics(landings);

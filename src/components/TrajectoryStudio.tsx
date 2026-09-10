@@ -81,7 +81,14 @@ export function TrajectoryStudio({ vehicle, motor }: TrajectoryStudioProps): Rea
       return null; // empty table: no layers to interpolate
     }
   }, [windLayers, probeAltitudeM]);
-  const probeENU = probeWind ? windToENU(probeWind.speedMs, probeWind.directionFromDeg) : null;
+  const probeENU = useMemo(() => {
+    if (!probeWind) return null;
+    try {
+      return windToENU(probeWind.speedMs, probeWind.directionFromDeg);
+    } catch {
+      return null; // non-finite/negative speed from a hand-edited row
+    }
+  }, [probeWind]);
 
   const updateWindRow = (index: number, field: keyof WindRow, value: number) => {
     setWindRows(

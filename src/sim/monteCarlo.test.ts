@@ -183,15 +183,14 @@ describe('runMonteCarlo dispersion engine', () => {
     expect(result.sigma1 + result.sigma2).toBeGreaterThan(0);
   });
 
-  it('accounts for runs that fail on intentionally bad input', () => {
+  it('throws with the first failure message when every run fails', () => {
+    // simulate6DofFlight rejects nonpositive rail length, so all runs share
+    // the same systematic failure; the all-NaN cloud would hide it.
     const bad = makeBaseInput();
-    bad.options.railLength = 0; // simulate6DofFlight rejects nonpositive rail length
-    const result = runMonteCarlo(bad, {}, 3, 1);
-    expect(result.failedRuns).toBe(3);
-    expect(result.successfulRuns).toBe(0);
-    expect(result.landings).toEqual([]);
-    expect(Number.isNaN(result.mean.x)).toBe(true);
-    expect(Number.isNaN(result.sigma1)).toBe(true);
+    bad.options.railLength = 0;
+    expect(() => runMonteCarlo(bad, {}, 3, 1)).toThrow(
+      /runMonteCarlo: all 3 runs failed; first failure: simulate6DofFlight: railLength must be positive \(got 0\)/
+    );
   });
 
   it('counts only out-of-domain perturbed runs as failed', () => {

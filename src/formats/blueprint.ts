@@ -10,6 +10,12 @@
  * Fins render from their axialOffset measured aft of the enclosing body
  * tube's front station; internal mass components and the folded parachute are
  * not outer-mold-line features and are not drawn.
+ *
+ * Assembly-order precondition: components are consumed nose-to-aft, and a
+ * fin set MUST be assembled after at least one body tube — its root station
+ * is axialOffset aft of the enclosing tube's front station, which is
+ * undefined without a preceding tube. Export throws otherwise. Lengths,
+ * diameters, chords, spans, and offsets must be finite and nonnegative.
  */
 
 import { RocketVehicle } from '../core/types';
@@ -34,13 +40,73 @@ export function exportBlueprintSvg(vehicle: RocketVehicle): string {
     throw new Error('blueprint export: vehicle needs at least one component');
   }
 
+  // Precondition: fin sets must be assembled after at least one body tube —
+  // the fin root is placed axialOffset aft of the enclosing BODY TUBE's front
+  // station, so a tube must precede the fin set or the placement is undefined.
+  const checkNonNegative = (dim: number, what: string) => {
+    if (!Number.isFinite(dim) || dim < 0) {
+      throw new RangeError(`blueprint export: ${what} must be a finite nonnegative number (got ${dim})`);
+    }
+  };
+  let bodyTubeSeen = false;
+  let axialSeen = false;
+  for (const c of vehicle.components) {
+    switch (c.type) {
+      case 'nosecone':
+        checkNonNegative(c.length, `component '${c.name}' length`);
+        checkNonNegative(c.baseDiameter, `component '${c.name}' base diameter`);
+        axialSeen = true;
+        break;
+      case 'bodytube':
+        checkNonNegative(c.length, `component '${c.name}' length`);
+        checkNonNegative(c.outerDiameter, `component '${c.name}' outer diameter`);
+        bodyTubeSeen = true;
+        axialSeen = true;
+        break;
+      case 'transition':
+        checkNonNegative(c.length, `component '${c.name}' length`);
+        checkNonNegative(c.foreDiameter, `component '${c.name}' fore diameter`);
+        checkNonNegative(c.aftDiameter, `component '${c.name}' aft diameter`);
+        axialSeen = true;
+        break;
+      case 'trapezoidfinset':
+        if (!bodyTubeSeen) {
+          throw new Error(
+            'blueprint export: fin sets must be assembled after at least one body tube ' +
+            `(got '${c.name}' with no preceding body tube); the fin root needs an enclosing tube station`
+          );
+        }
+        checkNonNegative(c.rootChord, `component '${c.name}' root chord`);
+        checkNonNegative(c.span, `component '${c.name}' span`);
+        checkNonNegative(c.sweepLength, `component '${c.name}' sweep length`);
+        checkNonNegative(c.tipChord, `component '${c.name}' tip chord`);
+        checkNonNegative(c.axialOffset, `component '${c.name}' axial offset`);
+        break;
+      case 'ellipticalfinset':
+        if (!bodyTubeSeen) {
+          throw new Error(
+            'blueprint export: fin sets must be assembled after at least one body tube ' +
+            `(got '${c.name}' with no preceding body tube); the fin root needs an enclosing tube station`
+          );
+        }
+        checkNonNegative(c.rootChord, `component '${c.name}' root chord`);
+        checkNonNegative(c.span, `component '${c.name}' span`);
+        checkNonNegative(c.axialOffset, `component '${c.name}' axial offset`);
+        break;
+      case 'masscomponent':
+      case 'parachute':
+        // Internal or recovery hardware: not part of the outer mold line.
+        break;
+    }
+  }
+
   const segments: Segment[] = [];
   let x = 0; // meters, aft station of the last axial component (nose tip = 0)
   let tubeFront = 0; // meters, front station of the current enclosing body tube
   let bodyD = 0; // meters, running body diameter for fin roots
   let maxBodyD = 0; // meters, widest airframe body diameter
   let maxHalf = 0; // meters, widest feature half-height incl. fin span
-  let axialSeen = false;
+  axialSeen = false;
 
   for (const c of vehicle.components) {
     switch (c.type) {

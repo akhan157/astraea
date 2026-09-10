@@ -33,8 +33,41 @@ export interface AeroMatrixRow {
  *
  * Coordinates are in inches from the nose tip; diameters are in inches.
  * Comment lines start with '#'.
+ *
+ * Throws RangeError on non-finite or negative lengths/diameters of
+ * outer-mold-line components (nose cone, body tube, transition); a negative
+ * or NaN dimension would corrupt the station stream.
  */
 export function exportCdx1(components: RocketComponent[]): string {
+  const checkOmlDim = (dim: number, what: string, name: string) => {
+    if (!Number.isFinite(dim) || dim < 0) {
+      throw new RangeError(
+        `exportCdx1: component '${name}' has a non-finite or negative ${what} (got ${dim})`
+      );
+    }
+  };
+  for (const component of components) {
+    switch (component.type) {
+      case 'nosecone':
+        checkOmlDim(component.length, 'length', component.name);
+        checkOmlDim(component.baseDiameter, 'base diameter', component.name);
+        break;
+      case 'bodytube':
+        checkOmlDim(component.length, 'length', component.name);
+        checkOmlDim(component.outerDiameter, 'outer diameter', component.name);
+        break;
+      case 'transition':
+        checkOmlDim(component.length, 'length', component.name);
+        checkOmlDim(component.foreDiameter, 'fore diameter', component.name);
+        checkOmlDim(component.aftDiameter, 'aft diameter', component.name);
+        break;
+      default:
+        // Fins, mass components, and parachutes co-locate on the OML and
+        // never advance the station or change the running diameter.
+        break;
+    }
+  }
+
   const lines = [
     '# Astraea RASAero II (.cdx1) outer mold line export',
     '# X station (inches from nose tip), Diameter (inches)',
@@ -85,8 +118,25 @@ export function exportCdx1(components: RocketComponent[]): string {
  * Header is exactly Mach,AoA,CD_power_off,CD_power_on,CNa,CP with one data row
  * per input row, in input order. Values are emitted verbatim (full double
  * precision), so the export round-trips the input numbers exactly.
+ *
+ * Throws RangeError on any non-finite matrix cell (NaN or ±Inf would emit
+ * a CSV that RASAero II cannot parse).
  */
 export function exportAeroMatrix(rows: AeroMatrixRow[]): string {
+  for (const row of rows) {
+    for (const [name, value] of [
+      ['Mach', row.mach],
+      ['AoA', row.aoaDeg],
+      ['CD_power_off', row.cdPowerOff],
+      ['CD_power_on', row.cdPowerOn],
+      ['CNa', row.cna],
+      ['CP', row.cpX],
+    ] as const) {
+      if (!Number.isFinite(value)) {
+        throw new RangeError(`exportAeroMatrix: ${name} must be finite (got ${value})`);
+      }
+    }
+  }
   const lines = ['Mach,AoA,CD_power_off,CD_power_on,CNa,CP'];
   for (const row of rows) {
     lines.push(

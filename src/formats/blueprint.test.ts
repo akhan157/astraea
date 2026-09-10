@@ -9,7 +9,13 @@
  */
 import { describe, it, expect } from 'vitest';
 import { exportBlueprintSvg } from './blueprint';
-import { RocketVehicle, RocketComponent } from '../core/types';
+import {
+  RocketVehicle,
+  RocketComponent,
+  NoseconeComponent,
+  TransitionComponent,
+  TrapezoidFinSetComponent,
+} from '../core/types';
 
 function vehicle(name: string, components: RocketComponent[]): RocketVehicle {
   return { id: 'v1', name, version: '1.0', author: 'test', components };
@@ -206,5 +212,44 @@ describe('vehicle blueprint SVG export', () => {
         ]),
       ),
     ).toThrow();
+  });
+
+  it('throws on non-finite and negative dimensions', () => {
+    const badLength = vehicle('bad', [
+      { ...(AXIAL_VEHICLE.components[0] as NoseconeComponent), length: Number.NaN },
+      ...AXIAL_VEHICLE.components.slice(1),
+    ]);
+    expect(() => exportBlueprintSvg(badLength)).toThrow(/finite nonnegative/);
+
+    const badDia = vehicle('bad', [
+      ...AXIAL_VEHICLE.components.slice(0, 2),
+      { ...(AXIAL_VEHICLE.components[2] as TransitionComponent), aftDiameter: Number.NEGATIVE_INFINITY },
+      ...AXIAL_VEHICLE.components.slice(3),
+    ]);
+    expect(() => exportBlueprintSvg(badDia)).toThrow(/finite nonnegative/);
+
+    const badFin = vehicle('bad', [
+      ...AXIAL_VEHICLE.components.slice(0, 3),
+      { ...(AXIAL_VEHICLE.components[3] as TrapezoidFinSetComponent), span: -0.02 },
+    ]);
+    expect(() => exportBlueprintSvg(badFin)).toThrow(/span/);
+  });
+
+  it('throws when a fin set precedes any body tube', () => {
+    // Nose alone is not an enclosing tube: fins need a preceding bodytube.
+    const v = vehicle('no tube', [
+      AXIAL_VEHICLE.components[0], // nosecone
+      AXIAL_VEHICLE.components[3], // trapezoidfinset
+    ]);
+    expect(() => exportBlueprintSvg(v)).toThrow(/after at least one body tube/);
+  });
+
+  it('allows fins after an enclosing body tube regardless of mass/parachute in between', () => {
+    const v = vehicle('relaxed', [
+      AXIAL_VEHICLE.components[0], // nosecone
+      AXIAL_VEHICLE.components[1], // bodytube
+      AXIAL_VEHICLE.components[3], // fins
+    ]);
+    expect(exportBlueprintSvg(v)).toContain('bp-fin');
   });
 });

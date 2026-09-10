@@ -124,6 +124,45 @@ describe('windAtAltitude', () => {
   it('throws on an empty layer list', () => {
     expect(() => windAtAltitude([], 10)).toThrow();
   });
+
+  it('sorts a copy, never mutating the caller table', () => {
+    const unsorted: WindLayer[] = [
+      { altitudeM: 300, speedMs: 30, directionFromDeg: 90, tempC: 10, pressureHpa: 977 },
+      { altitudeM: 0, speedMs: 10, directionFromDeg: 90, tempC: 20, pressureHpa: 1013 },
+      { altitudeM: 100, speedMs: 20, directionFromDeg: 90, tempC: 15, pressureHpa: 1000 },
+    ];
+    const before = [...unsorted];
+    // Midpoint between 0 and 100 m resolves from the sorted order.
+    expect(windAtAltitude(unsorted, 50)).toEqual({ speedMs: 15, directionFromDeg: 90 });
+    // Caller's array is untouched.
+    expect(unsorted).toEqual(before);
+    expect(unsorted[0].altitudeM).toBe(300);
+  });
+
+  it('throws on duplicate altitudes', () => {
+    const dup: WindLayer[] = [
+      { altitudeM: 0, speedMs: 10, directionFromDeg: 90, tempC: 20, pressureHpa: 1013 },
+      { altitudeM: 100, speedMs: 20, directionFromDeg: 90, tempC: 15, pressureHpa: 1000 },
+      { altitudeM: 100, speedMs: 25, directionFromDeg: 90, tempC: 12, pressureHpa: 999 },
+    ];
+    expect(() => windAtAltitude(dup, 50)).toThrow(/duplicate altitude/);
+  });
+
+  it('throws on non-finite layer values and altitudes', () => {
+    const badSpeed = [...layers];
+    badSpeed[1] = { ...badSpeed[1], speedMs: Number.NaN };
+    expect(() => windAtAltitude(badSpeed, 50)).toThrow(/finite/);
+
+    const badDir = [...layers];
+    badDir[2] = { ...badDir[2], directionFromDeg: Number.POSITIVE_INFINITY };
+    expect(() => windAtAltitude(badDir, 50)).toThrow(/finite/);
+
+    const badAlt = [...layers];
+    badAlt[0] = { ...badAlt[0], altitudeM: Number.NaN };
+    expect(() => windAtAltitude(badAlt, 50)).toThrow(/finite/);
+
+    expect(() => windAtAltitude(layers, Number.NaN)).toThrow(/hM/);
+  });
 });
 
 describe('windToENU', () => {
@@ -162,6 +201,13 @@ describe('windToENU', () => {
       east: speed * Math.sin(azRad + Math.PI),
       north: speed * Math.cos(azRad + Math.PI),
     });
+  });
+
+  it('throws on non-finite or negative speed', () => {
+    expect(() => windToENU(Number.NaN, 90)).toThrow(/speedMs/);
+    expect(() => windToENU(Number.POSITIVE_INFINITY, 90)).toThrow(/speedMs/);
+    expect(() => windToENU(-1, 90)).toThrow(/speedMs/);
+    expect(() => windToENU(10, Number.NaN)).toThrow(/dirFromDeg/);
   });
 });
 

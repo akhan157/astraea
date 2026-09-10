@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { exportCdx1, exportAeroMatrix, METERS_TO_INCHES } from './rasaero';
-import { RocketComponent } from '../core/types';
+import {
+  RocketComponent,
+  NoseconeComponent,
+  BodyTubeComponent,
+  TransitionComponent,
+  TrapezoidFinSetComponent,
+} from '../core/types';
 
 /** Parses non-comment OML data rows back into numeric [xInches, dInches] pairs. */
 function parseStations(cdx1: string): Array<[number, number]> {
@@ -127,6 +133,36 @@ describe('RASAero II (.cdx1) Outer Mold Line Exporter', () => {
     expect(parseStations(cdx1).length).toBe(0);
     expect(cdx1.trim().split('\n').every((line) => line.startsWith('#'))).toBe(true);
   });
+
+  it('throws on non-finite or negative OML lengths and diameters', () => {
+    const badNose = fixtureComponents();
+    badNose[0] = { ...(badNose[0] as NoseconeComponent), length: Number.NaN };
+    expect(() => exportCdx1(badNose)).toThrow(/non-finite or negative/);
+
+    const badTube = fixtureComponents();
+    badTube[1] = { ...(badTube[1] as BodyTubeComponent), outerDiameter: Number.POSITIVE_INFINITY };
+    expect(() => exportCdx1(badTube)).toThrow(/non-finite or negative/);
+
+    const badTransition = fixtureComponents();
+    badTransition[2] = { ...(badTransition[2] as TransitionComponent), foreDiameter: -0.02 };
+    expect(() => exportCdx1(badTransition)).toThrow(/non-finite or negative/);
+
+    const badNoseDia = fixtureComponents();
+    badNoseDia[0] = { ...(badNoseDia[0] as NoseconeComponent), baseDiameter: Number.NEGATIVE_INFINITY };
+    expect(() => exportCdx1(badNoseDia)).toThrow(/non-finite or negative/);
+  });
+
+  it('ignores co-located non-OML dimensions (fins, mass, parachute)', () => {
+    const components = fixtureComponents();
+    // Fin root chord and mass length never enter the OML station stream.
+    components[3] = { ...(components[3] as TrapezoidFinSetComponent), rootChord: -0.09 };
+    components[4] = { ...(components[4] as NoseconeComponent), length: Number.NaN };
+    const stations = parseStations(exportCdx1(components));
+    expect(stations).toHaveLength(components.length);
+    for (const [, d] of stations) {
+      expect(Number.isFinite(d)).toBe(true);
+    }
+  });
 });
 
 describe('RASAero II Aerodynamic Matrix (.csv) Exporter', () => {
@@ -164,5 +200,19 @@ describe('RASAero II Aerodynamic Matrix (.csv) Exporter', () => {
   it('emits only the header for an empty row list', () => {
     const csv = exportAeroMatrix([]);
     expect(csv.trim()).toBe('Mach,AoA,CD_power_off,CD_power_on,CNa,CP');
+  });
+
+  it('throws on non-finite matrix cells', () => {
+    const bad = [
+      { ...rows[0], mach: Number.NaN },
+      { ...rows[0], aoaDeg: Number.POSITIVE_INFINITY },
+      { ...rows[0], cdPowerOff: Number.NaN },
+      { ...rows[0], cdPowerOn: Number.NEGATIVE_INFINITY },
+      { ...rows[0], cna: Number.NaN },
+      { ...rows[0], cpX: Number.NaN },
+    ];
+    for (const row of bad) {
+      expect(() => exportAeroMatrix([row])).toThrow(/must be finite/);
+    }
   });
 });

@@ -165,21 +165,50 @@ export async function fetchSounding(
 
 /**
  * Returns the wind (speed, from-direction) at altitude hM by linear
- * interpolation over the layer table. Altitudes below the lowest layer clamp
- * to the lowest layer, above the highest layer clamp to the highest. Wind
- * direction is circular: it interpolates along the shortest arc (350 -> 10
- * deg passes through 0, not 180). Throws RangeError on an empty table.
+ * interpolation over the layer table. The caller's array is never mutated:
+ * a sorted copy is made first, so layers may arrive in any order. Altitudes
+ * below the lowest layer clamp to the lowest layer, above the highest layer
+ * clamp to the highest. Wind direction is circular: it interpolates along
+ * the shortest arc (350 -> 10 deg passes through 0, not 180).
+ *
+ * Throws RangeError on an empty table, on duplicate altitudes, and on
+ * non-finite altitude/speed/direction values in any layer.
  */
 export function windAtAltitude(
   layers: readonly WindLayer[],
   hM: number
 ): { speedMs: number; directionFromDeg: number } {
+  if (hM === undefined || !Number.isFinite(hM)) {
+    throw new RangeError(`windAtAltitude: hM must be a finite number (got ${hM})`);
+  }
   if (layers.length === 0) {
     throw new RangeError('windAtAltitude: no wind layers provided');
   }
-  const first = layers[0];
-  const last = layers[layers.length - 1];
-  if (layers.length === 1 || hM <= first.altitudeM) {
+  // Validate every layer first: non-finite layer values would otherwise
+  // produce silent NaNs in the interpolation/clamp paths.
+  for (const layer of layers) {
+    if (
+      !Number.isFinite(layer.altitudeM) ||
+      !Number.isFinite(layer.speedMs) ||
+      !Number.isFinite(layer.directionFromDeg)
+    ) {
+      throw new RangeError(
+        `windAtAltitude: layer values must be finite numbers (got altitudeM=${layer.altitudeM}, speedMs=${layer.speedMs}, directionFromDeg=${layer.directionFromDeg})`
+      );
+    }
+  }
+  // Work on an ascending-altitude copy; never mutate the caller's table.
+  const sorted = [...layers].sort((a, b) => a.altitudeM - b.altitudeM);
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i].altitudeM === sorted[i - 1].altitudeM) {
+      throw new RangeError(
+        `windAtAltitude: duplicate altitude ${sorted[i].altitudeM} m in wind layers`
+      );
+    }
+  }
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  if (sorted.length === 1 || hM <= first.altitudeM) {
     return { speedMs: first.speedMs, directionFromDeg: first.directionFromDeg };
   }
   if (hM >= last.altitudeM) {
@@ -187,9 +216,9 @@ export function windAtAltitude(
   }
 
   let i = 0;
-  while (i + 1 < layers.length && layers[i + 1].altitudeM < hM) i++;
-  const a = layers[i];
-  const b = layers[i + 1];
+  while (i + 1 < sorted.length && sorted[i + 1].altitudeM < hM) i++;
+  const a = sorted[i];
+  const b = sorted[i + 1];
   const t = (hM - a.altitudeM) / (b.altitudeM - a.altitudeM);
 
   const speedMs = a.speedMs + t * (b.speedMs - a.speedMs);
@@ -204,12 +233,19 @@ export function windAtAltitude(
 /**
  * Converts a meteorological from-direction to ENU horizontal components
  * (east = +x, north = +y). A wind FROM direction d blows toward d + 180 deg,
- * so east = -v sin(d), north = -v cos(d).
+ * so east = -v sin(d), north = -v cos(d). Throws RangeError on non-finite or
+ * negative speed, and on a non-finite direction.
  */
 export function windToENU(
   speedMs: number,
   dirFromDeg: number
 ): { east: number; north: number } {
+  if (!Number.isFinite(speedMs) || speedMs < 0) {
+    throw new RangeError(`windToENU: speedMs must be a finite nonnegative number (got ${speedMs})`);
+  }
+  if (!Number.isFinite(dirFromDeg)) {
+    throw new RangeError(`windToENU: dirFromDeg must be a finite number (got ${dirFromDeg})`);
+  }
   const fromRad = (dirFromDeg * Math.PI) / 180;
   const toward = fromRad + Math.PI;
   return {

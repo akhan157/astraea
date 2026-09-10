@@ -72,6 +72,33 @@ describe('Hoerner Protuberance Drag', () => {
     const cd = computeProtuberanceDrag({ ...base, baseCylinderCd: 0.9 });
     expect(cd).toBeCloseTo(0.9 * (0.002 / 0.00785), 12);
   });
+
+  it('throws on non-finite inputs', () => {
+    const cases: Array<Partial<ProtuberanceDragInput>> = [
+      { frontalArea: Number.NaN },
+      { frontalArea: Number.POSITIVE_INFINITY },
+      { lugHeight: Number.NaN },
+      { boundaryLayerThickness: Number.NEGATIVE_INFINITY },
+      { refArea: Number.POSITIVE_INFINITY },
+      { baseCylinderCd: Number.NaN },
+    ];
+    for (const partial of cases) {
+      expect(() => computeProtuberanceDrag({ ...base, ...partial })).toThrow(RangeError);
+    }
+  });
+
+  it('throws on negative boundaryLayerThickness and refArea', () => {
+    expect(() => computeProtuberanceDrag({ ...base, boundaryLayerThickness: -0.1 })).toThrow(/boundaryLayerThickness/);
+    expect(() => computeProtuberanceDrag({ ...base, refArea: -1 })).toThrow(/refArea/);
+  });
+
+  it('keeps the zero-contract: zero area/height => 0 despite the refArea floor', () => {
+    // Negative frontal area/lug height stay clamped (only the specified fields throw); zero stays 0.
+    expect(computeProtuberanceDrag({ ...base, frontalArea: 0 })).toBe(0);
+    expect(computeProtuberanceDrag({ ...base, lugHeight: 0 })).toBe(0);
+    // NaN in any field throws even when the zero path would otherwise return 0.
+    expect(() => computeProtuberanceDrag({ ...base, frontalArea: 0, refArea: Number.NaN })).toThrow(RangeError);
+  });
 });
 
 describe('Boattail Separation Monitor', () => {
@@ -120,5 +147,11 @@ describe('Boattail Separation Monitor', () => {
     expect(boattailSeparationCheck(0.1, 0.05, 0)).toEqual({ halfAngleDeg: 0, separated: false });
     expect(boattailSeparationCheck(0, 0.05, 1)).toEqual({ halfAngleDeg: 0, separated: false });
     expect(boattailSeparationCheck(0.1, -1, 1)).toEqual({ halfAngleDeg: 0, separated: false });
+  });
+
+  it('throws on non-finite diameters or length', () => {
+    expect(() => boattailSeparationCheck(Number.NaN, 0.05, 1)).toThrow(RangeError);
+    expect(() => boattailSeparationCheck(0.1, Number.POSITIVE_INFINITY, 1)).toThrow(RangeError);
+    expect(() => boattailSeparationCheck(0.1, 0.05, Number.NEGATIVE_INFINITY)).toThrow(RangeError);
   });
 });
