@@ -109,20 +109,17 @@ describe('MonteCarloSession', () => {
     renderSession(25); // 20 chunks of 25 runs each
     fireEvent.click(runButton());
 
-    // First chunk lands synchronously; by the time waitFor observes, more
-    // chunks may have streamed in — assert mid-run progress semantics, not
-    // an exact count: a live numeric count strictly between 0 and N.
-    await waitFor(() => expect(progressbar().getAttribute('aria-valuemin')).toBe('0'), { timeout: 5000 });
-    await waitFor(() => expect(progressbar().getAttribute('aria-valuemax')).toBe('500'), { timeout: 5000 });
-    const done = Number(progressbar().getAttribute('aria-valuenow'));
-    expect(Number.isFinite(done)).toBe(true);
-    expect(done).toBeGreaterThanOrEqual(25);
-    expect(done).toBeLessThan(500);
-    expect(progressbar().getAttribute('aria-valuetext')).toMatch(/\d+ of 500 runs completed/);
-    expect(screen.getByText(/\d+ \/ 500 runs · 0 failed/)).toBeTruthy();
+    // The first chunk lands synchronously inside the click handler; the next
+    // chunk waits on a macrotask, so right after the click the UI shows
+    // EXACTLY 25/500 with the rail digest live — no waitFor, no race.
+    expect(progressbar().getAttribute('aria-valuemin')).toBe('0');
+    expect(progressbar().getAttribute('aria-valuemax')).toBe('500');
+    expect(progressbar().getAttribute('aria-valuenow')).toBe('25');
+    expect(progressbar().getAttribute('aria-valuetext')).toBe('25 of 500 runs completed');
+    expect(screen.getByText('25 / 500 runs · 0 failed')).toBeTruthy();
     expect(useRocketStore.getState().activeRun?.kind).toBe('montecarlo');
     expect(useRocketStore.getState().activeRun?.label).toBe('Monte Carlo');
-    expect(useRocketStore.getState().activeRun?.progress).toBeCloseTo(done / 500, 5);
+    expect(useRocketStore.getState().activeRun?.progress).toBeCloseTo(25 / 500, 5);
 
     // Ensemble settles and clears the digest.
     await waitFor(() => expect(screen.getByText('500 succeeded · 0 failed')).toBeTruthy(), { timeout: 30000 });
@@ -133,18 +130,13 @@ describe('MonteCarloSession', () => {
     mockChunk.mockImplementation(defaultMock);
     renderSession(25);
     fireEvent.click(runButton());
-    await waitFor(() => expect(progressbar().getAttribute('aria-valuemin')).toBe('0'), { timeout: 5000 });
-    expect(Number(progressbar().getAttribute('aria-valuenow'))).toBeGreaterThanOrEqual(25);
 
+    // Cancel synchronously after the first chunk: the partial label reads
+    // exactly 25/500, before any subsequent chunk's macrotask can run.
+    expect(progressbar().getAttribute('aria-valuenow')).toBe('25');
     fireEvent.click(cancelButton());
 
-    // Partial label, stats from completed chunks only, Cancel disabled. The
-    // stream may have advanced chunks between observe and click, so read the
-    // actual completed count from the label itself.
-    const partial = screen.getByText(/PARTIAL — \d+\/500 runs before cancel/);
-    const match = /\d+/.exec(partial.textContent ?? '');
-    expect(match).toBeTruthy();
-    expect(Number(match![0])).toBeGreaterThanOrEqual(25);
+    expect(screen.getByText('PARTIAL — 25/500 runs before cancel; reduced from completed chunks only')).toBeTruthy();
     expect(cancelButton().disabled).toBe(true);
     expect(useRocketStore.getState().activeRun).toBeNull();
     // Partial results are never labeled FRESH (spec §6: partial ≠ final).
@@ -206,11 +198,11 @@ describe('MonteCarloSession', () => {
     expect(screen.queryByRole('img', { name: /landing scatter/i })).toBeNull();
   }, 30000);
 
-  it('unmount mid-run cancels the stream and clears the run-state digest', async () => {
+  it('unmount mid-run cancels the stream and clears the run-state digest', () => {
     mockChunk.mockImplementation(defaultMock);
     const view = renderSession(25);
     fireEvent.click(runButton());
-    await waitFor(() => expect(progressbar().getAttribute('aria-valuenow')).toBe('25'), { timeout: 5000 });
+    expect(progressbar().getAttribute('aria-valuenow')).toBe('25');
 
     view.unmount();
     expect(useRocketStore.getState().activeRun).toBeNull();
