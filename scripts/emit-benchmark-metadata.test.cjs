@@ -153,7 +153,7 @@ function baseFixture(over = {}) {
     'src/sim/sixDofSimulator.test.ts': "describe('production contracts', () => { it('aligns touchdown at the root', () => {}); });\n",
     'src/propulsion/motorDatabase.test.ts': "describe('motor depletion', () => { it('burns by impulse', () => {}); });\n",
     'scripts/emit-benchmark-metadata.cjs': 'module.exports = {};\n',
-    'scripts/emit-benchmark-metadata.test.cjs': 'module.exports = {};\n',
+    'scripts/emit-benchmark-metadata.test.cjs': "describe('emitter evidence', () => { it('fails closed', () => {}); });\n",
     'src/core/mass.test.ts': "describe('mass fidelity', () => { it('places the cone centroid', () => {}); });\n",
     'src/components/FlightSimulationTab.test.tsx': "describe('safety presentation', () => { it('renders badges', () => {}); });\n",
     'src/aero/transonicAero.test.ts': "describe('aero curves', () => { it('tabulates drag', () => {}); });\n",
@@ -181,7 +181,14 @@ function baseFixture(over = {}) {
     'src/recovery/charges.ts': 'export const bpMass = () => 0;\n',
     'src/evidence/altimetry.ts': 'export const parseAltimeterCsv = () => [];\n',
     'src/evidence/calibration.ts': 'export const calibrateCd = () => ({});\n',
-    'scripts/emit-benchmark-metadata.test.cjs': "describe('emitter evidence', () => { it('fails closed', () => {}); });\n",
+    'src/components/PropulsionStudio.test.tsx': "describe('propulsion studio', () => { it('lists motors', () => {}); });\n",
+    'src/components/TrajectoryStudio.test.tsx': "describe('trajectory studio', () => { it('runs dispersion', () => {}); });\n",
+    'src/components/EvidenceStudio.test.tsx': "describe('evidence studio', () => { it('parses logs', () => {}); });\n",
+    'src/components/InteropExportPanel.test.tsx': "describe('interop export', () => { it('emits matrix', () => {}); });\n",
+    'src/components/PropulsionStudio.tsx': 'export const PropulsionStudio = () => null;\n',
+    'src/components/TrajectoryStudio.tsx': 'export const TrajectoryStudio = () => null;\n',
+    'src/components/EvidenceStudio.tsx': 'export const EvidenceStudio = () => null;\n',
+    'src/components/InteropExportPanel.tsx': 'export const InteropExportPanel = () => null;\n',
     ...over,
   };
   for (const k of Object.keys(files)) {
@@ -243,6 +250,10 @@ function makeVitestJson({
     'src/propulsion/nozzleChemistry.test.ts',
     'src/recovery/recovery.test.ts',
     'src/evidence/evidence.test.ts',
+    'src/components/PropulsionStudio.test.tsx',
+    'src/components/TrajectoryStudio.test.tsx',
+    'src/components/EvidenceStudio.test.tsx',
+    'src/components/InteropExportPanel.test.tsx',
     'scripts/emit-benchmark-metadata.test.cjs',
   ];
   const fileResults = acceptanceFiles
@@ -573,13 +584,13 @@ t('vitest per-file totals parsed from assertionResults, not f.assertions', () =>
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
-  assert.equal(parsed.files.length, 24);
+  assert.equal(parsed.files.length, 28);
   const vvFile = parsed.files.find((file) => file.file === 'vv-benchmarks.test.ts');
   assert.equal(vvFile.testCases.total, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.passed, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.failed, 0);
   assert.equal(vvFile.testCases.unknown, 0);
-  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 23);
+  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 27);
 });
 
 t('vitest JSON unparseable => certification fails', () => {

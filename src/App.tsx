@@ -4,25 +4,30 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Header } from './components/Header';
+import { Header, type StudioId } from './components/Header';
 import { ComponentTree } from './components/ComponentTree';
 import { RocketCanvas } from './viewport/RocketCanvas';
 import { MetricHUD } from './components/MetricHUD';
 import { PropertyInspector } from './components/PropertyInspector';
 import { FlightSimulationTab } from './components/FlightSimulationTab';
+import { PropulsionStudio } from './components/PropulsionStudio';
+import { TrajectoryStudio } from './components/TrajectoryStudio';
+import { EvidenceStudio } from './components/EvidenceStudio';
 import { useRocketStore } from './store/rocketStore';
+import { CERTIFIED_MOTORS } from './propulsion/motorDatabase';
 import { parseOrkFile } from './formats/orkParser';
 import { parseRktString } from './formats/rktParser';
 import { UploadCloud } from 'lucide-react';
-
 export const App: React.FC = () => {
   const setVehicle = useRocketStore((s) => s.setVehicle);
   const undo = useRocketStore((s) => s.undo);
   const redo = useRocketStore((s) => s.redo);
   const setViewMode = useRocketStore((s) => s.setViewMode);
 
+  const vehicle = useRocketStore((s) => s.vehicle);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [isSimOpen, setIsSimOpen] = useState(false);
+  const [studio, setStudio] = useState<StudioId>('cad');
 
   // Global Keyboard Shortcuts
   useEffect(() => {
@@ -101,21 +106,33 @@ export const App: React.FC = () => {
       onDrop={handleDrop}
     >
       {/* Top Header Bar */}
-      <Header onOpenSim={() => setIsSimOpen(true)} />
+      <Header onOpenSim={() => setIsSimOpen(true)} studio={studio} onStudioChange={setStudio} />
 
       {/* Main Workstation Layout */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Axial Assembly Sidebar */}
         <ComponentTree />
 
-        {/* Center 3D Interactive Viewport with Floating Metric HUD */}
-        <main className="flex-1 relative h-full">
-          <MetricHUD />
-          <RocketCanvas />
-        </main>
+        {studio === 'cad' ? (
+          <>
+            {/* Center 3D Interactive Viewport with Floating Metric HUD */}
+            <main className="flex-1 relative h-full">
+              <MetricHUD />
+              <RocketCanvas />
+            </main>
 
-        {/* Right Parametric Properties Inspector */}
-        <PropertyInspector />
+            {/* Right Parametric Properties Inspector */}
+            <PropertyInspector />
+          </>
+        ) : (
+          <main className="flex-1 relative h-full overflow-y-auto p-4 bg-zinc-950">
+            {studio === 'propulsion' && <PropulsionStudio />}
+            {studio === 'trajectory' && (
+              <TrajectoryStudio vehicle={vehicle} motor={CERTIFIED_MOTORS.estes_c6} />
+            )}
+            {studio === 'evidence' && <EvidenceStudio />}
+          </main>
+        )}
       </div>
 
       {/* Full-Screen Drag & Drop Overlay */}

@@ -7,6 +7,7 @@ import React, { useRef } from 'react';
 import { useRocketStore, PRESETS } from '../store/rocketStore';
 import { parseOrkFile, exportToOrk } from '../formats/orkParser';
 import { parseRktString } from '../formats/rktParser';
+import { InteropExportPanel } from './InteropExportPanel';
 import {
   Upload,
   Download,
@@ -17,11 +18,22 @@ import {
   Flame,
 } from 'lucide-react';
 
+export type StudioId = 'cad' | 'propulsion' | 'trajectory' | 'evidence';
+
 interface HeaderProps {
   onOpenSim?: () => void;
+  studio?: StudioId;
+  onStudioChange?: (studio: StudioId) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenSim }) => {
+const STUDIO_TABS: Array<{ id: StudioId; label: string; title: string }> = [
+  { id: 'cad', label: 'CAD', title: 'Airframe CAD studio' },
+  { id: 'propulsion', label: 'Propulsion', title: 'Propulsion & motor studio' },
+  { id: 'trajectory', label: 'Trajectory', title: 'Trajectory & weather studio' },
+  { id: 'evidence', label: 'Evidence', title: 'Recovery & flight evidence studio' },
+];
+
+export const Header: React.FC<HeaderProps> = ({ onOpenSim, studio = 'cad', onStudioChange }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const vehicle = useRocketStore((s) => s.vehicle);
@@ -133,6 +145,25 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSim }) => {
             ))}
           </select>
         </div>
+        {/* Studio mode switcher */}
+        <div className="flex items-center gap-0.5 ml-2 bg-zinc-800/60 p-0.5 rounded-lg border border-zinc-700/60" role="tablist" aria-label="Studio modes">
+          {STUDIO_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={studio === tab.id}
+              onClick={() => onStudioChange?.(tab.id)}
+              className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition ${
+                studio === tab.id
+                  ? 'bg-cyan-500/25 text-cyan-200'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/60'
+              }`}
+              title={tab.title}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
         {/* Undo / Redo */}
         <div className="flex items-center gap-1 ml-2 bg-zinc-800/60 p-0.5 rounded-lg border border-zinc-700/60">
@@ -184,6 +215,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSim }) => {
           <Upload className="w-3.5 h-3.5 text-zinc-400" />
           <span className="hidden sm:inline">Import .ork / .rkt</span>
         </button>
+        <InteropExportPanel vehicle={vehicle} />
 
         <div className="flex items-center rounded-lg border border-cyan-500/30 overflow-hidden shadow-sm">
           <button

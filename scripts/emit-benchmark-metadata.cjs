@@ -111,6 +111,10 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/recovery/charges.ts',
   'src/evidence/altimetry.ts',
   'src/evidence/calibration.ts',
+  'src/components/PropulsionStudio.tsx',
+  'src/components/TrajectoryStudio.tsx',
+  'src/components/EvidenceStudio.tsx',
+  'src/components/InteropExportPanel.tsx',
   'scripts/emit-benchmark-metadata.cjs',
   'package.json',
 ]);
@@ -149,6 +153,10 @@ const FIXED_TEST_FILE_INVENTORY = Object.freeze([
   'src/propulsion/nozzleChemistry.test.ts',
   'src/recovery/recovery.test.ts',
   'src/evidence/evidence.test.ts',
+  'src/components/PropulsionStudio.test.tsx',
+  'src/components/TrajectoryStudio.test.tsx',
+  'src/components/EvidenceStudio.test.tsx',
+  'src/components/InteropExportPanel.test.tsx',
   'scripts/emit-benchmark-metadata.test.cjs',
 ]);
 const HASHED_INFORMATIONAL_FILES = Object.freeze([
