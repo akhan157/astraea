@@ -181,10 +181,14 @@ function baseFixture(over = {}) {
     'src/recovery/charges.ts': 'export const bpMass = () => 0;\n',
     'src/evidence/altimetry.ts': 'export const parseAltimeterCsv = () => [];\n',
     'src/evidence/calibration.ts': 'export const calibrateCd = () => ({});\n',
-    'src/components/PropulsionStudio.test.tsx': "describe('propulsion studio', () => { it('lists motors', () => {}); });\n",
-    'src/components/TrajectoryStudio.test.tsx': "describe('trajectory studio', () => { it('runs dispersion', () => {}); });\n",
+    'src/formats/engParser.test.ts': "describe('eng import', () => { it('parses rasp', () => {}); });\n",
+    'src/formats/blueprint.test.ts': "describe('blueprint export', () => { it('draws side view', () => {}); });\n",
+    'src/formats/engParser.ts': 'export const parseRaspEng = () => ({});\n',
+    'src/formats/blueprint.ts': 'export const exportBlueprintSvg = () => "";\n',
     'src/components/EvidenceStudio.test.tsx': "describe('evidence studio', () => { it('parses logs', () => {}); });\n",
     'src/components/InteropExportPanel.test.tsx': "describe('interop export', () => { it('emits matrix', () => {}); });\n",
+    'src/components/PropulsionStudio.test.tsx': "describe('propulsion studio', () => { it('lists motors', () => {}); });\n",
+    'src/components/TrajectoryStudio.test.tsx': "describe('trajectory studio', () => { it('runs dispersion', () => {}); });\n",
     'src/components/PropulsionStudio.tsx': 'export const PropulsionStudio = () => null;\n',
     'src/components/TrajectoryStudio.tsx': 'export const TrajectoryStudio = () => null;\n',
     'src/components/EvidenceStudio.tsx': 'export const EvidenceStudio = () => null;\n',
@@ -254,6 +258,8 @@ function makeVitestJson({
     'src/components/TrajectoryStudio.test.tsx',
     'src/components/EvidenceStudio.test.tsx',
     'src/components/InteropExportPanel.test.tsx',
+    'src/formats/engParser.test.ts',
+    'src/formats/blueprint.test.ts',
     'scripts/emit-benchmark-metadata.test.cjs',
   ];
   const fileResults = acceptanceFiles
@@ -584,13 +590,13 @@ t('vitest per-file totals parsed from assertionResults, not f.assertions', () =>
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
-  assert.equal(parsed.files.length, 28);
+  assert.equal(parsed.files.length, 30);
   const vvFile = parsed.files.find((file) => file.file === 'vv-benchmarks.test.ts');
   assert.equal(vvFile.testCases.total, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.passed, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.failed, 0);
   assert.equal(vvFile.testCases.unknown, 0);
-  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 27);
+  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 29);
 });
 
 t('vitest JSON unparseable => certification fails', () => {
