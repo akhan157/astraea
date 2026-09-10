@@ -33,10 +33,37 @@ export const MIN_VELOCITY_MS = 5;
  * Fit the effective drag coefficient to coast-phase measurements.
  *
  * Points with velocityMs < MIN_VELOCITY_MS are rejected (drag is tiny there
- * and deceleration measurements are dominated by sensor noise). Throws if no
- * usable points remain.
+ * and deceleration measurements are dominated by sensor noise).
+ *
+ * Throws on invalid input data: non-finite or non-positive density/massKg/
+ * refAreaM2, non-finite or negative accelMs2, or all-zero accelerometer
+ * readings (sensor-dead guard). Throws if no usable points remain.
  */
 export function calibrateCd(coastSegments: readonly CoastPoint[]): CalibrationResult {
+  // Validate every input point before fitting: a NaN/negative density or a
+  // dead accelerometer would silently poison the least-squares fit.
+  let anyAccelNonZero = false;
+  for (const p of coastSegments) {
+    if (!(p.density > 0)) {
+      throw new Error(`calibrateCd: density must be a positive finite number (got ${p.density})`);
+    }
+    if (!(p.massKg > 0)) {
+      throw new Error(`calibrateCd: massKg must be a positive finite number (got ${p.massKg})`);
+    }
+    if (!(p.refAreaM2 > 0)) {
+      throw new Error(`calibrateCd: refAreaM2 must be a positive finite number (got ${p.refAreaM2})`);
+    }
+    if (!Number.isFinite(p.accelMs2) || p.accelMs2 < 0) {
+      throw new Error(`calibrateCd: accelMs2 must be a finite non-negative number (got ${p.accelMs2})`);
+    }
+    if (p.accelMs2 !== 0) {
+      anyAccelNonZero = true;
+    }
+  }
+  if (coastSegments.length > 0 && !anyAccelNonZero) {
+    throw new Error('calibrateCd: all accelerometer readings are zero (sensor-dead guard)');
+  }
+
   const usable: CoastPoint[] = [];
   for (const p of coastSegments) {
     if (p.velocityMs >= MIN_VELOCITY_MS) {

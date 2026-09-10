@@ -47,11 +47,20 @@ describe('parseAltimeterCsv', () => {
     expect(parseAltimeterCsv(csv)).toEqual([{ timeS: 2, altitudeM: 30 }]);
   });
 
-  it('falls back to time,altitude column order when no header is recognized', () => {
+  it('falls back to time,altitude column order for headerless all-numeric data', () => {
     expect(parseAltimeterCsv('0,10\n1,20\n')).toEqual([
       { timeS: 0, altitudeM: 10 },
       { timeS: 1, altitudeM: 20 },
     ]);
+  });
+
+  it('throws on a header-like first line with unrecognized aliases instead of guessing', () => {
+    // Only the time alias recognized; altitude alias missing.
+    expect(() => parseAltimeterCsv('time,position\n0,10\n1,20\n')).toThrow(/unrecognized header/);
+    // Neither alias recognized.
+    expect(() => parseAltimeterCsv('velocity,position\n0,10\n1,20\n')).toThrow(/unrecognized header/);
+    // Only the altitude alias recognized; time alias missing.
+    expect(() => parseAltimeterCsv('sec,alt\n0,10\n1,20\n')).toThrow(/unrecognized header/);
   });
 
   it('sorts rows ascending by time', () => {
@@ -78,6 +87,12 @@ describe('resample', () => {
   it('rejects non-positive or non-finite dt', () => {
     expect(() => resample([{ timeS: 0, altitudeM: 0 }], 0)).toThrow();
     expect(() => resample([{ timeS: 0, altitudeM: 0 }], Number.NaN)).toThrow();
+  });
+
+  it('throws on non-finite sample values', () => {
+    expect(() => resample([{ timeS: 0, altitudeM: Number.NaN }], 1)).toThrow(/finite/);
+    expect(() => resample([{ timeS: Number.NaN, altitudeM: 0 }], 1)).toThrow(/finite/);
+    expect(() => resample([{ timeS: 0, altitudeM: Number.POSITIVE_INFINITY }], 1)).toThrow(/finite/);
   });
 
   it('produces a uniform grid with linear interpolation', () => {
@@ -145,10 +160,62 @@ describe('alignSimToFlight', () => {
     expect(() => alignSimToFlight([{ timeS: 0, altitudeM: 0, velocityMs: 0 }], [])).toThrow();
   });
 
-  it('throws when neither series carries velocity data', () => {
+  it('aligns without velocity data, reporting a null burnout delta', () => {
     const sim = [{ timeS: 0, altitudeM: 0 }, { timeS: 1, altitudeM: 10 }];
     const flight = [{ timeS: 1, altitudeM: 0 }, { timeS: 2, altitudeM: 10 }];
-    expect(() => alignSimToFlight(sim, flight)).toThrow(/velocityMs/);
+    const r = alignSimToFlight(sim, flight);
+    expect(r.timeOffsetS).toBeCloseTo(-1, 9); // sim apogee t=1, flight apogee t=2
+    expect(r.apogeeDeltaM).toBeCloseTo(0, 9);
+    expect(r.burnoutVelDeltaMs).toBeNull();
+  });
+
+  it('aligns a velocity-less CSV flight log against the sim (burnout delta null)', () => {
+    const sim = buildFlight(120, 12.5, DT);
+    // Same shape as sim but 2.5 s earlier and 100 m lower — and stripped of
+    // velocityMs, as a plain CSV flight log would be.
+    const flight = buildFlight(100, 10, DT)
+      .map((s) => ({ ...s, altitudeM: s.altitudeM - 100 }))
+      .map(({ timeS, altitudeM }) => ({ timeS, altitudeM }));
+
+    const r = alignSimToFlight(sim, flight);
+
+    expect(Math.abs(r.timeOffsetS - 2.5)).toBeLessThanOrEqual(DT);
+    expect(r.apogeeDeltaM).toBeCloseTo(maxAltitude(sim) - maxAltitude(flight), 6);
+    expect(r.burnoutVelDeltaMs).toBeNull();
+  });
+
+  it('anchors alignment at the plateau floor when max altitude is flat', () => {
+    // Three identical max samples: argmax ties break to the first occurrence.
+    const sim = [
+      { timeS: 0, altitudeM: 0, velocityMs: 10 },
+      { timeS: 1, altitudeM: 10, velocityMs: 0 },
+      { timeS: 2, altitudeM: 10, velocityMs: 0 },
+      { timeS: 3, altitudeM: 10, velocityMs: 0 },
+      { timeS: 4, altitudeM: 5, velocityMs: -5 },
+    ];
+    const flight = [
+      { timeS: 0, altitudeM: 0, velocityMs: 10 },
+      { timeS: 1, altitudeM: 10, velocityMs: 0 },
+      { timeS: 2, altitudeM: 10, velocityMs: 0 },
+    ];
+    const r = alignSimToFlight(sim, flight);
+    // Plateau floor at t=1 in both → offset 0 (a last-occurrence tie would give 1).
+    expect(r.timeOffsetS).toBeCloseTo(0, 9);
+  });
+
+  it('throws on non-finite altitudes', () => {
+    expect(() =>
+      alignSimToFlight(
+        [{ timeS: 0, altitudeM: Number.NaN, velocityMs: 1 }],
+        [{ timeS: 0, altitudeM: 0, velocityMs: 1 }],
+      ),
+    ).toThrow(/finite/);
+    expect(() =>
+      alignSimToFlight(
+        [{ timeS: 0, altitudeM: 0, velocityMs: 1 }],
+        [{ timeS: 1, altitudeM: Number.POSITIVE_INFINITY }],
+      ),
+    ).toThrow(/finite/);
   });
 });
 
@@ -231,6 +298,33 @@ describe('calibrateCd', () => {
     const slow = [{ velocityMs: 2, density: RHO, massKg: 3, refAreaM2: AREA, accelMs2: 0.2 }];
     expect(() => calibrateCd(slow)).toThrow(/at least 3 usable coast points/);
     expect(() => calibrateCd([])).toThrow();
+  });
+
+  it('throws on non-finite or non-positive density/mass/area and invalid accel', () => {
+    const base: CoastPoint = {
+      velocityMs: 20,
+      density: RHO,
+      massKg: 3,
+      refAreaM2: AREA,
+      accelMs2: 5,
+    };
+    expect(() => calibrateCd([{ ...base, density: -1.225 }])).toThrow(/density/);
+    expect(() => calibrateCd([{ ...base, density: Number.NaN }])).toThrow(/density/);
+    expect(() => calibrateCd([{ ...base, massKg: 0 }])).toThrow(/massKg/);
+    expect(() => calibrateCd([{ ...base, refAreaM2: -AREA }])).toThrow(/refAreaM2/);
+    expect(() => calibrateCd([{ ...base, accelMs2: -1 }])).toThrow(/accelMs2/);
+    expect(() => calibrateCd([{ ...base, accelMs2: Number.NaN }])).toThrow(/accelMs2/);
+  });
+
+  it('throws when every accelerometer reading is zero (sensor-dead guard)', () => {
+    const dead = [10, 12, 14, 16, 18].map((v) => ({
+      velocityMs: v,
+      density: RHO,
+      massKg: 3,
+      refAreaM2: AREA,
+      accelMs2: 0,
+    }));
+    expect(() => calibrateCd(dead)).toThrow(/zero/);
   });
 });
 

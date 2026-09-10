@@ -47,7 +47,9 @@ const TOLERANCE_S = 1e-9;
  * - header row may use any alias from TIME_HEADERS / ALT_HEADERS, possibly quoted;
  * - blank lines and lines starting with `#` or `;` are skipped anywhere;
  * - extra columns are ignored; unparseable data rows are skipped;
- * - if no header is recognized, column 0 = time, column 1 = altitude.
+ * - headerless all-numeric data uses column 0 = time, column 1 = altitude;
+ * - a header-like first line (any non-numeric cell) with unrecognized
+ *   aliases throws instead of guessing the column order.
  *
  * Throws if no valid data rows remain.
  */
@@ -76,8 +78,16 @@ export function parseAltimeterCsv(text: string): AltitudeSample[] {
         headerSeen = true;
         continue;
       }
-      // No recognized header: treat the first non-comment line as a data row
-      // with the conventional (time, altitude, ...) column order.
+      // Header-like first line (any non-numeric cell) whose aliases were not
+      // fully recognized: refuse to guess column order — misreading a header
+      // silently corrupts every row. Headerless all-numeric data is still
+      // supported in the conventional (time, altitude, ...) order.
+      const headerLike = cells.some((c) => parseFinite(c) === null);
+      if (headerLike) {
+        throw new Error(
+          'parseAltimeterCsv: unrecognized header row (expected a time/t and alt/altitude/agl column)',
+        );
+      }
       headerSeen = true;
       timeIdx = 0;
       altIdx = 1;
@@ -113,6 +123,13 @@ export function resample(series: readonly AltitudeSample[], dt: number): Altitud
   if (!(dt > 0) || !Number.isFinite(dt)) {
     throw new Error(`resample: dt must be a positive finite number (got ${dt})`);
   }
+  for (const s of series) {
+    if (!Number.isFinite(s.timeS) || !Number.isFinite(s.altitudeM)) {
+      throw new Error(
+        `resample: sample values must be finite numbers (got timeS=${s.timeS}, altitudeM=${s.altitudeM})`,
+      );
+    }
+  }
 
   const sorted = [...series].sort((x, y) => x.timeS - y.timeS);
   const t0 = sorted[0].timeS;
@@ -127,14 +144,21 @@ export function resample(series: readonly AltitudeSample[], dt: number): Altitud
 }
 
 /**
- * Align a simulated trajectory to a flight log by matching apogees (argmax of
- * altitude). Returns:
+ * Align a simulated trajectory to a flight log by matching apogees.
+ *
+ * Apogee is the argmax of altitude with ties broken toward the first
+ * occurrence: on a flat plateau of equal maximum altitudes the anchor is the
+ * plateau floor (the first sample reaching the max), not its midpoint or end.
+ *
+ * Returns:
  * - timeOffsetS: add this to flight times to bring flight onto sim time
  *   (sim apogee time minus flight apogee time);
  * - apogeeDeltaM: sim apogee altitude minus flight apogee altitude;
- * - burnoutVelDeltaMs: sim burnout velocity minus flight burnout velocity,
- *   where burnout velocity is the maximum vertical velocity in the series
- *   (velocity peaks at motor burnout in a typical flight).
+ * - burnoutVelDeltaMs: sim burnout-velocity proxy minus flight proxy, where
+ *   each proxy is the maximum vertical velocity of that series (velocity
+ *   peaks at motor burnout in a typical flight). Null when either series
+ *   carries no velocityMs, e.g. a plain CSV flight log; time/altitude
+ *   alignment still works in that case.
  */
 export function alignSimToFlight(
   sim: readonly TrajectorySample[],
@@ -143,21 +167,36 @@ export function alignSimToFlight(
   if (sim.length === 0 || flight.length === 0) {
     throw new Error('alignSimToFlight: both sim and flight must be non-empty');
   }
+  for (const s of sim) {
+    if (!Number.isFinite(s.altitudeM)) {
+      throw new Error(`alignSimToFlight: sim altitudes must be finite numbers (got ${s.altitudeM})`);
+    }
+  }
+  for (const s of flight) {
+    if (!Number.isFinite(s.altitudeM)) {
+      throw new Error(`alignSimToFlight: flight altitudes must be finite numbers (got ${s.altitudeM})`);
+    }
+  }
 
   const simApogee = findApogee(sim);
   const flightApogee = findApogee(flight);
 
+  const simBurnout = maxVelocityMs(sim);
+  const flightBurnout = maxVelocityMs(flight);
+
   return {
     timeOffsetS: simApogee.timeS - flightApogee.timeS,
     apogeeDeltaM: simApogee.altitudeM - flightApogee.altitudeM,
-    burnoutVelDeltaMs: burnoutVelocityMs(sim) - burnoutVelocityMs(flight),
+    burnoutVelDeltaMs:
+      simBurnout === null || flightBurnout === null ? null : simBurnout - flightBurnout,
   };
 }
 
 export interface AlignResult {
   timeOffsetS: number;
   apogeeDeltaM: number;
-  burnoutVelDeltaMs: number;
+  /** Null when either series carries no velocityMs. */
+  burnoutVelDeltaMs: number | null;
 }
 
 /** Sample with the maximum altitude; ties break toward the first occurrence. */
@@ -172,22 +211,18 @@ function findApogee(series: readonly TrajectorySample[]): TrajectorySample {
 }
 
 /**
- * Maximum vertical velocity, used as the burnout-velocity proxy.
- * Throws if no velocity data is available on either series.
+ * Maximum vertical velocity of one series, used as its burnout-velocity
+ * proxy. Returns null when the series carries no velocityMs (e.g. a plain
+ * CSV flight log).
  */
-function burnoutVelocityMs(...series: readonly (readonly TrajectorySample[])[]): number {
+function maxVelocityMs(series: readonly TrajectorySample[]): number | null {
   let max: number | undefined;
-  for (const s of series) {
-    for (const p of s) {
-      if (p.velocityMs !== undefined) {
-        max = max === undefined ? p.velocityMs : Math.max(max, p.velocityMs);
-      }
+  for (const p of series) {
+    if (p.velocityMs !== undefined) {
+      max = max === undefined ? p.velocityMs : Math.max(max, p.velocityMs);
     }
   }
-  if (max === undefined) {
-    throw new Error('alignSimToFlight: velocityMs required on at least one series for burnout comparison');
-  }
-  return max;
+  return max === undefined ? null : max;
 }
 
 function interpolateAltitude(sorted: readonly AltitudeSample[], t: number): number {
