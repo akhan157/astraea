@@ -185,11 +185,15 @@ export function sensibleEnthalpy(species: SpeciesName, temperature: number): num
     const lo = r * (polyIntegral(s.aLow, POLY_SWITCH_K) - polyIntegral(s.aLow, STANDARD_TEMPERATURE));
     return lo + r * (polyIntegral(s.aHigh, temperature) - polyIntegral(s.aHigh, POLY_SWITCH_K));
   }
-  // Al2O3: alpha up to the melt, fusion, then liquid cp.
+  // Al2O3: alpha crystal (low poly) up to 1000 K, alpha (high poly)
+  // 1000–2327 K, fusion at 2327 K, then constant-cp liquid above.
   if (temperature <= POLY_SWITCH_K) {
     return r * (polyIntegral(s.aLow, temperature) - polyIntegral(s.aLow, STANDARD_TEMPERATURE));
   }
   const toSwitch = r * (polyIntegral(s.aLow, POLY_SWITCH_K) - polyIntegral(s.aLow, STANDARD_TEMPERATURE));
+  if (temperature < AL2O3_MELT_K) {
+    return toSwitch + r * (polyIntegral(s.aHigh, temperature) - polyIntegral(s.aHigh, POLY_SWITCH_K));
+  }
   const alphaToMelt = r * (polyIntegral(s.aHigh, AL2O3_MELT_K) - polyIntegral(s.aHigh, POLY_SWITCH_K));
   const liquid = r * AL2O3_LIQUID_CPR * (temperature - AL2O3_MELT_K);
   return toSwitch + alphaToMelt + AL2O3_FUSION_J_PER_KMOL + liquid;
@@ -331,16 +335,18 @@ function mixtureMolWeight(mixture: readonly Reactant[]): number {
 
 function mixtureGamma(mixture: readonly Reactant[], temperature: number): number {
   let cpRSum = 0;
-  let moles = 0;
+  let cvRSum = 0;
   let mass = 0;
   for (const c of mixture) {
-    cpRSum += c.moles * cpRatio(c.species, temperature);
-    mass += c.moles * SPECIES[c.species].molecularWeight;
-    moles += c.moles;
+    const s = SPECIES[c.species];
+    const cpR = cpRatio(c.species, temperature);
+    cpRSum += c.moles * cpR;
+    // cv = cp − R for gases; condensed phases have cv = cp (no −R term).
+    cvRSum += c.moles * (cpR - (s.condensed ? 0 : 1));
+    mass += c.moles * s.molecularWeight;
   }
-  const molWeight = mass / moles;
-  const cp = (cpRSum / moles) * R_UNIVERSAL / molWeight;
-  const cv = cp - R_UNIVERSAL / molWeight;
+  const cp = R_UNIVERSAL * cpRSum / mass;
+  const cv = R_UNIVERSAL * cvRSum / mass;
   if (!(cv > 0) || !(cp > 0)) {
     throw new RangeError(`mixtureGamma: non-positive heat capacity at ${temperature} K`);
   }
@@ -397,7 +403,7 @@ export interface NozzlePerformance {
  * ambient pressures.
  *
  *   R       = R_UNIVERSAL / molWeight                     [J/(kg·K)]
- *   cstar   = sqrt(R·Tc) / (γ·sqrt((2/(γ+1))^((γ+1)/(γ−1))))
+ *   cstar   = sqrt(R·Tc) / sqrt(γ·(2/(γ+1))^((γ+1)/(γ−1)))
  *   Me      = sqrt(((pc/pe)^((γ−1)/γ) − 1)·2/(γ−1))
  *   Ae/At   = (1/Me)·( (2/(γ+1))·(1+(γ−1)/2·Me²) )^((γ+1)/(2(γ−1)))
  *   Cf      = sqrt( (2γ²/(γ−1))·(2/(γ+1))^((γ+1)/(γ−1))·(1−(pe/pc)^((γ−1)/γ)) )
@@ -439,7 +445,7 @@ export function performance(
   const exitMach = Math.sqrt(((pc / pe) ** ((gamma - 1) / gamma) - 1) * 2 / (gamma - 1));
 
   const expTerm = (2 / (gamma + 1)) ** ((gamma + 1) / (gamma - 1));
-  const cstar = Math.sqrt(gasConstant * Tc) / (gamma * Math.sqrt(expTerm));
+  const cstar = Math.sqrt(gasConstant * Tc) / Math.sqrt(gamma * expTerm);
 
   const areaRatio = (1 / exitMach)
     * ((2 / (gamma + 1)) * (1 + (gamma - 1) / 2 * exitMach * exitMach))

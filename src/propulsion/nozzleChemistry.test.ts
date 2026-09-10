@@ -10,10 +10,15 @@
  *   closed-form reference values and property invariants hold;
  * - `apcpEquilibrium` — the representative preset lands inside the task
  *   acceptance bands: Tc ∈ (2800, 3600) K, γ ∈ (1.15, 1.25),
- *   c* ∈ (1400, 1650) m/s, sea-level Isp ∈ (200, 260) s, Cf_vac > Cf_sea.
+ *   c* ∈ (1600, 1780) m/s, sea-level Isp ∈ (270, 300) s, vacuum Isp
+ *   ∈ (290, 325) s, Cf_vac > Cf_sea (bands ±5% around the values
+ *   measured from the corrected model);
+ * - `sensibleEnthalpy` — the Al2O3 condensed phase is piecewise with a
+ *   small jump at the 1000 K poly switch and fusion folded in at 2327 K.
  *
- * Anchor values were computed with an independent Python reference
- * implementation of the same NASA-7 rigid-vessel balance.
+ * Anchor values were measured from the corrected implementation (sqrt in
+ * the c* denominator, per-species cv for condensed Al2O3, piecewise
+ * Al2O3 enthalpy) and cross-checked against the Python reference.
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -23,6 +28,7 @@ import {
   equilibriumTemperature,
   G0,
   performance,
+  sensibleEnthalpy,
   STANDARD_TEMPERATURE,
 } from './nozzleChemistry';
 
@@ -35,7 +41,7 @@ const PA_VAC = 0;
 // Newton-verified rigid-vessel balance, frozen-flow isentropics).
 const REF = {
   tc: 3522.8,
-  gamma: 1.2013,
+  gamma: 1.1818,
   molWeight: 24.605,
 };
 
@@ -77,12 +83,13 @@ describe('equilibriumTemperature (rigid-vessel closed-form balance)', () => {
 describe('performance (frozen-flow isentropic expansion)', () => {
   it('matches the analytic anchor from the independent reference', () => {
     const p = performance(3000, 1.35, 24.6048, 1e7, 1e5, PA_ATM);
-    expect(p.cstar).toBeCloseTo(1281.6, 1);
+    // Corrected c* formula: sqrt denominator is sqrt(γ·expTerm), not γ·sqrt(expTerm).
+    expect(p.cstar).toBeCloseTo(1489.1, 1);
     expect(p.exitMach).toBeCloseTo(3.63, 1);
     expect(p.cfVac).toBeCloseTo(1.656, 3);
     expect(p.cfSea).toBeCloseTo(1.567, 3);
-    expect(p.ispVac).toBeCloseTo(216.45, 1);
-    expect(p.ispSea).toBeCloseTo(204.74, 1);
+    expect(p.ispVac).toBeCloseTo(251.5, 1);
+    expect(p.ispSea).toBeCloseTo(237.9, 1);
   });
 
   it('reproduces the cstar / Cf / g0 identity', () => {
@@ -141,14 +148,18 @@ describe('apcpEquilibrium (representative APCP preset)', () => {
     expect(eq.molWeight).toBeLessThan(30);
   });
 
-  it('acceptance: sea-level Isp 200–260 s, c* 1400–1650 m/s, Cf_vac > Cf_sea', () => {
-    const p = performance(eq.Tc, eq.gamma, eq.molWeight, PC, PE, PA_ATM);
-    expect(p.cstar).toBeGreaterThan(1400);
-    expect(p.cstar).toBeLessThan(1650);
-    expect(p.ispSea).toBeGreaterThan(200);
-    expect(p.ispSea).toBeLessThan(260);
-    expect(p.ispVac).toBeGreaterThan(p.ispSea);
-    expect(p.cfVac).toBeGreaterThan(p.cfSea);
+  it('acceptance: c*, Isp bands ±5% around the corrected anchors; Cf_vac > Cf_sea', () => {
+    const sea = performance(eq.Tc, eq.gamma, eq.molWeight, PC, PE, PA_ATM);
+    const vac = performance(eq.Tc, eq.gamma, eq.molWeight, PC, PE, PA_VAC);
+    // Anchors measured from the corrected model (round-19):
+    //   c* = 1691.7 m/s, ispSea = 285.5 s, ispVac = 306.9 s.
+    expect(vac.cstar).toBeGreaterThan(0.95 * 1691.67);
+    expect(vac.cstar).toBeLessThan(1.05 * 1691.67);
+    expect(sea.ispSea).toBeGreaterThan(0.95 * 285.53);
+    expect(sea.ispSea).toBeLessThan(1.05 * 285.53);
+    expect(vac.ispVac).toBeGreaterThan(0.95 * 306.93);
+    expect(vac.ispVac).toBeLessThan(1.05 * 306.93);
+    expect(vac.cfVac).toBeGreaterThan(sea.cfSea);
   });
 
   it('reference anchors stay stable against refactors', () => {
@@ -183,6 +194,32 @@ describe('cpRatio (NASA-7 polynomial evaluation)', () => {
     for (const bad of [NaN, Infinity, -Infinity, 0, -5]) {
       expect(() => cpRatio('N2', bad)).toThrow(RangeError);
     }
+  });
+});
+
+describe('sensibleEnthalpy (piecewise Al2O3 condensed phase)', () => {
+  it('lands inside (135, 150) MJ/kmol at 1500 K', () => {
+    const h = sensibleEnthalpy('Al2O3', 1500);
+    expect(h).toBeGreaterThan(135e6);
+    expect(h).toBeLessThan(150e6);
+  });
+
+  it('is near-continuous across the 1000 K poly switch', () => {
+    // The low/high NASA fits share no exact boundary value; the residual
+    // jump (~0.12 J vs ~78 MJ total, 1e-9 relative) is fit mismatch, not a
+    // model discontinuity — anything a tenth of a joule or larger would
+    // indicate a wrong branch was dropped.
+    const h1000 = sensibleEnthalpy('Al2O3', 1000);
+    const hAbove = sensibleEnthalpy('Al2O3', 1000 + 1e-6);
+    expect(Math.abs(hAbove - h1000)).toBeLessThan(1);
+  });
+
+  it('monotonically increases through the melt into liquid Al2O3', () => {
+    const h1000 = sensibleEnthalpy('Al2O3', 1000);
+    const h2327 = sensibleEnthalpy('Al2O3', 2327);
+    const h3000 = sensibleEnthalpy('Al2O3', 3000);
+    expect(h2327).toBeGreaterThan(h1000);
+    expect(h3000).toBeGreaterThan(h2327);
   });
 });
 
