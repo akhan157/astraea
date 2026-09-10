@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  accumulateMonteCarloChunks,
   computeDispersionStatistics,
+  finalizeMonteCarloChunks,
   gaussian,
   mulberry32,
   runMonteCarlo,
+  runMonteCarloChunk,
+  subSeedOf,
   MonteCarloSimInput,
 } from './monteCarlo';
 import { simulate6DofFlight } from './sixDofSimulator';
@@ -203,5 +207,99 @@ describe('runMonteCarlo dispersion engine', () => {
     expect(result.successfulRuns + result.failedRuns).toBe(6);
     expect(result.failedRuns).toBeGreaterThan(0);
     expect(result.failedRuns).toBeLessThan(6);
+  });
+});
+
+describe('runMonteCarlo chunk determinism (Q12)', () => {
+  it('derives per-run sub-seeds purely from master seed and absolute run index', () => {
+    expect(subSeedOf(20260909, 0)).toBe(20260909);
+    expect(subSeedOf(20260909, 1)).toBe(20260909 + 0x9e3779b9);
+    expect(subSeedOf(20260909, 4)).toBe(subSeedOf(20260909, 4)); // pure: same args ⇒ same sub-seed
+    // Distinct absolute indices never collide over a realistic ensemble.
+    const seeds = new Set(Array.from({ length: 64 }, (_, i) => subSeedOf(20260909, i)));
+    expect(seeds.size).toBe(64);
+    // A different master seed shifts every sub-seed off the original stream.
+    expect(subSeedOf(7, 3)).not.toBe(subSeedOf(20260909, 3));
+  });
+
+  it('chunked accumulation ≡ runMonteCarlo for the same inputs, runs, and seed', () => {
+    // Boundary-sigma config mixes successes and failures across runs, so the
+    // equivalence is asserted for landings, stats, AND failure bookkeeping.
+    const base = makeBaseInput();
+    base.options.railElevationDeg = 90.0;
+    const perturbations = { windAzimuthDegSigma: 12, railAngleDegSigma: 0.5, impulsePctSigma: 4 };
+    const seed = 424242;
+
+    const full = runMonteCarlo(base, perturbations, 6, seed);
+    const chunks = [0, 1, 2].map((i) => runMonteCarloChunk(base, perturbations, 6, seed, i, 2));
+    const chunked = finalizeMonteCarloChunks(chunks, 6);
+
+    expect(chunked.landings).toEqual(full.landings);
+    expect(chunked.successfulRuns).toBe(full.successfulRuns);
+    expect(chunked.failedRuns).toBe(full.failedRuns);
+    expect(chunked.failedRuns).toBeGreaterThan(0); // boundary config must mix
+    expect(chunked.mean).toEqual(full.mean);
+    expect(chunked.covariance).toEqual(full.covariance);
+    expect(chunked.sigma1).toBe(full.sigma1);
+    expect(chunked.sigma2).toBe(full.sigma2);
+    expect(chunked.thetaDeg).toBe(full.thetaDeg);
+    expect(chunked.containmentRadii).toEqual(full.containmentRadii);
+  }, 60000);
+
+  it('finalization is order-insensitive and partial accumulation merges in run order', () => {
+    const base = makeBaseInput();
+    base.options.railElevationDeg = 90.0;
+    const perturbations = { railAngleDegSigma: 0.5 };
+    const seed = 99;
+    const chunks = [0, 1, 2].map((i) => runMonteCarloChunk(base, perturbations, 6, seed, i, 2));
+
+    // Reverse delivery order changes nothing at the final result.
+    const forward = finalizeMonteCarloChunks(chunks, 6);
+    expect(finalizeMonteCarloChunks([...chunks].reverse(), 6).landings).toEqual(forward.landings);
+
+    // Partial accumulation merges the received chunks' landings in run order
+    // and sums their failure bookkeeping — no stats are folded in early.
+    const partial = accumulateMonteCarloChunks(chunks.slice(0, 2));
+    const expectedLandings = [...chunks[0].landings, ...chunks[1].landings];
+    expect(partial.landings).toEqual(expectedLandings);
+    expect(partial.failedRuns).toBe(chunks[0].failedRuns + chunks[1].failedRuns);
+    expect(partial.firstFailureMessage).toBe(chunks[0].firstFailureMessage ?? chunks[1].firstFailureMessage);
+    // Successes + failures over the received runs exhaust the slice's spans.
+    expect(partial.landings.length + partial.failedRuns).toBe(4);
+    // Partial stats are the stats over exactly the merged landings.
+    const partialStats = computeDispersionStatistics(partial.landings);
+    expect(partialStats.sigma1).toBe(
+      computeDispersionStatistics([...chunks[0].landings, ...chunks[1].landings]).sigma1,
+    );
+  }, 60000);
+
+  it('chunks past the ensemble are empty and never throw', () => {
+    const base = makeBaseInput();
+    const chunk = runMonteCarloChunk(base, {}, 6, 1, 9, 2); // runStart 18 ≥ 6
+    expect(chunk.runStart).toBe(18);
+    expect(chunk.runEnd).toBe(18);
+    expect(chunk.landings).toEqual([]);
+    expect(chunk.failedRuns).toBe(0);
+    expect(chunk.firstFailureMessage).toBeNull();
+  });
+
+  it('validates chunk arguments fail-closed', () => {
+    const base = makeBaseInput();
+    expect(() => runMonteCarloChunk(base, {}, 0, 1, 0, 1)).toThrow(/nRuns must be a positive integer/);
+    expect(() => runMonteCarloChunk(base, {}, 6, 1.5, 0, 1)).toThrow(/seed must be an integer/);
+    expect(() => runMonteCarloChunk(base, {}, 6, 1, -1, 1)).toThrow(/chunkIndex must be a nonnegative integer/);
+    expect(() => runMonteCarloChunk(base, {}, 6, 1, 0, 0)).toThrow(/chunkSize must be a positive integer/);
+  });
+
+  it('throws the identical all-failed error through the chunked path', () => {
+    // simulate6DofFlight rejects nonpositive rail length, so every run fails
+    // in both paths; the chunked path must surface the same systematic error
+    // instead of a silently empty cloud.
+    const bad = makeBaseInput();
+    bad.options.railLength = 0;
+    const chunks = [0, 1].map((i) => runMonteCarloChunk(bad, {}, 3, 1, i, 2));
+    expect(() => finalizeMonteCarloChunks(chunks, 3)).toThrow(
+      /runMonteCarlo: all 3 runs failed; first failure: simulate6DofFlight: railLength must be positive \(got 0\)/
+    );
   });
 });

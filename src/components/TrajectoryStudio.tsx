@@ -17,13 +17,14 @@
  *   4. Boattail flow-separation and protuberance-drag advisories.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import type { MotorSpec } from '../propulsion/motorDatabase';
 import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
 import { useRocketStore } from '../store/rocketStore';
 import type { SixDofOptions } from '../sim/sixDofSimulator';
 import type { DispersionResult } from '../sim/monteCarlo';
 import { runMonteCarlo } from '../sim/monteCarlo';
+import { MonteCarloSession, MonteCarloSessionHandle } from './MonteCarloSession';
 import type { WindLayer } from '../sim/weather';
 import { fetchSounding, windAtAltitude, windToENU } from '../sim/weather';
 import { boattailSeparationCheck, computeProtuberanceDrag } from '../aero/protuberance';
@@ -68,6 +69,7 @@ export function TrajectoryStudio(): React.JSX.Element {
   const vehicle = useRocketStore((s) => s.vehicle);
   const selectedMotorId = useRocketStore((s) => s.selectedMotorId);
   const customMotors = useRocketStore((s) => s.customMotors);
+  const setSoundingSummary = useRocketStore((s) => s.setSoundingSummary);
   const catalog: Record<string, MotorSpec> = { ...CERTIFIED_MOTORS, ...customMotors };
   const motor: MotorSpec = catalog[selectedMotorId] ?? CERTIFIED_MOTORS.estes_c6;
 
@@ -124,17 +126,33 @@ export function TrajectoryStudio(): React.JSX.Element {
   const [soundingLayers, setSoundingLayers] = useState<WindLayer[]>([]);
   const [soundingError, setSoundingError] = useState<string | null>(null);
 
+  // Q5: mirror the studio-local sounding state into the store digest the
+  // mission status rail consumes (weather age / offline badge).
+  const reportSounding = (
+    status: 'idle' | 'loading' | 'ok' | 'error',
+    layers: WindLayer[],
+  ): void => {
+    setSoundingSummary({
+      status,
+      layerCount: layers.length,
+      fetchedAt: status === 'ok' ? Date.now() : useRocketStore.getState().soundingSummary.fetchedAt,
+    });
+  };
+
   const handleFetchSounding = async () => {
     setSoundingStatus('loading');
     setSoundingError(null);
     setSoundingLayers([]);
+    reportSounding('loading', []);
     try {
       const layers = await fetchSounding(parseFloat(soundingLat), parseFloat(soundingLon));
       setSoundingLayers(layers);
       setSoundingStatus('ok');
+      reportSounding('ok', layers);
     } catch (err) {
       setSoundingError(err instanceof Error ? err.message : String(err));
       setSoundingStatus('error');
+      reportSounding('error', []);
     }
   };
 
@@ -198,6 +216,12 @@ export function TrajectoryStudio(): React.JSX.Element {
     }
     return probeWind ?? { speedMs: 0, directionFromDeg: 0 };
   }, [soundingOk, soundingLayers, probeAltitudeM, probeWind]);
+
+  // Border-box host for the standalone competition session and a fresh
+  // ensemble run. TrajectoryStudio remounts on vehicle.id, so the ref is
+  // implicitly reset per vehicle — the session's own fallback path and the
+  // store's setActiveRun digest follow the same lifecycle.
+  const ensembleRef = useRef<MonteCarloSessionHandle>(null);
 
   const handleRunMonteCarlo = () => {
     if (mcRunning) return;
@@ -600,6 +624,21 @@ export function TrajectoryStudio(): React.JSX.Element {
           </div>
         )}
       </div>
+
+      {/* --- Section 3b: competition ensemble (worker Monte Carlo, §5) --- */}
+      <MonteCarloSession
+        ref={ensembleRef}
+        vehicle={vehicle}
+        motor={motor}
+        perturbations={{
+          windAzimuthDegSigma: mcWindSigmaDeg,
+          railAngleDegSigma: mcRailSigmaDeg,
+          impulsePctSigma: mcImpulseSigmaPct,
+        }}
+        seed={MC_SEED}
+        wind={mcSurfaceWind}
+        staleKey={mcInputKey}
+      />
 
       {/* --- Section 4: boattail + protuberance advisories --- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

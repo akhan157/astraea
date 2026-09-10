@@ -7,8 +7,46 @@ import { create } from 'zustand';
 import { RocketVehicle, RocketComponent, StabilityAnalysis } from '../core/types';
 import type { MotorSpec } from '../propulsion/motorDatabase';
 import { computeRocketStability } from '../aero/barrowman';
+import type { SixDofEvent, SixDofTelemetryPoint, FlightValidity } from '../sim/sixDofSimulator';
 
 export type ViewMode = 'solid' | 'wireframe' | 'xray';
+
+/**
+ * Last committed 6-DOF simulation run (Q5). Written by FlightSimulationTab
+ * when a run completes; consumed by the mission status rail (freshness +
+ * apogee) and the Evidence overlay. `runKey` is the exact input key the run
+ * was computed from; `vehicleId`/`motorId` let the rail flag vehicle or
+ * motor drift without owning the sim's private option controls.
+ */
+export interface LastSimRun {
+  vehicleId: string;
+  motorId: string;
+  apogeeAltitude: number;
+  terminated: boolean;
+  validity: FlightValidity;
+  recordedAt: number;
+  /** Presentation-grade display telemetry (same contract as the run result). */
+  telemetry: SixDofTelemetryPoint[];
+  events: SixDofEvent[];
+  runKey: string;
+}
+
+/** Active long-running analysis surfaced by the mission status rail. */
+export interface ActiveRun {
+  kind: 'sim' | 'montecarlo';
+  /** Short human label, e.g. `Monte Carlo 42%`. */
+  label: string;
+  /** 0..1 completion fraction; NaN when unknown. */
+  progress: number;
+}
+
+/** Minimal weather-state digest the rail can badge without owning the studio. */
+export interface SoundingSummary {
+  status: 'idle' | 'loading' | 'ok' | 'error';
+  layerCount: number;
+  /** Epoch ms of the last successful fetch; null when none. */
+  fetchedAt: number | null;
+}
 
 export const PRESET_ESTES_ALPHA: RocketVehicle = {
   id: 'preset-estes-alpha',
@@ -243,6 +281,15 @@ interface RocketStoreState {
   cameraResetTrigger: number;
   history: RocketVehicle[];
   future: RocketVehicle[];
+  /** Q5: last committed 6-DOF run, written by FlightSimulationTab. */
+  lastSimRun: LastSimRun | null;
+  setLastSimRun: (run: LastSimRun) => void;
+  /** Active long-running analysis (sim run or Monte Carlo ensemble). */
+  activeRun: ActiveRun | null;
+  setActiveRun: (run: ActiveRun | null) => void;
+  /** Live-sounding digest for the mission status rail. */
+  soundingSummary: SoundingSummary;
+  setSoundingSummary: (summary: SoundingSummary) => void;
   updateVehicleName: (name: string) => void;
   // Actions
   selectComponent: (id: string | null) => void;
@@ -305,6 +352,12 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
     cameraResetTrigger: 0,
     history: [],
     future: [],
+    lastSimRun: null,
+    setLastSimRun: (run) => set({ lastSimRun: run }),
+    activeRun: null,
+    setActiveRun: (run) => set({ activeRun: run }),
+    soundingSummary: { status: 'idle', layerCount: 0, fetchedAt: null },
+    setSoundingSummary: (summary) => set({ soundingSummary: summary }),
 
     selectComponent: (id) => set({ selectedComponentId: id }),
     updateVehicleName: (name) => {
@@ -421,6 +474,9 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
         stability: initialStability,
         history: [],
         future: [],
+        lastSimRun: null,
+        activeRun: null,
+        soundingSummary: { status: 'idle', layerCount: 0, fetchedAt: null },
       });
     },
 

@@ -25,7 +25,7 @@
  * Count binding (M2): every case below is declared with its own literal
  * `it` case token (open paren directly after the it identifier), plus one
  * cleanup case, so the emitter's source-case count of this file equals its
- * executed case count (44 + 1 = 45) exactly like every other collected
+ * executed case count (47 + 1 = 48) exactly like every other collected
  * suite. Fixture test-file contents are built through helpers that never
  * spell out the it-token, so they cannot leak counted tokens into this
  * file's own source.
@@ -53,7 +53,7 @@ const {
 // execute each case immediately and report (exit 0 = all pass, which is what
 // the certified command requires). Every case is written with its own
 // literal it-token, so this file's source case count is exactly its executed
-// case count (44 cases + 1 cleanup = 45).
+// case count (47 cases + 1 cleanup = 48).
 const inVitest = typeof process !== 'undefined' && !!process.env.VITEST;
 if (!inVitest) {
   // Shims are inert unless this file is the entry script, so requiring it
@@ -237,6 +237,8 @@ function baseFixture(over = {}) {
     'src/components/EvidenceStudio.test.tsx': specLine('evidence studio', 'parses logs'),
     'src/components/InteropExportPanel.test.tsx': specLine('interop export', 'emits matrix'),
     'src/components/PropertyInspector.test.tsx': specLine('inspector mounts', 'toggles mount'),
+    'src/components/MonteCarloSession.test.tsx': specLine('mc session', 'streams chunks'),
+    'src/components/MissionStatusRail.test.tsx': specLine('mission rail', 'composes badges'),
     'src/components/PropulsionStudio.test.tsx': specLine('propulsion studio', 'lists motors'),
     'src/components/TrajectoryStudio.test.tsx': specLine('trajectory studio', 'runs dispersion'),
     'src/components/PropulsionStudio.tsx': 'export const PropulsionStudio = () => null;\n',
@@ -244,6 +246,8 @@ function baseFixture(over = {}) {
     'src/components/EvidenceStudio.tsx': 'export const EvidenceStudio = () => null;\n',
     'src/components/InteropExportPanel.tsx': 'export const InteropExportPanel = () => null;\n',
     'src/components/PropertyInspector.tsx': 'export const PropertyInspector = () => null;\n',
+    'src/components/MonteCarloSession.tsx': 'export const MonteCarloSession = () => null;\n',
+    'src/components/MissionStatusRail.tsx': 'export const MissionStatusRail = () => null;\n',
     ...over,
   };
   for (const k of Object.keys(files)) {
@@ -310,6 +314,8 @@ function makeVitestJson({
     'src/components/EvidenceStudio.test.tsx',
     'src/components/InteropExportPanel.test.tsx',
     'src/components/PropertyInspector.test.tsx',
+    'src/components/MonteCarloSession.test.tsx',
+    'src/components/MissionStatusRail.test.tsx',
     'src/formats/engParser.test.ts',
     'src/formats/blueprint.test.ts',
     'scripts/emit-benchmark-metadata.test.cjs',
@@ -642,13 +648,13 @@ it('vitest per-file totals parsed from assertionResults, not f.assertions', () =
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
-  assert.equal(parsed.files.length, 31);
+  assert.equal(parsed.files.length, 33);
   const vvFile = parsed.files.find((file) => file.file === 'vv-benchmarks.test.ts');
   assert.equal(vvFile.testCases.total, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.passed, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.failed, 0);
   assert.equal(vvFile.testCases.unknown, 0);
-  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 30);
+  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 32);
 });
 
 it('vitest JSON unparseable => certification fails', () => {
@@ -849,7 +855,7 @@ it('new acceptance suites are required and hashed', () => {
 
 it('M1: every collected suite in the fixed inventory is cited in hashes.files', () => {
   const { FIXED_TEST_FILE_INVENTORY } = require('./emit-benchmark-metadata.cjs');
-  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 31, 'acceptance list must stay at 31');
+  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 33, 'acceptance list must stay at 33');
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
@@ -857,7 +863,7 @@ it('M1: every collected suite in the fixed inventory is cited in hashes.files', 
   for (const rel of FIXED_TEST_FILE_INVENTORY) {
     assert.ok(rel in evidence.hashes.files, `${rel} must be cited (hashed)`);
   }
-  assert.equal(citedTestFiles.length, 31, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
+  assert.equal(citedTestFiles.length, 33, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
 });
 
 it('M2: emitter suite executed count binds to its source case count', () => {

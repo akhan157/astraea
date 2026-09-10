@@ -35,6 +35,8 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
   const selectedMotorId = useRocketStore((s) => s.selectedMotorId);
   const selectMotor = useRocketStore((s) => s.selectMotor);
   const customMotors = useRocketStore((s) => s.customMotors);
+  const setLastSimRun = useRocketStore((s) => s.setLastSimRun);
+  const setActiveRun = useRocketStore((s) => s.setActiveRun);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -237,6 +239,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
       return;
     }
     try {
+      setActiveRun({ kind: 'sim', label: '6-DOF simulation', progress: Number.NaN });
       const res = simulate6DofFlight(vehicle, activeMotor, {
         railLength,
         railElevationDeg: railElevation,
@@ -249,6 +252,19 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
       setSimError(null);
       setSimResult(res);
       setLastRunInputKey(simulationInputKey);
+      // Q5: commit the run to the store so the mission rail and evidence
+      // overlay see it without re-running the sim.
+      setLastSimRun({
+        vehicleId: vehicle.id,
+        motorId: selectedMotorId,
+        apogeeAltitude: res.apogeeAltitude,
+        terminated: res.terminated,
+        validity: res.validity,
+        recordedAt: Date.now(),
+        telemetry: res.telemetry,
+        events: res.events,
+        runKey: simulationInputKey,
+      });
     } catch (err) {
       setSimResult(null);
       setLastRunInputKey(null);
@@ -258,6 +274,8 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
         snapshot: snapshotRunInputs(),
         at: new Date().toISOString(),
       });
+    } finally {
+      setActiveRun(null);
     }
   };
 

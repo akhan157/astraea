@@ -13,6 +13,15 @@
  * wall clock, iteration order over object keys) is used. Each run perturbs a
  * deep clone of `baseInput`; the caller's input is never mutated.
  *
+ * Chunk contract (Q12): run *i* draws exclusively from the sub-seed
+ * `subSeedOf(masterSeed, i)` — a pure function of the master seed and the
+ * absolute run index — so any chunk partition of the same
+ * `(baseInput, perturbations, nRuns, seed)` reproduces the identical
+ * ensemble, run for run. `runMonteCarlo` is the single-chunk specialization
+ * of `finalizeMonteCarloChunks([runMonteCarloChunk(…, 0, nRuns)], nRuns)`;
+ * the chunk API is an implementation detail of the determinism contract,
+ * never a new RNG stream.
+ *
  * Exception contract: any per-run exception (input validation, out-of-domain
  * rail elevation, negative impulse scale, …) is caught and counted in
  * `failedRuns`; the remaining runs are reduced into the statistics. When
@@ -275,6 +284,151 @@ function applyPerturbations(
 }
 
 /**
+ * Per-run sub-seed derivation (Q12): subSeedOf(masterSeed, runIndex) =
+ * masterSeed + runIndex · STRIDE. A pure function of (master seed, absolute
+ * run index), so every run's RNG stream is a function of its absolute
+ * position in the ensemble — never of chunk boundaries. Any chunk partition
+ * of the same (inputs, nRuns, seed) reproduces the identical landing
+ * ensemble, run for run; the golden-ratio stride decorrelates adjacent
+ * runs' mulberry32 phases.
+ */
+export function subSeedOf(masterSeed: number, runIndex: number): number {
+  return masterSeed + runIndex * 0x9e3779b9;
+}
+
+/** Result of one chunk of a Monte Carlo ensemble (Q12). */
+export interface MonteCarloChunkResult {
+  /** Absolute start run index (inclusive) within the master ensemble. */
+  runStart: number;
+  /** Absolute end run index (exclusive) within the master ensemble. */
+  runEnd: number;
+  /** Successful landings of this chunk, in run order. */
+  landings: LandingPoint[];
+  /** Runs in this chunk that failed (per-run exceptions). */
+  failedRuns: number;
+  /** First per-run failure message in this chunk; null when none failed. */
+  firstFailureMessage: string | null;
+}
+
+/** One deterministic per-run dispatch shared by the full and chunked paths. */
+function runSingleLanding(
+  baseInput: MonteCarloSimInput,
+  sigmas: Required<PerturbationSigmas>,
+  subSeed: number
+): { landing: LandingPoint | null; failureMessage: string | null } {
+  try {
+    const runInput = applyPerturbations(baseInput, sigmas, mulberry32(subSeed));
+    const result: SixDofSimulationResult = simulate6DofFlight(runInput.vehicle, runInput.motor, runInput.options);
+    return { landing: { x: result.landingPosition.x, y: result.landingPosition.y }, failureMessage: null };
+  } catch (err) {
+    return { landing: null, failureMessage: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Runs one chunk `chunkIndex` of size `chunkSize` of an `nRuns`-run ensemble.
+ * Chunks never throw: per-run failures are counted in the result so a single
+ * bad chunk cannot kill a worker stream — failure bookkeeping is merged by
+ * the accumulator. A chunk whose start falls at/after `nRuns` is empty.
+ */
+export function runMonteCarloChunk(
+  baseInput: MonteCarloSimInput,
+  perturbations: PerturbationSigmas,
+  nRuns: number,
+  seed: number,
+  chunkIndex: number,
+  chunkSize: number
+): MonteCarloChunkResult {
+  if (!Number.isInteger(nRuns) || nRuns < 1) {
+    throw new Error(`runMonteCarloChunk: nRuns must be a positive integer (got ${nRuns})`);
+  }
+  if (!Number.isInteger(seed)) {
+    throw new Error(`runMonteCarloChunk: seed must be an integer (got ${seed})`);
+  }
+  if (!Number.isInteger(chunkIndex) || chunkIndex < 0) {
+    throw new Error(`runMonteCarloChunk: chunkIndex must be a nonnegative integer (got ${chunkIndex})`);
+  }
+  if (!Number.isInteger(chunkSize) || chunkSize < 1) {
+    throw new Error(`runMonteCarloChunk: chunkSize must be a positive integer (got ${chunkSize})`);
+  }
+  const sigmas = validateSigmas(perturbations);
+
+  const runStart = chunkIndex * chunkSize;
+  const runEnd = Math.min(runStart + chunkSize, nRuns);
+  if (runStart >= nRuns) {
+    return { runStart, runEnd: runStart, landings: [], failedRuns: 0, firstFailureMessage: null };
+  }
+
+  const landings: LandingPoint[] = [];
+  let failedRuns = 0;
+  let firstFailureMessage: string | null = null;
+  for (let i = runStart; i < runEnd; i++) {
+    const outcome = runSingleLanding(baseInput, sigmas, subSeedOf(seed, i));
+    if (outcome.landing !== null) {
+      landings.push(outcome.landing);
+    } else {
+      failedRuns++;
+      if (firstFailureMessage === null) {
+        firstFailureMessage = outcome.failureMessage;
+      }
+    }
+  }
+  return { runStart, runEnd, landings, failedRuns, firstFailureMessage };
+}
+
+/**
+ * Merges chunks into one run-ordered landing stream plus failure
+ * bookkeeping. Order-insensitive: chunks are sorted by absolute run index,
+ * so out-of-order arrival from a worker changes nothing. Statistical
+ * reduction is NOT done here — partial clouds must be reduced from the
+ * merged landings (see finalizeMonteCarloChunks) so any accumulated subset
+ * of chunks equals the stats over exactly those runs.
+ */
+export function accumulateMonteCarloChunks(chunks: readonly MonteCarloChunkResult[]): {
+  landings: LandingPoint[];
+  failedRuns: number;
+  firstFailureMessage: string | null;
+} {
+  const ordered = [...chunks].sort((a, b) => a.runStart - b.runStart);
+  const landings: LandingPoint[] = [];
+  let failedRuns = 0;
+  let firstFailureMessage: string | null = null;
+  for (const chunk of ordered) {
+    landings.push(...chunk.landings);
+    failedRuns += chunk.failedRuns;
+    if (firstFailureMessage === null && chunk.firstFailureMessage !== null) {
+      firstFailureMessage = chunk.firstFailureMessage;
+    }
+  }
+  return { landings, failedRuns, firstFailureMessage };
+}
+
+/**
+ * Reduces a complete set of chunks into the ensemble's DispersionResult —
+ * identical to `runMonteCarlo` over the same (inputs, nRuns, seed). When
+ * EVERY run of the ensemble failed, throws the same all-failed error as the
+ * full path so a completely dark cloud can never hide a systematic failure.
+ */
+export function finalizeMonteCarloChunks(
+  chunks: readonly MonteCarloChunkResult[],
+  nRuns: number
+): DispersionResult {
+  const acc = accumulateMonteCarloChunks(chunks);
+  if (acc.failedRuns === nRuns && acc.firstFailureMessage !== null) {
+    // Every run failed: the all-NaN cloud would silently hide a systematic
+    // configuration error. Surface the first failure instead.
+    throw new Error(`runMonteCarlo: all ${nRuns} runs failed; first failure: ${acc.firstFailureMessage}`);
+  }
+  const stats = computeDispersionStatistics(acc.landings);
+  return {
+    ...stats,
+    landings: acc.landings,
+    successfulRuns: acc.landings.length,
+    failedRuns: acc.failedRuns,
+  };
+}
+
+/**
  * Monte Carlo dispersion over the authoritative 6-DOF trajectory simulator.
  *
  * @param baseInput      unperturbed simulation input (never mutated)
@@ -295,36 +449,7 @@ export function runMonteCarlo(
   if (!Number.isInteger(seed)) {
     throw new Error(`runMonteCarlo: seed must be an integer (got ${seed})`);
   }
-  const sigmas = validateSigmas(perturbations);
-
-  const rng = mulberry32(seed);
-  const landings: LandingPoint[] = [];
-  let failedRuns = 0;
-  let firstFailureMessage: string | null = null;
-  for (let i = 0; i < nRuns; i++) {
-    try {
-      const runInput = applyPerturbations(baseInput, sigmas, rng);
-      const result: SixDofSimulationResult = simulate6DofFlight(runInput.vehicle, runInput.motor, runInput.options);
-      landings.push({ x: result.landingPosition.x, y: result.landingPosition.y });
-    } catch (err) {
-      failedRuns++;
-      if (firstFailureMessage === null) {
-        firstFailureMessage = err instanceof Error ? err.message : String(err);
-      }
-    }
-  }
-
-  if (failedRuns === nRuns && firstFailureMessage !== null) {
-    // Every run failed: the all-NaN cloud would silently hide a systematic
-    // configuration error. Surface the first failure instead.
-    throw new Error(`runMonteCarlo: all ${nRuns} runs failed; first failure: ${firstFailureMessage}`);
-  }
-
-  const stats = computeDispersionStatistics(landings);
-  return {
-    ...stats,
-    landings,
-    successfulRuns: landings.length,
-    failedRuns,
-  };
+  // Single-chunk specialization: the whole ensemble IS one chunk, so the
+  // chunked and full paths are the same code by construction (Q12).
+  return finalizeMonteCarloChunks([runMonteCarloChunk(baseInput, perturbations, nRuns, seed, 0, nRuns)], nRuns);
 }

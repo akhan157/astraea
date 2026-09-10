@@ -13,6 +13,7 @@ import { FlightSimulationTab } from './components/FlightSimulationTab';
 import { PropulsionStudio } from './components/PropulsionStudio';
 import { TrajectoryStudio } from './components/TrajectoryStudio';
 import { EvidenceStudio } from './components/EvidenceStudio';
+import { MissionStatusRail } from './components/MissionStatusRail';
 import { useRocketStore } from './store/rocketStore';
 import { parseOrkFile } from './formats/orkParser';
 import { parseRktString } from './formats/rktParser';
@@ -106,6 +107,10 @@ export const App: React.FC = () => {
     >
       {/* Top Header Bar */}
       <Header onOpenSim={() => setIsSimOpen(true)} studio={studio} onStudioChange={setStudio} />
+
+      {/* Persistent mission status rail (spec §1.4): validity · stability ·
+          motor · sim freshness · weather age · run state. */}
+      <MissionStatusRail />
 
       {/* Main Workstation Layout */}
       <div className="flex-1 flex overflow-hidden relative">
