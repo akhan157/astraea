@@ -850,7 +850,7 @@ it('M1: every collected suite in the fixed inventory is cited in hashes.files', 
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
-  const citedTestFiles = Object.keys(evidence.hashes.files).filter((rel) => /\.test\.[cm]?[jt]sx?$/.test(rel));
+  const citedTestFiles = Object.keys(evidence.hashes.files).filter((rel) => /\.test\.[cm]?[jt]sx?$/.exec(rel) !== null);
   for (const rel of FIXED_TEST_FILE_INVENTORY) {
     assert.ok(rel in evidence.hashes.files, `${rel} must be cited (hashed)`);
   }
