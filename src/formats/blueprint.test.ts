@@ -9,6 +9,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { exportBlueprintSvg } from './blueprint';
+import type { BlueprintExportOptions } from './blueprint';
 import {
   RocketVehicle,
   RocketComponent,
@@ -77,7 +78,8 @@ describe('vehicle blueprint SVG export', () => {
     const svg = exportBlueprintSvg(AXIAL_VEHICLE);
     expect(svg.startsWith('<svg')).toBe(true);
     expect(svg).toContain('xmlns="http://www.w3.org/2000/svg"');
-    expect(svg).toContain('.bp-bg{fill:#0b1420}'); // dark background style
+    expect(svg).toContain('class="bp-dark"');
+    expect(svg).toContain('--bp-bg:#0b1420'); // dark background token
     expect(shapes(svg)).toBe(3); // nose, body, transition
     expect(fins(svg)).toBe(1); // fin set renders a single side-view fin
     expect(shapes(svg) + fins(svg)).toBe(4); // one shape per body component
@@ -251,5 +253,39 @@ describe('vehicle blueprint SVG export', () => {
       AXIAL_VEHICLE.components[3], // fins
     ]);
     expect(exportBlueprintSvg(v)).toContain('bp-fin');
+  });
+
+  it('defaults to the dark CAD theme with CSS-variable tokens', () => {
+    const svg = exportBlueprintSvg(AXIAL_VEHICLE);
+    expect(svg).toContain('class="bp-dark"');
+    expect(svg).not.toContain('class="bp-light"');
+    expect(svg).toContain('--bp-grid:#141f2e');
+    expect(svg).toContain('--bp-label:#c9d1d9');
+    // Shape fills resolve through variables rather than hardcoded colors.
+    expect(svg).toContain('.bp-shape{stroke:var(--bp-shape)');
+    expect(svg).toContain('.bp-bg{fill:var(--bp-bg)}');
+  });
+
+  it('accepts an explicit dark theme (screen variant)', () => {
+    const svg = exportBlueprintSvg(AXIAL_VEHICLE, { theme: 'dark' });
+    expect(svg).toContain('class="bp-dark"');
+    expect(svg).toContain('--bp-bg:#0b1420');
+  });
+
+  it('renders the light print theme from CSS variables', () => {
+    const svg = exportBlueprintSvg(AXIAL_VEHICLE, { theme: 'light' });
+    expect(svg).toContain('class="bp-light"');
+    expect(svg).not.toContain('class="bp-dark"');
+    expect(svg).toContain('--bp-bg:#ffffff'); // paper-white background
+    expect(svg).toContain('--bp-shape:#1f5fd0');
+    expect(svg).toContain('--bp-label:#26313c'); // dark inks on white
+  });
+
+  it('rejects unknown theme values', () => {
+    expect(() =>
+      // Deliberately invalid theme value: the runtime guard, not the type
+      // system, is what rejects it.
+      exportBlueprintSvg(AXIAL_VEHICLE, { theme: 'sepia' } as unknown as BlueprintExportOptions),
+    ).toThrow(/theme must be "light" or "dark"/);
   });
 });

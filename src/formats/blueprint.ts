@@ -16,9 +16,20 @@
  * is axialOffset aft of the enclosing tube's front station, which is
  * undefined without a preceding tube. Export throws otherwise. Lengths,
  * diameters, chords, spans, and offsets must be finite and nonnegative.
+ *
+ * Theming (Q11): the palette lives in CSS custom properties on a theme
+ * class (`bp-dark` screen CAD, `bp-light` print) declared in the embedded
+ * style block, so a print variant needs no structural change to the drawing.
+ * `theme` defaults to 'dark'; any value other than 'light'/'dark' is
+ * rejected.
  */
 
 import { RocketVehicle } from '../core/types';
+
+/** Print/screen blueprint presentation. 'dark' is the on-screen CAD look. */
+export interface BlueprintExportOptions {
+  theme?: 'light' | 'dark';
+}
 
 /** A blueprint stroke in SI units, resolved against the assembled axis. */
 interface Segment {
@@ -35,7 +46,12 @@ interface Segment {
 const fmtLen = (m: number): string => `${m.toFixed(2)} m`;
 const fmtDia = (m: number): string => `Ø${m.toFixed(3)} m`;
 
-export function exportBlueprintSvg(vehicle: RocketVehicle): string {
+export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExportOptions = {}): string {
+  const theme = options.theme ?? 'dark';
+  if (theme !== 'light' && theme !== 'dark') {
+    throw new RangeError(`blueprint export: theme must be "light" or "dark" (got ${JSON.stringify(theme)})`);
+  }
+
   if (!vehicle || !Array.isArray(vehicle.components) || vehicle.components.length === 0) {
     throw new Error('blueprint export: vehicle needs at least one component');
   }
@@ -278,16 +294,18 @@ export function exportBlueprintSvg(vehicle: RocketVehicle): string {
   }
 
   return [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${n2(viewW)}" height="${n2(viewH)}" viewBox="${n2(-marginX)} ${n2(-cy)} ${n2(viewW)} ${n2(viewH)}">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" class="bp-${theme}" width="${n2(viewW)}" height="${n2(viewH)}" viewBox="${n2(-marginX)} ${n2(-cy)} ${n2(viewW)} ${n2(viewH)}">`,
     `<title>${esc(vehicle.name)} — Blueprint</title>`,
     `<desc>Side-view outer-mold-line blueprint of ${esc(vehicle.name)}. Total length ${fmtLen(totalLength)}, max diameter ${fmtDia(maxBodyD)}.</desc>`,
     `<style>`,
-    `.bp-bg{fill:#0b1420}`,
-    `.bp-grid{stroke:#141f2e;stroke-width:0.5}`,
-    `.bp-shape{stroke:#58a6ff;stroke-width:1.6;fill:#0f2038}`,
-    `.bp-fin{stroke:#58a6ff;stroke-width:1.4;fill:#0d2a4a}`,
-    `.bp-label{fill:#c9d1d9;font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}`,
-    `.bp-total{fill:#f78166;font:bold 13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}`,
+    `.bp-dark{--bp-bg:#0b1420;--bp-grid:#141f2e;--bp-shape:#58a6ff;--bp-shape-fill:#0f2038;--bp-fin:#58a6ff;--bp-fin-fill:#0d2a4a;--bp-label:#c9d1d9;--bp-total:#f78166}`,
+    `.bp-light{--bp-bg:#ffffff;--bp-grid:#d9dfe8;--bp-shape:#1f5fd0;--bp-shape-fill:#eaf2fc;--bp-fin:#1f5fd0;--bp-fin-fill:#dbe8f9;--bp-label:#26313c;--bp-total:#b45309}`,
+    `.bp-bg{fill:var(--bp-bg)}`,
+    `.bp-grid{stroke:var(--bp-grid);stroke-width:0.5}`,
+    `.bp-shape{stroke:var(--bp-shape);stroke-width:1.6;fill:var(--bp-shape-fill)}`,
+    `.bp-fin{stroke:var(--bp-fin);stroke-width:1.4;fill:var(--bp-fin-fill)}`,
+    `.bp-label{fill:var(--bp-label);font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}`,
+    `.bp-total{fill:var(--bp-total);font:bold 13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}`,
     `</style>`,
     `<rect class="bp-bg" x="${n2(-marginX)}" y="${n2(-cy)}" width="${n2(viewW)}" height="${n2(viewH)}" />`,
     ...gridEls,

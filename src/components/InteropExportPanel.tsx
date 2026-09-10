@@ -9,19 +9,23 @@
  */
 import React, { useState, useMemo } from 'react';
 import { exportBlueprintSvg } from '../formats/blueprint';
+import { renderBlueprintPng } from '../formats/blueprintPng';
 import type { RocketVehicle } from '../core/types';
 import { exportCdx1, exportAeroMatrix, type AeroMatrixRow } from '../formats/rasaero';
 import { computeAerodynamicCurves } from '../aero/transonicAero';
 import { computeRocketStability } from '../aero/barrowman';
 
-function download(filename: string, text: string, mime: string): void {
-  const blob = new Blob([text], { type: mime });
+function downloadBlob(filename: string, blob: Blob): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function download(filename: string, text: string, mime: string): void {
+  downloadBlob(filename, new Blob([text], { type: mime }));
 }
 
 export function buildAeroMatrixRows(vehicle: RocketVehicle): AeroMatrixRow[] {
@@ -72,6 +76,18 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
     }
   };
 
+  const handlePng = async () => {
+    try {
+      setError(null);
+      // Print variant (Q11): rasterize the light theme, which is tuned for
+      // paper — dark backgrounds would dominate an ink budget.
+      const blob = await renderBlueprintPng(exportBlueprintSvg(vehicle, { theme: 'light' }));
+      downloadBlob(`${slug}-blueprint.png`, blob);
+    } catch (err) {
+      setError(`PNG export failed: ${(err as Error).message}`);
+    }
+  };
+
 
   return (
     <div className="flex items-center gap-2">
@@ -95,6 +111,13 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
         title="Export dimensioned blueprint (.svg)"
       >
         Blueprint
+      </button>
+      <button
+        onClick={handlePng}
+        className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-700 transition"
+        title="Export print-ready blueprint (.png)"
+      >
+        PNG
       </button>
       {error && <span className="text-[11px] text-red-400">{error}</span>}
     </div>
