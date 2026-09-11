@@ -25,6 +25,30 @@ export interface MotorSpec {
   thrustCurve: ThrustPoint[];
 }
 
+/**
+ * Motor id normalization shared by the file adapters and the motor store:
+ * lowercase with runs of non-alphanumerics collapsed to '_' and trimmed.
+ * Empty/blank ids fall back to 'imported_motor'. This is the single source of
+ * truth for what "normalized id" means in the store's upsert/import contract.
+ */
+export function normalizeMotorId(id: string): string {
+  const normalized = (id ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  return normalized || 'imported_motor';
+}
+
+/**
+ * Impulse class lettering matching the bundled CERTIFIED_MOTORS convention
+ * (A starts at 1.25 N*s and doubles per letter): estes_c6 (8.8 N*s) is 'C',
+ * aerotech_h128w (180 N*s) is 'H', cesaroni_i205 (382 N*s) is 'I', etc.
+ * Edited motors get their class recomputed from the curve integral they
+ * implement, never carried over stale from the base record.
+ */
+export function impulseClassFor(totalImpulse: number): string {
+  const index = Math.floor(Math.log2(totalImpulse / 1.25));
+  const clamped = Math.min(25, Math.max(0, index));
+  return String.fromCharCode('A'.charCodeAt(0) + clamped);
+}
+
 export const CERTIFIED_MOTORS: Record<string, MotorSpec> = {
   estes_c6: {
     id: 'estes_c6',

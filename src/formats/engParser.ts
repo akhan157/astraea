@@ -17,6 +17,8 @@ import {
   ThrustPoint,
   validateMotorSpec,
   integrateThrustCurve,
+  normalizeMotorId,
+  impulseClassFor,
 } from '../propulsion/motorDatabase';
 
 export class InvalidRaspEngError extends Error {
@@ -49,17 +51,6 @@ type ErrorCtor = new (message: string) => Error;
 /** Strict numeric token test: rejects partial parses like "8.8-6.06-14.2". */
 function isNumberToken(token: string): boolean {
   return /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(token);
-}
-
-/**
- * Impulse class lettering matching the bundled CERTIFIED_MOTORS convention
- * (A starts at 1.25 N*s and doubles per letter): estes_c6 (8.8 N*s) is 'C',
- * aerotech_h128w (180 N*s) is 'H', cesaroni_i205 (382 N*s) is 'I', etc.
- */
-function impulseClassFor(totalImpulse: number): string {
-  const index = Math.floor(Math.log2(totalImpulse / 1.25));
-  const clamped = Math.min(25, Math.max(0, index));
-  return String.fromCharCode('A'.charCodeAt(0) + clamped);
 }
 
 /**
@@ -104,7 +95,7 @@ function buildMotorSpec(parts: MotorParts, Err: ErrorCtor): MotorSpec {
   checkCurve(parts.points, Err);
 
   const motor: MotorSpec = {
-    id: parts.designation.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'imported_motor',
+    id: normalizeMotorId(parts.designation),
     designation: parts.designation,
     manufacturer: parts.manufacturer,
     impulseClass: '?',
@@ -207,6 +198,40 @@ export function parseRaspEng(text: string): MotorSpec {
     },
     InvalidRaspEngError,
   );
+}
+
+/**
+ * Exports a validated MotorSpec as RASP .eng text in the exact dialect
+ * parseRaspEng accepts (bidirectional round-trip contract). Header order:
+ * designation, diameter (mm), length (mm), then the three nameplate impulse
+ * columns (which the parser deliberately ignores — the curve stays the only
+ * authority), then propellant and total mass (kg). Numeric tokens are emitted
+ * as shortest round-trip strings, so the tabulated curve — and every metric
+ * derived from it — is recovered exactly on re-import. Bare-number designation
+ * tokens are dropped: the RASP name column cannot carry them without shifting
+ * the geometry/mass columns.
+ *
+ * Fail-closed: the record is validateMotorSpec-gated first — this emitter
+ * never produces a file the parser (or its validator) would reject.
+ */
+export function exportToEng(motor: MotorSpec): string {
+  validateMotorSpec(motor);
+
+  const number = (v: number): string => String(v);
+  const designationTokens = motor.designation.trim().split(/\s+/).filter((t) => !isNumberToken(t));
+  const designation = designationTokens.join(' ') || 'Unnamed Motor';
+  const header = [
+    designation,
+    number(motor.diameter * 1000),
+    number(motor.length * 1000),
+    number(motor.totalImpulse),
+    number(motor.avgThrust),
+    number(motor.maxThrust),
+    number(motor.propellantMass),
+    number(motor.totalMass),
+  ].join(' ');
+  const curveLines = motor.thrustCurve.map((p) => `${number(p.time)} ${number(p.thrust)}`);
+  return [header, ...curveLines, ''].join('\n');
 }
 
 /** Reads a scalar field by any of several spellings (kebab/camel/lowercase). */

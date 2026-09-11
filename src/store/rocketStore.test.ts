@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useRocketStore, PRESET_ESTES_ALPHA } from './rocketStore';
 import { BodyTubeComponent, NoseconeComponent } from '../core/types';
+import type { MotorSpec } from '../propulsion/motorDatabase';
 
 describe('RocketStore (Zustand & History)', () => {
   beforeEach(() => {
@@ -147,5 +148,74 @@ describe('RocketStore (Zustand & History)', () => {
 
     state.removeComponent('extra-tube');
     expect(useRocketStore.getState().vehicle.components.length).toBe(initialCount);
+  });
+});
+
+describe('custom motor upsert & import (C8)', () => {
+  const motorWith = (id: string, designation: string): MotorSpec => ({
+    id,
+    designation,
+    manufacturer: 'TestWorks',
+    impulseClass: 'H',
+    diameter: 0.029,
+    length: 0.2,
+    totalImpulse: 180,
+    avgThrust: 128,
+    maxThrust: 200,
+    burnTime: 1.4,
+    propellantMass: 0.1,
+    totalMass: 0.2,
+    dryMass: 0.1,
+    thrustCurve: [
+      { time: 0, thrust: 0 },
+      { time: 1.4, thrust: 0 },
+    ],
+  });
+
+  it('upserts by normalized id without touching vehicle history', () => {
+    const state = useRocketStore.getState();
+    const historyLen = state.history.length;
+    state.upsertCustomMotor(motorWith('Custom H128!', 'Custom H128'));
+    const st = useRocketStore.getState();
+    expect(st.customMotors['custom_h128']?.designation).toBe('Custom H128');
+    expect(st.customMotors['custom_h128']?.id).toBe('custom_h128');
+    expect(Object.keys(st.customMotors)).not.toContain('Custom H128!');
+    expect(st.history.length).toBe(historyLen);
+  });
+
+  it('replaces the same normalized-key record even with a different designation (no _2 suffix)', () => {
+    const state = useRocketStore.getState();
+    state.upsertCustomMotor(motorWith('upsert_same', 'First'));
+    state.upsertCustomMotor(motorWith('Upsert.Same!', 'Replacement'));
+    const st = useRocketStore.getState();
+    expect(st.customMotors['upsert_same']?.designation).toBe('Replacement');
+    expect(st.customMotors['upsert_same_2']).toBeUndefined();
+  });
+
+  it('stores a copy of the caller record, never an alias', () => {
+    const state = useRocketStore.getState();
+    const m = motorWith('upsert_copy', 'Copy Test');
+    state.upsertCustomMotor(m);
+    m.designation = 'Mutated After Upsert';
+    expect(useRocketStore.getState().customMotors['upsert_copy']?.designation).toBe('Copy Test');
+  });
+
+  it('normalizes an empty/blank id to the imported_motor fallback', () => {
+    const state = useRocketStore.getState();
+    state.upsertCustomMotor(motorWith('', 'Blank Id'));
+    expect(useRocketStore.getState().customMotors['imported_motor']?.designation).toBe('Blank Id');
+  });
+
+  it('importCustomMotor applies the suffix policy on normalized ids and keeps import behavior', () => {
+    const state = useRocketStore.getState();
+    state.importCustomMotor(motorWith('Added Custom!', 'Added Custom'));
+    state.importCustomMotor(motorWith('Added.Custom_', 'Added Custom v2'));
+    let st = useRocketStore.getState();
+    expect(st.customMotors['added_custom']?.designation).toBe('Added Custom');
+    expect(st.customMotors['added_custom_2']?.designation).toBe('Added Custom v2');
+    // Same normalized id + same designation replaces in place.
+    state.importCustomMotor(motorWith('Added Custom!', 'Added Custom'));
+    st = useRocketStore.getState();
+    expect(Object.keys(st.customMotors).filter((k) => k.startsWith('added_custom')).length).toBe(2);
   });
 });

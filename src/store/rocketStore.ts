@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { RocketVehicle, RocketComponent, StabilityAnalysis } from '../core/types';
 import type { MotorSpec } from '../propulsion/motorDatabase';
+import { normalizeMotorId } from '../propulsion/motorDatabase';
 import { computeRocketStability } from '../aero/barrowman';
 
 export type ViewMode = 'solid' | 'wireframe' | 'xray';
@@ -230,6 +231,14 @@ interface RocketStoreState {
    *  TrajectoryStudio all read/drive this one id). Defaults to the Estes C6. */
   selectedMotorId: string;
   customMotors: Record<string, MotorSpec>;
+  /** Replace-or-insert by the NORMALIZED id: an existing record with the
+   *  same normalized key is overwritten, otherwise the record is added.
+   *  Never touches vehicle history. */
+  upsertCustomMotor: (motor: MotorSpec) => void;
+  /** Import policy wrapper over the upsert primitive: on a normalized-id
+   *  collision with a DIFFERENT designation the new record's id is suffixed
+   *  _2/_3/... so existing imports are never silently overwritten (a re-import
+   *  of the identical motor replaces in place). */
   importCustomMotor: (motor: MotorSpec) => void;
   // Shared actions
   selectMotor: (id: string) => void;
@@ -264,6 +273,18 @@ interface RocketStoreState {
   redo: () => void;
 }
 
+/**
+ * Pure single-record write shared by every custom-motor action: returns the
+ * next customMotors map with `motor` stored under `key` (copy semantics — the
+ * stored record is a new object carrying the normalized key as its id, so
+ * callers can never alias their own record into the store).
+ */
+function putCustomMotor(motors: Record<string, MotorSpec>, motor: MotorSpec, key: string): Record<string, MotorSpec> {
+  const next = { ...motors };
+  next[key] = { ...motor, id: key };
+  return next;
+}
+
 export const useRocketStore = create<RocketStoreState>((set, get) => {
   const initialVehicle = PRESET_ESTES_ALPHA;
   const initialStability = computeRocketStability(initialVehicle);
@@ -274,25 +295,31 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
     selectedMotorId: 'estes_c6',
     customMotors: {},
     selectMotor: (id) => set({ selectedMotorId: id }),
+    upsertCustomMotor: (motor) => {
+      // Replace-or-insert by normalized id: same-key records are overwritten,
+      // new keys are added. Registry op only — vehicle history is untouched.
+      set((state) => ({
+        customMotors: putCustomMotor(state.customMotors, motor, normalizeMotorId(motor.id)),
+      }));
+    },
     importCustomMotor: (motor) => {
       set((state) => {
-        // On an id collision with a DIFFERENT designation, suffix the new
-        // motor's id _2/_3/... so the existing record is never silently
-        // overwritten. Same id AND same designation replaces in place
-        // (a re-import of the identical motor).
-        const next = { ...state.customMotors };
-        if (motor.id in next && next[motor.id].designation !== motor.designation) {
+        // Import policy wrapper over the upsert primitive: on a normalized-id
+        // collision with a DIFFERENT designation, suffix the new motor's id
+        // _2/_3/... so an existing import is never silently overwritten. Same
+        // id AND same designation replaces in place (a re-import of the
+        // identical motor).
+        const key = normalizeMotorId(motor.id);
+        if (key in state.customMotors && state.customMotors[key].designation !== motor.designation) {
           let n = 2;
-          let candidate = `${motor.id}_${n}`;
-          while (candidate in next) {
+          let candidate = `${key}_${n}`;
+          while (candidate in state.customMotors) {
             n += 1;
-            candidate = `${motor.id}_${n}`;
+            candidate = `${key}_${n}`;
           }
-          next[candidate] = { ...motor, id: candidate };
-        } else {
-          next[motor.id] = motor;
+          return { customMotors: putCustomMotor(state.customMotors, motor, candidate) };
         }
-        return { customMotors: next };
+        return { customMotors: putCustomMotor(state.customMotors, motor, key) };
       });
     },
     stability: initialStability,

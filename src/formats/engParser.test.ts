@@ -7,8 +7,9 @@
  * validated via validateMotorSpec.
  */
 import { describe, it, expect } from 'vitest';
-import { parseRaspEng, parseRseXml, InvalidRaspEngError, InvalidRseFileError } from './engParser';
-import { validateMotorSpec, getMotorImpulseTotal } from '../propulsion/motorDatabase';
+import { parseRaspEng, parseRseXml, exportToEng, InvalidRaspEngError, InvalidRseFileError } from './engParser';
+import { CERTIFIED_MOTORS, normalizeMotorId, validateMotorSpec, getMotorImpulseTotal } from '../propulsion/motorDatabase';
+import { deriveEditedMotor, insertPoint } from '../propulsion/curveEditing';
 
 const SAMPLE_ENG = [
   '; Estes C6 certified thrust curve (RASP .eng layout)',
@@ -180,5 +181,83 @@ describe('RockSim .rse parser', () => {
 
   it('throws InvalidRseFileError on malformed XML', () => {
     expect(() => parseRseXml('<rocket-engine-data><diameter>18</diameter>')).toThrow(InvalidRseFileError);
+  });
+});
+
+describe('RASP .eng export round-trip (exportToEng)', () => {
+  it('emits the exact dialect parseRaspEng accepts and recovers every certified motor', () => {
+    for (const motor of Object.values(CERTIFIED_MOTORS)) {
+      const m = parseRaspEng(exportToEng(motor));
+      expect(m.designation).toBe(motor.designation);
+      expect(m.diameter).toBeCloseTo(motor.diameter, 9);
+      expect(m.length).toBeCloseTo(motor.length, 9);
+      expect(m.propellantMass).toBeCloseTo(motor.propellantMass, 9);
+      expect(m.totalMass).toBeCloseTo(motor.totalMass, 9);
+      expect(m.dryMass).toBeCloseTo(motor.dryMass, 9);
+      expect(m.burnTime).toBeCloseTo(motor.burnTime, 9);
+      expect(m.maxThrust).toBeCloseTo(motor.maxThrust, 9);
+      // The certified nameplate totalImpulse is display data; the round-trip
+      // contract is on the curve-derived integral both sides implement.
+      expect(m.totalImpulse).toBeCloseTo(getMotorImpulseTotal(motor), 9);
+      expect(m.avgThrust).toBeCloseTo(getMotorImpulseTotal(motor) / motor.burnTime, 9);
+      expect(m.impulseClass).toBe(motor.impulseClass);
+      expect(m.thrustCurve.length).toBe(motor.thrustCurve.length);
+      for (let i = 0; i < motor.thrustCurve.length; i++) {
+        expect(m.thrustCurve[i].time).toBeCloseTo(motor.thrustCurve[i].time, 12);
+        expect(m.thrustCurve[i].thrust).toBeCloseTo(motor.thrustCurve[i].thrust, 12);
+      }
+      // The importer regenerates the id from the emitted designation.
+      expect(m.id).toBe(normalizeMotorId(motor.designation));
+      expect(() => validateMotorSpec(m)).not.toThrow();
+    }
+  });
+
+  it('writes a header whose initials/geometry/mass columns survive re-import', () => {
+    const motor = CERTIFIED_MOTORS.estes_c6;
+    const text = exportToEng(motor);
+    const firstLine = text.split('\n')[0];
+    // Designation prefix intact, then diameter/length in mm, then the rest.
+    expect(firstLine).toMatch(/^Estes C6 \d+(\.\d+)? \d+(\.\d+)? /);
+    const m = parseRaspEng(text);
+    expect(m.diameter).toBeCloseTo(0.018, 9);
+    expect(m.length).toBeCloseTo(0.070, 9);
+    expect(m.propellantMass).toBeCloseTo(0.0125, 9);
+    expect(m.totalMass).toBeCloseTo(0.0248, 9);
+  });
+
+  it('sanitizes bare-number designation tokens instead of shifting the columns', () => {
+    const motor = { ...CERTIFIED_MOTORS.estes_c6, id: 'kaboom_special', designation: '8 Kaboom 500 Special' };
+    const m = parseRaspEng(exportToEng(motor));
+    expect(m.designation).toBe('Kaboom Special');
+    expect(m.diameter).toBeCloseTo(0.018, 9);
+    expect(m.totalImpulse).toBeCloseTo(getMotorImpulseTotal(motor), 9);
+  });
+
+  it('round-trips a curve-edited, derived motor through the file layer', () => {
+    const base = CERTIFIED_MOTORS.cesaroni_i205;
+    const edited = insertPoint(base.thrustCurve, 0.32, 220);
+    const motor = deriveEditedMotor(base, edited, 0.2, 0.36);
+    const m = parseRaspEng(exportToEng(motor));
+    expect(m.designation).toBe(motor.designation);
+    expect(m.burnTime).toBeCloseTo(motor.burnTime, 9);
+    expect(m.totalImpulse).toBeCloseTo(motor.totalImpulse, 9);
+    expect(m.avgThrust).toBeCloseTo(motor.avgThrust, 9);
+    expect(m.maxThrust).toBeCloseTo(motor.maxThrust, 9);
+    expect(m.propellantMass).toBeCloseTo(0.2, 9);
+    expect(m.totalMass).toBeCloseTo(0.36, 9);
+    expect(() => validateMotorSpec(m)).not.toThrow();
+  });
+
+  it('refuses to export an invalid record instead of emitting what the parser rejects', () => {
+    const bad = {
+      ...CERTIFIED_MOTORS.estes_c6,
+      burnTime: 2,
+      thrustCurve: [
+        { time: 0, thrust: 0 },
+        { time: 1, thrust: 5 },
+        { time: 2, thrust: 1 },
+      ],
+    };
+    expect(() => exportToEng(bad)).toThrow(/endpoints must be zero/);
   });
 });
