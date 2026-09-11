@@ -1,5 +1,30 @@
 # Astraea Capability Decision Queue (consolidated 2026-09-10)
 
+## DECISIONS (user, 2026-09-10)
+
+**Frontend frozen until the feature set is established**; all UI accumulates in
+worktrees and reconciles in one final pass. Engines/logic built now.
+
+| # | Decision |
+|---|---|
+| C1 | **BUILD** — dispatched, lane `astraea-c1-fins` |
+| C2 | **BUILD** — dispatched, lane `astraea-c2-cad` |
+| C3 | **BUILD** — queued: waiver-containment + KML |
+| C4 | **BUILD** — queued; merges with C8 minimal editor |
+| C5 | **BUILD** — dispatched with C6, lane `astraea-c3-explain` |
+| C6 | **BUILD** — dispatched with C5, lane `astraea-c3-explain` |
+| C7 | **DESIGN-ONLY NOW** — general-purpose staging: defaults + user overrides + per-team calibration from their own logs + honesty flags. Not team-specific; no sponsor gate. Phase-1 coding not scheduled |
+| C8 | **BUILD MINIMAL** — dropdown of live thrust curves + "make your own" editor at the bottom; folds into C4 |
+| C9 | **PENDING** — master to return value/accuracy assessment (real benefit = layout + team communication; true folded-chute geometry not predictable) |
+| C10 | **BUILD** after a usage check: add the grain shapes people actually use if low-effort |
+| C11 | **PARKED** — possibility only, no build |
+| C12 | **BUILD the valuable parts** — GPS-track ingest + landing back-cast; drop fluff; PDF report only if it earns its place |
+| C13 | **BUILD expanded** — first-run experience questionnaire then optional guided interactive tour with spotlight/dim-screen walkthrough |
+| C14 | **BUILD** — sensible default motor variance with explicit typical-range vs estimate presentation |
+| C15 | **BUILD expanded** — full bidirectional interop: import from other tools and export back to them |
+| C16 | **BUILD** — real equilibrium chemistry solver, validated against published CEA results |
+| C17–C21 | **STAY CLOSED** (Tier 3 confirmed) |
+
 Single decision surface for every candidate capability. Sources: forum intel
 (docs/forum-intel-report.md), tool census (astraea-research/docs/tool-coverage-report.md),
 frontend plan (astraea-frontend/docs/frontend-plan.md), exception ledger
