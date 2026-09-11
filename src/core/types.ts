@@ -11,18 +11,30 @@ export interface Material {
   id: string;
   name: string;
   density: number; // kg/m^3
+  // Optional structural properties. Structural calculations fail closed when a
+  // material lacks the value they need (see src/aero/finStructure.ts).
+  youngsModulusGPa?: number; // Young's (elastic) modulus; flexural modulus for laminates
+  yieldStrengthMPa?: number; // yield strength; flexural strength used as the failure proxy for brittle materials
 }
 
 export const STANDARD_MATERIALS: Record<string, Material> = {
-  cardboard: { id: 'cardboard', name: 'Kraft Cardboard', density: 680 },
-  fiberglass: { id: 'fiberglass', name: 'G10 Fiberglass', density: 1850 },
-  carbonfiber: { id: 'carbonfiber', name: 'Carbon Fiber', density: 1550 },
-  balsa: { id: 'balsa', name: 'Balsa Wood', density: 160 },
-  plywood: { id: 'plywood', name: 'Aircraft Plywood', density: 680 },
-  aluminum: { id: 'aluminum', name: '6061-T6 Aluminum', density: 2700 },
-  pla_3dprint: { id: 'pla_3dprint', name: 'PLA 3D Print', density: 1250 },
-  abs_3dprint: { id: 'abs_3dprint', name: 'ABS 3D Print', density: 1040 },
-  petg_3dprint: { id: 'petg_3dprint', name: 'PETG 3D Print', density: 1270 },
+  // Structural values from published datasheets:
+  //   cardboard   – kraft liner / corrugated board structural proxy
+  //   fiberglass  – NEMA G10/FR-4 flexural LW: 2.7 Msi, 55 kpsi
+  //   carbonfiber – quasi-isotropic 0/90/+-45 laminate, 60% Vf (flexural modulus 50-75 GPa, strength 500-900 MPa)
+  //   balsa       – USDA Wood Handbook @ 0.16 specific gravity (0.55 Msi MOE, 2.3 ksi MOR)
+  //   plywood     – aircraft-grade birch, parallel to face grain (1.6 Msi, 10 ksi)
+  //   aluminum    – 6061-T6 wrought (ASM/MatWeb)
+  //   pla/abs/petg – bulk resin datasheet values; printed parts may run lower interlayer strength
+  cardboard: { id: 'cardboard', name: 'Kraft Cardboard', density: 680, youngsModulusGPa: 5.0, yieldStrengthMPa: 8.0 },
+  fiberglass: { id: 'fiberglass', name: 'G10 Fiberglass', density: 1850, youngsModulusGPa: 18.6, yieldStrengthMPa: 380 },
+  carbonfiber: { id: 'carbonfiber', name: 'Carbon Fiber', density: 1550, youngsModulusGPa: 55.0, yieldStrengthMPa: 700 },
+  balsa: { id: 'balsa', name: 'Balsa Wood', density: 160, youngsModulusGPa: 3.8, yieldStrengthMPa: 15.9 },
+  plywood: { id: 'plywood', name: 'Aircraft Plywood', density: 680, youngsModulusGPa: 11.0, yieldStrengthMPa: 69 },
+  aluminum: { id: 'aluminum', name: '6061-T6 Aluminum', density: 2700, youngsModulusGPa: 68.9, yieldStrengthMPa: 276 },
+  pla_3dprint: { id: 'pla_3dprint', name: 'PLA 3D Print', density: 1250, youngsModulusGPa: 3.5, yieldStrengthMPa: 60 },
+  abs_3dprint: { id: 'abs_3dprint', name: 'ABS 3D Print', density: 1040, youngsModulusGPa: 2.3, yieldStrengthMPa: 40 },
+  petg_3dprint: { id: 'petg_3dprint', name: 'PETG 3D Print', density: 1270, youngsModulusGPa: 2.1, yieldStrengthMPa: 50 },
 };
 
 export type ComponentType =
