@@ -15,7 +15,7 @@ worktrees and reconciles in one final pass. Engines/logic built now.
 | C6 | **BUILD** — dispatched with C5, lane `astraea-c3-explain` |
 | C7 | **DESIGN-ONLY NOW** — general-purpose staging: defaults + user overrides + per-team calibration from their own logs + honesty flags. Not team-specific; no sponsor gate. Phase-1 coding not scheduled |
 | C8 | **BUILD MINIMAL** — dropdown of live thrust curves + "make your own" editor at the bottom; folds into C4 |
-| C9 | **PENDING** — master to return value/accuracy assessment (real benefit = layout + team communication; true folded-chute geometry not predictable) |
+| C9 | **BUILD MINIMAL (2D strip)** — assessed: engineering value already ships numerically (clearanceCheck + density advisory over exact user dims); a visual adds legibility + mistake-catching + team communication, not new predictions (folded-chute shape unknowable, cord unmodelable, density bands heuristic). 2D axial cross-section strip earns its place; full 3D render does not |
 | C10 | **BUILD** after a usage check: add the grain shapes people actually use if low-effort |
 | C11 | **PARKED** — possibility only, no build |
 | C12 | **BUILD the valuable parts** — GPS-track ingest + landing back-cast; drop fluff; PDF report only if it earns its place |
