@@ -72,6 +72,8 @@ export interface BodyTubeComponent extends BaseComponent {
   outerDiameter: number;   // meters
   innerDiameter: number;   // meters
   isMotorMount?: boolean;
+  /** Normalized id of the motor seated at this tube's aft (RockSim motor reference). */
+  assignedMotorId?: string;
 }
 
 export interface TransitionComponent extends BaseComponent {

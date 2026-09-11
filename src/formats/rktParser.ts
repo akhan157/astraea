@@ -133,6 +133,17 @@ export function parseRktString(xmlContent: string): RocketVehicle {
             innerDiameter: idDia,
             materialId: 'cardboard',
           };
+          // Motor mount: child <MotorMount> carries the seated motor reference
+          // written by rktExport. Absent in legacy files -> unflagged mount.
+          // An empty <MotorMount/> parses to "" (fast-xml-parser empty-node
+          // value); that is still a present mount, so presence is the test.
+          if (part.MotorMount !== undefined) {
+            const mount = typeof part.MotorMount === 'object' && part.MotorMount
+              ? (part.MotorMount as Record<string, unknown>)
+              : {};
+            tube.isMotorMount = true;
+            if (mount.Motor !== undefined && mount.Motor !== '') tube.assignedMotorId = String(mount.Motor);
+          }
           components.push(tube);
 
           // Check for sub-parts attached to body tube
