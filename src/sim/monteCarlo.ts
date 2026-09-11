@@ -49,7 +49,16 @@ export interface PerturbationSigmas {
   windAzimuthDegSigma?: number;
   /** 1σ launch-rail elevation spread, degrees (perturbs `options.railElevationDeg`). */
   railAngleDegSigma?: number;
-  /** 1σ motor impulse spread, percent of nominal (scales the thrust curve). */
+  /**
+   * 1σ motor impulse spread, percent of nominal (scales the thrust curve).
+   *
+   * Certification-grounded default (no signature change): use
+   * `defaultImpulseSigma(motor)` from './motorVariance' for a NAR-class
+   * suggestion derived from the motor's total impulse; its per-class
+   * defaults follow the NAR/Tripoli certification tolerance (NFPA 1125).
+   * `describeUncertaintyDisplay()` renders the same numbers honestly —
+   * TYPICAL range (certification tolerance) vs ESTIMATE (model assumption).
+   */
   impulsePctSigma?: number;
 }
 
@@ -279,7 +288,9 @@ function applyPerturbations(
  *
  * @param baseInput      unperturbed simulation input (never mutated)
  * @param perturbations  1σ Gaussian spreads; zero/missing sigma leaves the
- *                       corresponding field untouched
+ *                       corresponding field untouched. For the impulse field
+ *                       see `defaultImpulseSigma(motor)`/`describeUncertaintyDisplay()`
+ *                       in './motorVariance' for certification-grounded defaults.
  * @param nRuns          positive integer number of simulated runs
  * @param seed           PRNG seed; identical seeds yield identical landings
  */
