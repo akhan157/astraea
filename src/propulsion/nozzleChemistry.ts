@@ -69,15 +69,15 @@ export const STANDARD_TEMPERATURE = 298.15;
 /** Standard gravity, m/s² (conventional Isp basis). */
 export const G0 = 9.80665;
 /** NASA-7 low/high polynomial switch temperature, K. */
-const POLY_SWITCH_K = 1000;
+export const POLY_SWITCH_K = 1000;
 /** Melting point of condensed Al2O3, K. */
-const AL2O3_MELT_K = 2327;
+export const AL2O3_MELT_K = 2327;
 /** Liquid-Al2O3 cp/R (constant), NASA TM-4513 fit for 2327–6000 K. */
-const AL2O3_LIQUID_CPR = 23.148241;
+export const AL2O3_LIQUID_CPR = 23.148241;
 /** Al2O3 enthalpy of fusion at 2327 K, J/kmol (NASA fit enthalpy offsets). */
-const AL2O3_FUSION_J_PER_KMOL = 111_085_912;
+export const AL2O3_FUSION_J_PER_KMOL = 111_085_912;
 
-interface Nasa7Species {
+export interface Nasa7Species {
   /** cp/R = a1 + a2T + a3T² + a4T³ + a5T⁴, low-temperature range (≤1000 K) */
   aLow: readonly number[];
   /** cp/R coefficients, high-temperature range (≥1000 K) */
@@ -92,7 +92,7 @@ interface Nasa7Species {
   vFormGas: number;
 }
 
-const SPECIES: Record<SpeciesName, Nasa7Species> = {
+export const SPECIES: Record<SpeciesName, Nasa7Species> = {
   H2O: {
     aLow:  [4.19864056, -0.0020364341, 6.52040211e-06, -5.48797062e-09, 1.77197817e-12],
     aHigh: [2.67703787, 0.00297318329, -7.7376969e-07, 9.44336689e-11, -4.26900959e-15],
