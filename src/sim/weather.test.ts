@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   fetchSounding,
   parseOpenMeteoSounding,
+  resolveForecastWinds,
+  OPEN_METEO_FORECAST_HORIZON_DAYS,
   windAtAltitude,
   windToENU,
   type FetchLike,
@@ -273,5 +275,71 @@ describe('fetchSounding', () => {
       throw new Error('must not be called');
     };
     await expect(fetchSounding(NaN, -122.3, mockFetch)).rejects.toThrow();
+  });
+});
+
+describe('resolveForecastWinds', () => {
+  const payload = {
+    hourly: {
+      temperature_1000hPa: [18.0],
+      wind_speed_1000hPa: [5.0],
+      wind_direction_1000hPa: [90],
+      temperature_850hPa: [2.4],
+      wind_speed_850hPa: [12.0],
+      wind_direction_850hPa: [240],
+    },
+  };
+
+  const hourMs = 3_600_000;
+  const dayMs = 86_400_000;
+
+  const futureISO = (offsetMs: number): string => new Date(Date.now() + offsetMs).toISOString();
+
+  it('resolves a launch within the forecast horizon by delegating to fetchSounding', async () => {
+    let called = 0;
+    const mockFetch: FetchLike = () => {
+      called++;
+      return Promise.resolve(new Response(JSON.stringify(payload), { status: 200 }));
+    };
+
+    const layers = await resolveForecastWinds(47.6, -122.3, futureISO(3 * dayMs), mockFetch);
+
+    expect(called).toBe(1);
+    expect(layers).toHaveLength(2);
+    expect(layers[0].pressureHpa).toBe(1000);
+    expect(layers[1].pressureHpa).toBe(850);
+  });
+
+  it('propagates transport failures from the underlying fetch', async () => {
+    const mockFetch: FetchLike = () => Promise.reject(new TypeError('network down'));
+    await expect(resolveForecastWinds(47.6, -122.3, futureISO(dayMs), mockFetch)).rejects.toThrow('network down');
+  });
+
+  it('rejects launches in the past', async () => {
+    const mockFetch: FetchLike = () => {
+      throw new Error('must not be called');
+    };
+    await expect(resolveForecastWinds(47.6, -122.3, futureISO(-2 * hourMs), mockFetch)).rejects.toThrow(/past/);
+  });
+
+  it('rejects launches at or beyond the documented forecast horizon', async () => {
+    const mockFetch: FetchLike = () => {
+      throw new Error('must not be called');
+    };
+    const beyond = (OPEN_METEO_FORECAST_HORIZON_DAYS + 1) * dayMs + hourMs;
+    await expect(resolveForecastWinds(47.6, -122.3, futureISO(beyond), mockFetch)).rejects.toThrow(
+      /horizon of \d+ days/
+    );
+  });
+
+  it('rejects an unparsable launch time and non-finite coordinates', async () => {
+    const mockFetch: FetchLike = () => {
+      throw new Error('must not be called');
+    };
+    await expect(resolveForecastWinds(47.6, -122.3, 'not-a-date', mockFetch)).rejects.toThrow(/ISO-8601/);
+    await expect(resolveForecastWinds(NaN, -122.3, futureISO(dayMs), mockFetch)).rejects.toThrow(/finite/);
+    await expect(resolveForecastWinds(47.6, Number.POSITIVE_INFINITY, futureISO(dayMs), mockFetch)).rejects.toThrow(
+      /finite/
+    );
   });
 });

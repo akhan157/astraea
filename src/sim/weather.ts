@@ -163,6 +163,63 @@ export async function fetchSounding(
   return parseOpenMeteoSounding(await res.json());
 }
 
+const MS_PER_DAY = 86_400_000;
+
+/**
+ * Open-Meteo's forecast range: the free API serves `OPEN_METEO_FORECAST_HORIZON_DAYS`
+ * days of hourly pressure-level data (the 16-day range requires a paid key).
+ * resolveForecastWinds fails closed on launch times at or beyond this horizon.
+ */
+export const OPEN_METEO_FORECAST_HORIZON_DAYS = 7;
+
+/**
+ * Forecast-wind hook for an upcoming launch: validates the launch time
+ * against Open-Meteo's forecast range, then delegates to fetchSounding for
+ * the pressure-level profile.
+ *
+ * Horizon limits: the free Open-Meteo forecast API covers roughly
+ * [now, now + 7 days] (`OPEN_METEO_FORECAST_HORIZON_DAYS`). A launch time in
+ * the past or beyond that horizon is rejected with a RangeError rather than
+ * silently served a profile for the wrong day. Because fetchSounding reads
+ * the first released forecast hour, the returned layers approximate the
+ * launch window from the nearest available hour of the query day — accuracy
+ * degrades as the launch time moves toward the horizon, so multi-day-out
+ * launches should be re-checked on launch day. Non-finite coordinates and
+ * unparsable ISO-8601 timestamps throw TypeError; transport and response
+ * failures propagate from fetchSounding.
+ */
+export async function resolveForecastWinds(
+  lat: number,
+  lon: number,
+  launchTimeISO: string,
+  fetchImpl: FetchLike = fetch
+): Promise<WindLayer[]> {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    throw new TypeError(
+      `resolveForecastWinds: latitude/longitude must be finite numbers (got lat=${lat}, lon=${lon})`
+    );
+  }
+  const launchMs = new Date(launchTimeISO).getTime();
+  if (!Number.isFinite(launchMs)) {
+    throw new TypeError(
+      `resolveForecastWinds: launchTimeISO must be a valid ISO-8601 timestamp (got "${launchTimeISO}")`
+    );
+  }
+  const nowMs = Date.now();
+  if (launchMs < nowMs) {
+    throw new RangeError(
+      'resolveForecastWinds: launch time is in the past; Open-Meteo only forecasts future hours'
+    );
+  }
+  if (launchMs - nowMs > OPEN_METEO_FORECAST_HORIZON_DAYS * MS_PER_DAY) {
+    throw new RangeError(
+      `resolveForecastWinds: launch time exceeds the Open-Meteo forecast horizon of ` +
+        `${OPEN_METEO_FORECAST_HORIZON_DAYS} days; re-check weather on launch day`
+    );
+  }
+  return fetchSounding(lat, lon, fetchImpl);
+}
+
 /**
  * Returns the wind (speed, from-direction) at altitude hM by linear
  * interpolation over the layer table. The caller's array is never mutated:
