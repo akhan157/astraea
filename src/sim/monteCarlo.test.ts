@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   computeDispersionStatistics,
   gaussian,
@@ -6,9 +6,22 @@ import {
   runMonteCarlo,
   MonteCarloSimInput,
 } from './monteCarlo';
-import { simulate6DofFlight } from './sixDofSimulator';
+import { simulate6DofFlight, type SixDofSimulationResult } from './sixDofSimulator';
+import type * as SixDofModule from './sixDofSimulator';
 import { PRESET_ESTES_ALPHA } from '../store/rocketStore';
 import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
+
+// Pass-through spy: the non-finite-landing contract needs a synthetic
+// touchdown, which no physical motor/vehicle pair in the catalog produces.
+vi.mock('./sixDofSimulator', async (importOriginal) => {
+  const actual = await importOriginal<typeof SixDofModule>();
+  return { ...actual, simulate6DofFlight: vi.fn(actual.simulate6DofFlight) };
+});
+
+const mockedSimulate = vi.mocked(simulate6DofFlight);
+
+const syntheticLanding = (x: number, y: number): SixDofSimulationResult =>
+  ({ landingPosition: { x, y } }) as unknown as SixDofSimulationResult;
 
 const BASE_OPTIONS = {
   railLength: 1.2,
@@ -119,6 +132,18 @@ describe('computeDispersionStatistics', () => {
     expect(single.sigma2).toBe(0);
     expect(single.containmentRadii).toEqual({ r50: 0, r90: 0, r99: 0 });
   });
+
+  it('rejects non-finite coordinates instead of reducing them into NaN statistics', () => {
+    expect(() => computeDispersionStatistics([{ x: Number.NaN, y: 0 }, { x: 1, y: 1 }])).toThrow(
+      /landing point must be finite \(got x=NaN, y=0\)/
+    );
+    expect(() => computeDispersionStatistics([{ x: 0, y: Number.POSITIVE_INFINITY }])).toThrow(
+      /landing point must be finite/
+    );
+    expect(() => computeDispersionStatistics([{ x: 0, y: Number.NEGATIVE_INFINITY }])).toThrow(
+      /landing point must be finite/
+    );
+  });
 });
 
 describe('runMonteCarlo input contract', () => {
@@ -204,4 +229,45 @@ describe('runMonteCarlo dispersion engine', () => {
     expect(result.failedRuns).toBeGreaterThan(0);
     expect(result.failedRuns).toBeLessThan(6);
   });
+
+  it('counts a non-finite landing as a failed run and keeps it out of the cloud', () => {
+    const base = makeBaseInput();
+    // First run touches down at NaN: it must be counted failed, not pushed.
+    mockedSimulate.mockReturnValueOnce(syntheticLanding(Number.NaN, 0));
+    const result = runMonteCarlo(base, {}, 3, 11);
+    expect(result.failedRuns).toBe(1);
+    expect(result.successfulRuns).toBe(2);
+    expect(result.landings.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y))).toBe(true);
+  });
+
+  it('surfaces the non-finite landing message when every run lands non-finite', () => {
+    const base = makeBaseInput();
+    mockedSimulate.mockReturnValueOnce(syntheticLanding(Number.POSITIVE_INFINITY, 0));
+    mockedSimulate.mockReturnValueOnce(syntheticLanding(0, Number.NaN));
+    expect(() => runMonteCarlo(base, {}, 2, 11)).toThrow(/non-finite landing \(x=Infinity, y=0\)/);
+  });
+
+  it('default studio config yields zero failed runs on the preset vehicle', () => {
+    // Mirrors TrajectoryStudio's MC defaults: rail 85°, nRuns 50, sigmas 5/1/3,
+    // fixed studio seed. At 90° a 1σ rail perturbation is domain-rejected for
+    // roughly half the draws; at 85° the whole cloud stays inside [70°, 90°].
+    const base = makeBaseInput();
+    base.options = {
+      railLength: 2.4,
+      railElevationDeg: 85.0,
+      railAzimuthDeg: 90.0,
+      windSpeedSurface: 0,
+      windAzimuthDeg: 0,
+      mainDeployAltitudeAGL: 250,
+      finCantAngleDeg: 0.0,
+    };
+    const result = runMonteCarlo(
+      base,
+      { windAzimuthDegSigma: 5.0, railAngleDegSigma: 1.0, impulsePctSigma: 3.0 },
+      50,
+      20260909
+    );
+    expect(result.successfulRuns).toBe(50);
+    expect(result.failedRuns).toBe(0);
+  }, 300000);
 });

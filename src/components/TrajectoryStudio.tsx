@@ -54,8 +54,21 @@ const DEFAULT_WIND_ROWS: WindRow[] = [{ altitudeM: 0, speedMs: 0, directionFromD
 const MC_SEED = 20260909;
 const MC_NRUNS_DEFAULT = 50;
 const MC_NRUNS_MAX = 200;
+// Launch-rail elevation default: the simulator's declared domain is [70°, 90°].
+// A vertical (90°) rail plus any nonzero rail-angle sigma sends ~half the
+// Gaussian draws above 90° and the run is domain-rejected; 85° keeps the
+// default 1σ perturbed cloud comfortably inside the domain. User-adjustable.
+const MC_RAIL_ELEVATION_DEFAULT = 85.0;
+const MC_RAIL_ELEVATION_MIN = 70.0;
+const MC_RAIL_ELEVATION_MAX = 90.0;
 
 const clampNRuns = (raw: number): number => Math.min(MC_NRUNS_MAX, Math.max(1, Math.floor(raw)));
+
+/** Clamp a rail elevation into the simulator's declared [70°, 90°] domain. */
+const clampRailElevation = (raw: number): number =>
+  Number.isFinite(raw)
+    ? Math.min(MC_RAIL_ELEVATION_MAX, Math.max(MC_RAIL_ELEVATION_MIN, raw))
+    : MC_RAIL_ELEVATION_DEFAULT;
 
 /**
  * TrajectoryStudio reads the ACTIVE vehicle and shared flight-motor selection
@@ -140,6 +153,7 @@ export function TrajectoryStudio(): React.JSX.Element {
 
   // --- 3. Monte Carlo dispersion ---
   const [mcNRuns, setMcNRuns] = useState<number>(MC_NRUNS_DEFAULT);
+  const [mcRailElevationDeg, setMcRailElevationDeg] = useState<number>(MC_RAIL_ELEVATION_DEFAULT);
   const [mcWindSigmaDeg, setMcWindSigmaDeg] = useState<number>(5.0);
   const [mcRailSigmaDeg, setMcRailSigmaDeg] = useState<number>(1.0);
   const [mcImpulseSigmaPct, setMcImpulseSigmaPct] = useState<number>(3.0);
@@ -158,6 +172,7 @@ export function TrajectoryStudio(): React.JSX.Element {
         vehicle,
         motorId: motor.id,
         nRuns: clampNRuns(mcNRuns),
+        railElevation: mcRailElevationDeg,
         windSigma: mcWindSigmaDeg,
         railSigma: mcRailSigmaDeg,
         impulseSigma: mcImpulseSigmaPct,
@@ -170,6 +185,7 @@ export function TrajectoryStudio(): React.JSX.Element {
       vehicle,
       motor.id,
       mcNRuns,
+      mcRailElevationDeg,
       mcWindSigmaDeg,
       mcRailSigmaDeg,
       mcImpulseSigmaPct,
@@ -201,11 +217,12 @@ export function TrajectoryStudio(): React.JSX.Element {
 
   const handleRunMonteCarlo = () => {
     if (mcRunning) return;
-    // Surface wind feeds the simulator's windSpeedSurface slot. Vertical
-    // rail: a zero-wind, zero-sigma run lands at the pad.
+    // Surface wind feeds the simulator's windSpeedSurface slot. Rail elevation
+    // defaults to 85° (5° off vertical) so the default rail-angle sigma keeps
+    // the perturbed cloud inside the simulator's [70°, 90°] domain.
     const options: SixDofOptions = {
       railLength: 2.4,
-      railElevationDeg: 90.0,
+      railElevationDeg: mcRailElevationDeg,
       railAzimuthDeg: 90.0,
       windSpeedSurface: mcSurfaceWind.speedMs,
       windAzimuthDeg: mcSurfaceWind.directionFromDeg,
@@ -469,7 +486,7 @@ export function TrajectoryStudio(): React.JSX.Element {
           'Monte Carlo Dispersion',
           `fixed seed — deterministic per input set`,
         )}
-        <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-5 gap-2">
           <label className="text-[10px] text-zinc-500 uppercase font-semibold">
             Runs (1–200)
             <input
@@ -480,6 +497,22 @@ export function TrajectoryStudio(): React.JSX.Element {
               value={clampNRuns(mcNRuns)}
               aria-label="Monte Carlo run count"
               onChange={(e) => setMcNRuns(clampNRuns(parseFloat(e.target.value) || 1))}
+              className={`${NUMERIC_INPUT} mt-1`}
+            />
+          </label>
+          <label className="text-[10px] text-zinc-500 uppercase font-semibold">
+            Rail Elev. (°)
+            <input
+              type="number"
+              min={MC_RAIL_ELEVATION_MIN}
+              max={MC_RAIL_ELEVATION_MAX}
+              step="0.5"
+              value={mcRailElevationDeg}
+              aria-label="Rail elevation (deg)"
+              onChange={(e) => {
+                const raw = parseFloat(e.target.value);
+                if (Number.isFinite(raw)) setMcRailElevationDeg(clampRailElevation(raw));
+              }}
               className={`${NUMERIC_INPUT} mt-1`}
             />
           </label>

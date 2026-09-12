@@ -10,12 +10,15 @@
  *   3. Live sounding shows the layer count on a valid fetch and error text on
  *      a failing fetch (default fetch slot, no API key involved).
  *   4. Monte Carlo with nRuns=5 and zero sigmas completes synchronously and
- *      shows a pad-consistent mean landing with zero spread (vertical rail +
+ *      shows a pad-consistent mean landing with zero spread (85° default rail +
  *      zero-wind default field).
  *   5. A fetched sounding drives the MC wind (sounding > manual precedence)
  *      and drifts the mean landing away from the pad.
  *   6. MC results carry a FRESH/STALE badge keyed on every input change.
  *   7. Protuberance drag and boattail separation advisories react to inputs.
+ *   8. The default MC config (85° rail, 5°/1°/3° sigmas, 50 runs) finishes
+ *      with zero failed runs; pinning the user-adjustable rail to the 90°
+ *      domain boundary rejects a share of the 1σ perturbed runs.
  */
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -116,8 +119,9 @@ describe('TrajectoryStudio', () => {
     expect(screen.getByText('Monte Carlo Dispersion')).toBeTruthy();
     expect(screen.getByText('Boattail Flow Separation')).toBeTruthy();
     expect(screen.getByText('Protuberance Drag')).toBeTruthy();
-    // Defaults: 50 runs, single wind row, probe at 0 m (surface).
+    // Defaults: 50 runs, 85° rail, single wind row, probe at 0 m (surface).
     expect(runCountInput().value).toBe('50');
+    expect((screen.getByLabelText('Rail elevation (deg)') as HTMLInputElement).value).toBe('85');
     expect((screen.getByLabelText('Wind probe altitude (m)') as HTMLInputElement).value).toBe('0');
   });
 
@@ -195,19 +199,50 @@ describe('TrajectoryStudio', () => {
       { timeout: 180000 },
     );
     // Zero sigma: every run is the unperturbed trajectory, so the cloud has
-    // zero spread and (vertical rail, zero wind) lands at the pad.
+    // zero spread and (85° default rail, zero wind) lands near the pad.
     const mean = screen.getByLabelText('Mean landing (m)').textContent ?? '';
     expect(mean).toMatch(/E -?\d+(?:\.\d+)? · N -?\d+(?:\.\d+)? m/);
     const match = /E (-?\d+(?:\.\d+)?) · N (-?\d+(?:\.\d+)?)/.exec(mean);
     expect(match).toBeTruthy();
     const [east, north] = [Number(match![1]), Number(match![2])];
-    expect(Math.hypot(east, north)).toBeLessThan(50);
+    // The 85° default rail (5° off vertical) plus descent drift puts the
+    // unperturbed touchdown ~60 m downrange — still a pad-local landing.
+    expect(Math.hypot(east, north)).toBeLessThan(100);
     expect(screen.getByLabelText('Sigma 1 (m)').textContent).toBe('0.0 m');
     expect(screen.getByLabelText('Sigma 2 (m)').textContent).toBe('0.0 m');
     expect(screen.getByLabelText('r50 (m)').textContent).toBe('0 m');
     // The badge reads FRESH while inputs match the run.
     expect(screen.getByText('FRESH — matches current inputs')).toBeTruthy();
   }, 300000);
+
+  it('runs the default MC config (85° rail, 5°/1°/3° sigmas) with zero failed runs on the preset vehicle', async () => {
+    renderStudio();
+    // Defaults untouched: 50 runs, 85° rail, 5° wind / 1° rail / 3% impulse.
+    expect((screen.getByLabelText('Rail elevation (deg)') as HTMLInputElement).value).toBe('85');
+    fireEvent.click(screen.getByRole('button', { name: /run monte carlo/i }));
+    await waitFor(
+      () => expect(screen.getByText('50 succeeded · 0 failed')).toBeTruthy(),
+      { timeout: 300000 },
+    );
+  }, 400000);
+
+  it('lets the user pin the rail to 90°, where the 1σ rail perturbation domain-rejects runs', async () => {
+    renderStudio();
+    // Isolate the rail: zero wind/impulse sigmas, keep the default 1° rail
+    // sigma, and move the user-adjustable rail to the 90° domain boundary.
+    fireEvent.change(runCountInput(), { target: { value: '10' } });
+    fireEvent.change(screen.getByLabelText('Rail elevation (deg)'), { target: { value: '90' } });
+    fireEvent.change(screen.getByLabelText('Wind direction sigma (deg)'), { target: { value: '0' } });
+    fireEvent.change(screen.getByLabelText('Impulse sigma (%)'), { target: { value: '0' } });
+    fireEvent.click(screen.getByRole('button', { name: /run monte carlo/i }));
+    // Positive Gaussian rail draws exceed 90° and are rejected; negative draws
+    // stay in domain, so the control demonstrably feeds the simulator and the
+    // run mix carries failures (the 85° default above carries none).
+    await waitFor(
+      () => expect(screen.getByText(/^\d+ succeeded · [1-9]\d* failed$/)).toBeTruthy(),
+      { timeout: 300000 },
+    );
+  }, 400000);
 
   it('uses the fetched live sounding for MC wind (sounding > manual)', async () => {
     renderStudio();

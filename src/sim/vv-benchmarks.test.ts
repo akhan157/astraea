@@ -162,7 +162,10 @@ describe('VV-002 Torque-Free Rigid-Body Conservation', () => {
     expect(maxEnergyDrift).toBeLessThanOrEqual(1e-6);
     expect(momentumVecDrift).toBeLessThanOrEqual(1e-6);
     expect(maxMomentumVecDrift).toBeLessThanOrEqual(1e-6);
-  });
+    // 20 s budget: the ~6.3M-step float loop is fully deterministic (drift is
+    // bit-reproducible run to run); the default 5 s budget can be starved by
+    // parallel-suite CPU contention, so only the wall-clock timeout is raised.
+  }, 20000);
 });
 
 // ---------------------------------------------------------------------------

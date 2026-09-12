@@ -35,22 +35,26 @@ export const MIN_VELOCITY_MS = 5;
  * Points with velocityMs < MIN_VELOCITY_MS are rejected (drag is tiny there
  * and deceleration measurements are dominated by sensor noise).
  *
- * Throws on invalid input data: non-finite or non-positive density/massKg/
- * refAreaM2, non-finite or negative accelMs2, or all-zero accelerometer
- * readings (sensor-dead guard). Throws if no usable points remain.
+ * Throws on invalid input data: non-finite velocityMs, non-finite or
+ * non-positive density/massKg/refAreaM2, non-finite or negative accelMs2, or
+ * all-zero accelerometer readings (sensor-dead guard). Throws if no usable
+ * points remain, or if the accumulated dynamic-pressure term is non-finite.
  */
 export function calibrateCd(coastSegments: readonly CoastPoint[]): CalibrationResult {
-  // Validate every input point before fitting: a NaN/negative density or a
+  // Validate every input point before fitting: a NaN/Infinity density or a
   // dead accelerometer would silently poison the least-squares fit.
   let anyAccelNonZero = false;
   for (const p of coastSegments) {
-    if (!(p.density > 0)) {
+    if (!Number.isFinite(p.velocityMs)) {
+      throw new Error(`calibrateCd: velocityMs must be a finite number (got ${p.velocityMs})`);
+    }
+    if (!Number.isFinite(p.density) || !(p.density > 0)) {
       throw new Error(`calibrateCd: density must be a positive finite number (got ${p.density})`);
     }
-    if (!(p.massKg > 0)) {
+    if (!Number.isFinite(p.massKg) || !(p.massKg > 0)) {
       throw new Error(`calibrateCd: massKg must be a positive finite number (got ${p.massKg})`);
     }
-    if (!(p.refAreaM2 > 0)) {
+    if (!Number.isFinite(p.refAreaM2) || !(p.refAreaM2 > 0)) {
       throw new Error(`calibrateCd: refAreaM2 must be a positive finite number (got ${p.refAreaM2})`);
     }
     if (!Number.isFinite(p.accelMs2) || p.accelMs2 < 0) {
@@ -86,6 +90,11 @@ export function calibrateCd(coastSegments: readonly CoastPoint[]): CalibrationRe
     sumXY += x * y;
   }
 
+  if (!Number.isFinite(sumXX)) {
+    throw new Error(
+      'calibrateCd: non-finite dynamic-pressure sum (input magnitudes overflow the fit)',
+    );
+  }
   if (!(sumXX > 0)) {
     throw new Error('calibrateCd: degenerate coast points (zero dynamic-pressure term)');
   }

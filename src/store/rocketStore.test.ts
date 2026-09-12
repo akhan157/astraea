@@ -206,6 +206,33 @@ describe('custom motor upsert & import (C8)', () => {
     expect(useRocketStore.getState().customMotors['imported_motor']?.designation).toBe('Blank Id');
   });
 
+  it('is idempotent: re-importing a suffixed motor replaces in place, never minting another suffix', () => {
+    const state = useRocketStore.getState();
+    state.importCustomMotor(motorWith('Idem H128', 'Idem H128'));
+    state.importCustomMotor(motorWith('Idem H128', 'Idem H128 v2')); // lands at idem_h128_2
+    let st = useRocketStore.getState();
+    expect(st.customMotors['idem_h128']?.designation).toBe('Idem H128');
+    expect(st.customMotors['idem_h128_2']?.designation).toBe('Idem H128 v2');
+
+    // Re-import the v2 record, which already lives at _2: replace it there.
+    state.importCustomMotor(motorWith('Idem H128', 'Idem H128 v2'));
+    st = useRocketStore.getState();
+    expect(st.customMotors['idem_h128_2']?.designation).toBe('Idem H128 v2');
+    expect(st.customMotors['idem_h128_3']).toBeUndefined();
+    expect(Object.keys(st.customMotors).filter((k) => k.startsWith('idem_h128')).length).toBe(2);
+
+    // A genuinely new designation still allocates the next suffix...
+    state.importCustomMotor(motorWith('Idem H128', 'Idem H128 v3'));
+    st = useRocketStore.getState();
+    expect(st.customMotors['idem_h128_3']?.designation).toBe('Idem H128 v3');
+
+    // ...and re-importing it is idempotent too.
+    state.importCustomMotor(motorWith('Idem H128', 'Idem H128 v3'));
+    st = useRocketStore.getState();
+    expect(st.customMotors['idem_h128_3']?.designation).toBe('Idem H128 v3');
+    expect(Object.keys(st.customMotors).filter((k) => k.startsWith('idem_h128')).length).toBe(3);
+  });
+
   it('importCustomMotor applies the suffix policy on normalized ids and keeps import behavior', () => {
     const state = useRocketStore.getState();
     state.importCustomMotor(motorWith('Added Custom!', 'Added Custom'));

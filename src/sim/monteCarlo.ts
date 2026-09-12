@@ -152,7 +152,8 @@ function percentileIndex(n: number, pct: number): number {
 /**
  * Reduces a landing cloud (East/North, meters) into dispersion statistics.
  * Empty cloud => all-undefined statistics with zero runs; single sample =>
- * zero spread with the mean at the sample.
+ * zero spread with the mean at the sample. Any non-finite coordinate throws
+ * (NaN/±Infinity would otherwise propagate into every statistic silently).
  */
 export function computeDispersionStatistics(landings: readonly LandingPoint[]): DispersionStatistics {
   const n = landings.length;
@@ -165,6 +166,17 @@ export function computeDispersionStatistics(landings: readonly LandingPoint[]): 
     containmentRadii: { r50: NaN, r90: NaN, r99: NaN },
   };
   if (n === 0) return undefinedStats;
+
+  // Fail-closed: a non-finite coordinate (NaN/±Infinity) would poison every
+  // downstream statistic (mean, covariance, eigenvalues, radii) into a silent
+  // NaN cloud. Reject the input instead of reducing garbage.
+  for (const p of landings) {
+    if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) {
+      throw new Error(
+        `computeDispersionStatistics: landing point must be finite (got x=${p.x}, y=${p.y})`
+      );
+    }
+  }
 
   let sx = 0;
   let sy = 0;
@@ -316,7 +328,15 @@ export function runMonteCarlo(
     try {
       const runInput = applyPerturbations(baseInput, sigmas, rng);
       const result: SixDofSimulationResult = simulate6DofFlight(runInput.vehicle, runInput.motor, runInput.options);
-      landings.push({ x: result.landingPosition.x, y: result.landingPosition.y });
+      const landing: LandingPoint = { x: result.landingPosition.x, y: result.landingPosition.y };
+      // Fail-closed: a non-finite touchdown (NaN/±Infinity) is a failed run,
+      // not a datum — counting it would poison every dispersion statistic.
+      if (!Number.isFinite(landing.x) || !Number.isFinite(landing.y)) {
+        throw new Error(
+          `runMonteCarlo: run ${i + 1}/${nRuns} produced a non-finite landing (x=${landing.x}, y=${landing.y})`
+        );
+      }
+      landings.push(landing);
     } catch (err) {
       failedRuns++;
       if (firstFailureMessage === null) {

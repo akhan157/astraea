@@ -237,8 +237,10 @@ interface RocketStoreState {
   upsertCustomMotor: (motor: MotorSpec) => void;
   /** Import policy wrapper over the upsert primitive: on a normalized-id
    *  collision with a DIFFERENT designation the new record's id is suffixed
-   *  _2/_3/... so existing imports are never silently overwritten (a re-import
-   *  of the identical motor replaces in place). */
+   *  _2/_3/... so existing imports are never silently overwritten. Idempotent:
+   *  a re-import of the identical designation replaces in place wherever it
+   *  already lives (the base key or any suffixed sibling), never minting a new
+   *  suffix. */
   importCustomMotor: (motor: MotorSpec) => void;
   // Shared actions
   selectMotor: (id: string) => void;
@@ -306,11 +308,25 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
       set((state) => {
         // Import policy wrapper over the upsert primitive: on a normalized-id
         // collision with a DIFFERENT designation, suffix the new motor's id
-        // _2/_3/... so an existing import is never silently overwritten. Same
-        // id AND same designation replaces in place (a re-import of the
-        // identical motor).
+        // _2/_3/... so an existing import is never silently overwritten.
+        //
+        // Idempotent: scan the whole key family — the base key plus every
+        // contiguous suffixed sibling the allocator could have minted — for a
+        // record with the SAME designation and replace in place there. Only
+        // when no designation match exists anywhere in the family do we
+        // allocate a fresh suffix, so re-importing a motor that already landed
+        // at key_2 replaces key_2 instead of leaking key_3.
         const key = normalizeMotorId(motor.id);
-        if (key in state.customMotors && state.customMotors[key].designation !== motor.designation) {
+        if (key in state.customMotors) {
+          for (let n = 1; ; n++) {
+            const candidate = n === 1 ? key : `${key}_${n}`;
+            if (!(candidate in state.customMotors)) {
+              break;
+            }
+            if (state.customMotors[candidate].designation === motor.designation) {
+              return { customMotors: putCustomMotor(state.customMotors, motor, candidate) };
+            }
+          }
           let n = 2;
           let candidate = `${key}_${n}`;
           while (candidate in state.customMotors) {

@@ -171,10 +171,16 @@ export function alignSimToFlight(
     if (!Number.isFinite(s.altitudeM)) {
       throw new Error(`alignSimToFlight: sim altitudes must be finite numbers (got ${s.altitudeM})`);
     }
+    if (!Number.isFinite(s.timeS)) {
+      throw new Error(`alignSimToFlight: sim times must be finite numbers (got ${s.timeS})`);
+    }
   }
   for (const s of flight) {
     if (!Number.isFinite(s.altitudeM)) {
       throw new Error(`alignSimToFlight: flight altitudes must be finite numbers (got ${s.altitudeM})`);
+    }
+    if (!Number.isFinite(s.timeS)) {
+      throw new Error(`alignSimToFlight: flight times must be finite numbers (got ${s.timeS})`);
     }
   }
 
@@ -219,6 +225,13 @@ function maxVelocityMs(series: readonly TrajectorySample[]): number | null {
   let max: number | undefined;
   for (const p of series) {
     if (p.velocityMs !== undefined) {
+      // A present-but-non-finite velocity would poison the max (NaN) or
+      // fabricate a bogus proxy (Infinity); only genuine absence is allowed.
+      if (!Number.isFinite(p.velocityMs)) {
+        throw new Error(
+          `alignSimToFlight: velocityMs must be a finite number when present (got ${p.velocityMs})`,
+        );
+      }
       max = max === undefined ? p.velocityMs : Math.max(max, p.velocityMs);
     }
   }

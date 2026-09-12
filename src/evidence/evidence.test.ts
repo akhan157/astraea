@@ -203,6 +203,36 @@ describe('alignSimToFlight', () => {
     expect(r.timeOffsetS).toBeCloseTo(0, 9);
   });
 
+  it('throws on non-finite timeS in either series', () => {
+    expect(() =>
+      alignSimToFlight(
+        [{ timeS: Number.NaN, altitudeM: 0, velocityMs: 1 }],
+        [{ timeS: 0, altitudeM: 0, velocityMs: 1 }],
+      ),
+    ).toThrow(/times/);
+    expect(() =>
+      alignSimToFlight(
+        [{ timeS: 0, altitudeM: 0, velocityMs: 1 }],
+        [{ timeS: Number.POSITIVE_INFINITY, altitudeM: 0, velocityMs: 1 }],
+      ),
+    ).toThrow(/times/);
+  });
+
+  it('throws on a present-but-non-finite velocityMs (absent still nulls the delta)', () => {
+    expect(() =>
+      alignSimToFlight(
+        [{ timeS: 0, altitudeM: 0, velocityMs: Number.NaN }],
+        [{ timeS: 0, altitudeM: 0, velocityMs: 1 }],
+      ),
+    ).toThrow(/velocityMs/);
+    expect(() =>
+      alignSimToFlight(
+        [{ timeS: 0, altitudeM: 0, velocityMs: 1 }],
+        [{ timeS: 1, altitudeM: 0, velocityMs: Number.POSITIVE_INFINITY }],
+      ),
+    ).toThrow(/velocityMs/);
+  });
+
   it('throws on non-finite altitudes', () => {
     expect(() =>
       alignSimToFlight(
@@ -310,10 +340,45 @@ describe('calibrateCd', () => {
     };
     expect(() => calibrateCd([{ ...base, density: -1.225 }])).toThrow(/density/);
     expect(() => calibrateCd([{ ...base, density: Number.NaN }])).toThrow(/density/);
+    expect(() => calibrateCd([{ ...base, density: Number.POSITIVE_INFINITY }])).toThrow(/density/);
     expect(() => calibrateCd([{ ...base, massKg: 0 }])).toThrow(/massKg/);
+    expect(() => calibrateCd([{ ...base, massKg: Number.POSITIVE_INFINITY }])).toThrow(/massKg/);
     expect(() => calibrateCd([{ ...base, refAreaM2: -AREA }])).toThrow(/refAreaM2/);
+    expect(() => calibrateCd([{ ...base, refAreaM2: Number.POSITIVE_INFINITY }])).toThrow(
+      /refAreaM2/,
+    );
     expect(() => calibrateCd([{ ...base, accelMs2: -1 }])).toThrow(/accelMs2/);
     expect(() => calibrateCd([{ ...base, accelMs2: Number.NaN }])).toThrow(/accelMs2/);
+    expect(() => calibrateCd([{ ...base, accelMs2: Number.POSITIVE_INFINITY }])).toThrow(/accelMs2/);
+  });
+
+  it('throws on a non-finite velocityMs instead of silently dropping the point', () => {
+    const base: CoastPoint = {
+      velocityMs: 20,
+      density: RHO,
+      massKg: 3,
+      refAreaM2: AREA,
+      accelMs2: 5,
+    };
+    expect(() => calibrateCd([{ ...base, velocityMs: Number.NaN }])).toThrow(/velocityMs/);
+    expect(() => calibrateCd([{ ...base, velocityMs: Number.POSITIVE_INFINITY }])).toThrow(
+      /velocityMs/,
+    );
+    expect(() => calibrateCd([{ ...base, velocityMs: Number.NEGATIVE_INFINITY }])).toThrow(
+      /velocityMs/,
+    );
+  });
+
+  it('throws when the dynamic-pressure sum overflows to Infinity', () => {
+    const huge = 1e200;
+    const points: CoastPoint[] = [10, 12, 14].map((v) => ({
+      velocityMs: v,
+      density: huge,
+      massKg: 3,
+      refAreaM2: huge,
+      accelMs2: 5,
+    }));
+    expect(() => calibrateCd(points)).toThrow(/non-finite dynamic-pressure/);
   });
 
   it('throws when every accelerometer reading is zero (sensor-dead guard)', () => {
