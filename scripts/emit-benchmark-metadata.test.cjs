@@ -25,7 +25,7 @@
  * Count binding (M2): every case below is declared with its own literal
  * `it` case token (open paren directly after the it identifier), plus one
  * cleanup case, so the emitter's source-case count of this file equals its
- * executed case count (44 + 1 = 45) exactly like every other collected
+ * executed case count (47 + 1 = 48) exactly like every other collected
  * suite. Fixture test-file contents are built through helpers that never
  * spell out the it-token, so they cannot leak counted tokens into this
  * file's own source.
@@ -53,7 +53,7 @@ const {
 // execute each case immediately and report (exit 0 = all pass, which is what
 // the certified command requires). Every case is written with its own
 // literal it-token, so this file's source case count is exactly its executed
-// case count (44 cases + 1 cleanup = 45).
+// case count (47 cases + 1 cleanup = 48).
 const inVitest = typeof process !== 'undefined' && !!process.env.VITEST;
 if (!inVitest) {
   // Shims are inert unless this file is the entry script, so requiring it
@@ -125,7 +125,7 @@ const BASE_PKG = JSON.stringify(
 // Token-safe fixture builders: fixture suite content must carry real
 // it-tokens when written to disk (the emitter counts them), but the literal
 // token bytes must never appear in THIS file — its own source count must
-// equal its 45 executed cases. The it identifier is spelled through a
+// equal its 48 executed cases. The it identifier is spelled through a
 // variable, so the emitted bytes are never it followed by an open paren.
 const ITID = 'it';
 const itCaseLine = (name, body) => `  ${ITID}('${name}', () => { ${body}; });`;
@@ -208,16 +208,27 @@ function baseFixture(over = {}) {
     'src/aero/transonicAero.test.ts': specLine('aero curves', 'tabulates drag'),
     'src/aero/barrowman.test.ts': specLine('stability analysis', 'places the neutral point'),
     'src/aero/finFlutter.test.ts': specLine('fin flutter', 'bounds divergence velocity'),
+    'src/aero/finStructure.test.ts': specLine('fin structure', 'sizes root thickness'),
+    'src/aero/stabilityBreakdown.test.ts': specLine('stability breakdown', 'attributes margin terms'),
     'src/sim/flightSimulator.test.ts': specLine('legacy simulator', 'propagates descent'),
     'src/formats/orkParser.test.ts': specLine('ork format', 'parses components'),
     'src/formats/rktParser.test.ts': specLine('rkt format', 'parses motors'),
+    'src/formats/rktExport.test.ts': specLine('rkt export', 'writes motor refs'),
+    'src/formats/stepExport.test.ts': specLine('step export', 'emits solids'),
+    'src/formats/stlExport.test.ts': specLine('stl export', 'triangulates surfaces'),
     'src/store/rocketStore.test.ts': specLine('vehicle store', 'holds presets'),
     'src/aero/protuberance.test.ts': specLine('protuberance drag', 'immerses lugs'),
     'src/sim/weather.test.ts': specLine('weather soundings', 'parses layers'),
+    'src/sim/windProfile.test.ts': specLine('wind profile', 'interpolates aloft'),
     'src/sim/monteCarlo.test.ts': specLine('dispersion engine', 'scatters landings'),
+    'src/sim/motorVariance.test.ts': specLine('motor variance', 'applies defaults'),
+    'src/sim/waiverContainment.test.ts': specLine('waiver containment', 'checks bounds'),
     'src/formats/rasaero.test.ts': specLine('rasaero export', 'emits stations'),
     'src/propulsion/grainRegression.test.ts': specLine('grain regression', 'regresses bates'),
     'src/propulsion/nozzleChemistry.test.ts': specLine('nozzle chemistry', 'sizes performance'),
+    'src/propulsion/curveEditing.test.ts': specLine('curve editing', 'normalizes points'),
+    'src/propulsion/gibbsEquilibrium.test.ts': specLine('gibbs equilibrium', 'solves apcp'),
+    'src/propulsion/thrustcurveApi.test.ts': specLine('thrustcurve api', 'caches downloads'),
     'src/recovery/recovery.test.ts': specLine('recovery packing', 'sizes bays'),
     'src/evidence/evidence.test.ts': specLine('flight evidence', 'calibrates drag'),
     'src/aero/protuberance.ts': 'export const computeProtuberanceDrag = () => 0;\n',
@@ -295,16 +306,27 @@ function makeVitestJson({
     'src/aero/transonicAero.test.ts',
     'src/aero/barrowman.test.ts',
     'src/aero/finFlutter.test.ts',
+    'src/aero/finStructure.test.ts',
+    'src/aero/stabilityBreakdown.test.ts',
     'src/sim/flightSimulator.test.ts',
     'src/formats/orkParser.test.ts',
     'src/formats/rktParser.test.ts',
+    'src/formats/rktExport.test.ts',
+    'src/formats/stepExport.test.ts',
+    'src/formats/stlExport.test.ts',
     'src/store/rocketStore.test.ts',
     'src/aero/protuberance.test.ts',
     'src/sim/weather.test.ts',
+    'src/sim/windProfile.test.ts',
     'src/sim/monteCarlo.test.ts',
+    'src/sim/motorVariance.test.ts',
+    'src/sim/waiverContainment.test.ts',
     'src/formats/rasaero.test.ts',
     'src/propulsion/grainRegression.test.ts',
     'src/propulsion/nozzleChemistry.test.ts',
+    'src/propulsion/curveEditing.test.ts',
+    'src/propulsion/gibbsEquilibrium.test.ts',
+    'src/propulsion/thrustcurveApi.test.ts',
     'src/recovery/recovery.test.ts',
     'src/evidence/evidence.test.ts',
     'src/components/PropulsionStudio.test.tsx',
@@ -553,6 +575,24 @@ it('reporter-aggregate disagreement fails certification', () => {
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
   assert.equal(ok, false);
   assert.ok(missing.some((m) => m.includes('numTotalTests') && m.includes('disagrees')), `missing: ${missing}`);
+
+  // Pending/todo counters are cross-checked against the summed per-file
+  // records exactly like total/passed/failed (LOW-8).
+  const pendingJson = makeVitestJson({ skipVv: ['006'] });
+  pendingJson.numPendingTests += 1;
+  const pendingRes = computeEvidence(ctx(root, { vitestJson: pendingJson }));
+  assert.equal(pendingRes.passed, false);
+  assert.ok(pendingRes.missing.some((m) => m.includes('numPendingTests') && m.includes('disagrees')), `missing: ${pendingRes.missing}`);
+
+  const todoJson = makeVitestJson();
+  todoJson.numTodoTests += 1;
+  const todoRes = computeEvidence(ctx(root, { vitestJson: todoJson }));
+  assert.equal(todoRes.passed, false);
+  assert.ok(todoRes.missing.some((m) => m.includes('numTodoTests') && m.includes('disagrees')), `missing: ${todoRes.missing}`);
+
+  // Control: the untouched aggregates stay coherent and green.
+  const control = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
+  assert.equal(control.passed, true, `missing: ${JSON.stringify(control.missing)}`);
 });
 
 it('git failure => certification FAIL with unknown commit', () => {
@@ -645,13 +685,13 @@ it('vitest per-file totals parsed from assertionResults, not f.assertions', () =
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
-  assert.equal(parsed.files.length, 32);
+  assert.equal(parsed.files.length, 43);
   const vvFile = parsed.files.find((file) => file.file === 'vv-benchmarks.test.ts');
   assert.equal(vvFile.testCases.total, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.passed, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.failed, 0);
   assert.equal(vvFile.testCases.unknown, 0);
-  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 31);
+  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 42);
 });
 
 it('vitest JSON unparseable => certification fails', () => {
@@ -819,6 +859,19 @@ it('missing aggregate counter fails certification', () => {
   const { passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: json }));
   assert.equal(ok, false);
   assert.ok(missing.some((m) => m.includes('numFailedTests') && m.includes('missing or nonfinite')), `missing: ${missing}`);
+
+  // The pending/todo aggregates are required counters too (LOW-8).
+  const pendingJson = makeVitestJson();
+  delete pendingJson.numPendingTests;
+  const pendingRes = computeEvidence(ctx(root, { vitestJson: pendingJson }));
+  assert.equal(pendingRes.passed, false);
+  assert.ok(pendingRes.missing.some((m) => m.includes('numPendingTests') && m.includes('missing or nonfinite')), `missing: ${pendingRes.missing}`);
+
+  const todoJson = makeVitestJson();
+  delete todoJson.numTodoTests;
+  const todoRes = computeEvidence(ctx(root, { vitestJson: todoJson }));
+  assert.equal(todoRes.passed, false);
+  assert.ok(todoRes.missing.some((m) => m.includes('numTodoTests') && m.includes('missing or nonfinite')), `missing: ${todoRes.missing}`);
 });
 
 it('installed version violating its declared range fails certification', () => {
@@ -852,7 +905,7 @@ it('new acceptance suites are required and hashed', () => {
 
 it('M1: every collected suite in the fixed inventory is cited in hashes.files', () => {
   const { FIXED_TEST_FILE_INVENTORY } = require('./emit-benchmark-metadata.cjs');
-  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 32, 'acceptance list must stay at 32');
+  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 43, 'acceptance list must stay at 43');
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
@@ -860,7 +913,7 @@ it('M1: every collected suite in the fixed inventory is cited in hashes.files', 
   for (const rel of FIXED_TEST_FILE_INVENTORY) {
     assert.ok(rel in evidence.hashes.files, `${rel} must be cited (hashed)`);
   }
-  assert.equal(citedTestFiles.length, 32, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
+  assert.equal(citedTestFiles.length, 43, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
 });
 
 it('M2: emitter suite executed count binds to its source case count', () => {

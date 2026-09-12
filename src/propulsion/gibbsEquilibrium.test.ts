@@ -166,10 +166,51 @@ describe('entropyIntegral — NASA-7 a7 fit anchored at S°(298.15 K)', () => {
     H2O: 188.835, H2: 130.680, CO2: 213.795, CO: 197.660, N2: 191.609,
     HCl: 186.902, O2: 205.152, O: 161.059, H: 114.716, Al2O3: 50.92,
   };
-  for (const species of Object.keys(S298_J_PER_MOL_K) as SpeciesName[]) {
-    it(`reproduces S°(298.15 K) = ${S298_J_PER_MOL_K[species]} J/(mol·K) for ${species}`, () => {
-      const sPerR = entropyIntegral(species, STANDARD_TEMPERATURE);
-      expect((sPerR * R_UNIVERSAL) / 1000).toBeCloseTo(S298_J_PER_MOL_K[species], 6);
-    });
-  }
+  // Every species is declared as its own explicit case: this suite is in the
+  // fixed test-file inventory, where the source case count must equal the
+  // executed count, so a per-species loop must not generate cases dynamically.
+  const expectEntropyAt298 = (species: SpeciesName) => {
+    const sPerR = entropyIntegral(species, STANDARD_TEMPERATURE);
+    expect((sPerR * R_UNIVERSAL) / 1000).toBeCloseTo(S298_J_PER_MOL_K[species], 6);
+  };
+
+  it('reproduces S°(298.15 K) for H2O', () => {
+    expectEntropyAt298('H2O');
+  });
+
+  it('reproduces S°(298.15 K) for H2', () => {
+    expectEntropyAt298('H2');
+  });
+
+  it('reproduces S°(298.15 K) for CO2', () => {
+    expectEntropyAt298('CO2');
+  });
+
+  it('reproduces S°(298.15 K) for CO', () => {
+    expectEntropyAt298('CO');
+  });
+
+  it('reproduces S°(298.15 K) for N2', () => {
+    expectEntropyAt298('N2');
+  });
+
+  it('reproduces S°(298.15 K) for HCl', () => {
+    expectEntropyAt298('HCl');
+  });
+
+  it('reproduces S°(298.15 K) for O2', () => {
+    expectEntropyAt298('O2');
+  });
+
+  it('reproduces S°(298.15 K) for O', () => {
+    expectEntropyAt298('O');
+  });
+
+  it('reproduces S°(298.15 K) for H', () => {
+    expectEntropyAt298('H');
+  });
+
+  it('reproduces S°(298.15 K) for Al2O3', () => {
+    expectEntropyAt298('Al2O3');
+  });
 });

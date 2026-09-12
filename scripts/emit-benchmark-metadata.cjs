@@ -15,6 +15,12 @@
  *    (the actual vitest JSON schema). Counts are per-test-case (it/test),
  *    not individual expect() calls — labeled as such, never as assertions.
  *    Unknown statuses and reporter-aggregate/count disagreements fail.
+ *  - Inventory suites MUST declare every case with its own literal `it(` or
+ *    `test(` token. Parameterized `.each` tables, `.for` loops, and any other
+ *    dynamic case generation are PROHIBITED in inventory suites: source-case
+ *    counting matches one token per executed case, so a table that expands
+ *    into N executed cases under one token would silently desynchronize the
+ *    count binding (write the cases explicitly instead).
  *  - Measured evidence is emitted: executed test cases, durations, skips
  *    (pending/todo/disabled), failures (+ verbatim failure messages and
  *    reporter-emitted numerics), declared tolerance bounds from the executed
@@ -89,22 +95,33 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/core/mass.test.ts',
   'src/components/FlightSimulationTab.test.tsx',
   'scripts/emit-benchmark-metadata.test.cjs',
-  // All 32 FIXED_TEST_FILE_INVENTORY suites are cited (sha256) so the
+  // All 43 FIXED_TEST_FILE_INVENTORY suites are cited (sha256) so the
   // artifact's hashes.files covers every collected suite, not only the
   // gate-bound files (audit §9.4 completeness; M1).
   'src/aero/barrowman.test.ts',
   'src/aero/finFlutter.test.ts',
+  'src/aero/finStructure.test.ts',
+  'src/aero/stabilityBreakdown.test.ts',
   'src/aero/transonicAero.test.ts',
   'src/sim/flightSimulator.test.ts',
   'src/formats/orkParser.test.ts',
   'src/formats/rktParser.test.ts',
+  'src/formats/rktExport.test.ts',
+  'src/formats/stepExport.test.ts',
+  'src/formats/stlExport.test.ts',
   'src/store/rocketStore.test.ts',
   'src/aero/protuberance.test.ts',
   'src/sim/weather.test.ts',
+  'src/sim/windProfile.test.ts',
   'src/sim/monteCarlo.test.ts',
+  'src/sim/motorVariance.test.ts',
+  'src/sim/waiverContainment.test.ts',
   'src/formats/rasaero.test.ts',
   'src/propulsion/grainRegression.test.ts',
   'src/propulsion/nozzleChemistry.test.ts',
+  'src/propulsion/curveEditing.test.ts',
+  'src/propulsion/gibbsEquilibrium.test.ts',
+  'src/propulsion/thrustcurveApi.test.ts',
   'src/recovery/recovery.test.ts',
   'src/evidence/evidence.test.ts',
   'src/components/PropulsionStudio.test.tsx',
@@ -154,11 +171,18 @@ const HASHED_REQUIRED_FILES = Object.freeze([
 const REQUIRED_VV_IDS = Object.freeze(
   ['001', '002', '003', '004', '005', '006', '007', '009', '010', '011', '012', '013', '014', '015']
 );
-// Fixed collected-file inventory (Round-18 audit §9.4): the executed set is
-// closed. Every listed file must be collected AND execute with its source
-// case count intact; any executed *.test.* file outside this list is an
-// unacknowledged suite and fails certification. Adding a legitimate suite
-// requires updating this inventory explicitly — never silently.
+// Fixed collected-file inventory (Round-18 audit §9.4; extended to 43 by the
+// post-audit HIGH sweep): the executed set is closed. Every listed file must
+// be collected AND execute with its source case count intact; any executed
+// *.test.* file outside this list is an unacknowledged suite and fails
+// certification. Adding a legitimate suite requires updating this inventory
+// explicitly — never silently.
+//
+// Source/executed count binding rule: every case in an inventory suite MUST
+// be declared with its own literal `it(`/`test(` token (a single AST-level
+// case declaration). Parameterized `.each` tables, `.for` loops, or any other
+// dynamic case generation collapse many executed cases into one counted
+// token and are PROHIBITED in inventory suites — write the cases explicitly.
 const FIXED_TEST_FILE_INVENTORY = Object.freeze([
   'src/sim/vv-benchmarks.test.ts',
   'src/dynamics/rigidBody.adaptive.test.ts',
@@ -170,17 +194,28 @@ const FIXED_TEST_FILE_INVENTORY = Object.freeze([
   'src/components/FlightSimulationTab.test.tsx',
   'src/aero/barrowman.test.ts',
   'src/aero/finFlutter.test.ts',
+  'src/aero/finStructure.test.ts',
+  'src/aero/stabilityBreakdown.test.ts',
   'src/aero/transonicAero.test.ts',
   'src/sim/flightSimulator.test.ts',
   'src/formats/orkParser.test.ts',
   'src/formats/rktParser.test.ts',
+  'src/formats/rktExport.test.ts',
+  'src/formats/stepExport.test.ts',
+  'src/formats/stlExport.test.ts',
   'src/store/rocketStore.test.ts',
   'src/aero/protuberance.test.ts',
   'src/sim/weather.test.ts',
+  'src/sim/windProfile.test.ts',
   'src/sim/monteCarlo.test.ts',
+  'src/sim/motorVariance.test.ts',
+  'src/sim/waiverContainment.test.ts',
   'src/formats/rasaero.test.ts',
   'src/propulsion/grainRegression.test.ts',
   'src/propulsion/nozzleChemistry.test.ts',
+  'src/propulsion/curveEditing.test.ts',
+  'src/propulsion/gibbsEquilibrium.test.ts',
+  'src/propulsion/thrustcurveApi.test.ts',
   'src/recovery/recovery.test.ts',
   'src/evidence/evidence.test.ts',
   'src/components/PropulsionStudio.test.tsx',
@@ -790,7 +825,7 @@ function computeEvidence(opts = {}) {
     if (rep && typeof rep === 'object') {
       // Required aggregate counters must be present and finite (audit §9.4):
       // missing or nonfinite counters are incoherent evidence, not green.
-      for (const key of ['numTotalTests', 'numPassedTests', 'numFailedTests']) {
+      for (const key of ['numTotalTests', 'numPassedTests', 'numFailedTests', 'numPendingTests', 'numTodoTests']) {
         if (!Number.isFinite(rep[key])) {
           missing.push(`tests: reporter aggregate ${key} is missing or nonfinite — evidence incoherent`);
         }
@@ -803,6 +838,18 @@ function computeEvidence(opts = {}) {
       }
       if (Number.isFinite(rep.numPassedTests) && rep.numPassedTests !== parsed.totals.testCasesPassed) {
         missing.push(`tests: reporter numPassedTests (${rep.numPassedTests}) disagrees with summed file results (${parsed.totals.testCasesPassed})`);
+      }
+      // Pending/todo counters get the same cross-check as total/passed/failed.
+      // Vitest's numPendingTests counts every unexecuted-by-skip case (its
+      // 'skipped' plus 'pending' assertion statuses); numTodoTests counts the
+      // 'todo' status. Both must reproduce from the summed per-file records.
+      const pendingSum = parsed.files.reduce((n, f) => n + f.testCases.pending + f.testCases.skipped, 0);
+      const todoSum = parsed.files.reduce((n, f) => n + f.testCases.todo, 0);
+      if (Number.isFinite(rep.numPendingTests) && rep.numPendingTests !== pendingSum) {
+        missing.push(`tests: reporter numPendingTests (${rep.numPendingTests}) disagrees with summed file results (${pendingSum})`);
+      }
+      if (Number.isFinite(rep.numTodoTests) && rep.numTodoTests !== todoSum) {
+        missing.push(`tests: reporter numTodoTests (${rep.numTodoTests}) disagrees with summed file results (${todoSum})`);
       }
       // numTotalTestSuites counts describe-blocks (including nested/file-level),
       // not files — incomparable with filesTotal. The honest check is a sanity

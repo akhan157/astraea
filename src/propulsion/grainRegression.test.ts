@@ -387,43 +387,41 @@ describe('C10 geometries: neutrality and character', () => {
 });
 
 describe('C10 geometries: web reaches burnout (volume 0)', () => {
-  const cases: Array<{ name: string; t: GrainRegressionTrace; maxWeb: number; portFinal: number }> = [
-    {
-      name: 'end burner',
-      t: regressEndBurner(END_BURNER.outerDiameter, END_BURNER.length, NEW_STEP, RATE),
-      maxWeb: END_BURNER.length,
-      portFinal: 0,
-    },
-    {
-      name: 'rod & tube',
-      t: regressRodTube(
-        ROD_TUBE.outerDiameter, ROD_TUBE.length, ROD_TUBE.coreDiameter, ROD_TUBE.rodDiameter, NEW_STEP, RATE,
-      ),
-      maxWeb: (ROD_TUBE.outerDiameter - ROD_TUBE.coreDiameter) / 2,
-      portFinal: Math.PI * (ROD_TUBE.outerDiameter / 2) ** 2,
-    },
-    {
-      name: 'moon burner',
-      t: regressMoonBurner(MOON.outerDiameter, MOON.length, MOON.coreDiameter, MOON.offset, NEW_STEP, RATE),
-      maxWeb: MOON.outerDiameter / 2 + MOON.offset - MOON.coreDiameter / 2,
-      portFinal: Math.PI * (MOON.outerDiameter / 2) ** 2,
-    },
-    {
-      name: 'c-slot',
-      t: regressCSlot(CSLOT.outerDiameter, CSLOT.length, CSLOT.coreDiameter, CSLOT.slotWidth, NEW_STEP, RATE),
-      maxWeb: (CSLOT.outerDiameter - CSLOT.coreDiameter) / 2,
-      portFinal: Math.PI * (CSLOT.outerDiameter / 2) ** 2,
-    },
-  ];
+  // Each geometry's trace and expected burnout values are declared as its own
+  // explicit case below: this suite lives in the fixed test-file inventory,
+  // where source case count must equal executed case count, so parameterized
+  // it.each tables are prohibited (see scripts/emit-benchmark-metadata.cjs).
+  const endBurnerTrace = regressEndBurner(END_BURNER.outerDiameter, END_BURNER.length, NEW_STEP, RATE);
+  const rodTubeTrace = regressRodTube(
+    ROD_TUBE.outerDiameter, ROD_TUBE.length, ROD_TUBE.coreDiameter, ROD_TUBE.rodDiameter, NEW_STEP, RATE,
+  );
+  const moonTrace = regressMoonBurner(MOON.outerDiameter, MOON.length, MOON.coreDiameter, MOON.offset, NEW_STEP, RATE);
+  const cSlotTrace = regressCSlot(CSLOT.outerDiameter, CSLOT.length, CSLOT.coreDiameter, CSLOT.slotWidth, NEW_STEP, RATE);
 
-  it.each(cases)('$name: full web burned, remaining volume 0, port at the case', (c) => {
-    const last = c.t.webBurned.length - 1;
-    expect(c.t.webBurned.length).toBe(c.t.portArea.length);
-    expect(c.t.burnArea.length).toBe(c.t.webBurned.length);
-    expect(c.t.volumeRemaining.length).toBe(c.t.webBurned.length);
-    expect(c.t.webBurned[last]).toBeCloseTo(c.maxWeb, 12);
-    expect(c.t.volumeRemaining[last]).toBeCloseTo(0, 12);
-    expect(c.t.portArea[last]).toBeCloseTo(c.portFinal, 6);
+  const expectBurnout = (t: GrainRegressionTrace, maxWeb: number, portFinal: number) => {
+    const last = t.webBurned.length - 1;
+    expect(t.webBurned.length).toBe(t.portArea.length);
+    expect(t.burnArea.length).toBe(t.webBurned.length);
+    expect(t.volumeRemaining.length).toBe(t.webBurned.length);
+    expect(t.webBurned[last]).toBeCloseTo(maxWeb, 12);
+    expect(t.volumeRemaining[last]).toBeCloseTo(0, 12);
+    expect(t.portArea[last]).toBeCloseTo(portFinal, 6);
+  };
+
+  it('end burner: full web burned, remaining volume 0, port at the case', () => {
+    expectBurnout(endBurnerTrace, END_BURNER.length, 0);
+  });
+
+  it('rod & tube: full web burned, remaining volume 0, port at the case', () => {
+    expectBurnout(rodTubeTrace, (ROD_TUBE.outerDiameter - ROD_TUBE.coreDiameter) / 2, Math.PI * (ROD_TUBE.outerDiameter / 2) ** 2);
+  });
+
+  it('moon burner: full web burned, remaining volume 0, port at the case', () => {
+    expectBurnout(moonTrace, MOON.outerDiameter / 2 + MOON.offset - MOON.coreDiameter / 2, Math.PI * (MOON.outerDiameter / 2) ** 2);
+  });
+
+  it('c-slot: full web burned, remaining volume 0, port at the case', () => {
+    expectBurnout(cSlotTrace, (CSLOT.outerDiameter - CSLOT.coreDiameter) / 2, Math.PI * (CSLOT.outerDiameter / 2) ** 2);
   });
 });
 
