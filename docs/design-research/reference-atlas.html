@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Astraea design research — reference atlas (local research use only)</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #18181b; color: #e4e4e7; margin: 0; padding: 24px; }
+  h1 { font-size: 20px; } h2 { font-size: 16px; color: #22d3ee; border-bottom: 1px solid #3f3f46; padding-bottom: 4px; }
+  a { color: #67e8f9; } .note { color: #a1a1aa; font-size: 13px; max-width: 80ch; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  figure { background: #27272a; border: 1px solid #3f3f46; border-radius: 8px; padding: 8px; margin: 0; }
+  figure img { width: 100%; border-radius: 4px; background: #fff; }
+  figcaption { font-size: 12px; color: #d4d4d8; margin-top: 6px; }
+  .docs li { margin: 4px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<h1>Astraea commercial-grade design research — reference atlas</h1>
+<p class="note">Local research use only. Images are vendor/product screenshots archived
+by the research lanes with attribution in each study's evidence register; no
+republication permission is assumed. Method labels: OD = official documented,
+OS = observed screenshot, VR = vendor-reported, PR = practitioner-reported.
+Start with <a href="synthesis.md">synthesis.md</a>, then the lane studies.</p>
+
+<h2>Studies and review</h2>
+<ul class="docs">
+  <li><a href="brief.md">brief.md</a> — scope, evidence format, ownership, gates</li>
+  <li><a href="evaluation-method.md">evaluation-method.md</a> — evidence ladder, criteria, prototype protocol</li>
+  <li><a href="cad-study.md">cad-study.md</a> — NX, Onshape deep; CATIA partial; Creo screened</li>
+  <li><a href="simulation-study.md">simulation-study.md</a> — STK, SDI deep; Mechanical invalidation; STAR-CCM+ screened</li>
+  <li><a href="operations-study.md">operations-study.md</a> — Foundry, Seeq deep; PI Vision deep-lite; Grafana screened</li>
+  <li><a href="astraea-audit.md">astraea-audit.md</a> — live 8-task audit of main <code>d79dbe8</code></li>
+  <li><a href="review.md">review.md</a> — Muse verdicts (all revise-minor; rework applied)</li>
+</ul>
+
+<h2>CAD / configuration (OS unless noted)</h2>
+<div class="grid">
+  <figure><img src="evidence/cad/cad-ev-nx-chamfer-ai-select.png" alt="NX chamfer with predicted similar edges"><figcaption>NX chamfer: orange active edge vs blue predicted candidates; dialog + cursor popup (FIG-2).</figcaption></figure>
+  <figure><img src="evidence/cad/cad-ev-nx-selection-types-tab.png" alt="NX selection filters dialog"><figcaption>NX Selection Filters: type tree + Scope tab (FIG-1).</figcaption></figure>
+  <figure><img src="evidence/cad/cad-ev-onshape-compare-panel.png" alt="Onshape compare Main vs V3"><figcaption>Onshape Compare: blue/red base-target, difference list, blend slider (FIG-4).</figcaption></figure>
+  <figure><img src="evidence/cad/cad-ev-onshape-merge-dialog.png" alt="Onshape merge dialog"><figcaption>Onshape merge: Keep/Merge/Replace per tab (FIG-5).</figcaption></figure>
+  <figure><img src="evidence/cad/cad-ev-onshape-versions-graph.png" alt="Onshape version graph"><figcaption>Onshape versions graph: branches, merge lines, dot semantics (FIG-6).</figcaption></figure>
+  <figure><img src="evidence/cad/cad-ev-onshape-partstudio-ui.png" alt="Onshape part studio with rollback bar"><figcaption>Onshape Part Studio: feature list + rollback bar (FIG-3).</figcaption></figure>
+</div>
+
+<h2>Simulation / mission analysis</h2>
+<div class="grid">
+  <figure><img src="evidence/simulation/sdi_plot_signals.png" alt="SDI inspect view"><figcaption>SDI Inspect: signal table as index, plot as surface, archive bucket.</figcaption></figure>
+  <figure><img src="evidence/simulation/sdi_compare_time_tolerance.png" alt="SDI compare with tolerance band"><figcaption>SDI Compare: band + signed difference + pass/fail strip + baseline/compare properties.</figcaption></figure>
+  <figure><img src="evidence/simulation/sdi_compare_runs.png" alt="SDI run comparison summary"><figcaption>SDI run compare: match/mismatch counts, per-signal ABS/REL/MAX D.</figcaption></figure>
+  <figure><img src="evidence/simulation/stk_timeline_view.jpg" alt="STK timeline with access intervals"><figcaption>STK Timeline: availability vs access rows on a shared ruler.</figcaption></figure>
+  <figure><img src="evidence/simulation/stk_3d_data_display.jpg" alt="STK 3D dynamic data display"><figcaption>STK 3D data display: in-scene values with inline units.</figcaption></figure>
+</div>
+
+<h2>Operational analytics</h2>
+<div class="grid">
+  <figure><img src="evidence/operations/ops-quiver-overview-annotated.png" alt="Quiver analysis canvas"><figcaption>Quiver canvas: typed filter cards, parameters, drill-down footers.</figcaption></figure>
+  <figure><img src="evidence/operations/ops-seeq-compare-annotated.png" alt="Seeq compare view"><figcaption>Seeq Compare: capsule-relative time, per-lane axes, dimming.</figcaption></figure>
+  <figure><img src="evidence/operations/ops-pivision-workspace-annotated.png" alt="PI Vision workspace"><figcaption>PI Vision: asset panes, trend, gauge, one timebar (red = vendor callouts, blue = lane).</figcaption></figure>
+  <figure><img src="evidence/operations/ops-grafana-play-timeseries.png" alt="Grafana Play dashboard"><figcaption>Grafana Play (live capture): header time picker, URL-synced variables.</figcaption></figure>
+  <figure><img src="evidence/operations/ops-pivision-trend-1009503.png" alt="PI Vision trend cursors"><figcaption>PI Vision synchronized trend cursors with per-trace readouts.</figcaption></figure>
+</div>
+
+<h2>Running Astraea audit (main <code>d79dbe8</code>)</h2>
+<div class="grid">
+  <figure><img src="evidence/astraea/AUD-main-001-cad-default-1440x900.png" alt="Default workstation"><figcaption>Default Alpha workstation: header, assembly tree, canvas, HUD, inspector.</figcaption></figure>
+  <figure><img src="evidence/astraea/AUD-main-009-sim-run-result-1440x900.png" alt="Sim run result"><figcaption>6-DOF run: CURRENT badge, manifest, KPIs.</figcaption></figure>
+  <figure><img src="evidence/astraea/AUD-main-010-sim-stale-after-input-change-1440x900.png" alt="STALE badge after input change"><figcaption>After rail-length edit: STALE badges in manifest + flight status (re-captured, AUD-R1).</figcaption></figure>
+  <figure><img src="evidence/astraea/AUD-main-014-compact-1280x800.png" alt="Compact layout"><figcaption>Compact 1280×800: no overflow, header truncates.</figcaption></figure>
+  <figure><img src="evidence/astraea/AUD-fe-001-cad-default-1440x900.png" alt="Frontend worktree with mission rail"><figcaption>Frontend worktree delta: mission status rail (absent on main).</figcaption></figure>
+</div>
+</body>
+</html>

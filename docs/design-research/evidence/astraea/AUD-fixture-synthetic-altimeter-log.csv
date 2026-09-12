@@ -1,0 +1,17 @@
+# SYNTHETIC test fixture only — NOT measured telemetry.
+# In-repo synthetic sample (src/components/EvidenceStudio.test.tsx FLIGHT_CSV)
+# used to exercise Astraea Evidence ingestion UI.
+"time_s","altitude_m"
+0,18.2
+0.5,35.4
+1,58.9
+1.5,88.1
+2,123.6
+2.5,165.2
+3,214.2
+3.5,213.5
+4,190.4
+4.5,151.8
+5,113.2
+5.5,83.5
+6,61.2
