@@ -6,7 +6,23 @@
 import { create } from 'zustand';
 import { RocketVehicle, RocketComponent, StabilityAnalysis } from '../core/types';
 import type { MotorSpec } from '../propulsion/motorDatabase';
+import type { SixDofEvent, SixDofTelemetryPoint } from '../sim/sixDofSimulator';
 import { computeRocketStability } from '../aero/barrowman';
+
+/**
+ * One committed 6-DOF run, shared between the FlightSimulationTab (writer)
+ * and the Evidence overlay + mission rail (consumers) — Q5.
+ *
+ * Minimal by contract: telemetry + events + the input key the run was taken
+ * under. The consumer (TrajectoryOverlayChart via EvidenceStudio) owns all
+ * re-gridding/alignment; this record is presentation-ready raw output.
+ */
+export interface SimRunRecord {
+  telemetry: SixDofTelemetryPoint[];
+  events: SixDofEvent[];
+  /** Input snapshot key of the run (FlightSimulationTab's simulationInputKey). */
+  runKey: string;
+}
 
 export type ViewMode = 'solid' | 'wireframe' | 'xray';
 
@@ -226,6 +242,12 @@ export const PRESETS: Record<string, RocketVehicle> = {
 interface RocketStoreState {
   vehicle: RocketVehicle;
   selectedComponentId: string | null;
+  /** Last committed 6-DOF run (Q5): written by FlightSimulationTab on a
+   *  successful commit, consumed by the Evidence overlay. Reset with the
+   *  store; never part of the vehicle undo/redo history. */
+  lastSimRun: SimRunRecord | null;
+  /** Commit a completed run for the Evidence overlay / mission rail. */
+  commitSimRun: (run: SimRunRecord) => void;
   /** Shared flight motor selection (FlightSimulationTab, PropulsionStudio,
    *  TrajectoryStudio all read/drive this one id). Defaults to the Estes C6. */
   selectedMotorId: string;
@@ -271,6 +293,8 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
   return {
     vehicle: initialVehicle,
     selectedComponentId: initialVehicle.components[0].id,
+    lastSimRun: null,
+    commitSimRun: (run) => set({ lastSimRun: run }),
     selectedMotorId: 'estes_c6',
     customMotors: {},
     selectMotor: (id) => set({ selectedMotorId: id }),
@@ -418,6 +442,7 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
         vehicle: initialVehicle,
         selectedComponentId: initialVehicle.components[0].id,
         selectedMotorId: 'estes_c6',
+        lastSimRun: null,
         stability: initialStability,
         history: [],
         future: [],

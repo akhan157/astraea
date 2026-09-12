@@ -20,9 +20,12 @@
  */
 
 import React, { useState } from 'react';
-import { Activity, Variable, Package, ClipboardPaste } from 'lucide-react';
+import { Activity, Variable, Package, ClipboardPaste, Layers3 } from 'lucide-react';
 import { parseAltimeterCsv, resample, AltitudeSample } from '../evidence/altimetry';
+import { buildOverlaySeries, simTelemetryToSamples, OverlayModel } from '../evidence/overlay';
 import { calibrateCd, CoastPoint, CalibrationResult } from '../evidence/calibration';
+import { useRocketStore } from '../store/rocketStore';
+import { TrajectoryOverlayChart, OverlayEventMarker } from './TrajectoryOverlayChart';
 import {
   bayVolume,
   packedDensity,
@@ -170,8 +173,10 @@ function Card({ title, kicker, icon, children }: {
   );
 }
 
-/** Card 1 — paste CSV, parse, resample; sample count + apogee. */
-function AltimetryCard(): React.JSX.Element {
+/** Card 1 — paste CSV, parse, resample; sample count + apogee. Reports the
+ *  parsed samples upward so the Sim-vs-Actual overlay card can consume them
+ *  (Q5: lastSimRun + parsed log). */
+function AltimetryCard({ onParsed }: { onParsed: (samples: AltitudeSample[] | null) => void }): React.JSX.Element {
   const [csvText, setCsvText] = useState<string>('');
   const [csvTextDirty, setCsvTextDirty] = useState<boolean>(false);
   const [parsed, setParsed] = useState<AltitudeSample[] | null>(null);
@@ -188,10 +193,12 @@ function AltimetryCard(): React.JSX.Element {
       setParsed(samples);
       setError(null);
       setResampled(null);
+      onParsed(samples);
     } catch (err) {
       setParsed(null);
       setResampled(null);
       setError(err instanceof Error ? err.message : String(err));
+      onParsed(null);
     }
   };
 
@@ -317,7 +324,71 @@ function AltimetryCard(): React.JSX.Element {
   );
 }
 
-/** Card 2 — editable coast points fit to an effective Cd. */
+/** Card 2 — sim-vs-actual overlay (Q4/Q5/Q11): consumes the last committed
+ *  6-DOF run (store) + the parsed flight log (AltimetryCard), re-grids both
+ *  at dt = 0.1 s with the downsample cap, aligns apogees, and renders the
+ *  reusable TrajectoryOverlayChart with the sim's event markers. The model
+ *  and its error are pure derivations of (lastSimRun, parsedLog). */
+function OverlayCard({ parsedLog }: { parsedLog: AltitudeSample[] | null }): React.JSX.Element {
+  const lastSimRun = useRocketStore((s) => s.lastSimRun);
+
+  let model: OverlayModel | null = null;
+  let overlayError: string | null = null;
+  if (lastSimRun !== null && parsedLog !== null) {
+    try {
+      model = buildOverlaySeries(simTelemetryToSamples(lastSimRun.telemetry), parsedLog);
+    } catch (err) {
+      overlayError = err instanceof Error ? err.message : String(err);
+    }
+  }
+
+  const eventMarkers: OverlayEventMarker[] =
+    lastSimRun === null ? [] : lastSimRun.events.map((e) => ({ timeS: e.time, name: e.name }));
+
+  return (
+    <Card
+      title="Sim vs Actual"
+      kicker="Last committed 6-DOF run over the parsed flight log — Q4 grid dt = 0.1 s · Q11 series tokens"
+      icon={<Layers3 className="w-4 h-4" />}
+    >
+      {lastSimRun === null && (
+        <p className="text-[10px] text-zinc-500 font-mono leading-snug" role="status">
+          No committed 6-DOF run yet — open Flight Dynamics, run a simulation, and the last run
+          appears here as the modeled (cyan) series.
+        </p>
+      )}
+
+      {lastSimRun !== null && parsedLog === null && (
+        <p className="text-[10px] text-amber-400/90 font-mono leading-snug" role="status">
+          Last committed run ready ({lastSimRun.telemetry.length} modeled samples) — paste and parse a
+          flight-log CSV above to overlay the recorded (violet) series.
+        </p>
+      )}
+
+      {lastSimRun !== null && parsedLog !== null && model === null && overlayError !== null && (
+        <div
+          className="p-2.5 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-[10px] font-mono"
+          role="alert"
+        >
+          Overlay unavailable: {overlayError}
+        </div>
+      )}
+
+      {model !== null && (
+        <div className="p-3 bg-zinc-900/60 rounded-xl border border-zinc-800/80">
+          <TrajectoryOverlayChart model={model} events={eventMarkers} />
+          <p className="mt-1.5 text-[9px] text-zinc-600 font-mono">
+            {model.modeled.points.length} modeled pts @ dt {model.dtS.toFixed(1)} s ·{' '}
+            {model.recorded.points.length} recorded pts · flight time offset {model.timeOffsetS.toFixed(2)} s ·{' '}
+            Δapogee {model.apogeeDeltaM >= 0 ? '+' : ''}{model.apogeeDeltaM.toFixed(1)} m
+          </p>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/** Card 3 — editable coast points fit to an effective Cd. */
 function CalibrationCard(): React.JSX.Element {
   const [rows, setRows] = useState<CoastRow[]>(CALIBRATION_PRESET.map((r) => ({ ...r })));
   const [error, setError] = useState<string | null>(null);
@@ -532,6 +603,7 @@ function RecoveryCard(): React.JSX.Element {
 
 /** Self-contained Evidence + Recovery Studio panel. */
 export function EvidenceStudio(): React.JSX.Element {
+  const [parsedLog, setParsedLog] = useState<AltitudeSample[] | null>(null);
   return (
     <div className="p-6 space-y-6 text-xs text-zinc-200">
       <header>
@@ -539,11 +611,12 @@ export function EvidenceStudio(): React.JSX.Element {
           Evidence + Recovery Studio
         </h2>
         <p className="text-xs text-zinc-400">
-          Flight-log analysis, drag calibration, and recovery packing/charge sizing (preview — evidence only, no sim overlay)
+          Flight-log analysis, sim-vs-actual overlay, drag calibration, and recovery packing/charge sizing
         </p>
       </header>
 
-      <AltimetryCard />
+      <AltimetryCard onParsed={setParsedLog} />
+      <OverlayCard parsedLog={parsedLog} />
       <CalibrationCard />
       <RecoveryCard />
     </div>

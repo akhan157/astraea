@@ -30,6 +30,7 @@ interface FlightSimulationTabProps {
 
 export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen, onClose }) => {
   const vehicle = useRocketStore((s) => s.vehicle);
+  const commitSimRun = useRocketStore((s) => s.commitSimRun);
   // Shared flight-motor selection: one store id drives FlightSim,
   // PropulsionStudio, and TrajectoryStudio (Round-19 coherence).
   const selectedMotorId = useRocketStore((s) => s.selectedMotorId);
@@ -249,6 +250,13 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
       setSimError(null);
       setSimResult(res);
       setLastRunInputKey(simulationInputKey);
+      // Q5: the Evidence overlay consumes the last committed run. Minimal by
+      // contract — telemetry + events + the input key the run was taken under.
+      commitSimRun({
+        telemetry: res.telemetry,
+        events: res.events,
+        runKey: simulationInputKey,
+      });
     } catch (err) {
       setSimResult(null);
       setLastRunInputKey(null);
