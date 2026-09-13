@@ -166,10 +166,44 @@ describe('entropyIntegral — NASA-7 a7 fit anchored at S°(298.15 K)', () => {
     H2O: 188.835, H2: 130.680, CO2: 213.795, CO: 197.660, N2: 191.609,
     HCl: 186.902, O2: 205.152, O: 161.059, H: 114.716, Al2O3: 50.92,
   };
-  for (const species of Object.keys(S298_J_PER_MOL_K) as SpeciesName[]) {
-    it(`reproduces S°(298.15 K) = ${S298_J_PER_MOL_K[species]} J/(mol·K) for ${species}`, () => {
-      const sPerR = entropyIntegral(species, STANDARD_TEMPERATURE);
-      expect((sPerR * R_UNIVERSAL) / 1000).toBeCloseTo(S298_J_PER_MOL_K[species], 6);
-    });
-  }
+  it('reproduces S°(298.15 K) for H2O', () => {
+    expect((entropyIntegral('H2O', STANDARD_TEMPERATURE) * R_UNIVERSAL) / 1000).toBeCloseTo(
+      S298_J_PER_MOL_K['H2O'], 6);
+  });
+  it('reproduces S°(298.15 K) for H2', () => {
+    expect((entropyIntegral('H2', STANDARD_TEMPERATURE) * R_UNIVERSAL) / 1000).toBeCloseTo(
+      S298_J_PER_MOL_K['H2'], 6);
+  });
+  it('reproduces S°(298.15 K) for CO2', () => {
+    expect((entropyIntegral('CO2', STANDARD_TEMPERATURE) * R_UNIVERSAL) / 1000).toBeCloseTo(
+      S298_J_PER_MOL_K['CO2'], 6);
+  });
+  it('reproduces S°(298.15 K) for CO', () => {
+    expect((entropyIntegral('CO', STANDARD_TEMPERATURE) * R_UNIVERSAL) / 1000).toBeCloseTo(
+      S298_J_PER_MOL_K['CO'], 6);
+  });
+  it('reproduces S°(298.15 K) for N2', () => {
+    expect((entropyIntegral('N2', STANDARD_TEMPERATURE) * R_UNIVERSAL) / 1000).toBeCloseTo(
+      S298_J_PER_MOL_K['N2'], 6);
+  });
+  it('reproduces S°(298.15 K) for HCl', () => {
+    expect((entropyIntegral('HCl', STANDARD_TEMPERATURE) * R_UNIVERSAL) / 1000).toBeCloseTo(
+      S298_J_PER_MOL_K['HCl'], 6);
+  });
+  it('reproduces S°(298.15 K) for O2', () => {
+    expect((entropyIntegral('O2', STANDARD_TEMPERATURE) * R_UNIVERSAL) / 1000).toBeCloseTo(
+      S298_J_PER_MOL_K['O2'], 6);
+  });
+  it('reproduces S°(298.15 K) for O', () => {
+    expect((entropyIntegral('O', STANDARD_TEMPERATURE) * R_UNIVERSAL) / 1000).toBeCloseTo(
+      S298_J_PER_MOL_K['O'], 6);
+  });
+  it('reproduces S°(298.15 K) for H', () => {
+    expect((entropyIntegral('H', STANDARD_TEMPERATURE) * R_UNIVERSAL) / 1000).toBeCloseTo(
+      S298_J_PER_MOL_K['H'], 6);
+  });
+  it('reproduces S°(298.15 K) for Al2O3', () => {
+    expect((entropyIntegral('Al2O3', STANDARD_TEMPERATURE) * R_UNIVERSAL) / 1000).toBeCloseTo(
+      S298_J_PER_MOL_K['Al2O3'], 6);
+  });
 });

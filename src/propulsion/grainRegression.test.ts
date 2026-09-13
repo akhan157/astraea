@@ -416,7 +416,38 @@ describe('C10 geometries: web reaches burnout (volume 0)', () => {
     },
   ];
 
-  it.each(cases)('$name: full web burned, remaining volume 0, port at the case', (c) => {
+  it('end burner: full web burned, remaining volume 0, port at the case', () => {
+    const c = cases[0];
+    const last = c.t.webBurned.length - 1;
+    expect(c.t.webBurned.length).toBe(c.t.portArea.length);
+    expect(c.t.burnArea.length).toBe(c.t.webBurned.length);
+    expect(c.t.volumeRemaining.length).toBe(c.t.webBurned.length);
+    expect(c.t.webBurned[last]).toBeCloseTo(c.maxWeb, 12);
+    expect(c.t.volumeRemaining[last]).toBeCloseTo(0, 12);
+    expect(c.t.portArea[last]).toBeCloseTo(c.portFinal, 6);
+  });
+  it('rod & tube: full web burned, remaining volume 0, port at the case', () => {
+    const c = cases[1];
+    const last = c.t.webBurned.length - 1;
+    expect(c.t.webBurned.length).toBe(c.t.portArea.length);
+    expect(c.t.burnArea.length).toBe(c.t.webBurned.length);
+    expect(c.t.volumeRemaining.length).toBe(c.t.webBurned.length);
+    expect(c.t.webBurned[last]).toBeCloseTo(c.maxWeb, 12);
+    expect(c.t.volumeRemaining[last]).toBeCloseTo(0, 12);
+    expect(c.t.portArea[last]).toBeCloseTo(c.portFinal, 6);
+  });
+  it('moon burner: full web burned, remaining volume 0, port at the case', () => {
+    const c = cases[2];
+    const last = c.t.webBurned.length - 1;
+    expect(c.t.webBurned.length).toBe(c.t.portArea.length);
+    expect(c.t.burnArea.length).toBe(c.t.webBurned.length);
+    expect(c.t.volumeRemaining.length).toBe(c.t.webBurned.length);
+    expect(c.t.webBurned[last]).toBeCloseTo(c.maxWeb, 12);
+    expect(c.t.volumeRemaining[last]).toBeCloseTo(0, 12);
+    expect(c.t.portArea[last]).toBeCloseTo(c.portFinal, 6);
+  });
+  it('c-slot: full web burned, remaining volume 0, port at the case', () => {
+    const c = cases[3];
     const last = c.t.webBurned.length - 1;
     expect(c.t.webBurned.length).toBe(c.t.portArea.length);
     expect(c.t.burnArea.length).toBe(c.t.webBurned.length);
