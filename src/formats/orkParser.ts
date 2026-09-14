@@ -17,6 +17,7 @@ import {
   MassComponent,
   NoseconeShape,
   FinCrossSection,
+  STANDARD_MATERIALS,
 } from '../core/types';
 
 export class InvalidOrkFileError extends Error {
@@ -57,6 +58,61 @@ function parseNum(val: unknown, fallback: number = 0): number {
   if (typeof val === 'string') {
     const parsed = parseFloat(val);
     return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  return fallback;
+}
+/**
+ * Material identity round-trip (F2: export→import mass fidelity).
+ *
+ * OpenRocket writes structural materials as `<material type="bulk"
+ * density="…">Name</material>` on nosecones, tubes, transitions and fin
+ * sets. Astraea's exporter writes the same shape with two guarantees of its
+ * own: `density` is SI kg/m³ (the unit of STANDARD_MATERIALS) and the
+ * element text is the Astraea material id when the component's material is
+ * catalogued. Import resolution prefers an exact catalog id, then a catalog
+ * display-name match, then the nearest catalog density within 5%, and keeps
+ * the legacy hardcoded default when the element is absent (third-party and
+ * legacy files). Unknown ids/densities also fall back rather than fail.
+ */
+function materialElement(materialId: string | undefined): unknown {
+  if (!materialId) return undefined;
+  const catalogued = STANDARD_MATERIALS[materialId];
+  return {
+    material: {
+      '@_type': 'bulk',
+      ...(catalogued ? { '@_density': catalogued.density } : {}),
+      '#text': materialId,
+    },
+  };
+}
+
+function resolveMaterialId(sub: Record<string, unknown>, fallback: string): string {
+  const raw = sub.material as unknown;
+  const node = (
+    typeof raw === 'string' ? { '#text': raw } : (raw as Record<string, unknown> | null)
+  ) as { '#text'?: unknown; '@_density'?: unknown; density?: unknown } | null;
+  if (!node) return fallback;
+  const text = typeof node['#text'] === 'string' ? (node['#text'] as string).trim() : '';
+  if (text) {
+    const byId = Object.keys(STANDARD_MATERIALS).find((id) => id.toLowerCase() === text.toLowerCase());
+    if (byId) return byId;
+    const byName = Object.keys(STANDARD_MATERIALS).find(
+      (id) => STANDARD_MATERIALS[id].name.toLowerCase() === text.toLowerCase()
+    );
+    if (byName) return byName;
+  }
+  const density = parseNum(node['@_density'] ?? node.density, Number.NaN);
+  if (Number.isFinite(density) && (density as number) > 0) {
+    let best: string | null = null;
+    let bestRel = 0.05;
+    for (const [id, mat] of Object.entries(STANDARD_MATERIALS)) {
+      const rel = Math.abs(mat.density - (density as number)) / (density as number);
+      if (rel < bestRel) {
+        bestRel = rel;
+        best = id;
+      }
+    }
+    if (best) return best;
   }
   return fallback;
 }
@@ -130,7 +186,7 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
             baseDiameter: aftRadius * 2,
             wallThickness: thickness,
             isHollow: thickness > 0,
-            materialId: 'cardboard',
+            materialId: resolveMaterialId(sub, 'cardboard'),
             massOverride: sub.overridemass ? parseNum(sub.overridemass) : undefined,
           };
           components.push(nose);
@@ -146,7 +202,7 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
             length,
             outerDiameter: radius * 2,
             innerDiameter: Math.max(0, (radius - thickness) * 2),
-            materialId: 'cardboard',
+            materialId: resolveMaterialId(sub, 'cardboard'),
             massOverride: sub.overridemass ? parseNum(sub.overridemass) : undefined,
           };
           components.push(tube);
@@ -173,7 +229,7 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
             aftDiameter: aftRadius * 2,
             wallThickness: thickness,
             isHollow: thickness > 0,
-            materialId: 'cardboard',
+            materialId: resolveMaterialId(sub, 'cardboard'),
             massOverride: sub.overridemass ? parseNum(sub.overridemass) : undefined,
           };
           components.push(transition);
@@ -204,7 +260,7 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
             thickness,
             crossSection,
             axialOffset,
-            materialId: 'balsa',
+            materialId: resolveMaterialId(sub, 'balsa'),
             massOverride: sub.overridemass ? parseNum(sub.overridemass) : undefined,
           };
           components.push(fins);
@@ -228,7 +284,7 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
             span,
             thickness,
             axialOffset,
-            materialId: 'balsa',
+            materialId: resolveMaterialId(sub, 'balsa'),
             massOverride: sub.overridemass ? parseNum(sub.overridemass) : undefined,
           };
           components.push(fins);
@@ -245,7 +301,7 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
             cd,
             mass,
             axialOffset: 0.05,
-            materialId: 'cardboard',
+            materialId: resolveMaterialId(sub, 'cardboard'),
           };
           components.push(parachute);
         } else if (key === 'masscomponent') {
@@ -259,7 +315,7 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
             mass,
             length,
             axialOffset: 0.05,
-            materialId: 'cardboard',
+            materialId: resolveMaterialId(sub, 'cardboard'),
           };
           components.push(massComp);
         }
@@ -297,9 +353,14 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
 export async function exportToOrk(vehicle: RocketVehicle): Promise<Uint8Array> {
   const zip = new JSZip();
 
-  // Find components
+  // Find components (every kind the importer understands is exported; F2:
+  // silently dropped transitions/parachutes/mass parts drifted length and
+  // mass on re-import).
   const nose = vehicle.components.find((c) => c.type === 'nosecone') as NoseconeComponent | undefined;
   const bodyTubes = vehicle.components.filter((c) => c.type === 'bodytube') as BodyTubeComponent[];
+  const transitions = vehicle.components.filter((c) => c.type === 'transition') as TransitionComponent[];
+  const parachutes = vehicle.components.filter((c) => c.type === 'parachute') as ParachuteComponent[];
+  const massParts = vehicle.components.filter((c) => c.type === 'masscomponent') as MassComponent[];
   const fins = vehicle.components.find((c) => c.type === 'trapezoidfinset' || c.type === 'ellipticalfinset');
 
   // Construct XML object
@@ -323,6 +384,7 @@ export async function exportToOrk(vehicle: RocketVehicle): Promise<Uint8Array> {
                     aftradius: nose.baseDiameter / 2,
                     thickness: nose.wallThickness,
                     ...(nose.massOverride ? { overridemass: nose.massOverride } : {}),
+                    ...(materialElement(nose.materialId) as object),
                   }
                 : undefined,
               bodytube: bodyTubes.map((bt) => ({
@@ -331,6 +393,7 @@ export async function exportToOrk(vehicle: RocketVehicle): Promise<Uint8Array> {
                 radius: bt.outerDiameter / 2,
                 thickness: (bt.outerDiameter - bt.innerDiameter) / 2,
                 ...(bt.massOverride ? { overridemass: bt.massOverride } : {}),
+                ...(materialElement(bt.materialId) as object),
                 subcomponents:
                   fins && bt === bodyTubes[bodyTubes.length - 1]
                     ? fins.type === 'trapezoidfinset'
@@ -344,6 +407,7 @@ export async function exportToOrk(vehicle: RocketVehicle): Promise<Uint8Array> {
                             sweeplength: fins.sweepLength,
                             thickness: fins.thickness,
                             crosssection: fins.crossSection.toUpperCase(),
+                            ...(materialElement(fins.materialId) as object),
                           },
                         }
                       : {
@@ -353,10 +417,39 @@ export async function exportToOrk(vehicle: RocketVehicle): Promise<Uint8Array> {
                             rootchord: fins.rootChord,
                             height: fins.span,
                             thickness: fins.thickness,
+                            ...(materialElement(fins.materialId) as object),
                           },
                         }
                     : undefined,
               })),
+              transition: transitions.length
+                ? transitions.map((tr) => ({
+                name: tr.name,
+                length: tr.length,
+                foreradius: tr.foreDiameter / 2,
+                aftradius: tr.aftDiameter / 2,
+                thickness: tr.wallThickness,
+                ...(tr.massOverride ? { overridemass: tr.massOverride } : {}),
+                ...(materialElement(tr.materialId) as object),
+              }))
+                : undefined,
+              parachute: parachutes.length
+                ? parachutes.map((ch) => ({
+                name: ch.name,
+                diameter: ch.diameter,
+                cd: ch.cd,
+                overridemass: ch.mass,
+                ...(materialElement(ch.materialId) as object),
+              }))
+                : undefined,
+              masscomponent: massParts.length
+                ? massParts.map((mc) => ({
+                name: mc.name,
+                mass: mc.mass,
+                length: mc.length,
+                ...(materialElement(mc.materialId) as object),
+              }))
+                : undefined,
             },
           },
         },

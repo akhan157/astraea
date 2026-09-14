@@ -2,12 +2,14 @@
  * Blueprint PNG rasterizer contract tests (Q10 zero-dep canvas).
  *
  * jsdom does not rasterize SVG nor encode PNGs, so these cases pin the
- * forward contract that the app runtime — not the test host — must satisfy:
+ * standard callback-form `canvas.toBlob` contract the app runtime must
+ * satisfy in a real browser:
  *   - empty/whitespace documents are rejected up front, before any DOM work;
  *   - the exporter fails explicitly when canvas PNG encoding is unavailable
  *     (jsdom's canvas has no `toBlob`), rather than mysteriously;
- *   - when the runtime does expose a conforming encoder, the returned Blob
- *     carries the image/png MIME.
+ *   - a null encoder result fails explicitly instead of dereferencing null;
+ *   - when the runtime encodes, the requested MIME is image/png and the
+ *     returned Blob carries the image/png MIME.
  */
 
 // @vitest-environment jsdom
@@ -99,19 +101,18 @@ describe('renderBlueprintPng', () => {
     }
     expect(created).toHaveLength(1);
   });
-
   it('encodes to a Blob with the image/png MIME contract via canvas.toBlob', async () => {
+    let requestedType: string | undefined;
     const drawImage = () => {};
     document.createElement = (tag: string) => {
       if (tag === 'img') return FAKE_IMG as unknown as HTMLImageElement;
       if (tag === 'canvas') {
         const canvas = originalCreateElement('canvas') as HTMLCanvasElement;
-        // The lib-declared toBlob is the legacy callback form; the runtime
-        // under test implements the Promise form, so the stub is cast.
-        canvas.toBlob = (async (format: string) => {
-          expect(format).toBe('png');
-          return new Blob(['\x89PNG'], { type: 'image/png' });
-        }) as unknown as typeof canvas.toBlob;
+        // Standard callback form: the encoder receives (callback, mime).
+        canvas.toBlob = (callback: (blob: Blob | null) => void, type?: string) => {
+          requestedType = type;
+          callback(new Blob(['\x89PNG'], { type: 'image/png' }));
+        };
         canvas.getContext = (() => ({ drawImage }) as unknown as CanvasRenderingContext2D) as unknown as typeof canvas.getContext;
         return canvas;
       }
@@ -126,6 +127,32 @@ describe('renderBlueprintPng', () => {
       const blob = await renderBlueprintPng(SVG);
       expect(blob.type).toBe('image/png');
       expect(blob.size).toBeGreaterThan(0);
+      expect(requestedType).toBe('image/png');
+    } finally {
+      globalThis.URL = oldUrl;
+    }
+  });
+
+  it('fails explicitly when the encoder yields no image data', async () => {
+    document.createElement = (tag: string) => {
+      if (tag === 'img') return FAKE_IMG as unknown as HTMLImageElement;
+      if (tag === 'canvas') {
+        const canvas = originalCreateElement('canvas') as HTMLCanvasElement;
+        canvas.toBlob = (callback: (blob: Blob | null) => void) => {
+          callback(null);
+        };
+        canvas.getContext = (() => ({ drawImage: () => {} }) as unknown as CanvasRenderingContext2D) as unknown as typeof canvas.getContext;
+        return canvas;
+      }
+      return originalCreateElement(tag);
+    };
+    const createObjectURL = (b: Blob) => `blob:svg-${b.size}`;
+    const revokeObjectURL = () => {};
+    const oldUrl = globalThis.URL;
+    // @ts-expect-error URL stub lacks the factory constructor members
+    globalThis.URL = { createObjectURL, revokeObjectURL };
+    try {
+      await expect(renderBlueprintPng(SVG)).rejects.toThrow(/no image data/);
     } finally {
       globalThis.URL = oldUrl;
     }
