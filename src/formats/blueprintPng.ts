@@ -4,30 +4,19 @@
  * Renders a standalone blueprint SVG (see ./blueprint) to a PNG Blob using
  * only stock browser machinery: the document is served to an <img> through a
  * blob: URL, decoded, composited onto an offscreen <canvas> at its intrinsic
- * size, and encoded with `canvas.toBlob` — no rasterization dependency beyond
- * what the host browser already provides (Q10 zero-dep canvas).
+ * size, and encoded with the standard callback-form `canvas.toBlob` — no
+ * rasterization dependency beyond what the host browser already provides
+ * (Q10 zero-dep canvas).
  *
  * Encoding capability: the runtime must implement `canvas.toBlob` (present in
- * this application's canvas runtime, absent in plain jsdom). When it is
- * missing the exporter fails with an explicit, actionable error instead of a
- * cryptic null dereference. The returned Blob always advertises
- * `image/png` regardless of the encoder's default MIME.
+ * browsers, absent in plain jsdom). When it is missing — or when the encoder
+ * yields no image data — the exporter fails with an explicit, actionable
+ * error instead of a cryptic null dereference. The returned Blob always
+ * advertises `image/png` regardless of the encoder's default MIME.
  */
 
-/** Encoder format argument; the short form matches the documented canvas API. */
-const PNG_FORMAT = 'png';
-
-/**
- * Canvas/2-D extensions supplied by this application's browser runtime. The
- * DOM lib's `toBlob` is the legacy callback form; the runtime here implements
- * the Promise form, expressed as an intersection with the lib type.
- */
-interface PngEncodeCapable {
-  toBlob(format: string): Promise<Blob>;
-}
-interface PngDrawCapable {
-  drawImage(image: HTMLImageElement, x: number, y: number): void;
-}
+/** MIME type requested from the canvas encoder. */
+const PNG_MIME = 'image/png';
 
 /** Intrinsic pixel size, preferring the decoder's report, else the SVG's own px width/height. */
 function intrinsicSize(svg: string, img: HTMLImageElement): { width: number; height: number } | null {
@@ -80,10 +69,7 @@ export async function renderBlueprintPng(svg: string): Promise<Blob> {
     canvas.width = size.width;
     canvas.height = size.height;
 
-    // The runtime canvas carries the Promise-form encoder on the DOM type.
-    const encodable = canvas as HTMLCanvasElement & PngEncodeCapable;
-    const encode = encodable.toBlob;
-    if (typeof encode !== 'function') {
+    if (typeof canvas.toBlob !== 'function') {
       throw new Error(
         'blueprint png: PNG encoding requires a canvas.toBlob-capable runtime, ' +
         'which this environment does not provide'
@@ -93,11 +79,17 @@ export async function renderBlueprintPng(svg: string): Promise<Blob> {
     if (!context) {
       throw new Error('blueprint png: the canvas 2D context is unavailable in this environment');
     }
-    // The runtime context exposes the non-standard drawImage compositor.
-    const drawable = context as CanvasRenderingContext2D & PngDrawCapable;
-    drawable.drawImage(img, 0, 0);
+    context.drawImage(img, 0, 0);
 
-    const png = await encode.call(canvas, PNG_FORMAT);
+    const png = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) =>
+          blob
+            ? resolve(blob)
+            : reject(new Error('blueprint png: the canvas encoder returned no image data')),
+        PNG_MIME
+      );
+    });
     // Enforce the image/png MIME contract even if the encoder omits a type.
     return png.type === 'image/png' ? png : new Blob([png], { type: 'image/png' });
   } finally {
