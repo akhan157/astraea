@@ -233,6 +233,28 @@ function baseFixture(over = {}) {
     'src/formats/engParser.test.ts': specLine('eng import', 'parses rasp'),
     'src/formats/blueprint.test.ts': specLine('blueprint export', 'draws side view'),
     'src/formats/blueprintPng.test.ts': specLine('blueprint png', 'rasterizes canvas'),
+    'src/aero/finStructure.test.ts': specLine('fin structure', 'bounds stress'),
+    'src/aero/stabilityBreakdown.test.ts': specLine('stability explain', 'attributes CP'),
+    'src/formats/rktExport.test.ts': specLine('rkt export', 'round-trips'),
+    'src/formats/stepExport.test.ts': specLine('step export', 'tessellates'),
+    'src/formats/stlExport.test.ts': specLine('stl export', 'writes facets'),
+    'src/propulsion/curveEditing.test.ts': specLine('curve editing', 'validates edits'),
+    'src/propulsion/gibbsEquilibrium.test.ts': specLine('gibbs solver', 'conserves elements'),
+    'src/propulsion/thrustcurveApi.test.ts': specLine('thrustcurve api', 'searches motors'),
+    'src/sim/motorVariance.test.ts': specLine('motor variance', 'bands sigma'),
+    'src/sim/waiverContainment.test.ts': specLine('waiver check', 'contains landings'),
+    'src/sim/windProfile.test.ts': specLine('wind profile', 'parses csv'),
+    'src/aero/finStructure.ts': 'export const computeFinStructuralLoads = () => ({});\n',
+    'src/aero/stabilityBreakdown.ts': 'export const explainStability = () => ({});\n',
+    'src/formats/rktExport.ts': 'export const exportRkt = () => "";\n',
+    'src/formats/stepExport.ts': 'export const tessellateVehicle = () => ({});\n',
+    'src/formats/stlExport.ts': 'export const exportStlBinary = () => new ArrayBuffer(0);\n',
+    'src/propulsion/curveEditing.ts': 'export const validateCurve = () => ({});\n',
+    'src/propulsion/gibbsEquilibrium.ts': 'export const solveEquilibrium = () => ({});\n',
+    'src/propulsion/thrustcurveApi.ts': 'export const searchMotors = async () => [];\n',
+    'src/sim/motorVariance.ts': 'export const sigmaForImpulseClass = () => ({});\n',
+    'src/sim/waiverContainment.ts': 'export const containmentCheck = () => ({});\n',
+    'src/sim/windProfile.ts': 'export const parseWindProfileCsv = () => [];\n',
     'src/formats/engParser.ts': 'export const parseRaspEng = () => ({});\n',
     'src/formats/blueprint.ts': 'export const exportBlueprintSvg = () => "";\n',
     'src/formats/blueprintPng.ts': 'export const renderBlueprintPng = async () => new Blob();\n',
@@ -294,6 +316,18 @@ function makeVitestJson({
     'src/components/FlightSimulationTab.test.tsx',
     'src/aero/transonicAero.test.ts',
     'src/aero/barrowman.test.ts',
+    'src/aero/finStructure.test.ts',
+    'src/aero/stabilityBreakdown.test.ts',
+    'src/formats/rktExport.test.ts',
+    'src/formats/stepExport.test.ts',
+    'src/formats/stlExport.test.ts',
+    'src/propulsion/curveEditing.test.ts',
+    'src/propulsion/gibbsEquilibrium.test.ts',
+    'src/propulsion/thrustcurveApi.test.ts',
+    'src/sim/motorVariance.test.ts',
+    'src/sim/waiverContainment.test.ts',
+    'src/sim/windProfile.test.ts',
+    'scripts/emit-benchmark-metadata.test.cjs',
     'src/aero/finFlutter.test.ts',
     'src/sim/flightSimulator.test.ts',
     'src/formats/orkParser.test.ts',
@@ -315,7 +349,6 @@ function makeVitestJson({
     'src/formats/engParser.test.ts',
     'src/formats/blueprint.test.ts',
     'src/formats/blueprintPng.test.ts',
-    'scripts/emit-benchmark-metadata.test.cjs',
   ];
   const fileResults = acceptanceFiles
     .filter((rel) => !omitFile.includes(rel))
@@ -645,13 +678,13 @@ it('vitest per-file totals parsed from assertionResults, not f.assertions', () =
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
-  assert.equal(parsed.files.length, 32);
+  assert.equal(parsed.files.length, 43);
   const vvFile = parsed.files.find((file) => file.file === 'vv-benchmarks.test.ts');
   assert.equal(vvFile.testCases.total, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.passed, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.failed, 0);
   assert.equal(vvFile.testCases.unknown, 0);
-  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 31);
+  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 42);
 });
 
 it('vitest JSON unparseable => certification fails', () => {
@@ -852,7 +885,7 @@ it('new acceptance suites are required and hashed', () => {
 
 it('M1: every collected suite in the fixed inventory is cited in hashes.files', () => {
   const { FIXED_TEST_FILE_INVENTORY } = require('./emit-benchmark-metadata.cjs');
-  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 32, 'acceptance list must stay at 32');
+  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 43, 'acceptance list must stay at 43');
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
@@ -860,7 +893,7 @@ it('M1: every collected suite in the fixed inventory is cited in hashes.files', 
   for (const rel of FIXED_TEST_FILE_INVENTORY) {
     assert.ok(rel in evidence.hashes.files, `${rel} must be cited (hashed)`);
   }
-  assert.equal(citedTestFiles.length, 32, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
+  assert.equal(citedTestFiles.length, 43, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
 });
 
 it('M2: emitter suite executed count binds to its source case count', () => {
