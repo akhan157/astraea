@@ -246,6 +246,8 @@ function baseFixture(over = {}) {
     'src/sim/motorVariance.test.ts': specLine('motor variance', 'bands sigma'),
     'src/sim/waiverContainment.test.ts': specLine('waiver check', 'contains landings'),
     'src/sim/windProfile.test.ts': specLine('wind profile', 'parses csv'),
+    'src/application/caseResolver.test.ts': specLine('case resolver', 'keys content'),
+    'src/application/caseResolver.ts': 'export const snapshotCase = () => ({});\n',
     'src/evidence/gpsTrack.test.ts': specLine('gps track', 'projects fixes'),
     'src/evidence/gpsTrack.ts': 'export const parseGpxTrack = () => [];\n',
     'src/onboarding/onboarding.test.ts': specLine('onboarding pack', 'pins copy and schema'),
@@ -339,6 +341,7 @@ function makeVitestJson({
     'src/onboarding/onboarding.test.ts',
     'src/sim/waiverContainment.test.ts',
     'src/sim/windProfile.test.ts',
+    'src/application/caseResolver.test.ts',
     'scripts/emit-benchmark-metadata.test.cjs',
     'src/aero/finFlutter.test.ts',
     'src/sim/flightSimulator.test.ts',
@@ -692,13 +695,13 @@ it('vitest per-file totals parsed from assertionResults, not f.assertions', () =
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
-  assert.equal(parsed.files.length, 47);
+  assert.equal(parsed.files.length, 48);
   const vvFile = parsed.files.find((file) => file.file === 'vv-benchmarks.test.ts');
   assert.equal(vvFile.testCases.total, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.passed, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.failed, 0);
   assert.equal(vvFile.testCases.unknown, 0);
-  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 46);
+  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 47);
 });
 
 it('vitest JSON unparseable => certification fails', () => {
@@ -899,7 +902,7 @@ it('new acceptance suites are required and hashed', () => {
 
 it('M1: every collected suite in the fixed inventory is cited in hashes.files', () => {
   const { FIXED_TEST_FILE_INVENTORY } = require('./emit-benchmark-metadata.cjs');
-  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 47, 'acceptance list must stay at 47');
+  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 48, 'acceptance list must stay at 48');
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
@@ -907,7 +910,7 @@ it('M1: every collected suite in the fixed inventory is cited in hashes.files', 
   for (const rel of FIXED_TEST_FILE_INVENTORY) {
     assert.ok(rel in evidence.hashes.files, `${rel} must be cited (hashed)`);
   }
-  assert.equal(citedTestFiles.length, 47, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
+  assert.equal(citedTestFiles.length, 48, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
 });
 
 it('M2: emitter suite executed count binds to its source case count', () => {
