@@ -112,6 +112,106 @@ export function exportCdx1(components: RocketComponent[]): string {
   return lines.join('\n') + '\n';
 }
 
+/** One outer-mold-line station parsed from a .cdx1 file. */
+export interface Cdx1Station {
+  /** Axial station in inches from the nose tip. */
+  xInches: number;
+  /** Body diameter in inches at the station. */
+  diameterInches: number;
+}
+
+/** Non-geometry content preserved from a .cdx1 document. */
+export interface Cdx1FileMetadata {
+  /** Comment lines ('#' stripped and trimmed) in file order. */
+  commentLines: string[];
+  /** Coordinate unit of the station stream. */
+  unit: 'inches';
+}
+
+export interface Cdx1ParseResult {
+  /** OML stations in file order, nose to aft. */
+  stations: Cdx1Station[];
+  metadata: Cdx1FileMetadata;
+}
+
+export class InvalidCdx1FileError extends Error {
+  constructor(message: string) {
+    super(`Invalid RASAero II (.cdx1) file: ${message}`);
+    this.name = 'InvalidCdx1FileError';
+  }
+}
+
+const CDX1_NUMBER_TOKEN_RE = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+
+/**
+ * Parses a RASAero II (.cdx1) outer mold line back into OML stations plus
+ * file metadata (reference/display geometry only — station rows do not
+ * determine component part types, so no editable part fitting is invented
+ * here; see docs/adapter-matrix.md row 8).
+ *
+ * Comment lines ('#'-prefixed) and blank lines are skipped anywhere in the
+ * document; data rows are exactly two comma-separated numbers (station X in
+ * inches from the nose tip, diameter in inches) and must be finite,
+ * non-negative, and nose-to-aft non-decreasing in X — the ordering contract
+ * exportCdx1 guarantees. A document with no content at all (no comment and
+ * no data rows) is rejected.
+ *
+ * Throws InvalidCdx1FileError on malformed input.
+ */
+export function parseCdx1(text: string): Cdx1ParseResult {
+  const lines = text.split(/\r\n|\r|\n/);
+  const stations: Cdx1Station[] = [];
+  const commentLines: string[] = [];
+  let sawContent = false;
+
+  const fail = (lineNo: number, detail: string): never => {
+    throw new InvalidCdx1FileError(`line ${lineNo}: ${detail}`);
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const lineNo = i + 1;
+    const trimmed = lines[i].trim();
+    if (trimmed.length === 0) continue;
+    if (trimmed.startsWith('#')) {
+      commentLines.push(trimmed.slice(1).trim());
+      sawContent = true;
+      continue;
+    }
+    const parts = trimmed.split(',');
+    if (parts.length !== 2) {
+      fail(lineNo, `row '${trimmed}' must be exactly two comma-separated numbers (X inches, diameter inches)`);
+    }
+    const [xToken, dToken] = parts.map((p) => p.trim());
+    for (const [what, token] of [
+      ['station X', xToken],
+      ['diameter', dToken],
+    ] as const) {
+      if (!CDX1_NUMBER_TOKEN_RE.test(token)) {
+        fail(lineNo, `'${token}' is not a number (${what})`);
+      }
+    }
+    const x = Number.parseFloat(xToken);
+    const d = Number.parseFloat(dToken);
+    if (!Number.isFinite(x) || !Number.isFinite(d)) {
+      fail(lineNo, `station values must be finite (got x=${xToken}, diameter=${dToken})`);
+    }
+    if (x < 0) fail(lineNo, `station X must be non-negative (got ${xToken})`);
+    if (d < 0) fail(lineNo, `diameter must be non-negative (got ${dToken})`);
+    const prev = stations[stations.length - 1];
+    if (prev && x < prev.xInches) {
+      fail(lineNo, `station X ${xToken} precedes ${prev.xInches} — stations must be non-decreasing nose-to-aft`);
+    }
+    stations.push({ xInches: x, diameterInches: d });
+    sawContent = true;
+  }
+
+  if (!sawContent) {
+    throw new InvalidCdx1FileError('no OML station or comment content found');
+  }
+
+  return { stations, metadata: { commentLines, unit: 'inches' } };
+}
+
 /**
  * Exports the aerodynamic coefficient matrix as CSV for RASAero II ingestion.
  *
