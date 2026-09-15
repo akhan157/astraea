@@ -25,7 +25,7 @@
  * Count binding (M2): every case below is declared with its own literal
  * `it` case token (open paren directly after the it identifier), plus one
  * cleanup case, so the emitter's source-case count of this file equals its
- * executed case count (44 + 1 = 45) exactly like every other collected
+ * executed case count (47 + 1 = 48) exactly like every other collected
  * suite. Fixture test-file contents are built through helpers that never
  * spell out the it-token, so they cannot leak counted tokens into this
  * file's own source.
@@ -53,7 +53,7 @@ const {
 // execute each case immediately and report (exit 0 = all pass, which is what
 // the certified command requires). Every case is written with its own
 // literal it-token, so this file's source case count is exactly its executed
-// case count (44 cases + 1 cleanup = 45).
+// case count (47 cases + 1 cleanup = 48).
 const inVitest = typeof process !== 'undefined' && !!process.env.VITEST;
 if (!inVitest) {
   // Shims are inert unless this file is the entry script, so requiring it
@@ -125,7 +125,7 @@ const BASE_PKG = JSON.stringify(
 // Token-safe fixture builders: fixture suite content must carry real
 // it-tokens when written to disk (the emitter counts them), but the literal
 // token bytes must never appear in THIS file — its own source count must
-// equal its 45 executed cases. The it identifier is spelled through a
+// equal its 48 executed cases. The it identifier is spelled through a
 // variable, so the emitted bytes are never it followed by an open paren.
 const ITID = 'it';
 const itCaseLine = (name, body) => `  ${ITID}('${name}', () => { ${body}; });`;
@@ -231,6 +231,7 @@ function baseFixture(over = {}) {
     'src/evidence/altimetry.ts': 'export const parseAltimeterCsv = () => [];\n',
     'src/evidence/calibration.ts': 'export const calibrateCd = () => ({});\n',
     'src/formats/engParser.test.ts': specLine('eng import', 'parses rasp'),
+    'src/formats/projectJson.test.ts': specLine('project envelope', 'round-trips'),
     'src/formats/blueprint.test.ts': specLine('blueprint export', 'draws side view'),
     'src/formats/blueprintPng.test.ts': specLine('blueprint png', 'rasterizes canvas'),
     'src/aero/finStructure.test.ts': specLine('fin structure', 'bounds stress'),
@@ -258,6 +259,7 @@ function baseFixture(over = {}) {
     'src/sim/waiverContainment.ts': 'export const containmentCheck = () => ({});\n',
     'src/sim/windProfile.ts': 'export const parseWindProfileCsv = () => [];\n',
     'src/formats/engParser.ts': 'export const parseRaspEng = () => ({});\n',
+    'src/formats/projectJson.ts': 'export const writeProject = () => "";\n',
     'src/formats/blueprint.ts': 'export const exportBlueprintSvg = () => "";\n',
     'src/formats/blueprintPng.ts': 'export const renderBlueprintPng = async () => new Blob();\n',
     'src/components/EvidenceStudio.test.tsx': specLine('evidence studio', 'parses logs'),
@@ -350,6 +352,7 @@ function makeVitestJson({
     'src/components/InteropExportPanel.test.tsx',
     'src/components/PropertyInspector.test.tsx',
     'src/formats/engParser.test.ts',
+    'src/formats/projectJson.test.ts',
     'src/formats/blueprint.test.ts',
     'src/formats/blueprintPng.test.ts',
   ];
@@ -681,13 +684,13 @@ it('vitest per-file totals parsed from assertionResults, not f.assertions', () =
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
-  assert.equal(parsed.files.length, 44);
+  assert.equal(parsed.files.length, 45);
   const vvFile = parsed.files.find((file) => file.file === 'vv-benchmarks.test.ts');
   assert.equal(vvFile.testCases.total, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.passed, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.failed, 0);
   assert.equal(vvFile.testCases.unknown, 0);
-  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 43);
+  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 44);
 });
 
 it('vitest JSON unparseable => certification fails', () => {
@@ -888,7 +891,7 @@ it('new acceptance suites are required and hashed', () => {
 
 it('M1: every collected suite in the fixed inventory is cited in hashes.files', () => {
   const { FIXED_TEST_FILE_INVENTORY } = require('./emit-benchmark-metadata.cjs');
-  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 44, 'acceptance list must stay at 44');
+  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 45, 'acceptance list must stay at 45');
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
@@ -896,7 +899,7 @@ it('M1: every collected suite in the fixed inventory is cited in hashes.files', 
   for (const rel of FIXED_TEST_FILE_INVENTORY) {
     assert.ok(rel in evidence.hashes.files, `${rel} must be cited (hashed)`);
   }
-  assert.equal(citedTestFiles.length, 44, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
+  assert.equal(citedTestFiles.length, 45, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
 });
 
 it('M2: emitter suite executed count binds to its source case count', () => {
