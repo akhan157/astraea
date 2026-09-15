@@ -234,6 +234,58 @@ export function exportToEng(motor: MotorSpec): string {
   return [header, ...curveLines, ''].join('\n');
 }
 
+/**
+ * Exports a validated MotorSpec as RockSim .rse XML in the exact dialect
+ * parseRseXml accepts (bidirectional round-trip contract). Masses are
+ * emitted in grams and geometry in millimeters; the curve carries the
+ * only impulse authority on re-import, exactly as in the .eng adapter.
+ *
+ * The `code` element carries the designation minus the manufacturer
+ * prefix (when the designation starts with it, e.g. "Estes C6" → code
+ * "C6"). Records whose designation does not carry the full manufacturer
+ * string (e.g. manufacturer "Cesaroni (CTI)" vs designation "Cesaroni
+ * …") keep the whole designation as code, and re-import yields the
+ * manufacturer-qualified "MFR designation" form — both fields stay
+ * truthful, and the mapping is pinned by the round-trip suite.
+ *
+ * Fail-closed: the record is validateMotorSpec-gated first — this emitter
+ * never produces a file the parser (or its validator) would reject.
+ */
+export function exportToRse(motor: MotorSpec): string {
+  validateMotorSpec(motor);
+
+  const number = (v: number): string => String(v);
+  const manufacturer = motor.manufacturer.trim() || 'Unknown';
+  const designation = motor.designation.trim() || 'Unnamed Motor';
+  const code =
+    manufacturer !== 'Unknown' && designation.toLowerCase().startsWith(manufacturer.toLowerCase() + ' ')
+      ? designation.slice(manufacturer.length + 1).trim() || designation
+      : designation;
+  const lines = [
+    '<?xml version="1.0" encoding="utf-8"?>',
+    '<rocket-engine-data>',
+    `  <manufacturer>${escapeXml(manufacturer)}</manufacturer>`,
+    `  <code>${escapeXml(code)}</code>`,
+    `  <diameter>${number(motor.diameter * 1000)}</diameter>`,
+    `  <length>${number(motor.length * 1000)}</length>`,
+    `  <init-weight>${number(motor.totalMass * 1000)}</init-weight>`,
+    `  <prop-weight>${number(motor.propellantMass * 1000)}</prop-weight>`,
+    '  <data>',
+    ...motor.thrustCurve.map(
+      (p) => `    <data-point><time>${number(p.time)}</time><thrust>${number(p.thrust)}</thrust></data-point>`
+    ),
+    '  </data>',
+    '</rocket-engine-data>',
+    '',
+  ];
+  return lines.join('\n');
+}
+
+/** Minimal XML text escape for element content this writer emits. */
+function escapeXml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 /** Reads a scalar field by any of several spellings (kebab/camel/lowercase). */
 function readField(node: Record<string, unknown>, ...names: string[]): unknown {
   for (const name of names) {

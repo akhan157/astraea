@@ -7,7 +7,7 @@
  * validated via validateMotorSpec.
  */
 import { describe, it, expect } from 'vitest';
-import { parseRaspEng, parseRseXml, exportToEng, InvalidRaspEngError, InvalidRseFileError } from './engParser';
+import { parseRaspEng, parseRseXml, exportToEng, exportToRse, InvalidRaspEngError, InvalidRseFileError } from './engParser';
 import { CERTIFIED_MOTORS, normalizeMotorId, validateMotorSpec, getMotorImpulseTotal } from '../propulsion/motorDatabase';
 import { deriveEditedMotor, insertPoint } from '../propulsion/curveEditing';
 
@@ -259,5 +259,51 @@ describe('RASP .eng export round-trip (exportToEng)', () => {
       ],
     };
     expect(() => exportToEng(bad)).toThrow(/endpoints must be zero/);
+  });
+});
+
+describe('RockSim .rse export round-trip (exportToRse)', () => {
+  it('emits the exact dialect parseRseXml accepts and recovers every certified motor', () => {
+    for (const motor of Object.values(CERTIFIED_MOTORS)) {
+      const m = parseRseXml(exportToRse(motor));
+      // Documented code mapping: manufacturer-prefixed designations
+      // round-trip exactly; others re-import manufacturer-qualified.
+      const prefixed = motor.designation.toLowerCase().startsWith(motor.manufacturer.trim().toLowerCase() + ' ');
+      expect(m.designation).toBe(prefixed ? motor.designation : `${motor.manufacturer.trim()} ${motor.designation.trim()}`);
+      expect(m.manufacturer).toBe(motor.manufacturer);
+      expect(m.diameter).toBeCloseTo(motor.diameter, 9);
+      expect(m.length).toBeCloseTo(motor.length, 9);
+      expect(m.propellantMass).toBeCloseTo(motor.propellantMass, 9);
+      expect(m.totalMass).toBeCloseTo(motor.totalMass, 9);
+      expect(m.burnTime).toBeCloseTo(motor.burnTime, 9);
+      expect(m.thrustCurve.length).toBe(motor.thrustCurve.length);
+      // Curve-derived authority both sides: nameplate numbers are display.
+      expect(m.totalImpulse).toBeCloseTo(getMotorImpulseTotal(motor), 9);
+      expect(m.maxThrust).toBeCloseTo(motor.maxThrust, 9);
+    }
+  });
+
+  it('round-trips a curve-edited, derived motor through the file layer', () => {
+    const base = CERTIFIED_MOTORS.cesaroni_i205;
+    const edited = insertPoint(base.thrustCurve, 0.32, 220);
+    const motor = deriveEditedMotor(base, edited, 0.2, 0.36);
+    const m = parseRseXml(exportToRse(motor));
+    const derivedPrefixed = motor.designation.toLowerCase().startsWith(motor.manufacturer.trim().toLowerCase() + ' ');
+    expect(m.designation).toBe(derivedPrefixed ? motor.designation : `${motor.manufacturer.trim()} ${motor.designation.trim()}`);
+    expect(m.burnTime).toBeCloseTo(motor.burnTime, 9);
+    expect(m.totalImpulse).toBeCloseTo(motor.totalImpulse, 9);
+  });
+
+  it('refuses to export an invalid record instead of emitting what the parser rejects', () => {
+    const bad = {
+      ...CERTIFIED_MOTORS.estes_c6,
+      burnTime: 2,
+      thrustCurve: [
+        { time: 0, thrust: 0 },
+        { time: 1, thrust: 5 },
+        { time: 2, thrust: 1 },
+      ],
+    };
+    expect(() => exportToRse(bad)).toThrow(/endpoints must be zero/);
   });
 });
