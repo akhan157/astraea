@@ -1,9 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  accumulateMonteCarloChunks,
   computeDispersionStatistics,
+  finalizeMonteCarloChunks,
   gaussian,
   mulberry32,
   runMonteCarlo,
+  runMonteCarloChunk,
+  subSeedOf,
   MonteCarloSimInput,
 } from './monteCarlo';
 import { simulate6DofFlight, type SixDofSimulationResult } from './sixDofSimulator';
@@ -270,4 +274,90 @@ describe('runMonteCarlo dispersion engine', () => {
     expect(result.successfulRuns).toBe(50);
     expect(result.failedRuns).toBe(0);
   }, 300000);
+});
+
+describe('Q12 versioned sampling and chunked execution (E1)', () => {
+  const SIGMAS = { windAzimuthDegSigma: 5.0, railAngleDegSigma: 1.0, impulsePctSigma: 3.0 };
+  const N = 9;
+  const SEED = 20260909;
+
+  function v2Full() {
+    return runMonteCarlo(makeBaseInput(), SIGMAS, N, SEED, 'per-run-v2');
+  }
+
+  function chunked(ranges: Array<[number, number]>) {
+    return ranges.map(([start, end]) => runMonteCarloChunk(makeBaseInput(), SIGMAS, N, SEED, start, end));
+  }
+
+  it('derives stable per-run sub-seeds from (master seed, absolute index)', () => {
+    expect(subSeedOf(SEED, 3)).toBe(subSeedOf(SEED, 3));
+    expect(subSeedOf(SEED, 3)).not.toBe(subSeedOf(SEED, 4));
+    expect(subSeedOf(SEED, 3)).not.toBe(subSeedOf(SEED + 1, 3));
+  });
+
+  it('reproduces the identical ensemble under any range partition', () => {
+    const full = v2Full();
+    const partitions: Array<Array<[number, number]>> = [
+      [[0, 9]],
+      [[0, 4], [4, 9]],
+      [[0, 3], [3, 6], [6, 9]],
+      [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9]],
+      [[0, 5], [5, 6], [6, 9]],
+      [[0, 9], [9, 9]],
+    ];
+    for (const ranges of partitions) {
+      const merged = finalizeMonteCarloChunks(chunked(ranges), N);
+      expect(merged.landings).toEqual(full.landings);
+      expect(merged.failedRuns).toBe(full.failedRuns);
+      expect(merged.successfulRuns).toBe(full.successfulRuns);
+    }
+  }, 300000);
+
+  it('merges out-of-order worker replies into run order', () => {
+    const full = v2Full();
+    const [a, b] = chunked([[0, 4], [4, 9]]);
+    const accumulated = accumulateMonteCarloChunks([b, a]);
+    expect(accumulated.landings).toEqual(full.landings);
+    const merged = finalizeMonteCarloChunks([b, a], N);
+    expect(merged.landings).toEqual(full.landings);
+  }, 300000);
+
+  it('keeps the legacy default stream replayable and version-gated', () => {
+    const first = runMonteCarlo(makeBaseInput(), SIGMAS, N, SEED);
+    const second = runMonteCarlo(makeBaseInput(), SIGMAS, N, SEED);
+    expect(second.landings).toEqual(first.landings);
+    expect(() =>
+      runMonteCarlo(makeBaseInput(), SIGMAS, N, SEED, 'bogus-version' as 'legacy-sequential-v1')
+    ).toThrow(/unknown sampling version/);
+  }, 300000);
+
+  it('returns empty results for empty ranges and validates range args', () => {
+    for (const [start, end] of [[9, 9], [4, 4], [0, 0]] as Array<[number, number]>) {
+      const empty = runMonteCarloChunk(makeBaseInput(), SIGMAS, N, SEED, start, end);
+      expect(empty.landings).toEqual([]);
+      expect(empty.failedRuns).toBe(0);
+      expect(empty.runStart).toBe(start);
+      expect(empty.runEnd).toBe(end);
+    }
+    expect(() => runMonteCarloChunk(makeBaseInput(), SIGMAS, N, SEED, -1, 3)).toThrow(/runStart/);
+    expect(() => runMonteCarloChunk(makeBaseInput(), SIGMAS, N, SEED, 5, 3)).toThrow(/runEnd/);
+    expect(() => runMonteCarloChunk(makeBaseInput(), SIGMAS, N, SEED, 0, N + 1)).toThrow(/runEnd/);
+  });
+
+  it('preserves the all-failed fail-closed gate on the chunked path', () => {
+    const original = mockedSimulate.getMockImplementation();
+    mockedSimulate.mockImplementation(() => {
+      throw new Error('synthetic total failure');
+    });
+    try {
+      expect(() =>
+        finalizeMonteCarloChunks(
+          [runMonteCarloChunk(makeBaseInput(), SIGMAS, 3, SEED, 0, 3)],
+          3
+        )
+      ).toThrow(/all 3 runs failed/);
+    } finally {
+      mockedSimulate.mockImplementation(original as typeof mockedSimulate);
+    }
+  });
 });
