@@ -686,13 +686,13 @@ it('vitest per-file totals parsed from assertionResults, not f.assertions', () =
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
-  assert.equal(parsed.files.length, 45);
+  assert.equal(parsed.files.length, 46);
   const vvFile = parsed.files.find((file) => file.file === 'vv-benchmarks.test.ts');
   assert.equal(vvFile.testCases.total, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.passed, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.failed, 0);
   assert.equal(vvFile.testCases.unknown, 0);
-  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 44);
+  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 45);
 });
 
 it('vitest JSON unparseable => certification fails', () => {
@@ -893,7 +893,7 @@ it('new acceptance suites are required and hashed', () => {
 
 it('M1: every collected suite in the fixed inventory is cited in hashes.files', () => {
   const { FIXED_TEST_FILE_INVENTORY } = require('./emit-benchmark-metadata.cjs');
-  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 45, 'acceptance list must stay at 45');
+  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 46, 'acceptance list must stay at 46');
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
@@ -901,7 +901,7 @@ it('M1: every collected suite in the fixed inventory is cited in hashes.files', 
   for (const rel of FIXED_TEST_FILE_INVENTORY) {
     assert.ok(rel in evidence.hashes.files, `${rel} must be cited (hashed)`);
   }
-  assert.equal(citedTestFiles.length, 45, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
+  assert.equal(citedTestFiles.length, 46, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
 });
 
 it('M2: emitter suite executed count binds to its source case count', () => {

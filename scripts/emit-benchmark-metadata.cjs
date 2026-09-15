@@ -89,7 +89,7 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/core/mass.test.ts',
   'src/components/FlightSimulationTab.test.tsx',
   'scripts/emit-benchmark-metadata.test.cjs',
-  // All 36 FIXED_TEST_FILE_INVENTORY suites are cited (sha256) so the
+  // All 37 FIXED_TEST_FILE_INVENTORY suites are cited (sha256) so the
   // artifact's hashes.files covers every collected suite, not only the
   // gate-bound files (audit §9.4 completeness; M1).
   'src/aero/barrowman.test.ts',
