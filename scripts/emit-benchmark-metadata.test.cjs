@@ -251,6 +251,11 @@ function baseFixture(over = {}) {
     'src/evidence/gpsTrack.test.ts': specLine('gps track', 'projects fixes'),
     'src/evidence/gpsTrack.ts': 'export const parseGpxTrack = () => [];\n',
     'src/onboarding/onboarding.test.ts': specLine('onboarding pack', 'pins copy and schema'),
+    'src/application/runDisplay.test.ts': specLine('run display', 'qualifies results'),
+    'src/store/workspaceStore.test.ts': specLine('workspace store', 'maps studios'),
+    'src/store/editBuffer.test.ts': specLine('edit buffer', 'commits drafts'),
+    'src/components/workstation/shell.test.tsx': specLine('workstation shell', 'reaches studios'),
+    'src/components/workstation/precisionSurface.test.tsx': specLine('precision surface', 'commits edits'),
     'src/onboarding/questionnaire.ts': 'export const QUESTIONNAIRE = { questions: [] };\n',
     'src/onboarding/guidance.ts': 'export const EXPERIENCE_GUIDANCE = {};\n',
     'src/onboarding/explainers.ts': 'export const EXPLAINER_TOPICS = [];\n',
@@ -364,6 +369,11 @@ function makeVitestJson({
     'src/components/PropertyInspector.test.tsx',
     'src/formats/engParser.test.ts',
     'src/formats/projectJson.test.ts',
+    'src/application/runDisplay.test.ts',
+    'src/store/workspaceStore.test.ts',
+    'src/store/editBuffer.test.ts',
+    'src/components/workstation/shell.test.tsx',
+    'src/components/workstation/precisionSurface.test.tsx',
     'src/formats/blueprint.test.ts',
     'src/formats/blueprintPng.test.ts',
   ];
@@ -695,13 +705,13 @@ it('vitest per-file totals parsed from assertionResults, not f.assertions', () =
   const json = makeVitestJson();
   assert.equal('assertions' in json.testResults[0], false, 'fixture must not carry the nonexistent f.assertions key');
   const parsed = parseVitestJson(json);
-  assert.equal(parsed.files.length, 48);
+  assert.equal(parsed.files.length, 53);
   const vvFile = parsed.files.find((file) => file.file === 'vv-benchmarks.test.ts');
   assert.equal(vvFile.testCases.total, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.passed, REQUIRED_IDS.length);
   assert.equal(vvFile.testCases.failed, 0);
   assert.equal(vvFile.testCases.unknown, 0);
-  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 47);
+  assert.deepEqual(parsed.totals.testCasesPassed, REQUIRED_IDS.length + 52);
 });
 
 it('vitest JSON unparseable => certification fails', () => {
@@ -902,7 +912,7 @@ it('new acceptance suites are required and hashed', () => {
 
 it('M1: every collected suite in the fixed inventory is cited in hashes.files', () => {
   const { FIXED_TEST_FILE_INVENTORY } = require('./emit-benchmark-metadata.cjs');
-  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 48, 'acceptance list must stay at 48');
+  assert.equal(FIXED_TEST_FILE_INVENTORY.length, 53, 'acceptance list must stay at 53');
   const root = baseFixture();
   const { evidence, passed: ok, missing } = computeEvidence(ctx(root, { vitestJson: makeVitestJson() }));
   assert.equal(ok, true, `missing: ${JSON.stringify(missing)}`);
@@ -910,7 +920,7 @@ it('M1: every collected suite in the fixed inventory is cited in hashes.files', 
   for (const rel of FIXED_TEST_FILE_INVENTORY) {
     assert.ok(rel in evidence.hashes.files, `${rel} must be cited (hashed)`);
   }
-  assert.equal(citedTestFiles.length, 48, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
+  assert.equal(citedTestFiles.length, 53, `all ${FIXED_TEST_FILE_INVENTORY.length} suites must be hashed, got ${citedTestFiles.length}`);
 });
 
 it('M2: emitter suite executed count binds to its source case count', () => {

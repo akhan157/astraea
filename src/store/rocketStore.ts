@@ -258,6 +258,12 @@ interface RocketStoreState {
   // Actions
   selectComponent: (id: string | null) => void;
   updateComponent: (id: string, updates: Partial<RocketComponent>) => void;
+  /**
+   * Commit a fully-resolved vehicle as ONE undoable history step. The
+   * precision edit buffer (pattern 4) applies its merged drafts through this
+   * action so a whole edit session rolls back as a single unit.
+   */
+  applyVehicleDraft: (vehicle: RocketVehicle) => void;
   addComponent: (component: RocketComponent, index?: number) => void;
   removeComponent: (id: string) => void;
   reorderComponents: (fromIndex: number, toIndex: number) => void;
@@ -374,6 +380,19 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
       set({
         vehicle: updatedVehicle,
         stability,
+        history: newHistory,
+        future: [],
+      });
+    },
+
+    // RIVAL S2 (pattern 4): one undoable commit for an edited draft vehicle.
+    // Keeps the selection and camera pose — the draft commits in place.
+    applyVehicleDraft: (vehicle) => {
+      const state = get();
+      const newHistory = [...state.history, state.vehicle].slice(-30);
+      set({
+        vehicle,
+        stability: computeRocketStability(vehicle),
         history: newHistory,
         future: [],
       });

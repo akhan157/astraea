@@ -1,64 +1,23 @@
 /**
  * Astraea Main Application Layout
- * Full workstation layout integrating Header, ComponentTree, 3D Canvas, MetricHUD, and PropertyInspector.
+ * RIVAL S2 — precision/canvas-led workstation shell (five studios, precision
+ * context bar, contextual panes) with global drag-drop import. Routine
+ * simulation runs inline in Trajectory — no modal (the flight-sim modal
+ * entry point is gone; FlightSimulationTab file is kept for S4).
+ * Studio state lives in workspaceStore; selection lives in rocketStore and
+ * is preserved across studio switches.
  */
 
-import React, { useState, useEffect } from 'react';
-import { Header, type StudioId } from './components/Header';
-import { ComponentTree } from './components/ComponentTree';
-import { RocketCanvas } from './viewport/RocketCanvas';
-import { MetricHUD } from './components/MetricHUD';
-import { PropertyInspector } from './components/PropertyInspector';
-import { FlightSimulationTab } from './components/FlightSimulationTab';
-import { PropulsionStudio } from './components/PropulsionStudio';
-import { TrajectoryStudio } from './components/TrajectoryStudio';
-import { EvidenceStudio } from './components/EvidenceStudio';
+import React, { useState } from 'react';
+import { WorkstationShell } from './components/workstation/WorkstationShell';
 import { useRocketStore } from './store/rocketStore';
 import { parseOrkFile } from './formats/orkParser';
 import { parseRktString } from './formats/rktParser';
 import { UploadCloud } from 'lucide-react';
 export const App: React.FC = () => {
   const setVehicle = useRocketStore((s) => s.setVehicle);
-  const undo = useRocketStore((s) => s.undo);
-  const redo = useRocketStore((s) => s.redo);
-  const setViewMode = useRocketStore((s) => s.setViewMode);
 
-  const vehicle = useRocketStore((s) => s.vehicle);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
-  const [isSimOpen, setIsSimOpen] = useState(false);
-  const [studio, setStudio] = useState<StudioId>('cad');
-
-  // Global Keyboard Shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Avoid firing when typing inside an input
-      if (['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
-        return;
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-        if (e.shiftKey) {
-          e.preventDefault();
-          redo();
-        } else {
-          e.preventDefault();
-          undo();
-        }
-      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
-        e.preventDefault();
-        redo();
-      } else if (e.key === '1') {
-        setViewMode('solid');
-      } else if (e.key === '2') {
-        setViewMode('wireframe');
-      } else if (e.key === '3') {
-        setViewMode('xray');
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, setViewMode]);
 
   // Global Drag & Drop File Handling
   const handleDragOver = (e: React.DragEvent) => {
@@ -104,36 +63,7 @@ export const App: React.FC = () => {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Top Header Bar */}
-      <Header onOpenSim={() => setIsSimOpen(true)} studio={studio} onStudioChange={setStudio} />
-
-      {/* Main Workstation Layout */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Axial Assembly Sidebar */}
-        <ComponentTree />
-
-        {studio === 'cad' ? (
-          <>
-            {/* Center 3D Interactive Viewport with Floating Metric HUD */}
-            <main className="flex-1 relative h-full">
-              <MetricHUD />
-              <RocketCanvas />
-            </main>
-
-            {/* Right Parametric Properties Inspector */}
-            <PropertyInspector />
-          </>
-        ) : (
-          <main className="flex-1 relative h-full overflow-y-auto p-4 bg-zinc-950">
-            {studio === 'propulsion' && <PropulsionStudio />}
-            {/* Keyed on vehicle.id (Round-19): a preset/import/undo vehicle
-                switch remounts the studio, resetting wind rows, probe,
-                sounding, and MC results instead of silently reusing them. */}
-            {studio === 'trajectory' && <TrajectoryStudio key={vehicle.id} />}
-            {studio === 'evidence' && <EvidenceStudio />}
-          </main>
-        )}
-      </div>
+      <WorkstationShell />
 
       {/* Full-Screen Drag & Drop Overlay */}
       {isDraggingFile && (
@@ -144,8 +74,7 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      {/* 6-DOF Flight Simulation & Transonic Aero Dashboard Modal */}
-      <FlightSimulationTab isOpen={isSimOpen} onClose={() => setIsSimOpen(false)} />
+      {/* Routine simulation runs inline in Trajectory (RIVAL S2); no modal remains. */}
     </div>
   );
 };

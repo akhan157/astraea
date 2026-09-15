@@ -7,6 +7,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useRocketStore } from '../store/rocketStore';
+import type { RocketComponent, RocketVehicle } from '../core/types';
 import { createNoseconeGeometry } from './geometry/proceduralNosecone';
 import { createBodyTubeGeometry } from './geometry/proceduralBodyTube';
 import { createTransitionGeometry } from './geometry/proceduralTransition';
@@ -22,13 +23,24 @@ import {
   Box,
 } from 'lucide-react';
 
-export const RocketCanvas: React.FC = () => {
+export interface RocketCanvasProps {
+  /**
+   * RIVAL S2 (pattern 3): a saved-revision vehicle rendered as a translucent
+   * overlay for the compare-vs-saved blend. Null when compare is inactive.
+   */
+  overlayVehicle?: RocketVehicle | null;
+  /** Overlay opacity 0–1 (compare blend / 100). */
+  overlayOpacity?: number;
+}
+
+export const RocketCanvas: React.FC<RocketCanvasProps> = ({ overlayVehicle = null, overlayOpacity = 0 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const rocketGroupRef = useRef<THREE.Group | null>(null);
   const markersGroupRef = useRef<THREE.Group | null>(null);
+  const overlayGroupRef = useRef<THREE.Group | null>(null);
   const gridHelperRef = useRef<THREE.GridHelper | null>(null);
   const axesHelperRef = useRef<THREE.AxesHelper | null>(null);
 
@@ -122,6 +134,11 @@ export const RocketCanvas: React.FC = () => {
     markersGroup.name = 'stability-markers';
     scene.add(markersGroup);
     markersGroupRef.current = markersGroup;
+
+    const overlayGroup = new THREE.Group();
+    overlayGroup.name = 'saved-overlay';
+    scene.add(overlayGroup);
+    overlayGroupRef.current = overlayGroup;
 
     // Create stability indicators
     const cgMarker = createCGMarker();
@@ -340,6 +357,108 @@ export const RocketCanvas: React.FC = () => {
       }
     }
   }, [vehicle, viewMode, selectedComponentId, stability.totalLength, stability.maxDiameter]);
+
+  // RIVAL S2 (pattern 3): translucent overlay of a saved revision for the
+  // compare-vs-saved blend. Mirrors the main layout: axial extent from
+  // nosecone/bodytube/transition lengths, fins hung off the last tube.
+  useEffect(() => {
+    const overlayGroup = overlayGroupRef.current;
+    if (!overlayGroup) return;
+    // Clear first so closing the compare (null overlay) removes the group.
+    while (overlayGroup.children.length > 0) {
+      const child = overlayGroup.children[0] as THREE.Mesh;
+      overlayGroup.remove(child);
+      if (child.geometry) child.geometry.dispose();
+      if (Array.isArray(child.material)) {
+        child.material.forEach((m) => m.dispose());
+      } else if (child.material) {
+        child.material.dispose();
+      }
+    }
+    if (!overlayVehicle || overlayOpacity <= 0.02) return;
+    // Stacking order approximates the main builder's axial walk.
+    const axialLength = (c: RocketComponent) =>
+      c.type === 'nosecone' ? c.length : c.type === 'bodytube' ? c.length : c.type === 'transition' ? c.length : 0;
+    const totalLen = Math.max(0.4, overlayVehicle.components.reduce((sum, c) => sum + axialLength(c), 0));
+    const yTop = totalLen / 2;
+    const overlayColor = 0xf59e0b; // amber: the saved/superseded state
+    const overlayMaterial = () =>
+      new THREE.MeshStandardMaterial({
+        color: overlayColor,
+        transparent: true,
+        opacity: overlayOpacity,
+        roughness: 0.3,
+        metalness: 0.05,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }) as THREE.Material;
+
+    let currentAxialX = 0;
+    let lastBodyTubeAxial = 0;
+    let lastBodyDiameter = stability.maxDiameter;
+    for (const comp of overlayVehicle.components) {
+      const material = overlayMaterial();
+      switch (comp.type) {
+        case 'nosecone': {
+          const geo = createNoseconeGeometry(comp.shape, comp.length, comp.baseDiameter);
+          const mesh = new THREE.Mesh(geo, material);
+          mesh.position.y = yTop - currentAxialX;
+          mesh.userData = { componentId: comp.id };
+          overlayGroup.add(mesh);
+          lastBodyDiameter = comp.baseDiameter;
+          currentAxialX += comp.length;
+          break;
+        }
+        case 'bodytube': {
+          const geo = createBodyTubeGeometry(comp.length, comp.outerDiameter, comp.innerDiameter);
+          const mesh = new THREE.Mesh(geo, material);
+          mesh.position.y = yTop - currentAxialX - comp.length / 2;
+          mesh.userData = { componentId: comp.id };
+          overlayGroup.add(mesh);
+          lastBodyTubeAxial = currentAxialX;
+          lastBodyDiameter = comp.outerDiameter;
+          currentAxialX += comp.length;
+          break;
+        }
+        case 'transition': {
+          const geo = createTransitionGeometry(comp.length, comp.foreDiameter, comp.aftDiameter);
+          const mesh = new THREE.Mesh(geo, material);
+          mesh.position.y = yTop - currentAxialX - comp.length / 2;
+          mesh.userData = { componentId: comp.id };
+          overlayGroup.add(mesh);
+          lastBodyDiameter = comp.aftDiameter;
+          currentAxialX += comp.length;
+          break;
+        }
+        case 'trapezoidfinset':
+        case 'ellipticalfinset': {
+          const finGeo =
+            comp.type === 'trapezoidfinset'
+              ? createTrapezoidFinGeometry(comp)
+              : createEllipticalFinGeometry(comp);
+          const finY = yTop - (lastBodyTubeAxial + (comp.axialOffset || 0));
+          const rBody = lastBodyDiameter / 2;
+          const finGroup = new THREE.Group();
+          finGroup.position.y = finY;
+          for (let i = 0; i < comp.finCount; i++) {
+            const angle = i * ((2 * Math.PI) / comp.finCount);
+            const finMesh = new THREE.Mesh(finGeo, material);
+            finMesh.position.x = rBody;
+            finMesh.userData = { componentId: comp.id };
+            const finPivot = new THREE.Group();
+            finPivot.rotation.y = angle;
+            finPivot.add(finMesh);
+            finGroup.add(finPivot);
+          }
+          overlayGroup.add(finGroup);
+          break;
+        }
+        default:
+          // parachute/mass components carry no solid geometry in the viewport.
+          break;
+      }
+    }
+  }, [overlayVehicle, overlayOpacity, stability.maxDiameter]);
 
   // Update CG and CP Visual Marker Positions
   useEffect(() => {
