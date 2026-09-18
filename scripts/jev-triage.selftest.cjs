@@ -7,7 +7,7 @@
  * path, the HTTP header/payload contract, and per-call
  * latency_ms + cost extraction.
  *
- * Run: node scripts/jev-triage.test.cjs   (exit 0 = all pass)
+ * Run: node scripts/jev-triage.selftest.cjs   (exit 0 = all pass)
  */
 
 'use strict';
@@ -291,7 +291,7 @@ async function runSuite() {
       failures.push(`FAIL ${name}\n  ${err.message}`);
     }
   }
-  process.stdout.write(`jev-triage.test.cjs: ${passed}/${tests.length} cases passed\n`);
+  process.stdout.write(`jev-triage.selftest.cjs: ${passed}/${tests.length} cases passed\n`);
   if (failures.length > 0) {
     process.stderr.write(`${failures.join('\n')}\n`);
     process.exitCode = 1;

@@ -31,7 +31,7 @@
  *   node scripts/jev-triage.cjs state.json
  *   cat state.json | node scripts/jev-triage.cjs -
  *   node scripts/jev-triage.cjs --dry-run state.json   # print rule + payload, no call
- * Self-test: node scripts/jev-triage.test.cjs          (stubs fetch; no network)
+ * Self-test: node scripts/jev-triage.selftest.cjs          (stubs fetch; no network)
  */
 
 'use strict';
