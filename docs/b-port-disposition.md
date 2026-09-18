@@ -51,3 +51,43 @@ PrecisionContextBar.tsx`, `src/components/workstation/SelectionFilter.tsx`,
 
 Verification: scoped vitest green on every touched test file; full suite not
 required by this pass. Commit message references this disposition file.
+
+## Row-6 export triggers — omission previews before any bytes
+## (lane task_b223aebef607, ported from frontend commit 26b71b7)
+
+Scope: the RKT/ENG/KML/STEP/STL omission-preview triggers and the
+`src/formats/exportPreview.ts` describers behind them, ported from
+`feat(s7): row-6 export triggers with omission previews` (frontend 26b71b7).
+Patterns cited per the file preamble (synthesis §2 list 1–13).
+
+| Pattern (synthesis §2) | Disposition | Why it differs from the source (frontend 26b71b7) |
+|---|---|---|
+| 9. Snapshot export vs live view duality, honestly labeled (STK SIM-EVID-002/003, Seeq W-7) | **ADOPT** | Every row-6 trigger opens an omission preview computed at click time and frozen there; the KML preview names the exact run snapshot (runKey) and states that exports freeze at click time, while live views re-evaluate with their own freshness marker. Source labeled the run only implicitly; this port surfaces the pattern-9 duality in the preview text so the artifact's provenance is stated before any download. |
+| 8. Auto-invalidation with visible reason + one-click re-run; old results kept behind explicit action (Mechanical SIM-EVID-013) | **ADAPT** | The S2 run store (`runStore` append-only registry + `qualifyResult`) already keeps old runs with a visible staleness marker; the KML trigger serializes only the EXPLICITLY chosen committed run under the S1 snapshot key, and a stale chosen run exports only under a frozen-snapshot label — never re-evaluated. Source read a `lastSimRun` field on rocketStore with no staleness concept; shell-alt's chosen-run + freshness model is the S2 contract this worktree ships. |
+| 2. Workspace/version with explicit revert — "current design vs the snapshot that produced a result" | **ADAPT** | Provenance frame for KML: the preview names `runKey` and keeps the run store's freshness, so the export always traces to the snapshot that produced it. Out of scope in the source commit; the S2 run identity makes it free to state here. |
+| (reject list) Approximate aggregations without stated error bounds | **Adopted as a refusal rule** | The KML trigger refuses a committed run whose single-trajectory telemetry payload has not been published (the S4 job service owns payloads; `runStore.lastSimRun()` never fabricates points) instead of emitting a file it cannot back with real data. Source could read telemetry directly; shell-alt's payload channel is empty until S4, so the honest behavior is fail-closed with a named reason. |
+| (reject list) Silent result deletion / manual-refresh staleness | **Rejected as shipped** | No run is rewritten or deleted by any trigger; staleness is visible (freshness marker + preview label), never silently refreshed. Same guard as the source's fail-closed refusals, extended to the run surface. |
+
+Rejected from the source: the KML "run ended without touchdown" omission
+note — the shell S2 `RunRecord` carries lifecycle/validity/gate but no
+touchdown datum, so the note would be unbacked; it returns with the S4
+payload contract. Also rejected: any claim of PNG-export completeness or
+lossless round-trip — the PNG trigger is unchanged from the pre-port panel
+(existing rasterizer, module-mocked in tests), and every row-6 preview
+enumerates the subset the exporter carries or refuses the download.
+
+Files (this lane): `src/formats/exportPreview.ts`,
+`src/formats/exportPreview.test.ts` (new), `src/components/
+InteropExportPanel.tsx`, `src/components/InteropExportPanel.test.tsx`
+(row-6 trigger support), this file. Not touched: `scripts/
+emit-benchmark-metadata.*`, EvidenceStudio, CompareDock, WorkstationShell,
+App.tsx, `evidence/`, `recovery/`, `src/store/runStore.ts`,
+`src/store/rocketStore.ts`.
+
+Verification: scoped vitest green on every touched test file (28 cases
+across `exportPreview.test.ts` and `InteropExportPanel.test.tsx`);
+`tsc --noEmit` clean for all ported files; full suite not required by this
+lane. KML positive-path behavior (published payload → omission preview →
+download) is exercised at the pure-function layer against the
+`KmlRunSnapshot` shape and unblocks unchanged when the S4 job service
+publishes payloads. Commit `c14ee44` references this disposition file.
