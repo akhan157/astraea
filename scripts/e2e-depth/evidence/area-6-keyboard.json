@@ -1,0 +1,27 @@
+{
+  "area": "6-keyboard-only",
+  "label": "digit-crlt-enter-esc-verified",
+  "url": "http://localhost:5190/",
+  "studio": "Trajectory & weather studio (shortcut 4)",
+  "banners": [],
+  "badges": [
+    "●Stable — 4.80 cal",
+    "▲Over-stable — weathercocking risk",
+    "●Run ready — inputs resolve",
+    "?No gate evaluated",
+    "Ready — set coordinates and fetch a pressure-level profile.",
+    "Wind for MC: manual wind table (surface probe)",
+    "50 succeeded · 0 failedFRESH — matches current inputs",
+    "Samples parsed—Samples @ dt—Apogee altitude—Apogee at—",
+    "?No gate evaluated",
+    "1 item excluded from clearance — packed length missing.",
+    "Keyboard only: digit '3'->Propulsion, '5'->Evidence, '1'->Airframe (keydown dispatch, active tab verified each step)",
+    "Ctrl+Enter from Airframe -> switched to Trajectory and ran the inline ensemble: 'MC 50 · Estes C6', footer runs:1, badge '50 succeeded · 0 failed FRESH — matches current inputs'",
+    "Esc discards staged draft: 1 pending edit -> Esc -> No pending edits, committed Ogive Nosecone ogive · 165mm unchanged"
+  ],
+  "consoleErrors": 0,
+  "overflow": {
+    "x": false,
+    "y": false
+  }
+}
