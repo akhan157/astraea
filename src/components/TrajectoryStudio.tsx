@@ -19,8 +19,18 @@
 
 import React, { useMemo, useState } from 'react';
 import type { MotorSpec } from '../propulsion/motorDatabase';
-import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
 import { useRocketStore } from '../store/rocketStore';
+import { useWorkspaceStore } from '../store/workspaceStore';
+import { nextRunId, useRunStore } from '../store/runStore';
+import { qualifyResult } from '../application/runDisplay';
+import {
+  preflight,
+  resolveMotor,
+  snapshotCase,
+  type LaunchCase,
+  type ResolvedCase,
+} from '../application/caseResolver';
+import { StatusBadge } from './ui/StatusBadge';
 import type { SixDofOptions } from '../sim/sixDofSimulator';
 import type { DispersionResult } from '../sim/monteCarlo';
 import { runMonteCarlo } from '../sim/monteCarlo';
@@ -72,17 +82,18 @@ const clampRailElevation = (raw: number): number =>
 
 /**
  * TrajectoryStudio reads the ACTIVE vehicle and shared flight-motor selection
- * from the RocketStore (Round-19 coherence) — the caller passes no props.
- * App keys the panel on `vehicle.id` (`<TrajectoryStudio key={vehicle.id} />`)
- * so a preset/import switch remounts it and resets all studio-local state
- * (wind rows, probe, sounding, MC result) instead of silently reusing it.
+ * from the RocketStore. The panel stays mounted across studio switches;
+ * freshness is computed from S1 snapshot keys, never from a remount wipe.
  */
 export function TrajectoryStudio(): React.JSX.Element {
   const vehicle = useRocketStore((s) => s.vehicle);
   const selectedMotorId = useRocketStore((s) => s.selectedMotorId);
   const customMotors = useRocketStore((s) => s.customMotors);
-  const catalog: Record<string, MotorSpec> = { ...CERTIFIED_MOTORS, ...customMotors };
-  const motor: MotorSpec = catalog[selectedMotorId] ?? CERTIFIED_MOTORS.estes_c6;
+  const selectStudio = useWorkspaceStore((s) => s.selectStudio);
+  // S1 motor binding: an unknown id is unresolved — a corrective action,
+  // never a silent fallback to another motor.
+  const motorResolution = resolveMotor(selectedMotorId, customMotors);
+  const motor: MotorSpec | null = motorResolution.status === 'resolved' ? motorResolution.motor : null;
 
   // --- 1. Manual wind shear table + probe readout ---
   const [windRows, setWindRows] = useState<WindRow[]>(DEFAULT_WIND_ROWS);
@@ -170,7 +181,7 @@ export function TrajectoryStudio(): React.JSX.Element {
     () =>
       JSON.stringify({
         vehicle,
-        motorId: motor.id,
+        motorId: selectedMotorId,
         nRuns: clampNRuns(mcNRuns),
         railElevation: mcRailElevationDeg,
         windSigma: mcWindSigmaDeg,
@@ -183,7 +194,7 @@ export function TrajectoryStudio(): React.JSX.Element {
       }),
     [
       vehicle,
-      motor.id,
+      selectedMotorId,
       mcNRuns,
       mcRailElevationDeg,
       mcWindSigmaDeg,
@@ -215,22 +226,79 @@ export function TrajectoryStudio(): React.JSX.Element {
     return probeWind ?? { speedMs: 0, directionFromDeg: 0 };
   }, [soundingOk, soundingLayers, probeAltitudeM, probeWind]);
 
+  // S1 case + common preflight: the run executes the resolved motor against
+  // the resolved case — every run path agrees on these gates and on the
+  // repair destination each issue links to.
+  const launchCase: LaunchCase = useMemo(
+    () => ({
+      vehicle,
+      motorId: selectedMotorId,
+      options: {
+        railLengthM: 2.4,
+        railElevationDeg: mcRailElevationDeg,
+        railAzimuthDeg: 90.0,
+        windSpeedMps: mcSurfaceWind.speedMs,
+        windAzimuthDeg: mcSurfaceWind.directionFromDeg,
+        finCantDeg: 0.0,
+        mainDeployAltitudeM: 250,
+      },
+    }),
+    [vehicle, selectedMotorId, mcRailElevationDeg, mcSurfaceWind],
+  );
+  const resolved: ResolvedCase = useMemo(
+    () => preflight(launchCase, customMotors),
+    [launchCase, customMotors],
+  );
+  const runRecords = useRunStore((s) => s.records);
+  const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
+  const lastAttempt = runRecords.find((r) => r.runId === lastAttemptId) ?? null;
+  // Content-addressed identity of the resolved inputs (S1 snapshot). A
+  // same-id motor edit changes this key and stales prior records. Guarded:
+  // nonfinite vehicle inputs cannot be keyed and fail closed to a sentinel.
+  const caseRunKey = useMemo(() => {
+    try {
+      return snapshotCase(resolved).runKey;
+    } catch {
+      return 'unkeyable-invalid-inputs';
+    }
+  }, [resolved]);
+  const qualified = lastAttempt
+    ? qualifyResult({
+        valid: lastAttempt.valid,
+        current: lastAttempt.freshness === 'current' && !mcResultsAreStale,
+        gate: lastAttempt.gate,
+        lifecycle: lastAttempt.lifecycle,
+      })
+    : null;
+
   const handleRunMonteCarlo = () => {
-    if (mcRunning) return;
+    // S1 gate: only a preflighted, runnable case executes; every issue above
+    // stays visible with its repair destination (never a C6-style fallback).
+    if (mcRunning || !resolved.runnable || !motor) return;
     // Surface wind feeds the simulator's windSpeedSurface slot. Rail elevation
     // defaults to 85° (5° off vertical) so the default rail-angle sigma keeps
     // the perturbed cloud inside the simulator's [70°, 90°] domain.
     const options: SixDofOptions = {
-      railLength: 2.4,
-      railElevationDeg: mcRailElevationDeg,
-      railAzimuthDeg: 90.0,
-      windSpeedSurface: mcSurfaceWind.speedMs,
-      windAzimuthDeg: mcSurfaceWind.directionFromDeg,
-      mainDeployAltitudeAGL: 250,
-      finCantAngleDeg: 0.0,
+      railLength: launchCase.options.railLengthM,
+      railElevationDeg: launchCase.options.railElevationDeg,
+      railAzimuthDeg: launchCase.options.railAzimuthDeg,
+      windSpeedSurface: launchCase.options.windSpeedMps,
+      windAzimuthDeg: launchCase.options.windAzimuthDeg,
+      mainDeployAltitudeAGL: launchCase.options.mainDeployAltitudeM,
+      finCantAngleDeg: launchCase.options.finCantDeg,
     };
     setMcRunning(true);
     setMcError(null);
+    const nRuns = clampNRuns(mcNRuns);
+    const recordBase = {
+      runId: nextRunId(),
+      runKey: caseRunKey,
+      caseId: `${vehicle.id}::${selectedMotorId}`,
+      valid: true,
+      freshness: 'current' as const,
+      gate: 'unknown' as const,
+      label: `MC ${nRuns} · ${motor.designation}`,
+    };
     try {
       const result = runMonteCarlo(
         { vehicle, motor, options },
@@ -239,15 +307,22 @@ export function TrajectoryStudio(): React.JSX.Element {
           railAngleDegSigma: mcRailSigmaDeg,
           impulsePctSigma: mcImpulseSigmaPct,
         },
-        clampNRuns(mcNRuns),
+        nRuns,
         MC_SEED,
       );
       setMcResult(result);
       setLastMcInputKey(mcInputKey);
+      // Append-only registry: the new current run stales prior keys without
+      // rewriting them; a failure never erases a success.
+      useRunStore.getState().recordAttempt({ ...recordBase, lifecycle: 'completed' });
+      setLastAttemptId(recordBase.runId);
+      useRunStore.getState().markStaleByKey(caseRunKey);
     } catch (err) {
       setMcResult(null);
       setLastMcInputKey(null);
       setMcError(err instanceof Error ? err.message : String(err));
+      useRunStore.getState().recordAttempt({ ...recordBase, lifecycle: 'failed' });
+      setLastAttemptId(recordBase.runId);
     } finally {
       setMcRunning(false);
     }
@@ -303,10 +378,57 @@ export function TrajectoryStudio(): React.JSX.Element {
           <span className="px-2 py-1 rounded bg-zinc-800/80 border border-zinc-700/60 text-cyan-300">
             {vehicle.name}
           </span>
-          <span className="px-2 py-1 rounded bg-zinc-800/80 border border-zinc-700/60 text-amber-300">
-            {motor.designation}
-          </span>
+          {motor ? (
+            <span className="px-2 py-1 rounded bg-zinc-800/80 border border-zinc-700/60 text-amber-300">
+              {motor.designation}
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => selectStudio('propulsion')}
+              className="px-2 py-1 rounded bg-red-500/10 border border-red-500/40 text-red-300 hover:bg-red-500/20"
+              title="The assigned motor id resolves to no record — assign one in Propulsion"
+            >
+              Unresolved motor — assign in Propulsion
+            </button>
+          )}
         </div>
+      </div>
+
+      {/* Run readiness + repair destination (S1 preflight, shared with every
+          run path). An invalid or stale state is never hidden behind a
+          favorable pass. */}
+      <div data-run-readiness="true" className="flex flex-col gap-1.5">
+        {resolved.issues.map((issue, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => selectStudio(issue.repair.studio)}
+            className="text-left rounded-md border border-red-500/40 bg-red-500/10 px-2 py-1.5 text-[11px] text-red-200 hover:bg-red-500/20"
+            title={`Repair in ${issue.repair.studio}: ${issue.repair.target}`}
+          >
+            {issue.message}
+          </button>
+        ))}
+        {resolved.runnable ? (
+          <StatusBadge
+            status="pass"
+            label="Run ready — inputs resolve"
+            detail="Motor resolves and mount checks pass against the S1 preflight."
+          />
+        ) : (
+          <StatusBadge
+            status="invalid"
+            label="Not runnable — repair the inputs above"
+            detail="Preflight returned at least one blocking issue; the run control stays disabled."
+          />
+        )}
+        {qualified && (
+          <div className="flex items-center gap-1.5 text-[11px] font-mono">
+            <span className="text-zinc-400">Latest attempt:</span>
+            <StatusBadge status={qualified.status} label={qualified.label} detail={lastAttempt?.runKey ?? ''} />
+          </div>
+        )}
       </div>
 
       {/* --- Section 1: manual wind table + probe readout --- */}
@@ -564,7 +686,10 @@ export function TrajectoryStudio(): React.JSX.Element {
         <div className="mt-2.5">
           <button
             onClick={handleRunMonteCarlo}
-            disabled={mcRunning}
+            disabled={mcRunning || !resolved.runnable}
+            data-run-control="true"
+            data-run-inline="true"
+            title={resolved.runnable ? 'Run routine simulation inline (Ctrl+Enter)' : 'Resolve the blocking issues above to run'}
             className="min-h-11 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition inline-flex items-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
           >
             <Play className="w-4 h-4 fill-current" />

@@ -89,7 +89,7 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/core/mass.test.ts',
   'src/components/FlightSimulationTab.test.tsx',
   'scripts/emit-benchmark-metadata.test.cjs',
-  // All 48 FIXED_TEST_FILE_INVENTORY suites are cited (sha256) so the
+  // All 58 FIXED_TEST_FILE_INVENTORY suites are cited (sha256) so the
   // artifact's hashes.files covers every collected suite, not only the
   // gate-bound files (audit §9.4 completeness; M1).
   'src/aero/barrowman.test.ts',
@@ -112,6 +112,11 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/components/TrajectoryStudio.test.tsx',
   'src/components/EvidenceStudio.test.tsx',
   'src/components/InteropExportPanel.test.tsx',
+  'src/evidence/overlay.test.ts',
+  'src/components/SimFlightOverlay.test.tsx',
+  'src/formats/exportPreview.test.ts',
+  'src/components/workstation/compareDock.test.tsx',
+  'src/App.test.tsx',
   'src/components/PropertyInspector.test.tsx',
   'src/aero/finStructure.test.ts',
   'src/aero/stabilityBreakdown.test.ts',
@@ -131,6 +136,11 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/formats/blueprint.test.ts',
   'src/formats/blueprintPng.test.ts',
   'src/formats/projectJson.test.ts',
+  'src/application/runDisplay.test.ts',
+  'src/store/workspaceStore.test.ts',
+  'src/store/editBuffer.test.ts',
+  'src/components/workstation/shell.test.tsx',
+  'src/components/workstation/precisionSurface.test.tsx',
   'src/dynamics/rigidBody.ts',
   'src/dynamics/loads.ts',
   'src/dynamics/events.ts',
@@ -216,6 +226,11 @@ const FIXED_TEST_FILE_INVENTORY = Object.freeze([
   'src/components/TrajectoryStudio.test.tsx',
   'src/components/EvidenceStudio.test.tsx',
   'src/components/InteropExportPanel.test.tsx',
+  'src/evidence/overlay.test.ts',
+  'src/components/SimFlightOverlay.test.tsx',
+  'src/formats/exportPreview.test.ts',
+  'src/components/workstation/compareDock.test.tsx',
+  'src/App.test.tsx',
   'src/components/PropertyInspector.test.tsx',
   'src/formats/engParser.test.ts',
   'src/formats/blueprint.test.ts',
@@ -235,6 +250,11 @@ const FIXED_TEST_FILE_INVENTORY = Object.freeze([
   'src/application/caseResolver.test.ts',
   'src/evidence/gpsTrack.test.ts',
   'src/onboarding/onboarding.test.ts',
+  'src/application/runDisplay.test.ts',
+  'src/store/workspaceStore.test.ts',
+  'src/store/editBuffer.test.ts',
+  'src/components/workstation/shell.test.tsx',
+  'src/components/workstation/precisionSurface.test.tsx',
   'scripts/emit-benchmark-metadata.test.cjs',
 ]);
 const HASHED_INFORMATIONAL_FILES = Object.freeze([

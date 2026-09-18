@@ -9,6 +9,7 @@ import {
   STANDARD_MATERIALS,
   NoseconeShape,
   FinCrossSection,
+  RocketComponent,
   NoseconeComponent,
   BodyTubeComponent,
   TransitionComponent,
@@ -31,13 +32,28 @@ const COLOR_PRESETS = [
   '#71717a', // Metallic Gray
 ];
 
-export const PropertyInspector: React.FC = () => {
+export interface PropertyInspectorProps {
+  /**
+   * RIVAL S2 (pattern 4): when provided, edits STAGE here instead of the
+   * engineering store. The shell passes the edit-buffer stage action so the
+   * inspector renders drafts and no value commits until Apply.
+   */
+  onUpdate?: (id: string, updates: Partial<RocketComponent>) => void;
+  /** Pending staged patch for a component id, or null (draft overlay). */
+  draftFor?: (id: string) => Partial<RocketComponent> | null;
+}
+
+export const PropertyInspector: React.FC<PropertyInspectorProps> = ({ onUpdate, draftFor }) => {
   const vehicle = useRocketStore((s) => s.vehicle);
   const selectedComponentId = useRocketStore((s) => s.selectedComponentId);
   const updateComponent = useRocketStore((s) => s.updateComponent);
   const stability = useRocketStore((s) => s.stability);
 
-  const selectedComp = vehicle.components.find((c) => c.id === selectedComponentId);
+  const baseComp = vehicle.components.find((c) => c.id === selectedComponentId);
+  const draft = baseComp ? draftFor?.(baseComp.id) : null;
+  // Draft overlay: every field renders the staged value over the committed
+  // one, so pending edits are visible before they commit.
+  const selectedComp = baseComp && draft ? ({ ...baseComp, ...draft } as RocketComponent) : baseComp;
   const contrib = stability.contributions.find((c) => c.id === selectedComponentId);
 
   if (!selectedComp) {
@@ -50,7 +66,12 @@ export const PropertyInspector: React.FC = () => {
   }
 
   const handleUpdate = (updates: Record<string, unknown>) => {
-    updateComponent(selectedComp.id, updates);
+    const patch = updates as Partial<RocketComponent>;
+    if (onUpdate) {
+      onUpdate(selectedComp.id, patch);
+    } else {
+      updateComponent(selectedComp.id, patch);
+    }
   };
 
   return (

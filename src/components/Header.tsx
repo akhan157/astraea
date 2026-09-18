@@ -19,22 +19,12 @@ import {
   Flame,
 } from 'lucide-react';
 
-export type StudioId = 'cad' | 'propulsion' | 'trajectory' | 'evidence';
-
 interface HeaderProps {
-  onOpenSim?: () => void;
-  studio?: StudioId;
-  onStudioChange?: (studio: StudioId) => void;
+  /** RIVAL S2: explicit Run — drives the inline trajectory ensemble, never a modal. */
+  onRun?: () => void;
 }
 
-const STUDIO_TABS: Array<{ id: StudioId; label: string; title: string }> = [
-  { id: 'cad', label: 'CAD', title: 'Airframe CAD studio' },
-  { id: 'propulsion', label: 'Propulsion', title: 'Propulsion & motor studio' },
-  { id: 'trajectory', label: 'Trajectory', title: 'Trajectory & weather studio' },
-  { id: 'evidence', label: 'Evidence', title: 'Recovery & flight evidence studio' },
-];
-
-export const Header: React.FC<HeaderProps> = ({ onOpenSim, studio = 'cad', onStudioChange }) => {
+export const Header: React.FC<HeaderProps> = ({ onRun }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const vehicle = useRocketStore((s) => s.vehicle);
@@ -168,26 +158,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSim, studio = 'cad', onStu
             ))}
           </select>
         </div>
-        {/* Studio mode switcher */}
-        <div className="flex items-center gap-0.5 ml-2 bg-zinc-800/60 p-0.5 rounded-lg border border-zinc-700/60" role="tablist" aria-label="Studio modes">
-          {STUDIO_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              role="tab"
-              aria-selected={studio === tab.id}
-              onClick={() => onStudioChange?.(tab.id)}
-              className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition ${
-                studio === tab.id
-                  ? 'bg-cyan-500/25 text-cyan-200'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/60'
-              }`}
-              title={tab.title}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
         {/* Undo / Redo */}
         <div className="flex items-center gap-1 ml-2 bg-zinc-800/60 p-0.5 rounded-lg border border-zinc-700/60">
           <button
@@ -209,17 +179,20 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSim, studio = 'cad', onStu
         </div>
       </div>
 
-      {/* Right Action Buttons */}
-        {onOpenSim && (
-          <button
-            onClick={onOpenSim}
-            className="px-3 py-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 text-xs font-semibold rounded-lg border border-amber-500/40 transition flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
-            title="Run 6-DOF Flight Trajectory Simulation & High-Mach Aerodynamic Analysis"
-          >
-            <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30" />
-            <span>Flight Sim</span>
-          </button>
-        )}
+      {/* Right Action Buttons: routine simulation runs inline in Trajectory
+          (RIVAL S2 replaces the flight modal — no modal entry point remains). */}
+      {onRun && (
+        <button
+          type="button"
+          onClick={onRun}
+          data-run-inline="true"
+          className="px-3 py-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 text-xs font-semibold rounded-lg border border-amber-500/40 transition flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
+          title="Run routine simulation inline in Trajectory (Ctrl+Enter)"
+        >
+          <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30" />
+          <span>Run ⏎</span>
+        </button>
+      )}
 
       <div className="flex items-center gap-2">
         <input

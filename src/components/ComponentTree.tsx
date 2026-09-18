@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { useRocketStore } from '../store/rocketStore';
+import { matchesFilter, type ComponentFilter } from '../store/workspaceStore';
 import { RocketComponent, ComponentType } from '../core/types';
 import {
   Layers,
@@ -20,7 +21,23 @@ import {
   Weight,
 } from 'lucide-react';
 
-export const ComponentTree: React.FC = () => {
+/**
+ * RIVAL S2 — three-state pick rows (synthesis pattern 1): the tree rows
+ * carry `data-state` (candidate/selected/action-needed) so the filter bar,
+ * the tree, and screen readers agree on what needs action. Structural
+ * reorder/delete stay enabled only at the whole-vehicle scope: a filtered
+ * view is for picking, not mutating while hidden.
+ */
+export type TreePickState = 'candidate' | 'selected' | 'action-needed';
+
+export interface ComponentTreeProps {
+  /** Active type filter; rows outside it are hidden (pattern 1). */
+  filter?: ComponentFilter;
+  /** Optional three-state marker; defaults to selected/candidate. */
+  highlight?: (comp: RocketComponent) => TreePickState;
+}
+
+export const ComponentTree: React.FC<ComponentTreeProps> = ({ filter, highlight }) => {
   const vehicle = useRocketStore((s) => s.vehicle);
   const stability = useRocketStore((s) => s.stability);
   const selectedComponentId = useRocketStore((s) => s.selectedComponentId);
@@ -70,6 +87,17 @@ export const ComponentTree: React.FC = () => {
         return '';
     }
   };
+
+  // Filtered pick rows; anything outside the filter is hidden, never
+  // mutated (structuralLocked below).
+  const visible = vehicle.components.filter((comp) => !filter || matchesFilter(comp, filter));
+  // Repair targets the current filter hides (action-needed rows absent from
+  // the visible set): a repair link pointing at a hidden mount/motor must
+  // surface a labeled message, never a silent absence.
+  const hiddenRepairTargets =
+    filter && filter !== 'all' && highlight
+      ? vehicle.components.filter((comp) => !matchesFilter(comp, filter) && highlight(comp) === 'action-needed')
+      : [];
 
   const handleAddNew = (type: ComponentType) => {
     const id = `comp-${Date.now()}`;
@@ -193,8 +221,45 @@ export const ComponentTree: React.FC = () => {
 
       {/* Component List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-        {vehicle.components.map((comp, idx) => {
+        {/* Labeled empty state: a filter that hides the mount/motor a repair
+            link points at must say so — absence would read as "no repair". */}
+        {hiddenRepairTargets.length > 0 && (
+          <div
+            data-filter-hides-repair="true"
+            role="status"
+            className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-200 space-y-0.5"
+          >
+            <p className="font-semibold">
+              {hiddenRepairTargets.length === 1
+                ? 'Repair target hidden by the current filter'
+                : `${hiddenRepairTargets.length} repair targets hidden by the current filter`}
+            </p>
+            <p className="text-amber-200/80">
+              {hiddenRepairTargets.map((c) => c.name).join(', ')} — switch the filter to All to act on the mount.
+            </p>
+          </div>
+        )}
+
+        {/* Labeled empty state for a filter that matches nothing at all. */}
+        {visible.length === 0 && (
+          <p data-tree-filter-empty="true" role="status" className="text-[11px] text-zinc-500 px-1">
+            No components match this filter — switch to All to see the assembly.
+          </p>
+        )}
+
+        {visible.map((comp, idx) => {
           const isSelected = comp.id === selectedComponentId;
+          const state = highlight
+            ? highlight(comp)
+            : isSelected
+              ? ('selected' as TreePickState)
+              : ('candidate' as TreePickState);
+          const stateRow = state === 'selected'
+            ? 'bg-cyan-500/10 border-cyan-500/50 shadow-sm'
+            : state === 'action-needed'
+              ? 'bg-amber-500/10 border-amber-500/40'
+              : 'bg-zinc-800/40 border-zinc-800/80 hover:bg-zinc-800 hover:border-zinc-700';
+          const structuralLocked = filter !== undefined && filter !== 'all';
           const contrib = stability.contributions.find((c) => c.id === comp.id);
           const massDisplay = contrib ? (contrib.mass < 1 ? `${(contrib.mass * 1000).toFixed(1)}g` : `${contrib.mass.toFixed(2)}kg`) : '';
 
@@ -202,11 +267,9 @@ export const ComponentTree: React.FC = () => {
             <div
               key={comp.id}
               onClick={() => selectComponent(comp.id)}
-              className={`p-2.5 rounded-lg border transition cursor-pointer group flex items-center justify-between ${
-                isSelected
-                  ? 'bg-cyan-500/10 border-cyan-500/50 shadow-sm'
-                  : 'bg-zinc-800/40 border-zinc-800/80 hover:bg-zinc-800 hover:border-zinc-700'
-              }`}
+              data-state={state}
+              data-component-id={comp.id}
+              className={`p-2.5 rounded-lg border transition cursor-pointer group flex items-center justify-between ${stateRow}`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="p-1.5 rounded-md bg-zinc-800 border border-zinc-700/50 shrink-0">
@@ -215,6 +278,11 @@ export const ComponentTree: React.FC = () => {
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-semibold text-zinc-200 truncate">{comp.name}</span>
+                    {state === 'action-needed' && (
+                      <span className="text-[9px] px-1 rounded bg-amber-500/20 text-amber-300" title="Needs action — inspect the motor mount">
+                        needs action
+                      </span>
+                    )}
                   </div>
                   <div className="text-[11px] text-zinc-400 font-mono truncate">{getComponentSummary(comp)}</div>
                 </div>
@@ -224,8 +292,8 @@ export const ComponentTree: React.FC = () => {
               <div className="flex items-center gap-1 shrink-0 ml-2">
                 <span className="text-[10px] font-mono text-zinc-500 mr-1">{massDisplay}</span>
 
-                {/* Move Up / Down */}
-                <div className="flex flex-col opacity-0 group-hover:opacity-100 transition">
+                {/* Move Up / Down (whole-vehicle scope only) */}
+                <div className={`flex flex-col ${structuralLocked ? 'hidden' : 'opacity-0 group-hover:opacity-100 transition'}`}>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -250,14 +318,14 @@ export const ComponentTree: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Delete */}
+                {/* Delete (whole-vehicle scope only) */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     removeComponent(comp.id);
                   }}
                   disabled={vehicle.components.length <= 1}
-                  className="p-1 text-zinc-500 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition disabled:opacity-0"
+                  className={`p-1 text-zinc-500 hover:text-rose-400 ${structuralLocked ? 'hidden' : 'opacity-0 group-hover:opacity-100 transition'} disabled:opacity-0`}
                   title="Remove Component"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
