@@ -283,6 +283,14 @@ const SliderInput: React.FC<{
   step?: number;
   onChange: (valInMeters: number) => void;
 }> = ({ label, value, min, max, step = 1, onChange }) => {
+  // Floor at 0 mm — never 0.001. The domain model treats innerDiameter <= 0
+  // as the solid-mount sentinel (caseResolver.assessMounts: raw <= 0 →
+  // solidMount), and the whole repair chain (pickStateFor action-needed,
+  // mount-solid preflight issue, data-filter-hides-repair) keys on it. A
+  // 0.001 mm floor silently warps a typed 0 into a near-zero bore that
+  // renders as "0.0" yet never surfaces any repair — the defect this clamp
+  // guards against.
+  const commitMM = (rawMm: number): number => Math.max(0, rawMm) / 1000;
   const mmVal = value * 1000;
 
   return (
@@ -294,7 +302,7 @@ const SliderInput: React.FC<{
             type="number"
             value={mmVal.toFixed(1)}
             step={step}
-            onChange={(e) => onChange(Math.max(0.001, parseFloat(e.target.value) || 0) / 1000)}
+            onChange={(e) => onChange(commitMM(parseFloat(e.target.value) || 0))}
             className="w-16 bg-zinc-800 text-zinc-100 px-1.5 py-0.5 rounded text-right border border-zinc-700/80 focus:border-cyan-500 focus:outline-none"
           />
           <span className="text-zinc-500 text-[10px]">mm</span>
