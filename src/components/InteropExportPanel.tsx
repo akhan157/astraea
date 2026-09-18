@@ -49,12 +49,23 @@ import {
 } from '../formats/exportPreview';
 
 function downloadBlob(filename: string, blob: Blob): void {
+  // Chrome (incl. headless) only starts a download from a programmatic anchor
+  // click when the anchor is in the document tree — a detached <a>.click()
+  // runs the handler but silently initiates nothing. The blob URL must also
+  // stay valid past the click while the browser asynchronously fetches the
+  // bytes, so revocation is deferred instead of racing the download.
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  a.style.display = 'none';
+  const container = document.body ?? document.documentElement;
+  if (!container) throw new Error('No document container for the download anchor.');
+  container.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  container.removeChild(a);
+  const revoke = URL.revokeObjectURL;
+  setTimeout(() => revoke(url), 30_000);
 }
 
 function download(filename: string, text: string, mime: string): void {
@@ -124,7 +135,11 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
   };
 
   const handleConfirm = () => {
-    if (!staged || !staged.preview.canExport) return;
+    if (!staged) return; // no preview open — nothing to confirm
+    if (!staged.preview.canExport) {
+      setError('Export unavailable: resolve the refusals listed in the preview.');
+      return;
+    }
     try {
       setError(null);
       switch (staged.kind) {

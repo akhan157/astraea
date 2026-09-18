@@ -89,15 +89,23 @@ describe('InteropExportPanel', () => {
 });
 
 describe('InteropExportPanel row-6 export triggers', () => {
-  function stubDownload(): { createObjectURL: Mock; click: Mock } {
+  function stubDownload(): { createObjectURL: Mock; click: Mock; revokeObjectURL: Mock; clickHadParent: () => boolean } {
     const createObjectURL = vi.fn((_blob: Blob) => 'blob:export');
-    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL: vi.fn() });
-    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-    return { createObjectURL, click };
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
+    let hadParent = false;
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        // Chrome ignores downloads from anchors outside the document tree; a
+        // working export must click an anchor that is mounted at click time.
+        hadParent = hadParent || this.parentNode !== null;
+      });
+    return { createObjectURL, click, revokeObjectURL, clickHadParent: () => hadParent };
   }
 
   it('RKT trigger previews omissions, then downloads RockSim XML on confirm', async () => {
-    const { createObjectURL, click } = stubDownload();
+    const { createObjectURL, click, revokeObjectURL, clickHadParent } = stubDownload();
     render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);
     fireEvent.click(screen.getByTitle(/\(\.rkt\)/));
     expect(screen.getByRole('dialog', { name: /RockSim.*preview/ }).textContent).toMatch(/ids, materials/);
@@ -106,7 +114,33 @@ describe('InteropExportPanel row-6 export triggers', () => {
     const text = await (createObjectURL.mock.calls[0][0] as Blob).text();
     expect(text).toContain('<RockSimDocument>');
     expect(click).toHaveBeenCalledTimes(1);
+    // The confirm click must happen on a mounted anchor and the blob URL must
+    // outlive the handler (deferred revocation) — both were silently broken
+    // in real Chrome when the anchor was detached and the URL revoked inline.
+    expect(clickHadParent()).toBe(true);
+    expect(revokeObjectURL).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('defers blob URL revocation until after the confirm click lands', () => {
+    vi.useFakeTimers();
+    try {
+      const createObjectURL = vi.fn((_blob: Blob) => 'blob:deferred');
+      const revokeObjectURL = vi.fn();
+      vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
+      vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+      render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);
+      fireEvent.click(screen.getByTitle(/\(\.rkt\)/));
+      fireEvent.click(screen.getByTitle(/Confirm rkt download/));
+      // Pre-fix the URL was revoked inline inside the handler, racing the
+      // browser's async fetch of the blob bytes; the fix defers revocation.
+      expect(revokeObjectURL).not.toHaveBeenCalled();
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      vi.advanceTimersByTime(30_000);
+      expect(revokeObjectURL).toHaveBeenCalledWith('blob:deferred');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('RKT trigger refuses elliptical fin sets with no download offered', () => {
