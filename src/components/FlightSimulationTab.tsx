@@ -731,8 +731,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                     <svg
                       className="w-full h-full overflow-visible"
                       viewBox="0 0 400 140"
-                      role="img"
-                      aria-label={`Altitude trajectory from launch to ${simResult.apogeeAltitude.toFixed(0)} meters over ${simResult.flightDuration.toFixed(0)} seconds`}
+                      aria-label={`Altitude trajectory: apogee ${simResult.apogeeAltitude.toFixed(0)} meters at t=${simResult.apogeeTime.toFixed(1)} seconds, ${simResult.terminated ? 'touchdown' : 'end of run'} at t=${simResult.flightDuration.toFixed(1)} seconds`}
                     >
                       <line x1="40" y1="20" x2="390" y2="20" stroke="#27272a" strokeDasharray="3" />
                       <line x1="40" y1="70" x2="390" y2="70" stroke="#27272a" strokeDasharray="3" />
@@ -757,10 +756,10 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                       })()}
 
                       <text x="45" y="18" fill="#38bdf8" fontSize="9" fontFamily="monospace">
-                        Apogee: {simResult.apogeeAltitude.toFixed(0)}m ({(simResult.apogeeAltitude * 3.28084).toFixed(0)}ft)
+                        Apogee {simResult.apogeeAltitude.toFixed(0)}m ({(simResult.apogeeAltitude * 3.28084).toFixed(0)}ft) @ t={simResult.apogeeTime.toFixed(1)}s
                       </text>
                       <text x="350" y="132" fill="#71717a" fontSize="8" fontFamily="monospace">
-                        {simResult.flightDuration.toFixed(0)}s
+                        t={simResult.flightDuration.toFixed(0)}s {simResult.terminated ? 'touchdown' : 'end of run'}
                       </text>
                     </svg>
                   </div>

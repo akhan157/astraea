@@ -8,12 +8,14 @@ import { describe, it, expect } from 'vitest';
 import {
   bayVolume,
   clearanceCheck,
+  deriveBays,
   packAdvisory,
   packedDensity,
   PACK_ADVISORY_JAM,
   PACK_ADVISORY_OK_MAX,
   PACK_ADVISORY_OK_MIN,
 } from './packing';
+import type { RocketVehicle } from '../core/types';
 import {
   bpMass,
   CHARGE_MASS_MARGIN,
@@ -158,5 +160,90 @@ describe('packing and charges: degenerate inputs are rejected', () => {
     expect(() => targetPressure(1.5, 44, 0.1)).toThrow(/whole number/);
     expect(() => targetPressure(1, 44, 0)).toThrow(/must be > 0/);
     expect(() => bpMass(0, 0.01)).toThrow(/must be > 0/);
+  });
+});
+describe('packing: deriveBays from bodytubes + chute spans (C9/Q1-Q3)', () => {
+  const tube = {
+    id: 'tube',
+    name: 'BT-50',
+    type: 'bodytube' as const,
+    materialId: 'cardboard',
+    length: 0.311,
+    outerDiameter: 0.0248,
+    innerDiameter: 0.0241,
+  };
+  const chute = {
+    id: 'chute',
+    name: '12 in chute',
+    type: 'parachute' as const,
+    materialId: 'nylon',
+    diameter: 0.305,
+    cd: 0.8,
+    mass: 0.008,
+    axialOffset: 0.05,
+  };
+  const vehicle = (components: RocketVehicle['components']): RocketVehicle => ({
+    id: 'v',
+    name: 'v',
+    version: '1',
+    author: 't',
+    components,
+  });
+
+  it('derives one bay per chute-hosting tube with entered dims and assumed bore', () => {
+    const { bays, unplacedChutes } = deriveBays(vehicle([tube, chute]));
+    expect(unplacedChutes).toEqual([]);
+    expect(bays).toHaveLength(1);
+    const [bay] = bays;
+    expect(bay.tubeId).toBe('tube');
+    expect(bay.lengthM).toEqual({ value: 0.311, provenance: 'entered' });
+    expect(bay.innerDiameterM).toEqual({ value: 0.0241, provenance: 'entered' });
+    expect(bay.ambiguityNote).toBeNull();
+    expect(bay.items).toHaveLength(1);
+    const [item] = bay.items;
+    expect(item.kind).toBe('chute');
+    // Packed length absent: missing (excluded from clearance, never guessed).
+    expect(item.lengthM).toEqual({ value: null, provenance: 'missing' });
+    // Packed diameter absent: assumed bore (documented fallback).
+    expect(item.diameterM).toEqual({ value: 0.0241, provenance: 'assumed' });
+    expect(item.massG).toEqual({ value: 8, provenance: 'entered' });
+  });
+
+  it('surfaces duplicate-chute ambiguity and unplaced chutes instead of guessing', () => {
+    const second = { ...chute, id: 'chute2', name: 'second chute', packedLengthM: 0.12 };
+    const stray = { ...chute, id: 'stray', name: 'stray chute', axialOffset: 9.9 };
+    const { bays, unplacedChutes } = deriveBays(vehicle([tube, chute, second, stray]));
+    expect(bays).toHaveLength(1);
+    expect(bays[0].ambiguityNote).toMatch(/2 chutes share this tube/);
+    expect(bays[0].items).toHaveLength(2);
+    expect(unplacedChutes).toEqual(['stray chute']);
+  });
+
+  it('enters user-packed dims and sled bounds; tubes without chutes yield no bay', () => {
+    const packed = { ...chute, packedLengthM: 0.14, packedDiameterM: 0.02 };
+    const sled = {
+      id: 'sled',
+      name: 'avionics sled',
+      type: 'masscomponent' as const,
+      materialId: 'pcb',
+      mass: 0.2,
+      length: 0.1,
+      axialOffset: 0.2,
+      widthM: 0.02,
+      heightM: 0.015,
+    };
+    const bareTube = { ...tube, id: 'bare', name: 'booster' };
+    const { bays } = deriveBays(vehicle([bareTube, tube, packed, sled]));
+    expect(bays).toHaveLength(1);
+    const [bay] = bays;
+    expect(bay.items).toHaveLength(2);
+    expect(bay.items[0].lengthM).toEqual({ value: 0.14, provenance: 'entered' });
+    expect(bay.items[0].diameterM).toEqual({ value: 0.02, provenance: 'entered' });
+    expect(bay.items[1]).toMatchObject({
+      kind: 'sled',
+      lengthM: { value: 0.1, provenance: 'entered' },
+      diameterM: { value: 0.015, provenance: 'entered' },
+      massG: null,
+    });
   });
 });

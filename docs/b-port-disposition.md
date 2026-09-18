@@ -91,3 +91,56 @@ lane. KML positive-path behavior (published payload → omission preview →
 download) is exercised at the pure-function layer against the
 `KmlRunSnapshot` shape and unblocks unchanged when the S4 job service
 publishes payloads. Commit `c14ee44` references this disposition file.
+
+## F4 sim-vs-flight overlay + C9 recovery-bay strip + F5 apogee labels
+## (worker task_531736a0f41f — ported from frontend 64237a6 + a908c40)
+
+Scope: the F4 sim-vs-flight overlay studio (evidence `overlay.ts` engine +
+`SimFlightOverlay` surface mounted in EvidenceStudio) and the C9 never-3D
+recovery-bay strip + F5 apogee/duration labels. Sources: `akhan157/frontend`
+commits `64237a6` and `a908c40`. Patterns cited per the synthesis §2 list
+(1–13); per-pattern calls cover this port's shipped UI only.
+
+| Pattern (synthesis §2) | Disposition | Evidence / rationale |
+|---|---|---|
+| 6. Inspect/Compare sibling panes; run archive + promotion; checkbox layering (SDI) | **ADAPT (implemented in this port)** | `SimFlightOverlay` in EvidenceStudio: sibling Inspect/Compare panes, checkbox signal layering (sim + ingested flight logs), run archive backed by the **existing `runStore`** with `chooseRun` promotion — the B archive is append-only records, never the A-side `lastSimRun` field. |
+| 7. Four-stage compare contract: align→sync→interpolate→tolerance + band + signed diff + strip + OOT nav (SDI) | **ADAPT (implemented in this port)** | `evidence/overlay.ts` ported verbatim (pure; shared `altimetry` baseline is identical). The surface exposes all four stages (align toggle; sync union/intersection; interp linear/zoh; abs/rel/time tolerances re-running on blur), the most-lenient composite band, signed difference plot, pass/fail strip, and out-of-tolerance region navigation (buttons + arrow keys). |
+| 8. Auto-invalidation with visible reason + one-click re-run; old results gated (Mechanical, corrected) | **ADAPT (implemented in this port)** | The sim side is gated by the existing `qualifyResult`/`runStore` contract: a pass badge requires valid + current + gate-pass, and a stale/invalid/failed or input-diverged committed record shows its qualified badge and **withholds the sim curve** — never an unqualified pass. Snapshot-key equality (S1 `snapshotCase`) is the input-level freshness test on top of record freshness. |
+| 9. Snapshot export vs live view duality, honestly labeled (STK, Seeq) | **ADAPT (implemented in this port, label half)** | F5: the trajectory chart names the apogee time (`Apogee … @ t=…s`) and labels the flight-duration endpoint (`t=…s touchdown|end of run`) so the two can never conflate. **F1 (PNG-export runtime failure) and F2 (lossless export/import round-trip) stay untouched and unclaimed** by this port — no copy asserts PNG-export completeness or a lossless round-trip. |
+| 10. Selection as first-class persistable state; cross-pane cursor (Foundry, Seeq, Grafana) | **ADAPT (implemented in this port)** | Shared cross-pane time cursor + click-to-place plot cursor in the overlay. B's selection semantics remain **action-root / honest whole-design**: the run-from-selection chip stays in `PrecisionContextBar` ("Run current design", whole-design scope); the overlay never turns selection into a sim-scope claim. |
+| 11. Dual time model: context + focus window with mini-map (Seeq) | **REJECT (this surface)** | No mini-map; one explicit overlay time domain plus the shared cursor. |
+| 12. Side-effect-free replay; report rows navigate into sim time (SDI, STK) | **Partial adopt (this port)** | Overlay replay is side-effect-free (append-only archive; promotion never rewrites records); archive rows navigate the compare target via promotion. Named camera+time views remain deferred. |
+| 1./2./3./4./5./13. | **REJECT (unchanged)** | Filter (1), versioning (2), canvas diff dock (3), edit buffer (4), scenario footer (5), MissionStatusRail maturity states (13) are prior shell surfaces, untouched here. |
+
+C9 never-3D strip: `deriveBays` (recovery/packing.ts) derives bays from
+bodytubes + chute/sled spans with entered/assumed/missing provenance
+(ambiguity surfaced, never guessed); the Recovery card binds the engine
+functions without recompute and carries the geometry-only disclaimer.
+Typed ship: optional `packedLengthM`/`packedDiameterM` on
+`ParachuteComponent`, `widthM`/`heightM` on `MassComponent` (core/types.ts).
+
+B-specific honesty (why the sim side differs from A): B has no
+telemetry-bearing `lastSimRun` field (`runStore.lastSimRun()` carries
+identity with empty series until the S4 job service publishes payloads), so
+the sim curve is a deterministic re-run of the current resolved case
+(`simulate6DofFlight` on the S1 `preflight`/`snapshotCase` target), rendered
+only while the committed record is completed + valid + freshness-current +
+snapshot-key-matched, and labeled as a re-derivation in the UI. The overlay
+never writes the vehicle, motor, or run store (analysis-only).
+
+Files touched (this pass): `src/evidence/overlay.ts`,
+`src/evidence/overlay.test.ts` (new), `src/components/SimFlightOverlay.tsx`,
+`src/components/SimFlightOverlay.test.tsx` (new; mirrored suite + B pattern-8
+gating cases), `src/components/EvidenceStudio.tsx`,
+`src/components/EvidenceStudio.test.tsx`, `src/recovery/packing.ts`,
+`src/recovery/recovery.test.ts`, `src/core/types.ts`,
+`src/components/FlightSimulationTab.tsx`,
+`src/components/FlightSimulationTab.test.tsx`, this file. Not touched:
+`scripts/emit-benchmark-metadata.*` (a later reconciler owns the
+suite-inventory bump), CompareDock, WorkstationShell, PrecisionContextBar,
+SelectionFilter, App.tsx, `formats/`, InteropExportPanel (other workers).
+
+Verification: scoped vitest green on every touched test file (62 cases
+across `overlay.test.ts`, `SimFlightOverlay.test.tsx`,
+`EvidenceStudio.test.tsx`, `recovery.test.ts`, `FlightSimulationTab.test.tsx`);
+`tsc --noEmit` clean project-wide; full suite not required by this pass.

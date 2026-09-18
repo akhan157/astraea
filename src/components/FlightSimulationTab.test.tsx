@@ -58,6 +58,10 @@ describe('FlightSimulationTab safety presentation', () => {
     // The run manifest names the motor/rail/wind inputs behind the results.
     expect(screen.getByText(/Run manifest/)).toBeTruthy();
     expect(screen.getByText(/motor /)).toBeTruthy();
+    // F5: the chart names the apogee time and the flight-duration endpoint
+    // separately, so the duration can never read as the apogee time.
+    expect(screen.getByText(/Apogee .* @ t=.*s/)).toBeTruthy();
+    expect(screen.getByText(/t=.*s (touchdown|end of run)/)).toBeTruthy();
   }, 90000);
 
   it('ties safety presentation decisively to the certified context', async () => {

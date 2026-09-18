@@ -111,6 +111,14 @@ export interface MassComponent extends BaseComponent {
   mass: number;            // kg
   length: number;          // meters
   axialOffset: number;     // meters from parent body tube front
+  /**
+   * Bounding cross-section of an avionics sled or other carried load (Q3):
+   * user-entered, meters. Absent = unknown (drawn schematically, never
+   * guessed). v1: not carried by .ork/.rkt round-trips.
+   */
+  widthM?: number;
+  /** Bounding cross-section height, meters (see widthM). */
+  heightM?: number;
 }
 
 export interface ParachuteComponent extends BaseComponent {
@@ -119,6 +127,15 @@ export interface ParachuteComponent extends BaseComponent {
   cd: number;              // drag coefficient, typically 0.8 - 1.5
   mass: number;            // kg
   axialOffset: number;     // meters from parent body tube front
+  /**
+   * User-entered packed envelope of the folded chute (Q2), meters. Absent =
+   * missing: the chute is listed but excluded from clearance math and drawn
+   * schematically, never sized by a physics-free heuristic. v1: not carried
+   * by .ork/.rkt round-trips.
+   */
+  packedLengthM?: number;
+  /** Packed envelope diameter, meters (see packedLengthM). */
+  packedDiameterM?: number;
 }
 
 export type RocketComponent =
