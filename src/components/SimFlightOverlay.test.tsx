@@ -1,10 +1,16 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { SimFlightOverlay } from './SimFlightOverlay';
 import { useRocketStore } from '../store/rocketStore';
 import { nextRunId, resetRunIdCounter, useRunStore } from '../store/runStore';
-import { preflight, snapshotCase, type LaunchCase } from '../application/caseResolver';
+import {
+  preflight,
+  snapshotCase,
+  type LaunchCase,
+  type McEnsembleInput,
+  type RunSnapshot,
+} from '../application/caseResolver';
 import type { RocketVehicle } from '../core/types';
 import type { MotorSpec } from '../propulsion/motorDatabase';
 import type { SixDofOptions, SixDofSimulationResult } from '../sim/sixDofSimulator';
@@ -111,6 +117,50 @@ function currentRunKey(): string {
   return snapshotCase(preflight(launchCase, store.customMotors)).runKey;
 }
 
+/** TrajectoryStudio-style ensemble capture (studio defaults). */
+const MC_ENSEMBLE: McEnsembleInput = {
+  nRuns: 50,
+  windAzimuthDegSigma: 5,
+  railAngleDegSigma: 1,
+  impulsePctSigma: 3,
+  wind: {
+    probeAltitudeM: 0,
+    windRows: [{ altitudeM: 0, speedMs: 0, directionFromDeg: 0 }],
+    soundingStatus: 'idle',
+    soundingLayers: [],
+  },
+};
+
+/** Full snapshot (case + ensemble) of a committed MC-style run. */
+function currentSnapshot(): RunSnapshot {
+  const store = useRocketStore.getState();
+  const launchCase: LaunchCase = {
+    vehicle: store.vehicle,
+    motorId: store.selectedMotorId,
+    options: OVERLAY_LAUNCH_OPTIONS,
+    ensemble: MC_ENSEMBLE,
+  };
+  return snapshotCase(preflight(launchCase, store.customMotors));
+}
+
+/** The same snapshot with a manual wind-row edit (simulates a studio edit). */
+function windEditedSnapshot(): RunSnapshot {
+  const store = useRocketStore.getState();
+  const launchCase: LaunchCase = {
+    vehicle: store.vehicle,
+    motorId: store.selectedMotorId,
+    options: OVERLAY_LAUNCH_OPTIONS,
+    ensemble: {
+      ...MC_ENSEMBLE,
+      wind: {
+        ...MC_ENSEMBLE.wind,
+        windRows: [{ altitudeM: 0, speedMs: 6, directionFromDeg: 0 }],
+      },
+    },
+  };
+  return snapshotCase(preflight(launchCase, store.customMotors));
+}
+
 /** Commit a completed, valid, current-keys run into the run store (pattern 8). */
 function commitSim() {
   const store = useRocketStore.getState();
@@ -124,6 +174,7 @@ function commitSim() {
     gate: 'unknown',
     label: 'MC 10 · estes_c6',
     lifecycle: 'completed',
+    snapshot: currentSnapshot(),
   });
   useRunStore.getState().chooseRun(runId);
   (globalThis as unknown as { __simImpl: SimFlight }).__simImpl = ((_v, _m, _o) => buildSimResult(300));
@@ -282,6 +333,51 @@ describe('SimFlightOverlay inspect pane', () => {
     expect(screen.getByText(/committed inputs differ from the current case/i)).toBeTruthy();
     // The previously-current run remains archived and re-promotable.
     expect(screen.getByRole('button', { name: /make mc 10 · estes_c6 current/i })).toBeTruthy();
+  });
+
+  it('labels the chosen run with four separate fields (Astra P0-1)', () => {
+    commitSim();
+    render(<SimFlightOverlay />);
+    const chosen = within(document.querySelector('[data-run-record-fields="true"]') as HTMLElement);
+    expect(chosen.getByText('Execution: Executed')).toBeTruthy();
+    expect(chosen.getByText('Validity: Valid')).toBeTruthy();
+    expect(chosen.getByText('Freshness: Current')).toBeTruthy();
+    expect(chosen.getByText('Gate: unknown')).toBeTruthy();
+  });
+
+  it('stales the run archive from the published complete snapshot and restores on undo (Astra P0-1)', () => {
+    commitSim();
+    render(<SimFlightOverlay />);
+    // A second completed run with the same full snapshot stays archived.
+    act(() => {
+      useRunStore.getState().recordAttempt({
+        runId: nextRunId(),
+        runKey: currentRunKey(),
+        caseId: 'none::none',
+        valid: true,
+        freshness: 'current',
+        gate: 'unknown',
+        label: 'MC 25 · estes_c6',
+        lifecycle: 'completed',
+        snapshot: currentSnapshot(),
+      });
+    });
+    const registryFields = () => within(document.querySelector('[data-run-registry-fields="true"]') as HTMLElement);
+    expect(registryFields().getByText('Execution: Executed')).toBeTruthy();
+    expect(registryFields().getByText('Validity: Valid')).toBeTruthy();
+    expect(registryFields().getByText('Freshness: Current')).toBeTruthy();
+    expect(registryFields().getByText('Gate: unknown')).toBeTruthy();
+
+    // Wind edit (published by the studio): the registry row stales WITH a
+    // reason — no rerun involved — while the chosen card keeps attesting the
+    // case the overlay re-derives (case-level freshness).
+    act(() => useRunStore.getState().publishSnapshot(windEditedSnapshot()));
+    const reason = 'Freshness: Stale — wind inputs changed (manual table / probe / sounding)';
+    expect(registryFields().getByText(reason)).toBeTruthy();
+
+    // Undo-to-identical (same full key) restores current without a rerun.
+    act(() => useRunStore.getState().publishSnapshot(currentSnapshot()));
+    expect(registryFields().getByText('Freshness: Current')).toBeTruthy();
   });
 });
 

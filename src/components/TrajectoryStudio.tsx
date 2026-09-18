@@ -13,22 +13,28 @@
  *      user nRuns (50 default, 200 cap) and perturbation sigmas. Wind
  *      precedence: a fetched sounding supplies the surface-wind slot
  *      (interpolated at the probe altitude); the manual table is the
- *      fallback. Results carry a FRESH/STALE badge keyed on every input.
+ *      fallback. Run identity captures the COMPLETE dependency snapshot
+ *      (case + ensemble: wind, sigmas, run count, sounding); freshness is
+ *      derived from that identity everywhere (Astra P0-1) and surfaces as
+ *      four separate fields — execution / validity / freshness / gate —
+ *      with the reason a result went stale.
  *   4. Boattail flow-separation and protuberance-drag advisories.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { MotorSpec } from '../propulsion/motorDatabase';
 import { useRocketStore } from '../store/rocketStore';
 import { useWorkspaceStore } from '../store/workspaceStore';
-import { nextRunId, useRunStore } from '../store/runStore';
-import { qualifyResult } from '../application/runDisplay';
+import { displayFor, nextRunId, useRunStore } from '../store/runStore';
 import {
+  freshnessReasonLabel,
   preflight,
   resolveMotor,
   snapshotCase,
+  snapshotDivergence,
   type LaunchCase,
   type ResolvedCase,
+  type RunSnapshot,
 } from '../application/caseResolver';
 import { StatusBadge } from './ui/StatusBadge';
 import type { SixDofOptions } from '../sim/sixDofSimulator';
@@ -170,43 +176,9 @@ export function TrajectoryStudio(): React.JSX.Element {
   const [mcImpulseSigmaPct, setMcImpulseSigmaPct] = useState<number>(3.0);
   const [mcRunning, setMcRunning] = useState<boolean>(false);
   const [mcResult, setMcResult] = useState<DispersionResult | null>(null);
-  const [lastMcInputKey, setLastMcInputKey] = useState<string | null>(null);
+  /** Full dependency snapshot captured at the last MC run (case + ensemble). */
+  const [lastMcSnapshot, setLastMcSnapshot] = useState<RunSnapshot | null>(null);
   const [mcError, setMcError] = useState<string | null>(null);
-
-  // FRESH/STALE contract (shared with FlightSim): every dispersion-relevant
-  // input — vehicle, shared motor, run count, sigmas, probe altitude, wind
-  // rows, AND the sounding profile — folds into one key. Any change after a
-  // run flags the results stale; only a rerun refreshes the badge.
-  const mcInputKey = useMemo(
-    () =>
-      JSON.stringify({
-        vehicle,
-        motorId: selectedMotorId,
-        nRuns: clampNRuns(mcNRuns),
-        railElevation: mcRailElevationDeg,
-        windSigma: mcWindSigmaDeg,
-        railSigma: mcRailSigmaDeg,
-        impulseSigma: mcImpulseSigmaPct,
-        probeAltitudeM,
-        windRows,
-        soundingStatus,
-        soundingLayers,
-      }),
-    [
-      vehicle,
-      selectedMotorId,
-      mcNRuns,
-      mcRailElevationDeg,
-      mcWindSigmaDeg,
-      mcRailSigmaDeg,
-      mcImpulseSigmaPct,
-      probeAltitudeM,
-      windRows,
-      soundingStatus,
-      soundingLayers,
-    ],
-  );
-  const mcResultsAreStale = mcResult !== null && lastMcInputKey !== mcInputKey;
 
   // Wind precedence (Round-19): a live sounding, once fetched, supplies the
   // wind the MC consumes — interpolated at the probe altitude into the
@@ -228,7 +200,11 @@ export function TrajectoryStudio(): React.JSX.Element {
 
   // S1 case + common preflight: the run executes the resolved motor against
   // the resolved case — every run path agrees on these gates and on the
-  // repair destination each issue links to.
+  // repair destination each issue links to. Astra P0-1: the case also
+  // captures the COMPLETE Monte-Carlo dependency set (clamped run count,
+  // sigmas, probe altitude, full manual wind table, AND the sounding
+  // profile) so snapshot identity — not a component-local key — drives
+  // freshness on every surface.
   const launchCase: LaunchCase = useMemo(
     () => ({
       vehicle,
@@ -242,8 +218,33 @@ export function TrajectoryStudio(): React.JSX.Element {
         finCantDeg: 0.0,
         mainDeployAltitudeM: 250,
       },
+      ensemble: {
+        nRuns: clampNRuns(mcNRuns),
+        windAzimuthDegSigma: mcWindSigmaDeg,
+        railAngleDegSigma: mcRailSigmaDeg,
+        impulsePctSigma: mcImpulseSigmaPct,
+        wind: {
+          probeAltitudeM,
+          windRows,
+          soundingStatus,
+          soundingLayers,
+        },
+      },
     }),
-    [vehicle, selectedMotorId, mcRailElevationDeg, mcSurfaceWind],
+    [
+      vehicle,
+      selectedMotorId,
+      mcRailElevationDeg,
+      mcSurfaceWind,
+      mcNRuns,
+      mcWindSigmaDeg,
+      mcRailSigmaDeg,
+      mcImpulseSigmaPct,
+      probeAltitudeM,
+      windRows,
+      soundingStatus,
+      soundingLayers,
+    ],
   );
   const resolved: ResolvedCase = useMemo(
     () => preflight(launchCase, customMotors),
@@ -252,24 +253,33 @@ export function TrajectoryStudio(): React.JSX.Element {
   const runRecords = useRunStore((s) => s.records);
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
   const lastAttempt = runRecords.find((r) => r.runId === lastAttemptId) ?? null;
-  // Content-addressed identity of the resolved inputs (S1 snapshot). A
-  // same-id motor edit changes this key and stales prior records. Guarded:
-  // nonfinite vehicle inputs cannot be keyed and fail closed to a sentinel.
-  const caseRunKey = useMemo(() => {
+  // Astra P0-1: ONE freshness identity — the COMPLETE captured dependency
+  // snapshot (case inputs + ensemble). The card, the run record, and every
+  // registry row all derive freshness from its mcKey via displayFor; the
+  // local badge is gone. Guarded: nonfinite inputs cannot be keyed and fail
+  // closed to null (preflight already blocks such runs).
+  const mcSnapshot: RunSnapshot | null = useMemo(() => {
     try {
-      return snapshotCase(resolved).runKey;
+      return snapshotCase(resolved);
     } catch {
-      return 'unkeyable-invalid-inputs';
+      return null;
     }
   }, [resolved]);
-  const qualified = lastAttempt
-    ? qualifyResult({
-        valid: lastAttempt.valid,
-        current: lastAttempt.freshness === 'current' && !mcResultsAreStale,
-        gate: lastAttempt.gate,
-        lifecycle: lastAttempt.lifecycle,
-      })
-    : null;
+  const mcStale =
+    mcSnapshot !== null &&
+    lastMcSnapshot !== null &&
+    lastMcSnapshot.mcKey !== mcSnapshot.mcKey;
+  const mcStaleReason =
+    mcStale && mcSnapshot !== null && lastMcSnapshot !== null
+      ? freshnessReasonLabel(snapshotDivergence(mcSnapshot, lastMcSnapshot))
+      : null;
+  // Publish the live complete dependency snapshot to the run store so EVERY
+  // surface derives freshness from the same full identity — never from a
+  // component-local key or from "a newer run finished".
+  useEffect(() => {
+    if (mcSnapshot !== null) useRunStore.getState().publishSnapshot(mcSnapshot);
+  }, [mcSnapshot]);
+  const attemptQual = lastAttempt && mcSnapshot !== null ? displayFor(lastAttempt, mcSnapshot) : null;
 
   const handleRunMonteCarlo = () => {
     // S1 gate: only a preflighted, runnable case executes; every issue above
@@ -292,8 +302,9 @@ export function TrajectoryStudio(): React.JSX.Element {
     const nRuns = clampNRuns(mcNRuns);
     const recordBase = {
       runId: nextRunId(),
-      runKey: caseRunKey,
+      runKey: mcSnapshot?.runKey ?? 'unkeyable-invalid-inputs',
       caseId: `${vehicle.id}::${selectedMotorId}`,
+      snapshot: mcSnapshot ?? undefined,
       valid: true,
       freshness: 'current' as const,
       gate: 'unknown' as const,
@@ -311,15 +322,16 @@ export function TrajectoryStudio(): React.JSX.Element {
         MC_SEED,
       );
       setMcResult(result);
-      setLastMcInputKey(mcInputKey);
-      // Append-only registry: the new current run stales prior keys without
-      // rewriting them; a failure never erases a success.
+      // The run's snapshot is the freshness anchor: card + record + registry
+      // all compare their captured identity against it (never an event).
+      setLastMcSnapshot(mcSnapshot);
+      // Append-only registry: a new current run never rewrites prior
+      // records; their freshness is derived at display time (Astra P0-1).
       useRunStore.getState().recordAttempt({ ...recordBase, lifecycle: 'completed' });
       setLastAttemptId(recordBase.runId);
-      useRunStore.getState().markStaleByKey(caseRunKey);
     } catch (err) {
       setMcResult(null);
-      setLastMcInputKey(null);
+      setLastMcSnapshot(null);
       setMcError(err instanceof Error ? err.message : String(err));
       useRunStore.getState().recordAttempt({ ...recordBase, lifecycle: 'failed' });
       setLastAttemptId(recordBase.runId);
@@ -423,10 +435,13 @@ export function TrajectoryStudio(): React.JSX.Element {
             detail="Preflight returned at least one blocking issue; the run control stays disabled."
           />
         )}
-        {qualified && (
-          <div className="flex items-center gap-1.5 text-[11px] font-mono">
+        {attemptQual && (
+          <div data-run-record-fields="true" className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono">
             <span className="text-zinc-400">Latest attempt:</span>
-            <StatusBadge status={qualified.status} label={qualified.label} detail={lastAttempt?.runKey ?? ''} />
+            <StatusBadge status={attemptQual.fields.execution.status} label={attemptQual.fields.execution.label} />
+            <StatusBadge status={attemptQual.fields.validity.status} label={attemptQual.fields.validity.label} />
+            <StatusBadge status={attemptQual.fields.freshness.status} label={attemptQual.fields.freshness.label} />
+            <StatusBadge status={attemptQual.fields.gate.status} label={attemptQual.fields.gate.label} />
           </div>
         )}
       </div>
@@ -707,15 +722,27 @@ export function TrajectoryStudio(): React.JSX.Element {
             <div className="flex items-center gap-1.5 text-[11px] font-mono" role="status" aria-live="polite">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
               <span className="text-emerald-400">{mcResult.successfulRuns} succeeded · {mcResult.failedRuns} failed</span>
-              <span
-                className={`px-2 py-0.5 rounded border text-[10px] font-mono font-bold ${
-                  mcResultsAreStale
-                    ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
-                    : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
-                }`}
-              >
-                {mcResultsAreStale ? 'STALE — inputs changed since run' : 'FRESH — matches current inputs'}
-              </span>
+            </div>
+            {/* Four separate status fields (Astra P0-1 contract): execution,
+                validity, freshness (with reason), gate — not a local badge. */}
+            <div data-run-card-fields="true" className="flex flex-wrap gap-1.5">
+              {attemptQual ? (
+                <>
+                  <StatusBadge status={attemptQual.fields.execution.status} label={attemptQual.fields.execution.label} />
+                  <StatusBadge status={attemptQual.fields.validity.status} label={attemptQual.fields.validity.label} />
+                  <StatusBadge status={attemptQual.fields.freshness.status} label={attemptQual.fields.freshness.label} />
+                  <StatusBadge status={attemptQual.fields.gate.status} label={attemptQual.fields.gate.label} />
+                </>
+              ) : (
+                <StatusBadge
+                  status={mcStale ? 'stale' : 'pass'}
+                  label={
+                    mcStale
+                      ? `Freshness: Stale${mcStaleReason ? ` — ${mcStaleReason}` : ''}`
+                      : 'Freshness: Current'
+                  }
+                />
+              )}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
               <div className="p-2.5 bg-zinc-950/80 rounded-lg border border-zinc-800">

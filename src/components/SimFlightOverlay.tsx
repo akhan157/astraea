@@ -52,7 +52,7 @@ import {
 } from '../evidence/overlay';
 import { useRocketStore } from '../store/rocketStore';
 import { displayFor, useRunStore } from '../store/runStore';
-import { preflight, snapshotCase, type LaunchCase } from '../application/caseResolver';
+import { preflight, snapshotCase, type LaunchCase, type RunSnapshot } from '../application/caseResolver';
 import { simulate6DofFlight, type SixDofSimulationResult } from '../sim/sixDofSimulator';
 import { StatusBadge } from './ui/StatusBadge';
 
@@ -177,6 +177,10 @@ export function SimFlightOverlay(): React.JSX.Element {
   const customMotors = useRocketStore((s) => s.customMotors);
   const runRecords = useRunStore((s) => s.records);
   const chosenRunId = useRunStore((s) => s.chosenRunId);
+  // Registry freshness re-derives against the studio's published COMPLETE
+  // dependency snapshot; subscribing keeps the archive honest the moment
+  // inputs change (Astra P0-1), not only after a rerun.
+  const currentSnapshot = useRunStore((s) => s.currentSnapshot);
   const chosen = runRecords.find((r) => r.runId === chosenRunId) ?? null;
 
   const [pane, setPane] = useState<Pane>('inspect');
@@ -203,21 +207,24 @@ export function SimFlightOverlay(): React.JSX.Element {
 
   // Current resolved case key (S1): the overlay re-derives the same
   // snapshot the run store keys records by. Non-finite inputs fail closed.
-  const overlayRunKey = useMemo(() => {
+  const overlaySnapshot: RunSnapshot | null = useMemo(() => {
     try {
       const case0: LaunchCase = { vehicle, motorId: selectedMotorId, options: OVERLAY_LAUNCH_OPTIONS };
-      return snapshotCase(preflight(case0, customMotors)).runKey;
+      return snapshotCase(preflight(case0, customMotors));
     } catch {
-      return 'unkeyable-invalid-inputs';
+      return null;
     }
   }, [vehicle, selectedMotorId, customMotors]);
+  const overlayRunKey = overlaySnapshot?.runKey ?? 'unkeyable-invalid-inputs';
 
   // Qualification of the committed run, routed through the existing
   // pattern-8 contract: a pass badge requires valid + current inputs +
-  // gate-pass; anything else carries its own qualified label.
-  const simBadge = chosen
-    ? displayFor({ ...chosen, freshness: chosen.freshness === 'current' && chosen.runKey === overlayRunKey ? 'current' : 'stale' }).status
-    : null;
+  // gate-pass; anything else carries its own qualified label. The overlay
+  // attests the CASE inputs it re-derives (its fixed launch conditions), so
+  // freshness compares the case-level runKey — ensemble methodology lives in
+  // the capturing surface's snapshot, not the overlay's re-derivation.
+  const chosenQual = chosen && overlaySnapshot !== null ? displayFor(chosen, overlaySnapshot) : null;
+  const simBadge = chosenQual?.status ?? null;
 
   // The sim curve is drawn only for a completed, valid, freshness-current,
   // key-matched committed run — never for a stale/invalid/failed record.
@@ -461,6 +468,14 @@ export function SimFlightOverlay(): React.JSX.Element {
                   <div className="flex items-center gap-2">
                     <StatusBadge status={simBadge?.status ?? 'unknown'} label={simBadge?.label ?? 'No gate evaluated'} />
                   </div>
+                  {chosenQual && (
+                    <div data-run-record-fields="true" className="flex flex-wrap gap-1.5">
+                      <StatusBadge status={chosenQual.fields.execution.status} label={chosenQual.fields.execution.label} />
+                      <StatusBadge status={chosenQual.fields.validity.status} label={chosenQual.fields.validity.label} />
+                      <StatusBadge status={chosenQual.fields.freshness.status} label={chosenQual.fields.freshness.label} />
+                      <StatusBadge status={chosenQual.fields.gate.status} label={chosenQual.fields.gate.label} />
+                    </div>
+                  )}
                   <p className="text-zinc-500">key {chosen.runKey.slice(0, 16)}… · {chosen.label}</p>
                   {simEligible
                     ? <p className="text-emerald-400">sim curve: deterministic re-derivation of the committed case (key-matched)</p>
@@ -470,20 +485,32 @@ export function SimFlightOverlay(): React.JSX.Element {
               {runRecords.filter((r) => r.runId !== chosenRunId).length > 0 && (
                 <p className="text-[9px] text-zinc-600 font-mono">Archived runs (append-only, never rewritten):</p>
               )}
-              {runRecords.filter((r) => r.runId !== chosenRunId).map((r) => (
-                <div key={r.runId} className="p-2 rounded-lg border bg-zinc-900/60 border-zinc-800 text-[10px] font-mono space-y-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-zinc-300 truncate">{r.label}</span>
-                    <div className="flex gap-2">
-                      <StatusBadge status={displayFor(r).status.status} label={displayFor(r).status.label} />
-                      {r.lifecycle === 'completed' && (
-                        <button onClick={() => { useRunStore.getState().chooseRun(r.runId); }} aria-label={`Make ${r.label} current`} className="text-violet-300 hover:text-violet-100 underline underline-offset-2 cursor-pointer">Make current</button>
-                      )}
+              {runRecords.filter((r) => r.runId !== chosenRunId).map((r) => {
+                // Registry freshness derives from the published COMPLETE
+                // dependency snapshot (Astra P0-1): an MC input edit stales
+                // every row with a reason, never only after a rerun.
+                const q = displayFor(r, currentSnapshot ?? undefined);
+                return (
+                  <div key={r.runId} className="p-2 rounded-lg border bg-zinc-900/60 border-zinc-800 text-[10px] font-mono space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-zinc-300 truncate">{r.label}</span>
+                      <div className="flex gap-2">
+                        <StatusBadge status={q.status.status} label={q.status.label} />
+                        {r.lifecycle === 'completed' && (
+                          <button onClick={() => { useRunStore.getState().chooseRun(r.runId); }} aria-label={`Make ${r.label} current`} className="text-violet-300 hover:text-violet-100 underline underline-offset-2 cursor-pointer">Make current</button>
+                        )}
+                      </div>
                     </div>
+                    <div data-run-registry-fields="true" className="flex flex-wrap gap-1.5">
+                      <StatusBadge status={q.fields.execution.status} label={q.fields.execution.label} />
+                      <StatusBadge status={q.fields.validity.status} label={q.fields.validity.label} />
+                      <StatusBadge status={q.fields.freshness.status} label={q.fields.freshness.label} />
+                      <StatusBadge status={q.fields.gate.status} label={q.fields.gate.label} />
+                    </div>
+                    <p className="text-zinc-500">key {r.runKey.slice(0, 16)}… · {r.caseId}</p>
                   </div>
-                  <p className="text-zinc-500">key {r.runKey.slice(0, 16)}… · {r.caseId}</p>
-                </div>
-              ))}
+                );
+              })}
               {logs.length === 0 && <p className="text-[10px] text-zinc-500 font-mono">No flight logs yet — paste one below.</p>}
               {logs.map((log, i) => (
                 <div key={log.id} className={`p-2 rounded-lg border text-[10px] font-mono space-y-1 ${log.id === currentId ? 'bg-zinc-900/90 border-violet-500/40' : 'bg-zinc-900/60 border-zinc-800'}`}>

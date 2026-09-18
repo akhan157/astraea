@@ -22,7 +22,7 @@
  */
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { TrajectoryStudio } from './TrajectoryStudio';
 import { useRocketStore } from '../store/rocketStore';
 import { computeProtuberanceDrag } from '../aero/protuberance';
@@ -96,6 +96,10 @@ const renderStudio = () => {
 };
 
 const runCountInput = () => screen.getByLabelText('Monte Carlo run count') as HTMLInputElement;
+/** Four-field contract scoped to the MC result card (Astra P0-1). */
+const cardFields = () => within(document.querySelector('[data-run-card-fields="true"]') as HTMLElement);
+/** Four-field contract scoped to the latest-attempt run record line. */
+const recordFields = () => within(document.querySelector('[data-run-record-fields="true"]') as HTMLElement);
 const zeroSigmaRun = () => {
   fireEvent.change(runCountInput(), { target: { value: '5' } });
   fireEvent.change(screen.getByLabelText('Wind direction sigma (deg)'), { target: { value: '0' } });
@@ -211,8 +215,15 @@ describe('TrajectoryStudio', () => {
     expect(screen.getByLabelText('Sigma 1 (m)').textContent).toBe('0.0 m');
     expect(screen.getByLabelText('Sigma 2 (m)').textContent).toBe('0.0 m');
     expect(screen.getByLabelText('r50 (m)').textContent).toBe('0 m');
-    // The badge reads FRESH while inputs match the run.
-    expect(screen.getByText('FRESH — matches current inputs')).toBeTruthy();
+    // Four separate status fields (Astra P0-1): execution / validity /
+    // freshness / gate — freshness derives from the complete snapshot.
+    expect(cardFields().getByText('Execution: Executed')).toBeTruthy();
+    expect(cardFields().getByText('Validity: Valid')).toBeTruthy();
+    expect(cardFields().getByText('Freshness: Current')).toBeTruthy();
+    expect(cardFields().getByText('Gate: unknown')).toBeTruthy();
+    // The run record line carries the same four fields.
+    expect(recordFields().getByText('Execution: Executed')).toBeTruthy();
+    expect(recordFields().getByText('Freshness: Current')).toBeTruthy();
   }, 300000);
 
   it('runs the default MC config (85° rail, 5°/1°/3° sigmas) with zero failed runs on the preset vehicle', async () => {
@@ -284,25 +295,44 @@ describe('TrajectoryStudio', () => {
     expect(east).toBeGreaterThan(50);
   }, 300000);
 
-  it('flags MC results STALE on any input change and refreshes on rerun', async () => {
+  it('stales the card AND the run record on wind/count/sigma edits with a reason; undo and rerun restore current', async () => {
     renderStudio();
     zeroSigmaRun();
     await waitFor(
       () => expect(screen.getByText('5 succeeded · 0 failed')).toBeTruthy(),
       { timeout: 180000 },
     );
-    expect(screen.getByText('FRESH — matches current inputs')).toBeTruthy();
+    expect(cardFields().getByText('Freshness: Current')).toBeTruthy();
+    expect(recordFields().getByText('Freshness: Current')).toBeTruthy();
 
-    // Moving the probe (a dispersion input) stale-markers the results.
-    fireEvent.change(screen.getByLabelText('Wind probe altitude (m)'), { target: { value: '200' } });
-    expect(screen.getByText('STALE — inputs changed since run')).toBeTruthy();
+    // Wind edit → EVERY surface stale with the same visible reason.
+    fireEvent.change(screen.getByLabelText('Wind layer 1 speed (m/s)'), { target: { value: '5' } });
+    const windReason = 'Freshness: Stale — wind inputs changed (manual table / probe / sounding)';
+    expect(cardFields().getByText(windReason)).toBeTruthy();
+    expect(recordFields().getByText(windReason)).toBeTruthy();
 
-    // A rerun at the new inputs refreshes the badge.
-    fireEvent.change(screen.getByLabelText('Wind probe altitude (m)'), { target: { value: '0' } });
+    // Undo-to-identical restores current WITHOUT a rerun (same full key).
+    fireEvent.change(screen.getByLabelText('Wind layer 1 speed (m/s)'), { target: { value: '0' } });
+    expect(cardFields().getByText('Freshness: Current')).toBeTruthy();
+    expect(recordFields().getByText('Freshness: Current')).toBeTruthy();
+
+    // Run-count edit → stale with the perturbation reason on every surface.
+    fireEvent.change(runCountInput(), { target: { value: '10' } });
+    const perturbationReason = 'Freshness: Stale — run count or sigma changed';
+    expect(cardFields().getByText(perturbationReason)).toBeTruthy();
+    expect(recordFields().getByText(perturbationReason)).toBeTruthy();
+
+    // Sigma edit → stale with the same perturbation reason.
+    fireEvent.change(screen.getByLabelText('Wind direction sigma (deg)'), { target: { value: '5' } });
+    expect(cardFields().getByText(perturbationReason)).toBeTruthy();
+    expect(recordFields().getByText(perturbationReason)).toBeTruthy();
+
+    // A rerun at the new inputs refreshes every surface.
     fireEvent.click(screen.getByRole('button', { name: /run monte carlo/i }));
-    await waitFor(() => expect(screen.getByText('FRESH — matches current inputs')).toBeTruthy(), {
+    await waitFor(() => expect(cardFields().getByText('Freshness: Current')).toBeTruthy(), {
       timeout: 180000,
     });
+    expect(recordFields().getByText('Freshness: Current')).toBeTruthy();
   }, 300000);
 
   it('computes protuberance drag and flags boattail separation from the transition geometry', () => {

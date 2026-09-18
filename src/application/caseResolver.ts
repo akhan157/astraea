@@ -8,7 +8,10 @@
  * resolve through here so identical physical inputs always produce identical
  * run keys — a same-ID motor edit changes the key (content identity, never
  * the bare id), and an unresolvable motor is an explicit error, never a
- * silent fallback to another motor.
+ * silent fallback to another motor. Monte-Carlo runs additionally capture
+ * the ensemble (run count, sigmas, wind dependency, sounding profile) into
+ * `mcKey` — the complete dependency identity that freshness derives from
+ * everywhere (Astra P0-1).
  *
  * Mount rules mirror the Round-19 FlightSim prefilter exactly: one flagged
  * mount constrains the bore (innerDiameter, else outer − 3 mm); zero mounts
@@ -32,12 +35,44 @@ export interface LaunchOptions {
   mainDeployAltitudeM: number;
 }
 
+/** Minimal structural wind-layer record (avoids a sim→application import). */
+export interface WindLayerSnapshot {
+  altitudeM: number;
+  speedMs: number;
+  directionFromDeg: number;
+  tempC: number;
+  pressureHpa: number;
+}
+
+/**
+ * Everything Monte-Carlo consumes beyond the flight case, captured verbatim
+ * so run identity covers the complete dependency set (Astra P0-1): run
+ * count, perturbation sigmas, and the full wind dependency (probe altitude,
+ * manual shear rows, AND the fetched sounding profile).
+ */
+export interface McEnsembleInput {
+  /** Clamped run count actually executed (1..200). */
+  nRuns: number;
+  windAzimuthDegSigma: number;
+  railAngleDegSigma: number;
+  impulsePctSigma: number;
+  /** Complete captured wind dependency; empty sounding = manual table drive. */
+  wind: {
+    probeAltitudeM: number;
+    windRows: ReadonlyArray<{ altitudeM: number; speedMs: number; directionFromDeg: number }>;
+    soundingStatus: 'idle' | 'loading' | 'ok' | 'error';
+    soundingLayers: ReadonlyArray<WindLayerSnapshot>;
+  };
+}
+
 /** User-level flight case: committed engineering inputs, not results. */
 export interface LaunchCase {
   vehicle: RocketVehicle;
   /** Motor reference by id; the binding pins content, not this string. */
   motorId: string;
   options: LaunchOptions;
+  /** Ensemble methodology + captured wind dependency (Monte-Carlo paths only). */
+  ensemble?: McEnsembleInput;
 }
 
 export type MotorResolution =
@@ -76,13 +111,32 @@ export interface ResolvedCase {
 
 /** Immutable, content-addressed record of resolved run inputs. */
 export interface RunSnapshot {
+  /** CASE identity: vehicle geometry + FULL motor content + launch options. */
   readonly runKey: string;
+  /**
+   * COMPLETE dependency identity (Astra P0-1): the case key plus the captured
+   * ensemble (run count, sigmas, wind dependency, sounding profile). Freshness
+   * of an MC result derives from this key, so a wind/sigma/count edit stales
+   * every surface at once. Equals `runKey` when the run carried no ensemble.
+   */
+  readonly mcKey: string;
   readonly vehicleId: string;
-  readonly motorId: string;
   readonly motorContentKey: string;
+  /** Content key of the vehicle geometry (same-id edit detection). */
+  readonly vehicleContentKey: string;
   readonly options: Readonly<LaunchOptions>;
-  /** Canonical input serialization the key was derived from. */
+  /** Content key of the launch options (rail / derived wind / deploy). */
+  readonly optionsKey: string;
+  /** Ensemble methodology captured with the run, when the path is MC. */
+  readonly ensemble?: Readonly<McEnsembleInput>;
+  /** Content key of the captured wind dependency (why-diffs). */
+  readonly ensembleWindKey?: string;
+  /** Content key of run count + sigmas (why-diffs). */
+  readonly ensemblePerturbationKey?: string;
+  /** Canonical case serialization the runKey was derived from. */
   readonly canonical: string;
+  /** Canonical ensemble serialization the mcKey was derived from. */
+  readonly mcCanonical?: string;
 }
 
 /**
@@ -248,7 +302,9 @@ const CERTIFIED_PLACEHOLDER: MotorSpec = CERTIFIED_MOTORS.estes_c6;
  * Freeze resolved inputs into an immutable snapshot. The run key is the
  * hash of the canonical serialization of vehicle geometry, FULL motor
  * content, and launch options — never bare ids — so any physical change
- * (including a same-id motor edit) produces a new key.
+ * (including a same-id motor edit) produces a new key. The mcKey folds the
+ * captured Monte-Carlo ensemble (run count, sigmas, wind dependency,
+ * sounding profile) into the identity: it is the freshness key — everywhere.
  */
 export function snapshotCase(resolved: ResolvedCase): RunSnapshot {
   const { id: _id, ...motorContent } = resolved.motor;
@@ -257,20 +313,106 @@ export function snapshotCase(resolved: ResolvedCase): RunSnapshot {
     motor: motorContent,
     options: resolved.case.options,
   });
+  const ensemble = resolved.case.ensemble;
+  const mcCanonical = ensemble === undefined ? undefined : stableStringify(ensemble);
+  // Case identity stays ensemble-free (runKey): the SimFlight-overlay
+  // re-derivation compares case inputs; freshness (mcKey) is the full key.
   const snapshot: RunSnapshot = {
     runKey: hashHex(canonical),
+    mcKey:
+      ensemble === undefined
+        ? hashHex(canonical)
+        : hashHex(JSON.stringify([canonical, mcCanonical])),
     vehicleId: resolved.case.vehicle.id,
-    motorId: resolved.case.motorId,
     motorContentKey: motorContentKey(resolved.motor),
+    vehicleContentKey: hashHex(stableStringify(resolved.case.vehicle)),
+    optionsKey: hashHex(stableStringify(resolved.case.options)),
     options: Object.freeze({ ...resolved.case.options }),
     canonical,
+    ...(ensemble === undefined
+      ? {}
+      : {
+          ensemble: deepFreezeEnsemble(ensemble),
+          ensembleWindKey: hashHex(stableStringify(ensemble.wind)),
+          ensemblePerturbationKey: hashHex(
+            stableStringify({
+              nRuns: ensemble.nRuns,
+              windAzimuthDegSigma: ensemble.windAzimuthDegSigma,
+              railAngleDegSigma: ensemble.railAngleDegSigma,
+              impulsePctSigma: ensemble.impulsePctSigma,
+            }),
+          ),
+          mcCanonical,
+        }),
   };
   return Object.freeze(snapshot);
 }
 
-/** A stored snapshot is stale exactly when its key differs from current. */
+/** Deep-freeze the captured ensemble so historical payloads never mutate. */
+function deepFreezeEnsemble(ensemble: McEnsembleInput): Readonly<McEnsembleInput> {
+  const windRows = Object.freeze(ensemble.wind.windRows.map((r) => Object.freeze({ ...r })));
+  return Object.freeze({
+    ...ensemble,
+    wind: Object.freeze({
+      ...ensemble.wind,
+      windRows,
+      soundingLayers: Object.freeze(ensemble.wind.soundingLayers.map((l) => Object.freeze({ ...l }))),
+    }),
+  });
+}
+
+/** Dependency-section identities, for exposing WHY a run went stale. */
+export type SnapshotSection =
+  | 'vehicle'
+  | 'motor'
+  | 'ensemble-wind'
+  | 'ensemble-perturbation'
+  | 'options';
+
+/**
+ * First captured section that changed between `stored` (run-time capture)
+ * and `current` (live capture), or null when the identities match. The
+ * wind dependency is detected before derived launch options so a wind-edit
+ * reports the true cause, not the derived wind slot it flows into.
+ */
+export function snapshotDivergence(
+  current: RunSnapshot,
+  stored: RunSnapshot,
+): SnapshotSection | null {
+  if (stored.mcKey === current.mcKey) return null;
+  if (stored.vehicleContentKey !== current.vehicleContentKey) return 'vehicle';
+  if (stored.motorContentKey !== current.motorContentKey) return 'motor';
+  if (stored.ensembleWindKey !== current.ensembleWindKey) return 'ensemble-wind';
+  if (stored.ensemblePerturbationKey !== current.ensemblePerturbationKey) {
+    return 'ensemble-perturbation';
+  }
+  if (stored.optionsKey !== current.optionsKey) return 'options';
+  // All sections match yet the full key differs (mixed ensemble capture):
+  // attribute to the derived options rather than guessing.
+  return 'options';
+}
+
+/** Human-readable reason for a divergence section (Astra P0-1 "WHY stale"). */
+export function freshnessReasonLabel(section: SnapshotSection | null): string | null {
+  switch (section) {
+    case 'vehicle':
+      return 'vehicle changed since run';
+    case 'motor':
+      return 'motor content changed';
+    case 'ensemble-wind':
+      return 'wind inputs changed (manual table / probe / sounding)';
+    case 'ensemble-perturbation':
+      return 'run count or sigma changed';
+    case 'options':
+      return 'launch options changed (rail / wind / deploy)';
+    default:
+      return null;
+  }
+}
+
+/** A stored snapshot is stale exactly when its FULL identity differs. */
 export function isSnapshotStale(snapshot: RunSnapshot, current: ResolvedCase): boolean {
-  return snapshot.runKey !== snapshotCase(current).runKey;
+  return snapshot.mcKey !== snapshotCase(current).mcKey;
 }
 
 /** Deterministic serialization: sorted keys, fail-closed on nonfinite. */
