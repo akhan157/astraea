@@ -15,6 +15,14 @@ list (1–13). Pattern dispositions below are per pattern number and carry the
 ADOPT / ADAPT / REJECT decision the merge gate requires for UI work.
 Baseline record: `docs/rival-s2-direction.md` pattern table.
 
+## Export row-6 trigger pass — omission previews before any bytes
+## (commit c14ee44, ported from frontend 26b71b7)
+
+| Pattern (synthesis §2) | Disposition | Change and evidence |
+|---|---|---|
+| 9. Snapshot export vs live view duality, honestly labeled | **ADOPT** | Every row-6 trigger (RKT/ENG/KML/STEP/STL) opens an omission preview before emitting bytes: `OmissionPreview { refused[], omissions[], canExport }` in `src/formats/exportPreview.ts`, staged in `InteropExportPanel.tsx` (`openPreview`/`staged`). `refused` blocks the download fail-closed (the exporter's own validation mirrored — RKT subset scan, ENG `validateMotorSpec` gate, STEP/STL tessellation attempt); `omissions` are lossy-but-exportable notes the user confirms. KML exports are frozen snapshots of the explicitly chosen committed run (pattern 9: frozen at click time; live views re-evaluate with their own freshness marker). |
+| 8. Auto-invalidation with visible reason + one-click re-run; old results kept | **ADAPT** | The KML describers read the S2 run surface (`runStore.lastSimRun()`): identity + runKey with an EMPTY telemetry payload until the S4 job service publishes. A run without published telemetry is refused with the visible reason in the preview — no fabricated points, no bytes. Old results are retained; the preview states exactly why the chosen run cannot export yet. |
+
 ## Compare-checkpoint recency, disclosure, run scope, repair visibility
 ## (worker task_d2cac3d567cd — trust-defect pass)
 

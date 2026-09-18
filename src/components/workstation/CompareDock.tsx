@@ -4,6 +4,13 @@
  * difference list plus a blend slider between the current design and the
  * last saved checkpoint).
  *
+ * The checkpoint basis is the NEWEST pre-edit snapshot: every edit appends
+ * the pre-edit vehicle to `history` (rocketStore), so the tail — never
+ * `history[0]` (the oldest retained revision, silently shifted by the
+ * 30-entry cap) — is what "last saved" means. The header names the
+ * checkpoint's own version, not the current vehicle's, so the diff rows
+ * and the blend overlay are never presented against the wrong basis.
+ *
  * The diff rows enumerate added/removed/modified components; the blend slider
  * drives the opacity of the saved-geometry overlay on the RocketCanvas so
  * the engineer sees the two states superimposed. The panel is keyboard
@@ -29,7 +36,7 @@ const KIND_TONE: Record<'added' | 'removed' | 'modified', string> = {
 };
 
 export interface CompareDockProps {
-  /** Test seam: checkpoint override (defaults to the store history head). */
+  /** Test seam: checkpoint override (defaults to the newest pre-edit store snapshot). */
   checkpoint?: RocketVehicle | null;
 }
 
@@ -40,7 +47,9 @@ export const CompareDock: React.FC<CompareDockProps> = ({ checkpoint: checkpoint
   const setCompareActive = useWorkspaceStore((s) => s.setCompareActive);
   const setCompareBlend = useWorkspaceStore((s) => s.setCompareBlend);
 
-  const storedCheckpoint = history.length > 0 ? history[0] : null;
+  // Newest pre-edit snapshot: edits append the pre-edit vehicle to history,
+  // so the tail is the "last saved" basis — never history[0] (oldest kept).
+  const storedCheckpoint = history.length > 0 ? history[history.length - 1] : null;
   const checkpoint = checkpointOverride !== undefined ? checkpointOverride : storedCheckpoint;
   const rows = diffVehicles(vehicle, checkpoint);
   const count = (kind: 'added' | 'removed' | 'modified') => rows.filter((r) => r.kind === kind).length;
@@ -94,7 +103,7 @@ export const CompareDock: React.FC<CompareDockProps> = ({ checkpoint: checkpoint
     >
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-zinc-200">
-          Compare vs last saved · <span className="font-mono">v{vehicle.version}</span>
+          Compare vs last saved · <span className="font-mono">v{checkpoint.version}</span>
         </h3>
         <button
           type="button"

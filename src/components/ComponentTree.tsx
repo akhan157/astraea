@@ -88,6 +88,17 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({ filter, highlight 
     }
   };
 
+  // Filtered pick rows; anything outside the filter is hidden, never
+  // mutated (structuralLocked below).
+  const visible = vehicle.components.filter((comp) => !filter || matchesFilter(comp, filter));
+  // Repair targets the current filter hides (action-needed rows absent from
+  // the visible set): a repair link pointing at a hidden mount/motor must
+  // surface a labeled message, never a silent absence.
+  const hiddenRepairTargets =
+    filter && filter !== 'all' && highlight
+      ? vehicle.components.filter((comp) => !matchesFilter(comp, filter) && highlight(comp) === 'action-needed')
+      : [];
+
   const handleAddNew = (type: ComponentType) => {
     const id = `comp-${Date.now()}`;
     const defaultDia = stability.referenceDiameter || 0.05;
@@ -210,9 +221,33 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({ filter, highlight 
 
       {/* Component List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-        {vehicle.components
-          .filter((comp) => !filter || matchesFilter(comp, filter))
-          .map((comp, idx) => {
+        {/* Labeled empty state: a filter that hides the mount/motor a repair
+            link points at must say so — absence would read as "no repair". */}
+        {hiddenRepairTargets.length > 0 && (
+          <div
+            data-filter-hides-repair="true"
+            role="status"
+            className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-200 space-y-0.5"
+          >
+            <p className="font-semibold">
+              {hiddenRepairTargets.length === 1
+                ? 'Repair target hidden by the current filter'
+                : `${hiddenRepairTargets.length} repair targets hidden by the current filter`}
+            </p>
+            <p className="text-amber-200/80">
+              {hiddenRepairTargets.map((c) => c.name).join(', ')} — switch the filter to All to act on the mount.
+            </p>
+          </div>
+        )}
+
+        {/* Labeled empty state for a filter that matches nothing at all. */}
+        {visible.length === 0 && (
+          <p data-tree-filter-empty="true" role="status" className="text-[11px] text-zinc-500 px-1">
+            No components match this filter — switch to All to see the assembly.
+          </p>
+        )}
+
+        {visible.map((comp, idx) => {
           const isSelected = comp.id === selectedComponentId;
           const state = highlight
             ? highlight(comp)

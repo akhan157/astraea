@@ -14,10 +14,18 @@ import { useRocketStore } from './store/rocketStore';
 import { parseOrkFile } from './formats/orkParser';
 import { parseRktString } from './formats/rktParser';
 import { UploadCloud } from 'lucide-react';
+
+/** Inline disclosure payload for a failed drop-import (never a modal alert). */
+export interface DropImportReport {
+  title: string;
+  message: string;
+}
+
 export const App: React.FC = () => {
   const setVehicle = useRocketStore((s) => s.setVehicle);
 
   const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [report, setReport] = useState<DropImportReport | null>(null);
 
   // Global Drag & Drop File Handling
   const handleDragOver = (e: React.DragEvent) => {
@@ -52,7 +60,10 @@ export const App: React.FC = () => {
         setVehicle(imported);
       }
     } catch (err) {
-      alert(`Could not load OpenRocket file: ${(err as Error).message}`);
+      // Disclosure path (onReport), never a modal alert: a failed import
+      // surfaces as an inline role=alert banner so the no-modal acceptance
+      // posture of the shell holds for every entry point.
+      setReport({ title: `Could not load ${file.name}`, message: (err as Error).message });
     }
   };
 
@@ -64,6 +75,29 @@ export const App: React.FC = () => {
       onDrop={handleDrop}
     >
       <WorkstationShell />
+
+      {/* Drop-import failure disclosure (onReport path) — inline role=alert
+          banner, never a modal. Dismissing clears only this report. */}
+      {report && (
+        <div
+          role="alert"
+          data-drop-import-error="true"
+          className="px-3 py-2 border-b border-red-500/40 bg-red-950/60 text-red-200 text-[12px] flex items-start gap-3"
+        >
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold">{report.title}</p>
+            <p className="text-[11px] opacity-80">{report.message}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setReport(null)}
+            aria-label="Dismiss disclosure"
+            className="shrink-0 px-2 py-0.5 rounded border border-current opacity-80 hover:opacity-100"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Full-Screen Drag & Drop Overlay */}
       {isDraggingFile && (

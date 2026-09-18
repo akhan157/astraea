@@ -323,8 +323,11 @@ export const WorkstationShell: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  // Compare checkpoint: the most recent committed revision (history head).
-  const checkpoint = compare.checkpoint ?? (history.length > 0 ? history[0] : null);
+  // Compare checkpoint: the NEWEST pre-edit snapshot. Edits append the
+  // pre-edit vehicle to history, so the tail is the "last saved" basis —
+  // never history[0] (the oldest retained revision; the slice(-30) cap
+  // silently shifts it). Same rule as CompareDock's internal read.
+  const checkpoint = compare.checkpoint ?? (history.length > 0 ? history[history.length - 1] : null);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
@@ -343,7 +346,7 @@ export const WorkstationShell: React.FC = () => {
         </button>
       </div>
 
-      {/* Precision chrome (RIVAL): filter, edit boundary, run-from-selection,
+      {/* Precision chrome (RIVAL): filter, edit boundary, whole-design run,
           compare toggle — the workstation's leading surface. */}
       <PrecisionContextBar onRun={runInline} />
 
@@ -359,7 +362,16 @@ export const WorkstationShell: React.FC = () => {
               keys, never from a remount wipe. */}
           <div hidden={studio !== 'airframe'} className="relative h-full min-h-96" data-studio-panel="airframe">
             <MetricHUD />
-            <div ref={viewportRef} className="absolute inset-0">
+            <div
+              ref={viewportRef}
+              // Overlay contract, observable for tests: the ghost overlay exists
+              // ONLY when the dock is open AND a checkpoint exists — no
+              // checkpoint, no blend, no fabricated comparison (opacity is the
+              // blend percent 0–100, mirroring the props RocketCanvas receives).
+              data-overlay-vehicle={compare.active && checkpoint ? 'true' : 'false'}
+              data-overlay-opacity={compare.active && checkpoint ? compare.blend : 0}
+              className="absolute inset-0"
+            >
               {!webglLost ? (
                 <RocketCanvas
                   key={webglEpoch}

@@ -2,7 +2,7 @@
  * RIVAL S2 — the precision/canvas-led surface (the direction the run/
  * comparison-led ui2 S2 shell does not prototype): type/scope pick filter
  * with three-state highlight, the explicit edit-commit boundary, compare vs
- * the saved revision, and run-from-selection — all keyboard-operable, all on
+ * the saved revision, and the whole-design run — all keyboard-operable, all on
  * the same S1 selectors.
  */
 // @vitest-environment jsdom
@@ -112,10 +112,42 @@ describe('precision pick surface', () => {
   });
 
   it('marks the selected row selected and switches on click', () => {
-    const row = treeRow('pv-bt1');
-    fireEvent.click(row as HTMLElement);
-    expect(treeRow('pv-bt1')?.getAttribute('data-state')).toBe('selected');
+    // pv-fins is a fin (no mount repair), so selecting it yields plain
+    // 'selected' — the repair rows keep 'action-needed' (see the coexistence
+    // test below for a mount that is BOTH).
+    fireEvent.click(treeRow('pv-fins') as HTMLElement);
+    expect(treeRow('pv-fins')?.getAttribute('data-state')).toBe('selected');
     expect(treeRow('pv-nc')?.getAttribute('data-state')).toBe('candidate');
+  });
+
+  it('keeps the repair badge and count when a mount is selected (selection never suppresses action-needed)', () => {
+    // pv-bt1 is an ambiguous mount (both tubes flagged). Selecting it must
+    // NOT demote the row to plain 'selected': the repair badge and the
+    // legend count stay, because repair context is orthogonal to selection.
+    useRocketStore.getState().selectComponent('pv-bt1');
+    expect(treeRow('pv-bt1')?.getAttribute('data-state')).toBe('action-needed');
+    expect(treeRow('pv-bt1')?.textContent).toMatch(/needs action/);
+    expect(treeRow('pv-bt2')?.getAttribute('data-state')).toBe('action-needed');
+    expect(screen.getByText(/Action needed · 2/)).toBeTruthy();
+  });
+
+  it('shows a labeled empty state when a filter hides the mount a repair targets', () => {
+    // Both PV mounts are ambiguous → action-needed; the fin filter hides
+    // them, so the tree must say so instead of silently dropping the rows.
+    fireEvent.click(screen.getByTitle(/Fin-set components/));
+    expect(treeRow('pv-bt1')).toBeNull();
+    expect(treeRow('pv-bt2')).toBeNull();
+    const notice = document.querySelector('[data-filter-hides-repair]');
+    expect(notice).toBeTruthy();
+    expect(notice?.textContent).toMatch(/2 repair targets hidden/);
+    expect(notice?.textContent).toMatch(/Fore Body Tube/);
+  });
+
+  it('labels a filter that matches no rows at all', () => {
+    fireEvent.click(screen.getByTitle(/Fin-set components/));
+    // (there is a fin row here, so use the Mass filter which matches none)
+    fireEvent.click(screen.getByTitle(/Mass components/));
+    expect(document.querySelector('[data-tree-filter-empty]')).toBeTruthy();
   });
 });
 
@@ -171,7 +203,7 @@ describe('compare vs saved', () => {
 
   it('opens the dock, lists differences, adjusts the blend, and closes', () => {
     // Modify a dimension so the current design diverges from the saved
-    // revision (the history head captured by setVehicle).
+    // revision (the newest pre-edit snapshot captured by setVehicle).
     useRocketStore.getState().updateComponent('pv-bt1', { length: 0.34 });
 
     fireEvent.click(screen.getByTitle(/Compare the current design/));
@@ -196,6 +228,13 @@ describe('compare vs saved', () => {
 
 describe('run from selection', () => {
   beforeEach(() => renderShell());
+
+  it('visibly scopes the precision run chip as whole-design, not title-only', () => {
+    const chip = document.querySelector('[data-run-design]');
+    expect(chip).toBeTruthy();
+    expect(chip?.getAttribute('data-run-selection')).toBeNull();
+    expect(chip?.textContent).toMatch(/Run current design/);
+  });
 
   it('launches routine simulation from the selection chip without a modal', async () => {
     fireEvent.click(screen.getByTitle(/Run the routine ensemble/));

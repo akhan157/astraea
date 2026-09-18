@@ -4,10 +4,11 @@
  * this rival shell leads with the pick/edit surface instead).
  *
  * The bar composes the type/scope filter (pattern 1), the edit-commit
- * boundary (pattern 4), the run-from-selection affordance, and the
+ * boundary (pattern 4), the whole-design run affordance, and the
  * compare-vs-saved toggle (pattern 3). Selection here is first-class
- * persistable state (pattern 10): the current component is named and its
- * context drives the run chip.
+ * persistable state (pattern 10): the current component is named, but the
+ * run chip is visibly scoped to the whole current design — selection is
+ * context, never a partial-simulation claim.
  */
 import React from 'react';
 import { useRocketStore } from '../../store/rocketStore';
@@ -32,20 +33,24 @@ export const PrecisionContextBar: React.FC<PrecisionContextBarProps> = ({ onRun 
       <div className="w-px h-5 bg-zinc-700" />
       <EditBufferStrip />
       <div className="w-px h-5 bg-zinc-700" />
+      {/* Whole-design run: the ensemble consumes the CURRENT DESIGN + case
+          (never the selection). The chip sits outside the Selection group so
+          the visible label "Run current design" is the scoping statement;
+          data-run-design keeps the contract testable. */}
+      <button
+        type="button"
+        onClick={onRun}
+        data-run-design="true"
+        title="Run the routine ensemble for the whole current design (Ctrl+Enter)"
+        className="px-2 py-0.5 rounded-md bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-500/40 font-semibold"
+      >
+        Run current design ⏎
+      </button>
       <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
         <span className="text-[10px] uppercase tracking-wide text-zinc-500">Selection</span>
         <span data-selection-name="true" className="font-medium text-zinc-200 truncate max-w-40">
           {selected ? selected.name : 'none'}
         </span>
-        <button
-          type="button"
-          onClick={onRun}
-          data-run-selection="true"
-          title="Run the routine ensemble for the current design (Ctrl+Enter)"
-          className="px-2 py-0.5 rounded-md bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-500/40 font-semibold"
-        >
-          Run current design ⏎
-        </button>
         <button
           type="button"
           onClick={() => setCompareActive(!compare.active)}

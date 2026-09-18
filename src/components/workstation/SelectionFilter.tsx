@@ -8,10 +8,12 @@
  * mutates the vehicle. The three states are enumerated here so the tree and
  * the legend agree:
  *
- *   candidate       — passes the filter, not selected
+ *   candidate       — passes the filter, not selected, no repair pending
  *   selected        — passes the filter and is the active selection
  *   action-needed   — passes the filter and carries a repair action
- *                     (e.g. an ambiguous/solid motor mount)
+ *                     (e.g. an ambiguous/solid motor mount); takes
+ *                     precedence over selected so the badge/count stay
+ *                     visible even for the row currently selected
  */
 import React, { useMemo } from 'react';
 import { assessMounts, type MountAssessment } from '../../application/caseResolver';
@@ -27,10 +29,14 @@ export function pickStateFor(
   selectedId: string | null,
   mounts: MountAssessment,
 ): PickState {
+  // Repair context is ORTHOGONAL to selection: a selected mount that needs
+  // action keeps the action-needed badge and count (critique — selection
+  // must never suppress the repair state). The selection identity itself
+  // still lives in rocketStore.selectedComponentId; the state label just
+  // answers "what must I do here" first.
+  const needsAction = comp.type === 'bodytube' && comp.isMotorMount === true && (mounts.ambiguous || mounts.solidMount);
+  if (needsAction) return 'action-needed';
   if (comp.id === selectedId) return 'selected';
-  if (comp.type === 'bodytube' && comp.isMotorMount === true && (mounts.ambiguous || mounts.solidMount)) {
-    return 'action-needed';
-  }
   return 'candidate';
 }
 
