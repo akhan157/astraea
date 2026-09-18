@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, type Mock } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { InteropExportPanel, buildAeroMatrixRows } from './InteropExportPanel';
 import { renderBlueprintPng } from '../formats/blueprintPng';
 import { PRESET_ESTES_ALPHA } from '../store/rocketStore';
+import { useRunStore } from '../store/runStore';
 
 vi.mock('../formats/blueprintPng', () => ({
   renderBlueprintPng: vi.fn().mockResolvedValue(new Blob(['png-bytes'], { type: 'image/png' })),
@@ -11,6 +12,7 @@ vi.mock('../formats/blueprintPng', () => ({
 
 afterEach(() => {
   vi.restoreAllMocks();
+  useRunStore.getState().resetRuns();
 });
 
 describe('buildAeroMatrixRows', () => {
@@ -83,5 +85,126 @@ describe('InteropExportPanel', () => {
     expect(blob.type).toBe('image/png');
     expect(await blob.text()).toBe('png-bytes');
     expect(click).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('InteropExportPanel row-6 export triggers', () => {
+  function stubDownload(): { createObjectURL: Mock; click: Mock } {
+    const createObjectURL = vi.fn((_blob: Blob) => 'blob:export');
+    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL: vi.fn() });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    return { createObjectURL, click };
+  }
+
+  it('RKT trigger previews omissions, then downloads RockSim XML on confirm', async () => {
+    const { createObjectURL, click } = stubDownload();
+    render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);
+    fireEvent.click(screen.getByTitle(/\(\.rkt\)/));
+    expect(screen.getByRole('dialog', { name: /RockSim.*preview/ }).textContent).toMatch(/ids, materials/);
+    fireEvent.click(screen.getByTitle(/Confirm rkt download/));
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    const text = await (createObjectURL.mock.calls[0][0] as Blob).text();
+    expect(text).toContain('<RockSimDocument>');
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('RKT trigger refuses elliptical fin sets with no download offered', () => {
+    const { createObjectURL } = stubDownload();
+    const vehicle = {
+      ...PRESET_ESTES_ALPHA,
+      id: 'elliptical-ui-fixture',
+      name: 'Elliptical UI Fixture',
+      components: [
+        ...PRESET_ESTES_ALPHA.components.slice(0, 2),
+        {
+          id: 'efins',
+          name: 'Elliptical Fins',
+          type: 'ellipticalfinset',
+          materialId: 'balsa',
+          finCount: 3,
+          rootChord: 0.08,
+          span: 0.04,
+          thickness: 0.003,
+          axialOffset: 0.2,
+        },
+      ],
+    } as typeof PRESET_ESTES_ALPHA;
+    render(<InteropExportPanel vehicle={vehicle} />);
+    fireEvent.click(screen.getByTitle(/\(\.rkt\)/));
+    expect(screen.getByRole('dialog').textContent).toMatch(/Refused:.*Elliptical Fins/);
+    expect((screen.getByTitle(/Confirm rkt download/) as HTMLButtonElement).disabled).toBe(true);
+    expect(createObjectURL).not.toHaveBeenCalled();
+  });
+
+  it('ENG trigger previews motor omissions, then downloads RASP text on confirm', async () => {
+    const { createObjectURL } = stubDownload();
+    render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);
+    fireEvent.click(screen.getByTitle(/\(\.eng\)/));
+    expect(screen.getByRole('dialog', { name: /RASP.*preview/ }).textContent).toMatch(/sole authority/);
+    fireEvent.click(screen.getByTitle(/Confirm eng download/));
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    const text = await (createObjectURL.mock.calls[0][0] as Blob).text();
+    expect(text.startsWith('Estes C6 ')).toBe(true);
+  });
+
+  it('KML trigger refuses without a committed run', () => {
+    const { createObjectURL } = stubDownload();
+    render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);
+    fireEvent.click(screen.getByTitle(/\(\.kml\)/));
+    expect(screen.getByRole('dialog').textContent).toMatch(/run Flight Sim first/);
+    expect((screen.getByTitle(/Confirm kml download/) as HTMLButtonElement).disabled).toBe(true);
+    expect(createObjectURL).not.toHaveBeenCalled();
+  });
+
+  it('KML trigger refuses a committed run whose telemetry payload is not published', () => {
+    const { createObjectURL } = stubDownload();
+    // S2 run store: a completed current run is auto-chosen, but the
+    // single-trajectory telemetry payload is published by the S4 job
+    // service — the panel refuses rather than fabricating a file.
+    useRunStore.getState().recordAttempt({
+      runId: 'kml-ui-test',
+      runKey: 'case-key',
+      caseId: 'preset-estes-alpha::estes_c6',
+      lifecycle: 'completed',
+      valid: true,
+      freshness: 'current',
+      gate: 'unknown',
+      label: 'MC 200 · C6',
+    });
+    try {
+      render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);
+      fireEvent.click(screen.getByTitle(/\(\.kml\)/));
+      expect(screen.getByRole('dialog').textContent).toMatch(/case-key/);
+      expect(screen.getByRole('dialog').textContent).toMatch(/payload/);
+      expect((screen.getByTitle(/Confirm kml download/) as HTMLButtonElement).disabled).toBe(true);
+      expect(createObjectURL).not.toHaveBeenCalled();
+    } finally {
+      useRunStore.getState().resetRuns();
+    }
+  });
+
+  it('STEP trigger previews OML-only skips, then downloads AP203 text on confirm', async () => {
+    const { createObjectURL } = stubDownload();
+    render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);
+    fireEvent.click(screen.getByTitle(/\(\.step\)/));
+    expect(screen.getByRole('dialog').textContent).toMatch(/Outer mold line only/);
+    fireEvent.click(screen.getByTitle(/Confirm step download/));
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    const text = await (createObjectURL.mock.calls[0][0] as Blob).text();
+    expect(text).toContain('ISO-10303-21');
+    expect(text).toContain('MANIFOLD_SOLID_BREP');
+  });
+
+  it('STL trigger previews unit caveats, then downloads binary STL on confirm', async () => {
+    const { createObjectURL } = stubDownload();
+    render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);
+    fireEvent.click(screen.getByTitle(/\(\.stl\)/));
+    expect(screen.getByRole('dialog').textContent).toMatch(/SI metres/);
+    fireEvent.click(screen.getByTitle(/Confirm stl download/));
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    const blob = createObjectURL.mock.calls[0][0] as Blob;
+    expect(blob.type).toBe('model/stl');
+    expect(blob.size).toBeGreaterThan(84);
   });
 });
