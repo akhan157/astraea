@@ -3,6 +3,7 @@ import JSZip from 'jszip';
 import { parseOrkFile, exportToOrk, InvalidOrkFileError } from './orkParser';
 import { RocketVehicle } from '../core/types';
 import { aggregateVehicleMass } from '../core/mass';
+import { computeRocketStability } from '../aero/barrowman';
 
 describe('OpenRocket (.ork) Parser and Exporter', () => {
   const sampleOrkXml = `<?xml version="1.0" encoding="utf-8"?>
@@ -203,5 +204,93 @@ describe('OpenRocket (.ork) Parser and Exporter', () => {
   it('throws descriptive error on corrupted non-zip buffer', async () => {
     const garbageBytes = new TextEncoder().encode('This is not a zip file at all');
     await expect(parseOrkFile(garbageBytes)).rejects.toThrow(InvalidOrkFileError);
+  });
+
+  it('preserves axial order, CG, CP and static margin across export-import (NASA SL-like stack)', async () => {
+    // SL-like stack: nose + tube + transition + tube + fins. The transition
+    // sits between two body tubes, which is exactly the layout the old
+    // type-grouped exporter reordered (fins nested under the last tube
+    // landed before the transition and dragged CG/CP/margin with them).
+    const sourceVehicle: RocketVehicle = {
+      id: 'sl-like-stack',
+      name: 'SL-Like Stack',
+      version: '1.0',
+      author: 'Astraea Test',
+      components: [
+        {
+          id: 'nc',
+          name: 'Von Kármán Nosecone',
+          type: 'nosecone',
+          shape: 'vonkarman',
+          length: 0.65,
+          baseDiameter: 0.152,
+          wallThickness: 0.0035,
+          isHollow: true,
+          materialId: 'fiberglass',
+        },
+        {
+          id: 'bt1',
+          name: 'Payload & Avionics Bay',
+          type: 'bodytube',
+          length: 0.75,
+          outerDiameter: 0.152,
+          innerDiameter: 0.145,
+          materialId: 'fiberglass',
+        },
+        {
+          id: 'trans',
+          name: 'Airframe Transition',
+          type: 'transition',
+          length: 0.12,
+          foreDiameter: 0.152,
+          aftDiameter: 0.14,
+          wallThickness: 0.003,
+          isHollow: true,
+          materialId: 'aluminum',
+        },
+        {
+          id: 'bt2',
+          name: 'Booster & Motor Section',
+          type: 'bodytube',
+          length: 1.45,
+          outerDiameter: 0.152,
+          innerDiameter: 0.145,
+          materialId: 'fiberglass',
+        },
+        {
+          id: 'fins',
+          name: 'Clipped Delta Fins',
+          type: 'trapezoidfinset',
+          finCount: 4,
+          rootChord: 0.32,
+          tipChord: 0.12,
+          span: 0.18,
+          sweepLength: 0.18,
+          thickness: 0.0048,
+          crossSection: 'airfoil',
+          // Aft seat on the booster tube; import recomputes
+          // parentLength - rootChord, so keep these consistent.
+          axialOffset: 1.45 - 0.32,
+          materialId: 'carbonfiber',
+        },
+      ],
+    };
+
+    const importedVehicle = await parseOrkFile(await exportToOrk(sourceVehicle));
+
+    // Component ORDER must survive the round trip exactly.
+    expect(importedVehicle.components.map((c) => c.type)).toEqual(
+      sourceVehicle.components.map((c) => c.type)
+    );
+
+    // Position-dependent aggregates: CG/CP within 1 mm, margin within 0.01 cal.
+    const beforeMass = aggregateVehicleMass(sourceVehicle);
+    const afterMass = aggregateVehicleMass(importedVehicle);
+    expect(afterMass.cg).toBeCloseTo(beforeMass.cg, 3);
+
+    const beforeAero = computeRocketStability(sourceVehicle);
+    const afterAero = computeRocketStability(importedVehicle);
+    expect(afterAero.cp).toBeCloseTo(beforeAero.cp, 3);
+    expect(afterAero.staticMarginCalibers).toBeCloseTo(beforeAero.staticMarginCalibers, 2);
   });
 });
