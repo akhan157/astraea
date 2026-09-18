@@ -89,7 +89,7 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/core/mass.test.ts',
   'src/components/FlightSimulationTab.test.tsx',
   'scripts/emit-benchmark-metadata.test.cjs',
-  // All 53 FIXED_TEST_FILE_INVENTORY suites are cited (sha256) so the
+  // All 58 FIXED_TEST_FILE_INVENTORY suites are cited (sha256) so the
   // artifact's hashes.files covers every collected suite, not only the
   // gate-bound files (audit §9.4 completeness; M1).
   'src/aero/barrowman.test.ts',
@@ -112,6 +112,11 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/components/TrajectoryStudio.test.tsx',
   'src/components/EvidenceStudio.test.tsx',
   'src/components/InteropExportPanel.test.tsx',
+  'src/evidence/overlay.test.ts',
+  'src/components/SimFlightOverlay.test.tsx',
+  'src/formats/exportPreview.test.ts',
+  'src/components/workstation/compareDock.test.tsx',
+  'src/App.test.tsx',
   'src/components/PropertyInspector.test.tsx',
   'src/aero/finStructure.test.ts',
   'src/aero/stabilityBreakdown.test.ts',
@@ -221,6 +226,11 @@ const FIXED_TEST_FILE_INVENTORY = Object.freeze([
   'src/components/TrajectoryStudio.test.tsx',
   'src/components/EvidenceStudio.test.tsx',
   'src/components/InteropExportPanel.test.tsx',
+  'src/evidence/overlay.test.ts',
+  'src/components/SimFlightOverlay.test.tsx',
+  'src/formats/exportPreview.test.ts',
+  'src/components/workstation/compareDock.test.tsx',
+  'src/App.test.tsx',
   'src/components/PropertyInspector.test.tsx',
   'src/formats/engParser.test.ts',
   'src/formats/blueprint.test.ts',
