@@ -9,7 +9,10 @@
  *   1. Altimetry — paste a flight-log CSV, parse with `parseAltimeterCsv`,
  *      resample onto a uniform grid, and report sample count + apogee.
  *   2. Calibration — editable coast-phase points (v, rho, m, A, a) fit by
- *      `calibrateCd` into an effective Cd + RMSE.
+ *      `calibrateCd` into a candidate Cd + RMSE; row edits invalidate the
+ *      fit into a visible stale state, rows carry PRESET/SCRATCH origin
+ *      labels, and the output is an analysis-only candidate (no mapped
+ *      flight log, never a calibrated Cd).
  *   3. Overlay — sim-vs-flight Inspect/Compare panes over the committed
  *      lastSimRun plus an ingested flight-log archive (audit F4).
  *   4. Recovery — bay sizing (volume, packed density, pack advisory badge)
@@ -52,6 +55,9 @@ function fmt(value: number | null, digits: number, fallback = '—'): string {
   return value === null || !Number.isFinite(value) ? fallback : value.toFixed(digits);
 }
 
+/** Source of a coast row: untouched template preset or user-entered scratch. */
+type RowOrigin = 'preset' | 'scratch';
+
 /** One editable coast-phase sample row (text-backed for inline editing). */
 interface CoastRow {
   velocityMs: string;
@@ -59,12 +65,22 @@ interface CoastRow {
   massKg: string;
   refAreaM2: string;
   accelMs2: string;
+  /** Data origin shown at point of use; preset rows flip to scratch on edit. */
+  origin: RowOrigin;
 }
 
+/**
+ * No flight-log mapping channel exists for the editable coast rows in this
+ * panel (ingested logs stay inside SimFlightOverlay), so the fit output is
+ * always an analysis-only candidate — never a calibrated Cd (synthesis §2
+ * pattern 9: snapshot vs live view, honestly labeled).
+ */
+const HAS_MAPPED_FLIGHT_LOG = false;
+
 const CALIBRATION_PRESET: CoastRow[] = [
-  { velocityMs: '38.4', density: '1.225', massKg: '1.42', refAreaM2: '0.00456', accelMs2: '41.7' },
-  { velocityMs: '30.2', density: '1.225', massKg: '1.42', refAreaM2: '0.00456', accelMs2: '25.8' },
-  { velocityMs: '22.1', density: '1.225', massKg: '1.42', refAreaM2: '0.00456', accelMs2: '13.9' },
+  { velocityMs: '38.4', density: '1.225', massKg: '1.42', refAreaM2: '0.00456', accelMs2: '41.7', origin: 'preset' },
+  { velocityMs: '30.2', density: '1.225', massKg: '1.42', refAreaM2: '0.00456', accelMs2: '25.8', origin: 'preset' },
+  { velocityMs: '22.1', density: '1.225', massKg: '1.42', refAreaM2: '0.00456', accelMs2: '13.9', origin: 'preset' },
 ];
 
 const CALIBRATION_DEFAULT_ROW = '22.0';
@@ -199,8 +215,8 @@ function AltimetryCard(): React.JSX.Element {
       setError(null);
       setResampled(null);
     } catch (err) {
-      setParsed(null);
-      setResampled(null);
+      // A failed parse keeps the last successful import on screen, labeled
+      // separately — a bad paste must never wipe prior evidence.
       setError(err instanceof Error ? err.message : String(err));
     }
   };
@@ -305,6 +321,12 @@ function AltimetryCard(): React.JSX.Element {
         </div>
       )}
 
+      {error !== null && parsed !== null && (
+        <p role="status" aria-live="polite" className="text-[9px] text-rose-300/80 font-mono">
+          ▲ Results reflect the last successful import — the current paste failed to parse.
+        </p>
+      )}
+
       <div role="status" aria-live="polite" className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800/80">
           <KvRow label="Samples parsed" value={parsed === null ? '—' : String(parsed.length)} className={parsed ? 'text-emerald-400' : 'text-zinc-600'} />
@@ -327,17 +349,43 @@ function AltimetryCard(): React.JSX.Element {
   );
 }
 
-/** Card 2 — editable coast points fit to an effective Cd. */
+/** Card 2 — editable coast points fit into an analysis-only candidate Cd. */
 function CalibrationCard(): React.JSX.Element {
   const [rows, setRows] = useState<CoastRow[]>(CALIBRATION_PRESET.map((r) => ({ ...r })));
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CalibrationResult | null>(null);
+  /** A previous fit was invalidated by an input change — never shown as current. */
+  const [resultStale, setResultStale] = useState<boolean>(false);
+
+  // Every row add/edit/remove invalidates the last fit: drop the result and
+  // mark it stale so a visually-current Cd/RMSE can never sit over edited
+  // inputs (synthesis §2 pattern 9 — snapshot vs live view, honestly labeled).
+  const invalidateResult = () => {
+    if (result !== null) setResultStale(true);
+    setResult(null);
+  };
 
   const setRow = (index: number, patch: Partial<CoastRow>) => {
-    setRows(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+    setRows(rows.map((row, i) => (i === index ? { ...row, ...patch, origin: 'scratch' } : row)));
+    invalidateResult();
+  };
+
+  const addRow = () => {
+    setRows(
+      rows.concat([
+        { velocityMs: CALIBRATION_DEFAULT_ROW, density: '1.225', massKg: '1.42', refAreaM2: '0.00456', accelMs2: '9.81', origin: 'scratch' },
+      ]),
+    );
+    invalidateResult();
+  };
+
+  const removeRow = (index: number) => {
+    setRows(rows.filter((_, i) => i !== index));
+    invalidateResult();
   };
 
   const handleCalibrate = () => {
+    setResultStale(false);
     const points: CoastPoint[] = [];
     for (const row of rows) {
       const point = rowToCoastPoint(row);
@@ -364,7 +412,7 @@ function CalibrationCard(): React.JSX.Element {
       icon={<Variable className="w-4 h-4" />}
     >
       <div className="overflow-x-auto">
-        <div className="grid grid-cols-[minmax(44px,1fr)_minmax(72px,1fr)_minmax(78px,1fr)_minmax(78px,1fr)_minmax(86px,1fr)_minmax(96px,1fr)_40px] gap-1.5 items-center">
+        <div className="grid grid-cols-[minmax(52px,1fr)_minmax(72px,1fr)_minmax(78px,1fr)_minmax(78px,1fr)_minmax(86px,1fr)_minmax(96px,1fr)_40px] gap-1.5 items-center">
           <span className="text-[9px] font-semibold text-zinc-600 uppercase">#</span>
           <span className="text-[9px] font-semibold text-zinc-600 uppercase">v (m/s)</span>
           <span className="text-[9px] font-semibold text-zinc-600 uppercase">ρ (kg/m³)</span>
@@ -374,14 +422,25 @@ function CalibrationCard(): React.JSX.Element {
           <span className="w-10" />
           {rows.map((row, index) => (
             <React.Fragment key={index}>
-              <span className="text-[10px] font-mono text-zinc-500">{index + 1}</span>
+              <span className="flex flex-col items-start gap-0.5 py-0.5">
+                <span className="text-[10px] font-mono text-zinc-500 leading-none">{index + 1}</span>
+                <span
+                  className={`px-1 py-px rounded border text-[8px] font-mono font-bold leading-none ${
+                    row.origin === 'preset'
+                      ? 'text-amber-300 border-amber-500/30 bg-amber-500/10'
+                      : 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10'
+                  }`}
+                >
+                  {row.origin === 'preset' ? 'PRESET' : 'SCRATCH'}
+                </span>
+              </span>
               <NumberField label={`Row ${index + 1} velocity m s`} value={row.velocityMs} onChange={(v) => setRow(index, { velocityMs: v })} step="0.1" suffix="m/s" />
               <NumberField label={`Row ${index + 1} density kg m3`} value={row.density} onChange={(v) => setRow(index, { density: v })} step="0.001" suffix="kg/m³" />
               <NumberField label={`Row ${index + 1} mass kg`} value={row.massKg} onChange={(v) => setRow(index, { massKg: v })} step="0.01" suffix="kg" />
               <NumberField label={`Row ${index + 1} area m2`} value={row.refAreaM2} onChange={(v) => setRow(index, { refAreaM2: v })} step="0.0001" suffix="m²" />
               <NumberField label={`Row ${index + 1} accel m s2`} value={row.accelMs2} onChange={(v) => setRow(index, { accelMs2: v })} step="0.1" suffix="m/s²" />
               <button
-                onClick={() => setRows(rows.filter((_, i) => i !== index))}
+                onClick={() => removeRow(index)}
                 aria-label={`Remove coast point row ${index + 1}`}
                 title="Remove row"
                 className="min-h-7 min-w-7 rounded-md border border-zinc-700 text-zinc-500 hover:text-rose-300 hover:border-rose-500/40 text-[11px] font-mono cursor-pointer transition focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-300"
@@ -395,7 +454,7 @@ function CalibrationCard(): React.JSX.Element {
 
       <div className="flex flex-wrap items-center gap-2">
         <button
-          onClick={() => setRows(rows.concat([{ velocityMs: CALIBRATION_DEFAULT_ROW, density: '1.225', massKg: '1.42', refAreaM2: '0.00456', accelMs2: '9.81' }]))}
+          onClick={addRow}
           className="min-h-8 px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700 text-[10px] font-bold uppercase tracking-wider font-mono cursor-pointer transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
         >
           + Add row
@@ -411,6 +470,12 @@ function CalibrationCard(): React.JSX.Element {
         </p>
       </div>
 
+      {resultStale && (
+        <p role="status" aria-live="polite" className="text-[9px] text-amber-400/90 font-mono">
+          ▲ Inputs changed since the last fit — result is stale, recalibrate.
+        </p>
+      )}
+
       {error !== null && (
         <div
           className="p-2.5 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-[10px] font-mono"
@@ -421,15 +486,25 @@ function CalibrationCard(): React.JSX.Element {
       )}
 
       {result !== null && (
-        <div role="status" aria-live="polite" className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800/80">
-            <KvRow label="Cd calibrated" value={fmt(result.cdCalibrated, 4)} className="text-cyan-400" />
-            <p className="text-[9px] text-zinc-600">effective drag coefficient over usable points</p>
+        <div role="status" aria-live="polite" className="space-y-2.5">
+          {!HAS_MAPPED_FLIGHT_LOG && (
+            <p className="text-[9px] text-amber-300/90 font-mono">
+              ▲ Analysis-only candidate — no flight log is mapped to these rows; this fit never implies a calibrated Cd.
+            </p>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800/80">
+              <KvRow label="Cd candidate" value={fmt(result.cdCalibrated, 4)} className="text-cyan-400" />
+              <p className="text-[9px] text-zinc-600">analysis-only OLS fit over usable points — not flight-validated</p>
+            </div>
+            <div className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800/80">
+              <KvRow label="Fit RMSE" value={`${fmt(result.rmse, 3)} N`} className="text-emerald-400" />
+              <p className="text-[9px] text-zinc-600">RMS drag-force residual over usable points</p>
+            </div>
           </div>
-          <div className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800/80">
-            <KvRow label="Fit RMSE" value={`${fmt(result.rmse, 3)} N`} className="text-emerald-400" />
-            <p className="text-[9px] text-zinc-600">RMS drag-force residual over usable points</p>
-          </div>
+          <p className="text-[9px] text-zinc-600 font-mono leading-snug">
+            Inputs: preset template rows (≈8 m/s velocity steps, ρ = 1.225 kg/m³, sea-level ISA) or scratch entries — not measured flight data; a = deceleration magnitude, positive.
+          </p>
         </div>
       )}
     </Card>

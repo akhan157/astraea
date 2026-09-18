@@ -5,11 +5,17 @@
  * Acceptance contract:
  *   1. A pasted flight-log CSV parses, resamples onto the dt grid, and shows
  *      sample counts plus the apogee altitude.
- *   2. The 3-point calibration preset returns a finite, positive Cd + RMSE.
- *   3. Recovery sizing reads out a positive BP charge mass and an advisory
+ *   2. The 3-point calibration preset returns a finite, positive candidate
+ *      Cd + RMSE, labeled analysis-only (no mapped flight log → never a
+ *      calibrated Cd), with PRESET/SCRATCH origin labels at point of use.
+ *   3. Any row add/edit/remove invalidates a previous fit: the readout
+ *      disappears and a visible stale — recalibrate state replaces it.
+ *   4. Recovery sizing reads out a positive BP charge mass and an advisory
  *      badge for the bay density.
- *   4. Dropping below 3 usable coast points surfaces the fitter's error and
+ *   5. Dropping below 3 usable coast points surfaces the fitter's error and
  *      withholds any result readout.
+ *   6. A failed parse keeps the last successful import on screen, labeled
+ *      separately from the current paste.
  */
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -67,15 +73,19 @@ describe('EvidenceStudio', () => {
     expect(readKvValue('Apogee at')).toBe('3.0 s');
   });
 
-  it('returns a finite Cd + RMSE for the 3-point calibration preset', () => {
+  it('returns a finite Cd candidate + RMSE for the 3-point calibration preset', () => {
     fireEvent.click(screen.getByRole('button', { name: /calibrate cd/i }));
 
-    const cd = Number.parseFloat(readKvValue('Cd calibrated'));
+    const cd = Number.parseFloat(readKvValue('Cd candidate'));
     const rmse = Number.parseFloat(readKvValue('Fit RMSE'));
     expect(Number.isFinite(cd)).toBe(true);
     expect(cd).toBeGreaterThan(0);
     expect(Number.isFinite(rmse)).toBe(true);
     expect(rmse).toBeGreaterThan(0);
+    // No mapped flight log exists in this panel, so the fit is disclosed as
+    // an analysis-only candidate — never an authoritative calibrated Cd.
+    expect(screen.getByText(/analysis-only candidate.*no flight log/i)).toBeTruthy();
+    expect(screen.queryByText('Cd calibrated')).toBeNull();
   });
 
   it('derives the default bay from the vehicle tube and reads out charge mass plus advisories', () => {
@@ -103,7 +113,63 @@ describe('EvidenceStudio', () => {
 
     expect(screen.getByText(/need at least 3 usable coast points/i)).toBeTruthy();
     // No result readout is shown for the failed fit.
-    expect(screen.queryByText('Cd calibrated')).toBeNull();
+    expect(screen.queryByText('Cd candidate')).toBeNull();
+  });
+
+  it('edit invalidates a previous fit into a visible stale state', () => {
+    fireEvent.click(screen.getByRole('button', { name: /calibrate cd/i }));
+    expect(readKvValue('Cd candidate')).not.toBe('—');
+
+    fireEvent.change(screen.getByLabelText('Row 1 velocity m s'), { target: { value: '35.0' } });
+
+    // The fit is dropped: a current-looking Cd/RMSE must never sit over
+    // edited rows, and a visible stale — recalibrate state replaces it.
+    expect(screen.queryByText('Cd candidate')).toBeNull();
+    expect(screen.queryByText('Fit RMSE')).toBeNull();
+    expect(screen.getByText(/result is stale.*recalibrate/i)).toBeTruthy();
+  });
+
+  it('add row invalidates a previous fit into stale', () => {
+    fireEvent.click(screen.getByRole('button', { name: /calibrate cd/i }));
+    fireEvent.click(screen.getByRole('button', { name: /\+ add row/i }));
+
+    expect(screen.queryByText('Cd candidate')).toBeNull();
+    expect(screen.getByText(/result is stale.*recalibrate/i)).toBeTruthy();
+  });
+
+  it('remove row invalidates a previous fit into stale', () => {
+    fireEvent.click(screen.getByRole('button', { name: /calibrate cd/i }));
+    fireEvent.click(screen.getByRole('button', { name: /remove coast point row 1/i }));
+
+    expect(screen.queryByText('Cd candidate')).toBeNull();
+    expect(screen.getByText(/result is stale.*recalibrate/i)).toBeTruthy();
+  });
+
+  it('labels preset rows PRESET and scratch rows SCRATCH at point of use', () => {
+    // Template rows are labeled preset at point of use.
+    expect(screen.getAllByText('PRESET').length).toBe(3);
+
+    // The added row is scratch; editing a preset row flips it to scratch.
+    fireEvent.click(screen.getByRole('button', { name: /\+ add row/i }));
+    expect(screen.getAllByText('SCRATCH').length).toBe(1);
+    fireEvent.change(screen.getByLabelText('Row 1 velocity m s'), { target: { value: '35.0' } });
+    expect(screen.getAllByText('SCRATCH').length).toBe(2);
+    expect(screen.getAllByText('PRESET').length).toBe(2);
+  });
+
+  it('keeps the last successful import labeled separately when a parse fails', () => {
+    const textarea = screen.getByLabelText('Altimeter CSV data');
+    fireEvent.change(textarea, { target: { value: FLIGHT_CSV } });
+    fireEvent.click(screen.getByRole('button', { name: /parse/i }));
+    expect(readKvValue('Samples parsed')).toBe('13');
+
+    fireEvent.change(textarea, { target: { value: 'garbage header\n0,1' } });
+    fireEvent.click(screen.getByRole('button', { name: /parse/i }));
+
+    // The prior import survives and is labeled separately from the failure.
+    expect(screen.getByRole('alert').textContent).toMatch(/parseAltimeterCsv/i);
+    expect(readKvValue('Samples parsed')).toBe('13');
+    expect(screen.getByText(/last successful import/i)).toBeTruthy();
   });
 
   it('renders the dimensioned strip with entered/assumed/missing provenance', () => {
