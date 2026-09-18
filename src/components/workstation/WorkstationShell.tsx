@@ -15,7 +15,7 @@
  * sounding, drafts, compare) survive navigation; freshness is computed from
  * input keys, never from a remount wipe.
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Header } from '../Header';
 import { ComponentTree } from '../ComponentTree';
 import { PropertyInspector } from '../PropertyInspector';
@@ -30,9 +30,10 @@ import { displayFor, useRunStore } from '../../store/runStore';
 import { useWorkspaceStore, type WorkstationStudio } from '../../store/workspaceStore';
 import { useRocketStore } from '../../store/rocketStore';
 import { useEditBufferStore } from '../../store/editBufferStore';
-import type { RocketComponent } from '../../core/types';
+import type { RocketComponent, RocketVehicle } from '../../core/types';
 import { StatusBadge } from '../ui/StatusBadge';
 import { StudioNavigation, useStudioKeyboard } from './StudioNavigation';
+import { PaneNavigation, type PaneRegion } from './PaneNavigation';
 import { PrecisionContextBar } from './PrecisionContextBar';
 import { CompareDock } from './CompareDock';
 import { pickStateFor, type PickState } from './SelectionFilter';
@@ -74,6 +75,100 @@ function useWebGLLoss(containerRef: React.RefObject<HTMLDivElement | null>): { l
   }, []);
   return { lost, retry, epoch };
 }
+
+/**
+ * True below the lg breakpoint (1024px), where the Desktop side-by-side
+ * panes would drop below the CSS breakpoints (`md`/`lg`) with no labeled
+ * alternative. The shell switches to the labeled single-region nav below
+ * the breakpoints. jsdom/SSR (no matchMedia) defaults to desktop so the
+ * classic layout and its tests are untouched.
+ */
+function useNarrowViewport(): boolean {
+  const [narrow, setNarrow] = useState(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+    return window.matchMedia('(max-width: 1023px)').matches;
+  });
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const mq = window.matchMedia('(max-width: 1023px)');
+    const onChange = (e: MediaQueryListEvent) => setNarrow(e.matches);
+    mq.addEventListener('change', onChange);
+    setNarrow(mq.matches);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return narrow;
+}
+
+interface StudioPanelsProps {
+  viewportRef: React.RefObject<HTMLDivElement | null>;
+  webglLost: boolean;
+  webglEpoch: number;
+  onRetryWebGL: () => void;
+  /** Saved-geometry overlay basis; null when compare is off or no checkpoint exists. */
+  overlayVehicle: RocketVehicle | null;
+  /** Overlay blend 0–100, mirroring the data-overlay-opacity attribute. */
+  overlayBlend: number;
+}
+
+/**
+ * All five studio panels, always mounted across studio and pane switches so
+ * case inputs (wind rows, probe, sounding, drafts, compare) survive
+ * navigation; the inactive panels are hidden, never unmounted.
+ */
+const StudioPanels: React.FC<StudioPanelsProps> = ({ viewportRef, webglLost, webglEpoch, onRetryWebGL, overlayVehicle, overlayBlend }) => {
+  const studio = useWorkspaceStore((s) => s.studio);
+  return (
+    <>
+      <div hidden={studio !== 'airframe'} className="relative h-full min-h-96" data-studio-panel="airframe">
+        <MetricHUD />
+        <div
+          ref={viewportRef}
+          // Overlay contract, observable for tests: the ghost overlay exists
+          // ONLY when the dock is open AND a checkpoint exists — no
+          // checkpoint, no blend, no fabricated comparison (opacity is the
+          // blend percent 0–100, mirroring the props RocketCanvas receives).
+          data-overlay-vehicle={overlayVehicle ? 'true' : 'false'}
+          data-overlay-opacity={overlayVehicle ? overlayBlend : 0}
+          className="absolute inset-0"
+        >
+          {!webglLost ? (
+            <RocketCanvas
+              key={webglEpoch}
+              overlayVehicle={overlayVehicle}
+              overlayOpacity={overlayVehicle ? overlayBlend / 100 : 0}
+            />
+          ) : (
+            <div
+              role="alert"
+              data-webgl-fallback="true"
+              className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-zinc-900/80 p-6 text-center"
+            >
+              <p className="text-sm font-semibold text-zinc-100">3D viewport unavailable — editing preserved</p>
+              <p className="text-[11px] text-zinc-400 max-w-md">
+                The WebGL context was lost. The assembly tree, forms, metrics, and blueprint export are
+                untouched — keep editing, then restore the viewport.
+              </p>
+              <button
+                type="button"
+                onClick={onRetryWebGL}
+                className="px-3 py-1.5 rounded-lg border border-cyan-500/40 bg-cyan-500/20 text-cyan-200 text-xs font-semibold hover:bg-cyan-500/30"
+              >
+                Restore viewport
+              </button>
+            </div>
+          )}
+        </div>
+        <CompareDock />
+      </div>
+      <div hidden={studio !== 'aero'} data-studio-panel="aero">
+        <AeroPanel />
+      </div>
+      <div hidden={studio !== 'propulsion'} data-studio-panel="propulsion"><PropulsionStudio /></div>
+      <div hidden={studio !== 'trajectory'} data-studio-panel="trajectory"><TrajectoryStudio /></div>
+      <div hidden={studio !== 'evidence'} data-studio-panel="evidence"><EvidenceStudio /></div>
+    </>
+  );
+};
 
 const PANEL_LABEL: Record<WorkstationStudio, string> = {
   airframe: 'Airframe CAD',
@@ -291,8 +386,11 @@ export const WorkstationShell: React.FC = () => {
   // Explicit Run (UI §5.3): Ctrl/Cmd+Enter and every Run entry execute the
   // inline ensemble in Trajectory — never a modal. The studio stays mounted
   // across switches, so the click lands on live case inputs; a preflight-
-  // blocked run control is disabled and the click is a no-op.
+  // blocked run control is disabled and the click is a no-op. In the narrow
+  // layout the run must first reveal the Workspace region so the control is
+  // visible, then focus and activate it.
   const runInline = useCallback(() => {
+    setPane('workspace');
     useWorkspaceStore.getState().selectStudio('trajectory');
     window.setTimeout(() => {
       const el = centerRef.current?.querySelector<HTMLElement>('[data-run-control]');
@@ -329,6 +427,36 @@ export const WorkstationShell: React.FC = () => {
   // silently shifts it). Same rule as CompareDock's internal read.
   const checkpoint = compare.checkpoint ?? (history.length > 0 ? history[history.length - 1] : null);
 
+  // Narrow layout: one labeled region shows Context / Workspace / Inspector;
+  // the selection lives here so panes and studios can be switched with
+  // separate keyboard routes (digits switch studios, the pane tablist
+  // switches regions, both stay reachable at every width).
+  const [pane, setPane] = useState<PaneRegion>(() => 'workspace');
+  const narrow = useNarrowViewport();
+  const contextRegionRef = useRef<HTMLDivElement>(null);
+  const workspaceRegionRef = useRef<HTMLDivElement>(null);
+  const inspectorRegionRef = useRef<HTMLDivElement>(null);
+
+  // Focus continuity: clicking a pane tab moves focus into the revealed
+  // region (APG tab pattern), so a keyboard user is never dropped mid-task.
+  // Arrow-key navigation instead keeps focus on the tab (roving tabindex),
+  // so the pane change there must NOT steal focus.
+  const activationSource = useRef<'none' | 'click'>('none');
+  const activatePane = useCallback((region: PaneRegion) => {
+    activationSource.current = 'click';
+    setPane(region);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (activationSource.current !== 'click') return;
+    activationSource.current = 'none';
+    const regionRef = pane === 'context' ? contextRegionRef : pane === 'workspace' ? workspaceRegionRef : inspectorRegionRef;
+    regionRef.current?.focus();
+  }, [pane]);
+
+  const overlayVehicle = compare.active && checkpoint ? checkpoint : null;
+  const overlayBlend = compare.active && checkpoint ? compare.blend : 0;
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
       <Header onRun={runInline} />
@@ -350,69 +478,92 @@ export const WorkstationShell: React.FC = () => {
           compare toggle — the workstation's leading surface. */}
       <PrecisionContextBar onRun={runInline} />
 
-      <div className="flex-1 flex overflow-hidden relative min-h-0">
-        <aside aria-label="Context list" style={{ width: leftWidth }} className="shrink-0 border-r border-zinc-800 bg-zinc-900/40 overflow-hidden hidden md:block">
-          <LeftPane />
-        </aside>
-
-        <main ref={centerRef} aria-label={`${PANEL_LABEL[studio]} workspace`} className="flex-1 relative h-full overflow-y-auto p-4 bg-zinc-950 min-w-0">
-          {/* All studios stay mounted so switching never erases case inputs
-              (wind rows, probe, sounding, drafts, compare); the inactive ones
-              are hidden, not unmounted. Freshness is computed from input
-              keys, never from a remount wipe. */}
-          <div hidden={studio !== 'airframe'} className="relative h-full min-h-96" data-studio-panel="airframe">
-            <MetricHUD />
+      {narrow ? (
+        /* Below lg: the side panes would be CSS-hidden with no alternative
+           (enterprise P0/Astra-3). Instead, a labeled single-region nav
+           reaches Context / Workspace / Inspector; every region stays
+           mounted behind the hidden toggle, so studio inputs survive pane
+           switches, and a pane change moves focus into the revealed region. */
+        <div className="flex-1 flex flex-col overflow-hidden relative min-h-0">
+          <PaneNavigation value={pane} onSelect={setPane} onActivate={activatePane} />
+          <div className="flex-1 flex overflow-hidden min-h-0">
             <div
-              ref={viewportRef}
-              // Overlay contract, observable for tests: the ghost overlay exists
-              // ONLY when the dock is open AND a checkpoint exists — no
-              // checkpoint, no blend, no fabricated comparison (opacity is the
-              // blend percent 0–100, mirroring the props RocketCanvas receives).
-              data-overlay-vehicle={compare.active && checkpoint ? 'true' : 'false'}
-              data-overlay-opacity={compare.active && checkpoint ? compare.blend : 0}
-              className="absolute inset-0"
+              ref={contextRegionRef}
+              id="pane-region-context"
+              role="tabpanel"
+              aria-labelledby="pane-tab-context"
+              tabIndex={-1}
+              data-pane-region="context"
+              hidden={pane !== 'context'}
+              className="w-full h-full overflow-y-auto bg-zinc-900/40"
             >
-              {!webglLost ? (
-                <RocketCanvas
-                  key={webglEpoch}
-                  overlayVehicle={compare.active ? checkpoint : null}
-                  overlayOpacity={compare.active && checkpoint ? compare.blend / 100 : 0}
-                />
-              ) : (
-                <div
-                  role="alert"
-                  data-webgl-fallback="true"
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-zinc-900/80 p-6 text-center"
-                >
-                  <p className="text-sm font-semibold text-zinc-100">3D viewport unavailable — editing preserved</p>
-                  <p className="text-[11px] text-zinc-400 max-w-md">
-                    The WebGL context was lost. The assembly tree, forms, metrics, and blueprint export are
-                    untouched — keep editing, then restore the viewport.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={retryWebGL}
-                    className="px-3 py-1.5 rounded-lg border border-cyan-500/40 bg-cyan-500/20 text-cyan-200 text-xs font-semibold hover:bg-cyan-500/30"
-                  >
-                    Restore viewport
-                  </button>
-                </div>
-              )}
+              <LeftPane />
             </div>
-            <CompareDock />
+            <div
+              ref={(el) => {
+                workspaceRegionRef.current = el;
+                centerRef.current = el;
+              }}
+              id="pane-region-workspace"
+              role="tabpanel"
+              aria-labelledby="pane-tab-workspace"
+              tabIndex={-1}
+              data-pane-region="workspace"
+              hidden={pane !== 'workspace'}
+              aria-label={`${PANEL_LABEL[studio]} workspace`}
+              className="w-full h-full overflow-y-auto p-4 bg-zinc-950"
+            >
+              {/* All studios stay mounted so switching never erases case
+                  inputs (wind rows, probe, sounding, drafts, compare); the
+                  inactive ones are hidden, not unmounted. Freshness is
+                  computed from input keys, never from a remount wipe. */}
+              <StudioPanels
+                viewportRef={viewportRef}
+                webglLost={webglLost}
+                webglEpoch={webglEpoch}
+                onRetryWebGL={retryWebGL}
+                overlayVehicle={overlayVehicle}
+                overlayBlend={overlayBlend}
+              />
+            </div>
+            <div
+              ref={inspectorRegionRef}
+              id="pane-region-inspector"
+              role="tabpanel"
+              aria-labelledby="pane-tab-inspector"
+              tabIndex={-1}
+              data-pane-region="inspector"
+              hidden={pane !== 'inspector'}
+              className="w-full h-full overflow-y-auto bg-zinc-900/40"
+            >
+              <RightPane onRun={runInline} />
+            </div>
           </div>
-          <div hidden={studio !== 'aero'} data-studio-panel="aero">
-            <AeroPanel />
-          </div>
-          <div hidden={studio !== 'propulsion'} data-studio-panel="propulsion"><PropulsionStudio /></div>
-          <div hidden={studio !== 'trajectory'} data-studio-panel="trajectory"><TrajectoryStudio /></div>
-          <div hidden={studio !== 'evidence'} data-studio-panel="evidence"><EvidenceStudio /></div>
-        </main>
+        </div>
+      ) : (
+        /* Desktop (>= lg): both labeled panes sit beside the workspace, so
+           every region is reachable without the narrow nav. */
+        <div className="flex-1 flex overflow-hidden relative min-h-0">
+          <aside aria-label="Context list" style={{ width: leftWidth }} className="shrink-0 border-r border-zinc-800 bg-zinc-900/40 overflow-hidden">
+            <LeftPane />
+          </aside>
 
-        <aside aria-label="Inspector" style={{ width: rightWidth }} className="shrink-0 border-l border-zinc-800 bg-zinc-900/40 overflow-hidden hidden lg:block">
-          <RightPane onRun={runInline} />
-        </aside>
-      </div>
+          <main ref={centerRef} aria-label={`${PANEL_LABEL[studio]} workspace`} className="flex-1 relative h-full overflow-y-auto p-4 bg-zinc-950 min-w-0">
+            <StudioPanels
+              viewportRef={viewportRef}
+              webglLost={webglLost}
+              webglEpoch={webglEpoch}
+              onRetryWebGL={retryWebGL}
+              overlayVehicle={overlayVehicle}
+              overlayBlend={overlayBlend}
+            />
+          </main>
+
+          <aside aria-label="Inspector" style={{ width: rightWidth }} className="shrink-0 border-l border-zinc-800 bg-zinc-900/40 overflow-hidden">
+            <RightPane onRun={runInline} />
+          </aside>
+        </div>
+      )}
 
       <footer aria-label="Workstation status" className="flex items-center gap-4 px-3 py-1 bg-zinc-900/80 border-t border-zinc-800 text-[11px] text-zinc-400 flex-wrap">
         <button

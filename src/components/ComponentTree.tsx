@@ -3,7 +3,7 @@
  * Axial assembly list allowing component selection, reordering, addition, and deletion.
  */
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useRocketStore } from '../store/rocketStore';
 import { matchesFilter, type ComponentFilter } from '../store/workspaceStore';
 import { RocketComponent, ComponentType } from '../core/types';
@@ -47,6 +47,44 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({ filter, highlight 
   const addComponent = useRocketStore((s) => s.addComponent);
 
   const [showAddMenu, setShowAddMenu] = useState(false);
+
+  // Roving focus for the tree rows: exactly one row (the selection) is in
+  // the tab order; arrows move selection+focus so keyboard users traverse
+  // the axial assembly without leaving the tree.
+  const rowRefs = useRef(new Map<string, HTMLDivElement>());
+
+  const onRowKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, comp: RocketComponent, idx: number) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    // Keys on an inner action button activate that button natively; never
+    // hijack them into a row selection.
+    if (e.target !== e.currentTarget) return;
+    switch (e.key) {
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        selectComponent(comp.id);
+        return;
+      case 'ArrowDown':
+      case 'ArrowUp': {
+        e.preventDefault();
+        const target = visible[idx + (e.key === 'ArrowDown' ? 1 : -1)];
+        if (target) {
+          selectComponent(target.id);
+          rowRefs.current.get(target.id)?.focus();
+        }
+        return;
+      }
+      case 'Home':
+      case 'End': {
+        e.preventDefault();
+        const target = e.key === 'Home' ? visible[0] : visible[visible.length - 1];
+        if (target) {
+          selectComponent(target.id);
+          rowRefs.current.get(target.id)?.focus();
+        }
+      }
+    }
+  };
 
   const getComponentIcon = (type: ComponentType) => {
     switch (type) {
@@ -247,6 +285,9 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({ filter, highlight 
           </p>
         )}
 
+        {/* The axial assembly as a keyboard-operable tree: rows are
+            treeitems with a roving tabindex (Enter/Space/arrows select). */}
+        <div role="tree" aria-label="Axial assembly components" className="space-y-1.5">
         {visible.map((comp, idx) => {
           const isSelected = comp.id === selectedComponentId;
           const state = highlight
@@ -266,10 +307,19 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({ filter, highlight 
           return (
             <div
               key={comp.id}
+              role="treeitem"
+              aria-selected={isSelected}
+              aria-label={comp.name}
+              tabIndex={isSelected ? 0 : -1}
               onClick={() => selectComponent(comp.id)}
+              onKeyDown={(e) => onRowKeyDown(e, comp, idx)}
+              ref={(el) => {
+                if (el) rowRefs.current.set(comp.id, el);
+                else rowRefs.current.delete(comp.id);
+              }}
               data-state={state}
               data-component-id={comp.id}
-              className={`p-2.5 rounded-lg border transition cursor-pointer group flex items-center justify-between ${stateRow}`}
+              className={`p-2.5 rounded-lg border transition cursor-pointer flex items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${stateRow}`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="p-1.5 rounded-md bg-zinc-800 border border-zinc-700/50 shrink-0">
@@ -288,52 +338,60 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({ filter, highlight 
                 </div>
               </div>
 
-              {/* Right Details / Actions */}
+              {/* Right Details / Actions — always visible (never hover-only),
+                  real buttons with keyboard equivalents (Tab + Enter/Space). */}
               <div className="flex items-center gap-1 shrink-0 ml-2">
                 <span className="text-[10px] font-mono text-zinc-500 mr-1">{massDisplay}</span>
 
                 {/* Move Up / Down (whole-vehicle scope only) */}
-                <div className={`flex flex-col ${structuralLocked ? 'hidden' : 'opacity-0 group-hover:opacity-100 transition'}`}>
+                <div className={`flex flex-col ${structuralLocked ? 'hidden' : ''}`}>
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       if (idx > 0) reorderComponents(idx, idx - 1);
                     }}
                     disabled={idx === 0}
-                    className="p-0.5 text-zinc-400 hover:text-zinc-200 disabled:opacity-20"
+                    aria-label="Move up"
                     title="Move Up"
+                    className="p-0.5 text-zinc-400 hover:text-zinc-200 disabled:opacity-20"
                   >
-                    <ChevronUp className="w-3 h-3" />
+                    <ChevronUp className="w-3 h-3" aria-hidden="true" />
                   </button>
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       if (idx < vehicle.components.length - 1) reorderComponents(idx, idx + 1);
                     }}
                     disabled={idx === vehicle.components.length - 1}
-                    className="p-0.5 text-zinc-400 hover:text-zinc-200 disabled:opacity-20"
+                    aria-label="Move down"
                     title="Move Down"
+                    className="p-0.5 text-zinc-400 hover:text-zinc-200 disabled:opacity-20"
                   >
-                    <ChevronDown className="w-3 h-3" />
+                    <ChevronDown className="w-3 h-3" aria-hidden="true" />
                   </button>
                 </div>
 
                 {/* Delete (whole-vehicle scope only) */}
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     removeComponent(comp.id);
                   }}
                   disabled={vehicle.components.length <= 1}
-                  className={`p-1 text-zinc-500 hover:text-rose-400 ${structuralLocked ? 'hidden' : 'opacity-0 group-hover:opacity-100 transition'} disabled:opacity-0`}
+                  aria-label="Remove component"
                   title="Remove Component"
+                  className={`p-1 text-zinc-500 hover:text-rose-400 ${structuralLocked ? 'hidden' : ''} disabled:opacity-30`}
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
               </div>
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* Add Component Action Bar */}
