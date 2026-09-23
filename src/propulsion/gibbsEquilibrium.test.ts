@@ -21,6 +21,7 @@
 import { describe, it, expect } from 'vitest';
 import { entropyIntegral, solveEquilibrium, type EquilibriumResult } from './gibbsEquilibrium';
 import { R_UNIVERSAL, STANDARD_TEMPERATURE, type SpeciesName } from './nozzleChemistry';
+import ceaCorpus from '../../scripts/cea-corpus.json';
 
 /** Atoms of each element in one molecule of each species (structural data). */
 const ELEMENT_COMPOSITION: Record<string, Record<string, number>> = {
@@ -128,6 +129,53 @@ describe('solveEquilibrium — APCP chamber validation', () => {
     expect(result.moles.CO2 / total).toBeLessThan(0.05);
   });
 });
+
+describe('solveEquilibrium — NASA CEA corpus regression (E7)', () => {
+  // Corpus: scripts/cea-corpus.json — 60 TP-equilibrium cases from the
+  // public NASA CEA package (nasa/cea, libcea), restricted to Astraea's
+  // 10-species set with solid AL2O3 (phase-correct below the 2327 K melt;
+  // above-melt divergence from Astraea's fusion+liquid model is a known
+  // model difference, documented in the corpus note). Reactants
+  // NH4CLO4(I)/AL(cr)/custom HTPB (C4H6, MW 54.09, dHf +111 kJ/mol).
+  // Bands: worst observed agreement is MW 0.2% rel, mole fractions 0.004
+  // abs (H radical); thresholds below carry 2-3x headroom so genuine
+  // solver regressions fail while thermo noise never trips the suite.
+  const CEA2ASTRAEA: Record<string, SpeciesName> = {
+    H2O: 'H2O', CO2: 'CO2', CO: 'CO', N2: 'N2', HCL: 'HCl',
+    H2: 'H2', O2: 'O2', O: 'O', H: 'H', AL2O3: 'Al2O3',
+  };
+  // Exact element feeds (kmol per kg propellant): AP NH4ClO4 MW 117.49,
+  // HTPB C4H6 MW 54.092, Al 26.9815 — same stoichiometry the CEA cases ran.
+  const feedFor = (ap: number, al: number, htpb: number): Record<string, number> => {
+    const nAP = (ap / 117.49) * 1000;
+    const nHT = (htpb / 54.092) * 1000;
+    const nAl = (al / 26.9815) * 1000;
+    return { H: 4 * nAP + 6 * nHT, O: 4 * nAP, C: 4 * nHT, N: nAP, Cl: nAP, Al: nAl };
+  };
+  const MOL_WEIGHT: Record<SpeciesName, number> = {
+    H2O: 18.01528, H2: 2.01588, CO2: 44.0098, CO: 28.01012, N2: 28.01348,
+    HCl: 36.46098, O2: 31.9988, O: 15.9994, H: 1.00794, Al2O3: 101.96123,
+  };
+  it('reproduces CEA mole fractions within 0.01 abs and MW within 0.5% rel on every corpus case', () => {
+    expect(ceaCorpus.cases.length).toBeGreaterThanOrEqual(60);
+    for (const c of ceaCorpus.cases) {
+      const feed = feedFor(c.ap, c.al, c.htpb);
+      const result = solveEquilibrium(feed, [...APCP_SPECIES], c.T_K, c.pc_bar * 1e5);
+      expect(result.converged).toBe(true);
+      const total = Object.values(result.moles).reduce((s, v) => s + v, 0);
+      for (const [ceaName, frac] of Object.entries(c.mole_fractions)) {
+        const sp = CEA2ASTRAEA[ceaName];
+        expect(sp).toBeDefined();
+        expect(Math.abs(result.moles[sp] / total - (frac as number))).toBeLessThan(0.01);
+      }
+      let mass = 0;
+      for (const [sp, v] of Object.entries(result.moles)) mass += v * MOL_WEIGHT[sp as SpeciesName];
+      const mw = mass / total;
+      expect(Math.abs(mw - c.MW) / c.MW).toBeLessThan(0.005);
+    }
+  });
+});
+
 
 describe('solveEquilibrium — fail closed on non-convergence and degenerate input', () => {
   it('throws when an element has no consuming species (infeasible feed)', () => {

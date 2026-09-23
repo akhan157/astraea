@@ -53,17 +53,16 @@
  * sensibleEnthalpy's phase handling so g° stays thermodynamically
  * consistent (ΔG = 0 at the melting point).
  *
- * Validation cross-check (qualitative, CEA APCP trends): for a typical
- * 70 AP / 18 Al / 12 HTPB chamber at ≈3500 K / 100 bar the published CEA
- * equilibrium is dominated by CO, H2O, H2, N2, HCl and condensed Al2O3(l),
- * with CO2 and the radicals H, O, O2 present only as dissociation
- * minorities. `solveEquilibrium` on the documented feed reproduces exactly
- * that hierarchy (all Al → Al2O3, all Cl → HCl, all N → N2, C mainly CO;
- * see the acceptance test).
- *
- * The frozen-vs-equilibrium comparison helper (`chamberEquilibriumFrom
- * Propellant`) is deliberately OUT OF SCOPE — this module ships the solver
- * and its validation tests only.
+ * Validation cross-check (CEA corpus, scripts/cea-corpus.json): 60
+ * TP-equilibrium cases from the public NASA CEA package (nasa/cea, libcea),
+ * restricted to this module's 10-species set with solid AL2O3 (phase-correct
+ * below the 2327 K melt). Worst agreement is MW 0.2% rel and mole fractions
+ * 0.004 abs (H radical); the regression suite pins 0.5% / 0.01 with headroom.
+ * CEA gamma_s is shifting-equilibrium and not compared (Astraea's mixture
+ * gamma is frozen by design). Full 238-species CEA HP chambers run hotter
+ * (≈3610 K vs the frozen-10-species ≈3739 K) because minor Al-Cl species
+ * carry formation-energy sinks the restricted set cannot model — a species
+ * coverage difference, not a solver error. See the corpus note.
  */
 
 import {

@@ -23,8 +23,8 @@ tested, and wired into the workstation shell (58 suites / 760 cases per
   import registry (RASP `.eng`, RockSim `.rse`) wired to upload + studio catalog;
   live ThrustCurve.org API client (`thrustcurveApi.ts`) ships engine-tested with no UI consumer
 - BATES/star grain regression + chamber pressure; frozen-flow APCP nozzle chemistry;
-  Gibbs element-potential equilibrium solver (`gibbsEquilibrium.ts`) ships engine-tested,
-  uncoupled from the chamber preset and unvalidated against a CEA corpus (see E7)
+  Gibbs element-potential equilibrium solver validated against a 60-case NASA CEA
+  corpus (`scripts/cea-corpus.json`, mole fractions 0.01 abs / MW 0.5% rel — see E7, closed)
 - 6-DOF adaptive trajectory, ISA atmosphere, live Open-Meteo soundings,
   manual wind tables, Monte Carlo dispersion (chunk API + worker entrypoint
   engine-tested; TrajectoryStudio runs synchronously, cap 200 — see E1);
@@ -39,7 +39,24 @@ tested, and wired into the workstation shell (58 suites / 760 cases per
 - Workstation shell (five studios, precision context bar, compare dock, edit buffer,
   append-only run registry), onboarding content pack (questionnaire/guidance/explainers/tour, engine only),
   thrust-curve editing primitives (`curveEditing.ts`, engine only — see E5)
+
 ## Open exceptions
+
+## Club data intake (E3/E4/E6/empirical — requested 2026-09-23, awaiting reply)
+
+What unblocks each item and the minimum viable payload:
+
+- **Empirical closure:** one flight log (altimeter CSV or GPX) + motor flown +
+  vehicle dims/mass (or `.ork`). Intake: `parseAltimeterCsv` / `parseGpxTrack` →
+  overlay → Cd calibration. No new hardware needed — any past flight works.
+- **E3 `.eeprom`:** one flown `.eeprom` + same flight's AltosUI CSV export +
+  firmware version. Either file alone is insufficient (offsets unprovable).
+  Only closable if someone flies Altus Metrum hardware.
+- **E4 staging:** separation event timing + tip-off notes + vehicle config from
+  one staged/clustered flight. Terrain half needs no club data (USGS 3DEP public).
+- **E6 certification:** RSO/prefecture answer to "would an emitter artifact +
+  calibrated-Cd package count as supporting data, and what does a witnessed
+  validation flight require?" Process answer, not a file; long pole, asked early.
 
 ### E1. Background MC host + wind-CSV import view (worker orchestration + S5 UI)
 - **Missing:** the chunk engine (`runMonteCarloChunk` / `accumulateMonteCarloChunks` /
@@ -99,16 +116,19 @@ tested, and wired into the workstation shell (58 suites / 760 cases per
   import into Astraea.
 - **Re-visit:** on user request for in-app motor design editing (renders the tested engine).
 
-### E7. Gibbs solver ↔ chamber-preset coupling + CEA corpus validation
-- **Missing:** `solveEquilibrium` (element-potential/Lagrange-Newton, NASA RP-1311 method,
-  `gibbsEquilibrium.ts`) ships tested — mass balance to 1e-9, pure-substance limits,
-  APCP hierarchy (all Al → Al2O3, all Cl → HCl, all N → N2, C mainly CO), fail-closed
-  on infeasible feeds — but nothing calls it: `apcpEquilibrium` still solves the
-  rigid-vessel balance on a caller-supplied frozen composition, and no CEA reference
-  output corpus exists in-repo for regression across propellant families.
-- **Why deferred:** coupling (equilibrium composition → chamber Tc/γ/molWeight → `performance`)
-  plus corpus validation, not solver physics; decision C16 stays BUILD-expanded pending the corpus.
-- **Prerequisite:** CEA reference output corpus for regression testing.
-- **Alternative:** `equilibriumTemperature` with caller composition +
-  `apcpEquilibrium` preset; import custom .eng curves for measured motors.
-- **Re-visit:** with a CEA reference output corpus for regression testing (then wire the tested solver in).
+### E7. CLOSED — Gibbs solver validated against NASA CEA corpus (species-coverage caveat documented)
+- **Shipped:** `solveEquilibrium` (element-potential/Lagrange-Newton, NASA RP-1311 method)
+  regresses against 60 TP-equilibrium cases from the public NASA CEA package
+  (`scripts/cea-corpus.json`: 3 APCP blends × 5 pressures × 4 temperatures,
+  restricted to Astraea's 10-species set with solid AL2O3): mole fractions
+  within 0.01 abs (worst observed 0.004, H radical), MW within 0.5% rel
+  (worst observed 0.2%). Suite: `gibbsEquilibrium.test.ts` "NASA CEA corpus
+  regression (E7)". CEA gamma_s is shifting-equilibrium and not compared
+  (Astraea's mixture gamma is frozen by design).
+- **Known model boundary (not a solver bug):** the full 238-species CEA HP
+  chamber runs ≈3610 K vs the frozen-10-species HP root ≈3739 K — minor
+  Al-Cl/OH species carry formation-energy sinks the restricted set cannot
+  model. `apcpEquilibrium` keeps its calibrated frozen-composition preset
+  (Tc ≈ 3523 K, anchors pinned ±2%) until a shifting-equilibrium nozzle
+  path is specified; the solver stays available for TP analysis.
+- **Not built:** solver→preset coupling and shifting-equilibrium nozzle expansion.
