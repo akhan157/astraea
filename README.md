@@ -33,10 +33,12 @@ Read the full architecture and engineering roadmap in [docs/Astraea-design-doc.m
 
 - [x] **Phase 1: 3D Rocket Assembly Canvas** (React + Three.js / WebGL parametric airframe, fins, nosecone, transitions, live Barrowman & high-Mach aero)
 - [x] **Phase 1.5: File Interoperability & 6-DOF Dynamics** (OpenRocket `.ork` & RockSim `.rkt` adapters, NACA TN 4197 fin flutter, 6-DOF quaternion flight engine)
-- [ ] **Phase 2: Headless Python Sidecar & Multi-Solver Integration** (RocketPy weather soundings & NASA CEA propellant thermochemistry)
-- [ ] **Phase 4: Recovery Subsystem & Dual-Compartment Packing** (Coupler shoulder offset, black powder charge sizing)
-- [ ] **Phase 5: Closed-Loop Flight Evidence Ingestion** (Overlay altimeter telemetry against predicted flight curves)
-
+- [x] **Phase 2: In-Browser Solver Integration** (Open-Meteo live soundings + manual wind tables + Monte Carlo dispersion; Gibbs equilibrium solver + frozen-flow APCP nozzle chemistry — no Python sidecar, all TypeScript in-repo)
+- [x] **Phase 3/4: Recovery Subsystem & Dual-Compartment Packing** (Derived-bay 2D packing strip via `deriveBays`, clearance + density advisories, black powder charge sizing; full 3D X-ray rejected per C9)
+- [x] **Phase 5: Closed-Loop Flight Evidence Ingestion** (Altimetry CSV + GPX ingest, sim-vs-flight overlay, Cd calibration, GPS back-cast)
+- [ ] **Durable project reload (S3):** versioned `.astraea.json` envelope engine (`src/formats/projectJson.ts`) ships tested; Header/App still read/write the legacy bare vehicle — UI cutover pending.
+- [ ] **Background MC host (E1):** chunk API + worker entrypoint ship tested; TrajectoryStudio still runs synchronously (cap 200). Host wiring with progress/cancel pending.
+- [ ] **Empirical closure:** physics validates against published references, not flight data; browser visual validation not performed (jsdom + build only).
 ---
 
 ## 📄 License
