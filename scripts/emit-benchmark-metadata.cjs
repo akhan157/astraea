@@ -89,7 +89,7 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/core/mass.test.ts',
   'src/components/FlightSimulationTab.test.tsx',
   'scripts/emit-benchmark-metadata.test.cjs',
-  // All 58 FIXED_TEST_FILE_INVENTORY suites are cited (sha256) so the
+  // All 61 FIXED_TEST_FILE_INVENTORY suites are cited (sha256) so the
   // artifact's hashes.files covers every collected suite, not only the
   // gate-bound files (audit §9.4 completeness; M1).
   'src/aero/barrowman.test.ts',
@@ -141,6 +141,9 @@ const HASHED_REQUIRED_FILES = Object.freeze([
   'src/store/editBuffer.test.ts',
   'src/components/workstation/shell.test.tsx',
   'src/components/workstation/precisionSurface.test.tsx',
+  'src/components/ComponentTree.test.tsx',
+  'src/store/runStore.test.ts',
+  'src/components/workstation/paneNavigation.test.tsx',
   'src/dynamics/rigidBody.ts',
   'src/dynamics/loads.ts',
   'src/dynamics/events.ts',
@@ -255,6 +258,9 @@ const FIXED_TEST_FILE_INVENTORY = Object.freeze([
   'src/store/editBuffer.test.ts',
   'src/components/workstation/shell.test.tsx',
   'src/components/workstation/precisionSurface.test.tsx',
+  'src/components/ComponentTree.test.tsx',
+  'src/store/runStore.test.ts',
+  'src/components/workstation/paneNavigation.test.tsx',
   'scripts/emit-benchmark-metadata.test.cjs',
 ]);
 const HASHED_INFORMATIONAL_FILES = Object.freeze([
