@@ -48,10 +48,15 @@ function vehicleDto(vehicle: RocketVehicle): { components: Record<string, unknow
 
 function motorDto(motor: MotorSpec): Record<string, unknown> {
   return {
+    id: motor.id,
     designation: motor.designation,
+    manufacturer: motor.manufacturer,
+    impulseClass: motor.impulseClass,
     diameter: motor.diameter,
     length: motor.length,
     burnTime: motor.burnTime,
+    totalImpulse: motor.totalImpulse,
+    avgThrust: motor.avgThrust,
     propellantMass: motor.propellantMass,
     totalMass: motor.totalMass,
     dryMass: motor.dryMass,
