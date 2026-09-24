@@ -17,6 +17,8 @@ import { useWorkspaceStore } from '../../store/workspaceStore';
 import { useRunStore } from '../../store/runStore';
 import { useEditBufferStore } from '../../store/editBufferStore';
 import type { RocketVehicle } from '../../core/types';
+import { runMonteCarlo } from '../../sim/monteCarlo';
+import { computeRocketStability } from '../../aero/barrowman';
 
 const ALPHA_CLASS_VEHICLE: RocketVehicle = {
   id: 'shell-alpha',
@@ -88,6 +90,44 @@ function renderShell() {
 }
 
 const workspaceLabel = () => screen.getByRole('main').getAttribute('aria-label');
+// IPC-boundary stub (a82ecee pattern): the ONLY seam under test. The real
+// bridge forwards to window.__TAURI__.core.invoke; the stub answers with
+// TS-oracle pass-throughs (test-only; src/ untouched) and records commands
+// for payload assertions.
+const seen: Array<{ cmd: string; args: Record<string, unknown> }> = [];
+
+function installIpcStub(): void {
+  seen.length = 0;
+  // Named-cast window seam: bridge reads window.__TAURI__.core.invoke.
+  const win = window as unknown as { __TAURI__?: unknown };
+  win.__TAURI__ = {
+    core: {
+      invoke: async (cmd: string, args: Record<string, unknown>) => {
+        seen.push({ cmd, args });
+        if (cmd === 'run_ensemble') {
+          const req = args.req as {
+            vehicle: unknown; motor: unknown; options: unknown;
+            sigmas: unknown; nRuns: number; seed: number; version: 'legacy-sequential-v1' | 'per-run-v2';
+          };
+          return runMonteCarlo(
+            { vehicle: req.vehicle, motor: req.motor, options: req.options } as never,
+            req.sigmas as never,
+            req.nRuns,
+            req.seed,
+            req.version,
+          );
+        }
+        if (cmd === 'stability') {
+          const vehicle = (args.vehicle ?? args) as unknown as Parameters<typeof computeRocketStability>[0];
+          return computeRocketStability(vehicle);
+        }
+        throw new Error(`unexpected IPC command ${cmd}`);
+      },
+    },
+  };
+}
+
+beforeEach(installIpcStub);
 
 describe('WorkstationShell studios', () => {
   beforeEach(renderShell);
@@ -153,9 +193,15 @@ describe('WorkstationShell inline run', () => {
     await waitFor(() => expect(screen.getByText('5 succeeded · 0 failed')).toBeTruthy(), {
       timeout: 180000,
     });
-    // Routine simulation completed inline: a registry record exists, no modal
-    // dialog was ever mounted, and the attempt is NOT an unqualified pass.
-    expect(useRunStore.getState().records).toHaveLength(1);
+    // IPC boundary: the ensemble crossed as one coarse run_ensemble call
+    // with the 5-run / zero-sigma payload (never per-step serialization).
+    const ensembleCalls = seen.filter((s) => s.cmd === 'run_ensemble');
+    expect(ensembleCalls).toHaveLength(1);
+    const req = ensembleCalls[0].args.req as { nRuns: number; sigmas: Record<string, number> };
+    expect(req.nRuns).toBe(5);
+    expect(req.sigmas.windAzimuthDegSigma).toBe(0);
+    expect(req.sigmas.railAngleDegSigma).toBe(0);
+    expect(req.sigmas.impulsePctSigma).toBe(0);
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(document.querySelectorAll('[data-run-inline]').length).toBeGreaterThan(0);
     expect(screen.queryByText(/Pass — current inputs/)).toBeNull();
