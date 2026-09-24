@@ -21,12 +21,39 @@
  *      domain boundary rejects a share of the 1σ perturbed runs.
  */
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { TrajectoryStudio } from './TrajectoryStudio';
 import { useRocketStore } from '../store/rocketStore';
 import { computeProtuberanceDrag } from '../aero/protuberance';
 import type { RocketVehicle } from '../core/types';
+import { runMonteCarlo } from '../sim/monteCarlo';
+
+// IPC-boundary stub: the ONLY seam under test. The real bridge forwards to
+// window.__TAURI__.core.invoke; the stub answers run_ensemble with the
+// TS-oracle runMonteCarlo (test-only pass-through; src/ untouched).
+beforeEach(() => {
+  // Named-cast window seam: bridge reads window.__TAURI__.core.invoke.
+  const win = window as unknown as { __TAURI__?: unknown };
+  win.__TAURI__ = {
+    core: {
+      invoke: async (cmd: string, args: Record<string, unknown>) => {
+        if (cmd !== 'run_ensemble') throw new Error(`unexpected IPC command ${cmd}`);
+        const req = args.req as {
+          vehicle: unknown; motor: unknown; options: unknown;
+          sigmas: unknown; nRuns: number; seed: number; version: 'legacy-sequential-v1' | 'per-run-v2';
+        };
+        return runMonteCarlo(
+          { vehicle: req.vehicle, motor: req.motor, options: req.options } as never,
+          req.sigmas as never,
+          req.nRuns,
+          req.seed,
+          req.version,
+        );
+      },
+    },
+  };
+});
 
 /** Minimal Estes Alpha-class airframe: nose, BT-50 tube, 3 fins, chute. */
 const ALPHA_CLASS_VEHICLE: RocketVehicle = {
