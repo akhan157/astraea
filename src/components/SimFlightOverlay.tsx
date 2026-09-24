@@ -29,7 +29,7 @@
  * the Calibration card until consumed (frontend-plan §7).
  */
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Archive,
   ChevronLeft,
@@ -45,7 +45,6 @@ import { gpsAltitudeSeries, gpsToEnu, parseGpxTrack } from '../evidence/gpsTrack
 import {
   DISPLAY_DT_S,
   compareAltitudeSeries,
-  simTelemetryToAltitude,
   type CompareResult,
   type InterpMode,
   type SyncMode,
@@ -53,7 +52,8 @@ import {
 import { useRocketStore } from '../store/rocketStore';
 import { displayFor, useRunStore } from '../store/runStore';
 import { preflight, snapshotCase, type LaunchCase, type RunSnapshot } from '../application/caseResolver';
-import { simulate6DofFlight, type SixDofSimulationResult } from '../sim/sixDofSimulator';
+import type { SixDofSimulationResult } from '../sim/sixDofSimulator';
+import { simulateFlight } from '../tauri/bridge';
 import { StatusBadge } from './ui/StatusBadge';
 
 /** One ingested flight log in the run archive. */
@@ -234,14 +234,23 @@ export function SimFlightOverlay(): React.JSX.Element {
     chosen.valid &&
     chosen.freshness === 'current' &&
     chosen.runKey === overlayRunKey;
-
-  const simCurve: { raw: TrajectorySample[]; grid: AltitudeSample[] } | null = useMemo(() => {
-    if (!simEligible || chosen === null) return null;
+  // Native core carries no per-step telemetry (coarse-IPC rule), so the
+  // overlay curve is rebuilt from the coarse event record: ignition (0,0),
+  // apogee (apogeeTime, apogeeAltitude), touchdown (flightDuration, 0).
+  // Same display re-grid onto DISPLAY_DT_S; no TS engine import.
+  const [simCurveAsync, setSimCurveAsync] = useState<{
+    raw: TrajectorySample[];
+    grid: AltitudeSample[];
+  } | null>(null);
+  useEffect(() => {
+    let live = true;
+    setSimCurveAsync(null);
+    if (!simEligible || chosen === null) return () => { live = false; };
     try {
       const launchCase: LaunchCase = { vehicle, motorId: selectedMotorId, options: OVERLAY_LAUNCH_OPTIONS };
       const resolved = preflight(launchCase, customMotors);
-      if (!resolved.runnable) return null;
-      const result: SixDofSimulationResult = simulate6DofFlight(vehicle, resolved.motor, {
+      if (!resolved.runnable) return () => { live = false; };
+      void simulateFlight(vehicle, resolved.motor, {
         railLength: OVERLAY_LAUNCH_OPTIONS.railLengthM,
         railElevationDeg: OVERLAY_LAUNCH_OPTIONS.railElevationDeg,
         railAzimuthDeg: OVERLAY_LAUNCH_OPTIONS.railAzimuthDeg,
@@ -249,24 +258,34 @@ export function SimFlightOverlay(): React.JSX.Element {
         windAzimuthDeg: OVERLAY_LAUNCH_OPTIONS.windAzimuthDeg,
         finCantAngleDeg: OVERLAY_LAUNCH_OPTIONS.finCantDeg,
         mainDeployAltitudeAGL: OVERLAY_LAUNCH_OPTIONS.mainDeployAltitudeM,
-      });
-      const raw = simTelemetryToAltitude(result.telemetry);
-      const sorted = [...raw].sort((a, b) => a.timeS - b.timeS);
-      const grid: AltitudeSample[] = [];
-      let lastT = Number.NEGATIVE_INFINITY;
-      for (const s of sorted) {
-        const t = Math.round(s.timeS / DISPLAY_DT_S) * DISPLAY_DT_S;
-        if (t > lastT) {
-          grid.push({ timeS: t, altitudeM: s.altitudeM });
-          lastT = t;
-        }
-      }
-      return grid.length > 0 ? { raw, grid } : null;
+      })
+        .then((result: SixDofSimulationResult) => {
+          if (!live) return;
+          const raw: TrajectorySample[] = [
+            { timeS: 0, altitudeM: 0, velocityMs: 0 },
+            { timeS: result.apogeeTime, altitudeM: result.apogeeAltitude, velocityMs: 0 },
+            { timeS: result.flightDuration, altitudeM: 0, velocityMs: result.landingVelocity },
+          ];
+          const sorted = [...raw].sort((a, b) => a.timeS - b.timeS);
+          const grid: AltitudeSample[] = [];
+          let lastT = Number.NEGATIVE_INFINITY;
+          for (const s of sorted) {
+            const t = Math.round(s.timeS / DISPLAY_DT_S) * DISPLAY_DT_S;
+            if (t > lastT) {
+              grid.push({ timeS: t, altitudeM: s.altitudeM });
+              lastT = t;
+            }
+          }
+          setSimCurveAsync(grid.length > 0 ? { raw, grid } : null);
+        })
+        .catch(() => { if (live) setSimCurveAsync(null); });
     } catch {
-      return null;
+      setSimCurveAsync(null);
     }
+    return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vehicle, selectedMotorId, customMotors, simEligible, chosenRunId, runRecords]);
+  const simCurve = simCurveAsync;
 
   const simGrid: AltitudeSample[] | null = simCurve?.grid ?? null;
   const simRaw: TrajectorySample[] | null = simCurve?.raw ?? null;

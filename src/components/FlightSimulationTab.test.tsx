@@ -24,19 +24,40 @@ import type { SixDofOptions, SixDofSimulationResult } from '../sim/sixDofSimulat
 
 type SimFlight = (vehicle: RocketVehicle, motor: MotorSpec, options?: SixDofOptions) => SixDofSimulationResult;
 
-vi.mock('../sim/sixDofSimulator', async (importOriginal) => {
-  // Vitest mock factories are untyped; the shape is restored field-by-field below.
-  const actual = (await importOriginal()) as Record<string, unknown>;
-  return {
-    ...actual,
-    simulate6DofFlight: (...args: Parameters<SimFlight>) =>
-      (globalThis as unknown as { __simImpl: SimFlight }).__simImpl(...args),
-  };
-});
+// IPC-boundary stub: the ONLY seam under test. The real bridge forwards to
+// window.__TAURI__.core.invoke; the stub answers simulate_flight with the
+// deterministic __simImpl fixture and the aero preview with the TS-oracle
+// curves (test-only pass-through; src/ untouched). Command names/payloads
+// are asserted via the seen log.
+const seen: Array<{ cmd: string; args: Record<string, unknown> }> = [];
 
 beforeEach(async () => {
   const actual = (await vi.importActual('../sim/sixDofSimulator')) as Record<string, unknown>;
   (globalThis as unknown as { __simImpl: unknown }).__simImpl = actual.simulate6DofFlight as SimFlight;
+  const aero = (await vi.importActual('../aero/transonicAero')) as Record<string, unknown>;
+  const curves = aero.computeAerodynamicCurves as (v: unknown, b: boolean, n: number) => unknown;
+  seen.length = 0;
+  // Named-cast window seam: bridge reads window.__TAURI__.core.invoke.
+  const win = window as unknown as { __TAURI__?: unknown };
+  win.__TAURI__ = {
+    core: {
+      invoke: async (cmd: string, args: Record<string, unknown>) => {
+        seen.push({ cmd, args });
+        if (cmd === 'simulate_flight') {
+          const sim = (globalThis as unknown as { __simImpl: SimFlight }).__simImpl;
+          return sim(
+            args.vehicle as RocketVehicle,
+            args.motor as MotorSpec,
+            args.options as SixDofOptions,
+          );
+        }
+        if (cmd === 'aero_curves') {
+          return curves(args.vehicle, args.motorBurning === true, 41);
+        }
+        throw new Error(`unexpected IPC command ${cmd}`);
+      },
+    },
+  };
 });
 function runButton(): HTMLButtonElement {
   return screen.getByRole('button', { name: /run 6-dof trajectory simulation/i }) as HTMLButtonElement;

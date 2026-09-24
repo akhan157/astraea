@@ -1,33 +1,53 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+// @vitest-environment jsdom
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useRocketStore, PRESET_ESTES_ALPHA } from './rocketStore';
 import { BodyTubeComponent, NoseconeComponent } from '../core/types';
 import type { MotorSpec } from '../propulsion/motorDatabase';
+import { computeRocketStability } from '../aero/barrowman';
 
-describe('RocketStore (Zustand & History)', () => {
-  beforeEach(() => {
-    useRocketStore.getState().resetStore();
+/**
+ * IPC-boundary mock: the store refreshes stability over window.__TAURI__.
+ * The mock answers with the TS-oracle stability so transition assertions
+ * observe the reconciled shape; the stability() command name is pinned.
+ */
+beforeEach(() => {
+  const invoke = vi.fn(async (cmd: string, args: Record<string, unknown>) => {
+    expect(cmd).toBe('stability');
+    const vehicle = (args.vehicle ?? args) as unknown as Parameters<typeof computeRocketStability>[0];
+    return computeRocketStability(vehicle);
   });
-
-  it('initializes with default vehicle and valid stability analysis', () => {
+  // Named-cast window seam: bridge reads window.__TAURI__.core.invoke.
+  const win = window as unknown as { __TAURI__?: unknown };
+  win.__TAURI__ = { core: { invoke } };
+  useRocketStore.getState().resetStore();
+});
+describe('RocketStore (Zustand & History)', () => {
+  it('initializes with default vehicle and valid stability analysis', async () => {
+    await vi.waitFor(() => {
+      expect(useRocketStore.getState().stability.totalLength).toBeGreaterThan(0.4);
+    });
     const state = useRocketStore.getState();
     expect(state.vehicle.name).toBe('Estes Alpha III Replica');
-    expect(state.stability.totalLength).toBeGreaterThan(0.4);
     expect(state.stability.isStable).toBe(true);
     expect(state.history.length).toBe(0);
     expect(state.future.length).toBe(0);
   });
 
-  it('updates a component dimension and recalculates stability', () => {
+  it('updates a component dimension and recalculates stability', async () => {
+    await vi.waitFor(() => {
+      expect(useRocketStore.getState().stability.totalLength).toBeGreaterThan(0.4);
+    });
     const state = useRocketStore.getState();
-    const ncId = state.vehicle.components[0].id;
+    const ncId = state.vehicle.components[0]!.id;
     const originalLength = state.stability.totalLength;
 
     // Extend nosecone length by 100mm
     state.updateComponent(ncId, { length: 0.265 });
 
-    const updatedState = useRocketStore.getState();
-    expect(updatedState.stability.totalLength).toBeCloseTo(originalLength + 0.1, 3);
-    expect(updatedState.history.length).toBe(1);
+    await vi.waitFor(() => {
+      expect(useRocketStore.getState().stability.totalLength).toBeCloseTo(originalLength + 0.1, 3);
+    });
+    expect(useRocketStore.getState().history.length).toBe(1);
   });
 
   it('handles undo and redo correctly', () => {

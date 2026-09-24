@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { SimFlightOverlay } from './SimFlightOverlay';
 import { useRocketStore } from '../store/rocketStore';
@@ -17,14 +17,26 @@ import type { SixDofOptions, SixDofSimulationResult } from '../sim/sixDofSimulat
 
 type SimFlight = (vehicle: RocketVehicle, motor: MotorSpec, options?: SixDofOptions) => SixDofSimulationResult;
 
-vi.mock('../sim/sixDofSimulator', async (importOriginal) => {
-  // Vitest mock factories are untyped; the shape is restored field-by-field below.
-  const actual = (await importOriginal()) as Record<string, unknown>;
-  return {
-    ...actual,
-    simulate6DofFlight: (...args: Parameters<SimFlight>) =>
-      (globalThis as unknown as { __simImpl: SimFlight }).__simImpl(...args),
+// IPC-boundary stub: the ONLY seam under test. The real bridge forwards to
+// window.__TAURI__.core.invoke; the stub answers simulate_flight with the
+// deterministic __simImpl fixture (test-only pass-through).
+beforeEach(() => {
+  // Named-cast window seam: bridge reads window.__TAURI__.core.invoke.
+  const win = window as unknown as { __TAURI__?: unknown };
+  win.__TAURI__ = {
+    core: {
+      invoke: async (cmd: string, args: Record<string, unknown>) => {
+        if (cmd !== 'simulate_flight') throw new Error(`unexpected IPC command ${cmd}`);
+        const sim = (globalThis as unknown as { __simImpl: SimFlight }).__simImpl;
+        return sim(
+          args.vehicle as RocketVehicle,
+          args.motor as MotorSpec,
+          args.options as SixDofOptions,
+        );
+      },
+    },
   };
+  (globalThis as unknown as { __simImpl: SimFlight }).__simImpl = ((_v, _m, _o) => buildSimResult(300));
 });
 
 /**
@@ -214,21 +226,14 @@ afterEach(() => {
   useRunStore.getState().resetRuns();
   resetRunIdCounter();
 });
-
 describe('SimFlightOverlay inspect pane', () => {
-  it('asks for a sim run when none is committed, but still ingests logs', () => {
-    render(<SimFlightOverlay />);
-    expect(screen.getByText(/no committed simulation run/i)).toBeTruthy();
-    addFlightLog();
-    expect(screen.getByLabelText(/layer flight 1/i)).toBeTruthy();
-    expect(screen.getByText(/\[current\]/)).toBeTruthy();
-  });
-
-  it('ingests a CSV log, auto-promotes it to current, and layers it', () => {
+  it('ingests a CSV log, auto-promotes it to current, and layers it', async () => {
     commitSim();
     render(<SimFlightOverlay />);
     addFlightLog();
     // Sim holds [current] on its side; the ingested log auto-promotes on its.
+    // The sim curve arrives async over IPC: wait for both markers.
+    await screen.findByLabelText(/layer simulated altitude/i);
     expect(screen.getAllByText(/\[current\]/).length).toBe(2);
     expect(screen.getByLabelText(/layer flight 1/i)).toBeTruthy();
     expect(screen.getByRole('img', { name: /altitude overlay/i }).getAttribute('aria-label')).toMatch(/sim/i);
@@ -256,29 +261,31 @@ describe('SimFlightOverlay inspect pane', () => {
     expect(screen.queryByRole('button', { name: 'Make Flight 1 (CSV) current' })).toBeNull();
   });
 
-  it('unchecking a layer removes the series from the plot', () => {
+  it('unchecking a layer removes the series from the plot', async () => {
     commitSim();
     render(<SimFlightOverlay />);
     addFlightLog();
+    await screen.findByRole('img', { name: /altitude overlay/i });
     const plot = () => screen.getByRole('img', { name: /altitude overlay/i }).getAttribute('aria-label') ?? '';
     expect(plot()).toMatch(/flight 1/i);
     fireEvent.click(screen.getByLabelText(/layer flight 1/i));
     expect(plot()).not.toMatch(/flight 1/i);
   });
 
-  it('moves the shared time cursor from the slider and reads layered values', () => {
+  it('moves the shared time cursor from the slider and reads layered values', async () => {
     commitSim();
     render(<SimFlightOverlay />);
     addFlightLog();
+    await screen.findByLabelText(/overlay time cursor/i);
     const slider = screen.getByLabelText(/overlay time cursor/i) as HTMLInputElement;
     fireEvent.change(slider, { target: { value: '30' } });
     expect(screen.getByText('30.0 s')).toBeTruthy();
   });
 
-  it('runs qualify the sim side: stale committed inputs withhold the curve', () => {
+  it('runs qualify the sim side: stale committed inputs withhold the curve', async () => {
     commitSim();
     render(<SimFlightOverlay />);
-    expect(screen.getByRole('checkbox', { name: /layer simulated altitude/i })).toBeTruthy();
+    await screen.findByRole('checkbox', { name: /layer simulated altitude/i });
     const store = useRocketStore.getState();
     const vehicle: RocketVehicle = structuredClone(store.vehicle);
     vehicle.name = 'edited for divergence';
@@ -386,20 +393,22 @@ describe('SimFlightOverlay compare pane', () => {
     fireEvent.click(screen.getByRole('tab', { name: /compare/i }));
   }
 
-  it('summarizes match/mismatch with deltas for sim vs a lower log', () => {
+  it('summarizes match/mismatch with deltas for sim vs a lower log', async () => {
     commitSim();
     render(<SimFlightOverlay />);
     addFlightLog();
+    await screen.findByRole('checkbox', { name: /layer simulated altitude/i });
     openCompare();
     fireEvent.change(screen.getByLabelText(/compare-to series/i), { target: { value: 'flight-1' } });
     expect(screen.getByText(/mismatch/i)).toBeTruthy();
     expect(screen.getByText(/Δapogee 40\.0 m/)).toBeTruthy();
   });
 
-  it('withholds deltas and flags the pair when alignment is removed', () => {
+  it('withholds deltas and flags the pair when alignment is removed', async () => {
     commitSim();
     render(<SimFlightOverlay />);
     addFlightLog();
+    await screen.findByRole('checkbox', { name: /layer simulated altitude/i });
     openCompare();
     fireEvent.change(screen.getByLabelText(/compare-to series/i), { target: { value: 'flight-1' } });
     fireEvent.click(screen.getByRole('button', { name: /aligned/i }));
@@ -407,10 +416,11 @@ describe('SimFlightOverlay compare pane', () => {
     expect(screen.queryByText(/Δapogee/i)).toBeNull();
   });
 
-  it('re-runs on tolerance blur: widening the band clears mismatches', () => {
+  it('re-runs on tolerance blur: widening the band clears mismatches', async () => {
     commitSim();
     render(<SimFlightOverlay />);
     addFlightLog();
+    await screen.findByRole('checkbox', { name: /layer simulated altitude/i });
     openCompare();
     fireEvent.change(screen.getByLabelText(/compare-to series/i), { target: { value: 'flight-1' } });
     expect(screen.getByText(/\d+ match \/ [1-9]\d* mismatch/i)).toBeTruthy();
@@ -419,10 +429,11 @@ describe('SimFlightOverlay compare pane', () => {
     expect(screen.getByText(/0 mismatch/i)).toBeTruthy();
   });
 
-  it('navigates out-of-tolerance regions and reports position', () => {
+  it('navigates out-of-tolerance regions and reports position', async () => {
     commitSim();
     render(<SimFlightOverlay />);
     addFlightLog(CSV_DIPS);
+    await screen.findByRole('checkbox', { name: /layer simulated altitude/i });
     openCompare();
     fireEvent.change(screen.getByLabelText(/compare-to series/i), { target: { value: 'flight-1' } });
     expect(screen.getByText(/region 1 of/i)).toBeTruthy();

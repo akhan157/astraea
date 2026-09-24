@@ -39,7 +39,7 @@ import {
 import { StatusBadge } from './ui/StatusBadge';
 import type { SixDofOptions } from '../sim/sixDofSimulator';
 import type { DispersionResult } from '../sim/monteCarlo';
-import { runMonteCarlo } from '../sim/monteCarlo';
+import { runEnsemble } from '../tauri/bridge';
 import type { WindLayer } from '../sim/weather';
 import { fetchSounding, windAtAltitude, windToENU } from '../sim/weather';
 import { boattailSeparationCheck, computeProtuberanceDrag } from '../aero/protuberance';
@@ -282,6 +282,10 @@ export function TrajectoryStudio(): React.JSX.Element {
   const attemptQual = lastAttempt && mcSnapshot !== null ? displayFor(lastAttempt, mcSnapshot) : null;
 
   const handleRunMonteCarlo = () => {
+    void runMonteCarloAsync();
+  };
+
+  const runMonteCarloAsync = async () => {
     // S1 gate: only a preflighted, runnable case executes; every issue above
     // stays visible with its repair destination (never a C6-style fallback).
     if (mcRunning || !resolved.runnable || !motor) return;
@@ -311,7 +315,7 @@ export function TrajectoryStudio(): React.JSX.Element {
       label: `MC ${nRuns} · ${motor.designation}`,
     };
     try {
-      const result = runMonteCarlo(
+      const result = await runEnsemble(
         { vehicle, motor, options },
         {
           windAzimuthDegSigma: mcWindSigmaDeg,
@@ -320,6 +324,7 @@ export function TrajectoryStudio(): React.JSX.Element {
         },
         nRuns,
         MC_SEED,
+        'per-run-v2',
       );
       setMcResult(result);
       // The run's snapshot is the freshness anchor: card + record + registry

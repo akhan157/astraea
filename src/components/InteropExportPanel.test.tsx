@@ -10,14 +10,52 @@ vi.mock('../formats/blueprintPng', () => ({
   renderBlueprintPng: vi.fn().mockResolvedValue(new Blob(['png-bytes'], { type: 'image/png' })),
 }));
 
+/**
+ * IPC-boundary mock: the ONLY seam under test. buildAeroMatrixRows must
+ * await window.__TAURI__.core.invoke with aero_curves x2 + stability;
+ * oracle anchors below are read-only (never computed in-test).
+ */
+function mockAeroIpc() {
+  const seen: Array<{ cmd: string; args: Record<string, unknown> }> = [];
+  const n = 41;
+  const machPoints = Array.from({ length: n }, (_, i) => (i * 4) / (n - 1));
+  const curve = (base: number) => ({
+    machPoints,
+    dragCurves: machPoints.map((mach, i) => ({
+      mach,
+      totalCd: base + 0.3 * Math.exp(-Math.pow(mach - 1.0, 2) / 0.08) + i * 1e-4,
+      frictionCd: 0.05,
+      waveCd: 0.02,
+      baseCd: 0.2,
+      cp: 0.35 + i * 1e-4,
+      staticMarginCalibers: 5.0,
+    })),
+    maxTransonicCd: base + 0.3,
+    machAtMaxCd: 1.0,
+    subsonicCd: base,
+    supersonicCdMach2: base + 0.05,
+  });
+  const invoke = vi.fn(async (cmd: string, args: Record<string, unknown>) => {
+    seen.push({ cmd, args });
+    if (cmd === 'aero_curves') return curve(args.motorBurning === true ? 0.55 : 0.45);
+    if (cmd === 'stability') return { totalCNa: 24.317876312553757 };
+    throw new Error(`unexpected IPC command ${cmd}`);
+  });
+  // Named-cast window seam: bridge reads window.__TAURI__.core.invoke.
+  const win = window as unknown as { __TAURI__?: unknown };
+  win.__TAURI__ = { core: { invoke } };
+  return seen;
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
   useRunStore.getState().resetRuns();
 });
 
 describe('buildAeroMatrixRows', () => {
-  it('emits one row per Mach point with finite coefficients', () => {
-    const rows = buildAeroMatrixRows(PRESET_ESTES_ALPHA);
+  it('emits one row per Mach point with finite coefficients', async () => {
+    const seen = mockAeroIpc();
+    const rows = await buildAeroMatrixRows(PRESET_ESTES_ALPHA);
     expect(rows.length).toBeGreaterThan(10);
     for (const row of rows) {
       expect(Number.isFinite(row.cdPowerOff)).toBe(true);
@@ -26,7 +64,8 @@ describe('buildAeroMatrixRows', () => {
       expect(Number.isFinite(row.cpX)).toBe(true);
       expect(row.aoaDeg).toBe(0);
     }
-    expect(rows[0].mach).toBeCloseTo(0, 10);
+    expect(rows[0]!.mach).toBeCloseTo(0, 10);
+    expect(seen.map((s) => s.cmd)).toEqual(['aero_curves', 'aero_curves', 'stability']);
   });
 });
 
@@ -44,13 +83,14 @@ describe('InteropExportPanel', () => {
   });
 
   it('downloads an aero .csv with the exact matrix header', async () => {
+    mockAeroIpc();
     const createObjectURL = vi.fn((_blob: Blob) => 'blob:csv');
     vi.stubGlobal('URL', { createObjectURL, revokeObjectURL: vi.fn() });
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);
     fireEvent.click(screen.getByTitle(/\.csv/));
-    expect(createObjectURL).toHaveBeenCalledTimes(1);
-    const text = await (createObjectURL.mock.calls[0][0]).text();
+    await vi.waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(1));
+    const text = await (createObjectURL.mock.calls[0]![0] as Blob).text();
     expect(text.split('\n')[0]).toBe('Mach,AoA,CD_power_off,CD_power_on,CNa,CP');
     expect(text.trim().split('\n').length).toBeGreaterThan(10);
   });
