@@ -9,7 +9,7 @@
  * dialog role exists; the WebGL fallback keeps editing surfaces live.
  */
 // @vitest-environment jsdom
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { WorkstationShell } from './WorkstationShell';
 import { useRocketStore } from '../../store/rocketStore';
@@ -75,6 +75,8 @@ const ALPHA_CLASS_VEHICLE: RocketVehicle = {
   ],
 };
 
+const shellIpcSeen: Array<{ cmd: string; args: Record<string, unknown> }> = [];
+
 function renderShell() {
   const rocket = useRocketStore.getState();
   rocket.resetStore();
@@ -84,6 +86,33 @@ function renderShell() {
   useWorkspaceStore.getState().setFilter('all');
   useRunStore.getState().resetRuns();
   useEditBufferStore.getState().discardAll();
+  // Named-cast window seam, mirroring the studio suites: the shell mounts
+  // PropulsionStudio/TrajectoryStudio, which call the native bridge. Without
+  // a seam the bridge fails closed (by design) and the inline ensemble
+  // never completes.
+  const invoke = vi.fn(async (cmd: string, args: Record<string, unknown>) => {
+    shellIpcSeen.push({ cmd, args });
+    if (cmd === 'run_ensemble') {
+      const req = args.req as { nRuns?: number } | undefined;
+      const runs = Number(req?.nRuns ?? 5);
+      const cloud = Array.from({ length: runs }, (_, i) => ({ x: (i % 5) * 10, y: Math.floor(i / 5) * 10 }));
+      const mean = { x: cloud.reduce((s, p) => s + p.x, 0) / runs, y: cloud.reduce((s, p) => s + p.y, 0) / runs };
+      return {
+        landings: cloud,
+        successfulRuns: runs,
+        failedRuns: 0,
+        mean,
+        covariance: { xx: 1, yy: 1, xy: 0 },
+        sigma1: 1,
+        sigma2: 1,
+        thetaDeg: 0,
+        containmentRadii: { r50: 1, r90: 2, r99: 3 },
+      };
+    }
+    throw new Error(`unexpected IPC command ${cmd}`);
+  });
+  const win = window as unknown as { __TAURI__?: unknown };
+  win.__TAURI__ = { core: { invoke } };
   return render(<WorkstationShell />);
 }
 
