@@ -16,8 +16,8 @@ afterEach(() => {
 });
 
 describe('buildAeroMatrixRows', () => {
-  it('emits one row per Mach point with finite coefficients', () => {
-    const rows = buildAeroMatrixRows(PRESET_ESTES_ALPHA);
+  it('emits one row per Mach point with finite coefficients', async () => {
+    const rows = await buildAeroMatrixRows(PRESET_ESTES_ALPHA);
     expect(rows.length).toBeGreaterThan(10);
     for (const row of rows) {
       expect(Number.isFinite(row.cdPowerOff)).toBe(true);
@@ -26,7 +26,7 @@ describe('buildAeroMatrixRows', () => {
       expect(Number.isFinite(row.cpX)).toBe(true);
       expect(row.aoaDeg).toBe(0);
     }
-    expect(rows[0].mach).toBeCloseTo(0, 10);
+    expect(rows[0]!.mach).toBeCloseTo(0, 10);
   });
 });
 

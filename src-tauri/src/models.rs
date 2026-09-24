@@ -1066,6 +1066,98 @@ mod dto_tests {
         assert!(s.total_cna > 20.0, "slender-body CNa {}", s.total_cna);
     }
 
+    fn flight_opts_90() -> astraea_core::six_dof::SixDofOptions {
+        astraea_core::six_dof::SixDofOptions {
+            rail_length: Some(1.0),
+            rail_elevation_deg: Some(90.0),
+            rail_azimuth_deg: Some(0.0),
+            launch_altitude_asl: None,
+            wind_speed_surface: Some(0.0),
+            wind_azimuth_deg: Some(90.0),
+            main_deploy_altitude_agl: Some(250.0),
+            time_step: None,
+            fin_cant_angle_deg: None,
+        }
+    }
+
+    /// IPC-boundary parity: the full DTO path (JSON wire -> prepare pipeline
+    /// -> kernel -> camelCase DTO -> JSON wire) reproduces the TS oracle
+    /// anchors from crates/astraea-core/README.md. Fails here mean the IPC
+    /// layer drifted; per the lane rule, fix Rust, never src/.
+    #[test]
+    fn ipc_flight_matches_zero_wind_alpha_c6_oracle() {
+        let fv: FrontendVehicle = serde_json::from_value(alpha_vehicle_json()).unwrap();
+        let v = prepare_flight_vehicle(&fv, &c6_motor()).unwrap();
+        let m = to_motor(&c6_motor()).unwrap();
+        let r = astraea_core::six_dof::simulate_flight(&v, &m, &flight_opts_90()).unwrap();
+        let dto = to_flight_dto(&r);
+        let wire = serde_json::to_value(&dto).unwrap();
+        let rel = ((dto.apogee_altitude - 388.72144947515324) / 388.72144947515324).abs();
+        assert!(rel <= 0.005, "apogee rel err {rel} exceeds 0.5%");
+        assert!(rel < 1e-6, "apogee drifted from oracle: rel err {rel}");
+        assert!(dto.landing_distance <= 5.0, "drift {} > 5 m", dto.landing_distance);
+        assert!((dto.flight_duration - 105.28801757814196).abs() < 0.05, "flight time {}", dto.flight_duration);
+        assert!((dto.landing_velocity - 3.987307476131326).abs() < 0.05, "landing vel {}", dto.landing_velocity);
+        // Wire shape is camelCase and carries the TS result contract keys.
+        assert!(wire.get("apogeeAltitude").is_some());
+        assert_eq!(wire.get("flightDuration").unwrap().as_f64().unwrap(), dto.flight_duration);
+        assert_eq!(wire.get("landingVelocity").unwrap().as_f64().unwrap(), dto.landing_velocity);
+        assert_eq!(wire.get("terminationReason").unwrap().as_str().unwrap(), "touchdown");
+    }
+
+    #[test]
+    fn ipc_ensemble_matches_oracle_accounting() {
+        use astraea_core::monte_carlo::{
+            parse_sampling_version, run_ensemble, PerturbedParams, PerturbationSigmas,
+        };
+        let fv: FrontendVehicle = serde_json::from_value(alpha_vehicle_json()).unwrap();
+        let flight_vehicle = prepare_flight_vehicle(&fv, &c6_motor()).unwrap();
+        let base_options = flight_opts_90();
+        let base_motor = c6_motor();
+        let fly = |p: &PerturbedParams| -> Result<astraea_core::monte_carlo::LandingPoint, String> {
+            let mut o = base_options.clone();
+            o.wind_azimuth_deg = p.wind_azimuth_deg;
+            o.rail_elevation_deg = p.rail_elevation_deg;
+            let mut motor = to_motor(&base_motor).unwrap();
+            for tp in &mut motor.thrust_curve {
+                tp.thrust *= p.impulse_scale;
+            }
+            motor.max_thrust *= p.impulse_scale;
+            let r = astraea_core::six_dof::simulate_flight(&flight_vehicle, &motor, &o)?;
+            Ok(astraea_core::monte_carlo::LandingPoint { x: r.landing_position.x, y: r.landing_position.y })
+        };
+        let sigmas = PerturbationSigmas {
+            wind_azimuth_deg_sigma: 5.0,
+            rail_angle_deg_sigma: 1.0,
+            impulse_pct_sigma: 2.0,
+        };
+        let base = PerturbedParams { wind_azimuth_deg: None, rail_elevation_deg: None, impulse_scale: 1.0 };
+        let version = parse_sampling_version("per-run-v2").unwrap();
+        let result = run_ensemble(&base, &sigmas, 8, 7, version, &fly).unwrap();
+        let dto = to_dispersion_dto(&result);
+        assert_eq!(dto.successful_runs + dto.failed_runs, 8);
+        assert!(dto.sigma1 >= 0.0 && dto.sigma2 >= 0.0);
+        let wire = serde_json::to_value(&dto).unwrap();
+        assert!(wire.get("successfulRuns").is_some());
+        assert!(wire.get("containmentRadii").is_some());
+        assert!(wire.get("thetaDeg").is_some());
+    }
+
+    #[test]
+    fn ipc_chamber_matches_apcp_oracle() {
+        let eq = astraea_core::gibbs::solve_chamber(10_000_000.0).unwrap();
+        let dto = ChamberDto { tc: eq.tc, gamma: eq.gamma, mol_weight: eq.mol_weight };
+        let rel_tc = ((dto.tc - 3522.814668872915) / 3522.814668872915).abs();
+        let rel_g = ((dto.gamma - 1.1817718046095134) / 1.1817718046095134).abs();
+        let rel_mw = ((dto.mol_weight - 24.60469503516949) / 24.60469503516949).abs();
+        assert!(rel_tc <= 5e-3, "Tc rel err {rel_tc}");
+        assert!(rel_g <= 5e-3, "gamma rel err {rel_g}");
+        assert!(rel_mw <= 5e-3, "MW rel err {rel_mw}");
+        let wire = serde_json::to_value(&dto).unwrap();
+        assert!(wire.get("Tc").is_some(), "chamber wire keeps Tc key");
+        assert!(wire.get("molWeight").is_some(), "chamber wire keeps molWeight key");
+    }
+
     #[test]
     fn unknown_type_fails_closed() {
         let fv = FrontendVehicle {

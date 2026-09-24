@@ -29,7 +29,7 @@
  * the Calibration card until consumed (frontend-plan §7).
  */
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Archive,
   ChevronLeft,

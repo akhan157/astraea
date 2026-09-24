@@ -1,9 +1,9 @@
 /**
- * Astraea native compute bridge — the ONLY runtime engine path.
+ * Astraea native compute bridge -- the ONLY runtime engine path.
  *
  * Replacement build: studios call these functions; they forward to the Rust
  * core over Tauri IPC (`window.__TAURI__.core.invoke`). The TS `src/`
- * engines are a read-only oracle for parity values, never a runtime path —
+ * engines are a read-only oracle for parity values, never a runtime path --
  * there is no TS fallback and no routing flag.
  *
  * Outside a Tauri window (plain browser / vitest) `invoke()` throws with a
@@ -12,6 +12,7 @@
  *
  * Coarse-grained IPC only: run_ensemble, simulate_flight, solve_chamber,
  * stability, aero_curves, aggregate_mass. Never per-step serialization.
+ */
 import type { RocketVehicle, StabilityAnalysis } from '../core/types';
 import type { MotorSpec } from '../propulsion/motorDatabase';
 import type { SixDofOptions, SixDofSimulationResult } from '../sim/sixDofSimulator';
@@ -32,12 +33,12 @@ function getInvoke(): InvokeFn {
   if (typeof legacy === 'function') return legacy.bind(w.__TAURI__);
   throw new Error(
     'Astraea native bridge: Tauri IPC is unavailable (window.__TAURI__ missing). ' +
-      'Engine calls require the Astraea workstation shell — there is no TS fallback.',
+      'Engine calls require the Astraea workstation shell -- there is no TS fallback.',
   );
 }
 
 function componentDto(c: RocketVehicle['components'][number]): Record<string, unknown> {
-  const { id, name, type, materialId, ...rest } = c as Record<string, unknown>;
+  const { id, name, type, materialId, ...rest } = c as unknown as Record<string, unknown>;
   return { id, name, type, materialId, ...rest };
 }
 

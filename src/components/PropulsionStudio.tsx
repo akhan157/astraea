@@ -349,7 +349,7 @@ export function PropulsionStudio({}: {}): JSX.Element {
                       Burn Area vs Web Burned
                     </span>
                     <span className="text-[10px] font-mono text-zinc-500">
-                      peak @ {(grain.trace.webBurned[peakIdx] * 1000).toFixed(1)} mm web
+                      peak @ {(grain.trace.webBurned[grain.trace.burnArea.indexOf(grain.peakBurnArea)]! * 1000).toFixed(1)} mm web
                     </span>
                   </div>
                   <svg
