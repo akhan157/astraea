@@ -25,8 +25,7 @@ import { exportBlueprintSvg } from '../formats/blueprint';
 import { renderBlueprintPng } from '../formats/blueprintPng';
 import type { RocketVehicle } from '../core/types';
 import { exportCdx1, exportAeroMatrix, type AeroMatrixRow } from '../formats/rasaero';
-import { computeAerodynamicCurves } from '../aero/transonicAero';
-import { computeRocketStability } from '../aero/barrowman';
+import { aeroCurvesOf, stabilityOf } from '../tauri/bridge';
 import { exportRkt } from '../formats/rktExport';
 import { exportToEng } from '../formats/engParser';
 import { exportKml } from '../sim/waiverContainment';
@@ -72,16 +71,18 @@ function download(filename: string, text: string, mime: string): void {
   downloadBlob(filename, new Blob([text], { type: mime }));
 }
 
-export function buildAeroMatrixRows(vehicle: RocketVehicle): AeroMatrixRow[] {
-  const off = computeAerodynamicCurves(vehicle, false);
-  const on = computeAerodynamicCurves(vehicle, true);
-  const { totalCNa } = computeRocketStability(vehicle);
+export async function buildAeroMatrixRows(vehicle: RocketVehicle): Promise<AeroMatrixRow[]> {
+  const [off, on, stab] = await Promise.all([
+    aeroCurvesOf(vehicle, false),
+    aeroCurvesOf(vehicle, true),
+    stabilityOf(vehicle),
+  ]);
   return off.machPoints.map((mach, i) => ({
     mach,
     aoaDeg: 0,
     cdPowerOff: off.dragCurves[i].totalCd,
     cdPowerOn: on.dragCurves[i].totalCd,
-    cna: totalCNa,
+    cna: stab.totalCNa,
     cpX: off.dragCurves[i].cp,
   }));
 }
@@ -181,12 +182,10 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
   };
 
   const handleCsv = () => {
-    try {
-      setError(null);
-      download(`${slug}-aero-matrix.csv`, exportAeroMatrix(buildAeroMatrixRows(vehicle)), 'text/csv');
-    } catch (err) {
-      setError(`Aero matrix export failed: ${(err as Error).message}`);
-    }
+    setError(null);
+    void buildAeroMatrixRows(vehicle)
+      .then((rows) => download(`${slug}-aero-matrix.csv`, exportAeroMatrix(rows), 'text/csv'))
+      .catch((err: unknown) => setError(`Aero matrix export failed: ${(err as Error).message}`));
   };
 
   const handleBlueprint = () => {

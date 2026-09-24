@@ -1,5 +1,6 @@
-//! Astraea workstation library entry: registers the six coarse-grained
-//! IPC commands on the Tauri app handle.
+//! Astraea workstation library entry: registers the coarse-grained IPC
+//! commands on the Tauri app handle (flight/ensemble, chamber+nozzle,
+//! stability/curves, mass — never per-step).
 
 pub mod commands;
 pub mod models;
@@ -11,6 +12,7 @@ pub fn run() {
             commands::run_ensemble,
             commands::simulate_flight,
             commands::solve_chamber,
+            commands::nozzle_performance,
             commands::stability,
             commands::aero_curves,
             commands::aggregate_mass,

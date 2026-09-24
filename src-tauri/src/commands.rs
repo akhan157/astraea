@@ -1,10 +1,12 @@
-//! Six coarse-grained Tauri commands — the ONLY runtime path.
+//! Seven coarse-grained Tauri commands — the ONLY runtime path.
 //! Never per-step serialization: each command runs a whole engine pass in
-//! Rust and returns coarse metrics.
+//! Rust and returns coarse metrics. (solve_chamber + nozzle_performance are
+//! the chamber/nozzle pair behind PropulsionStudio; run_ensemble,
+//! simulate_flight, stability, aero_curves, aggregate_mass cover the rest.)
 
 use crate::models::{
     self, AeroCurvesDto, ChamberDto, DispersionResultDto, EnsembleRequest, FlightOptionsDto,
-    FlightResultDto, FrontendMotor, FrontendVehicle, MassRollupDto, StabilityDto,
+    FlightResultDto, FrontendMotor, FrontendVehicle, MassRollupDto, NozzleDto, StabilityDto,
 };
 
 fn opts(o: &FlightOptionsDto) -> astraea_core::six_dof::SixDofOptions {
@@ -109,6 +111,26 @@ pub fn solve_chamber(pressure: f64) -> Result<ChamberDto, String> {
         tc: eq.tc,
         gamma: eq.gamma,
         mol_weight: eq.mol_weight,
+    })
+}
+
+#[tauri::command]
+pub fn nozzle_performance(
+    tc: f64,
+    gamma: f64,
+    mol_weight: f64,
+    pc: f64,
+    pe: f64,
+    pa: f64,
+) -> Result<NozzleDto, String> {
+    let p = astraea_core::gibbs::performance(tc, gamma, mol_weight, pc, pe, pa)?;
+    Ok(NozzleDto {
+        isp_vac: p.isp_vac,
+        isp_sea: p.isp_sea,
+        cstar: p.cstar,
+        cf_vac: p.cf_vac,
+        cf_sea: p.cf_sea,
+        exit_mach: p.exit_mach,
     })
 }
 

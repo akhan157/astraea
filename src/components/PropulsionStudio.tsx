@@ -19,7 +19,7 @@
  * Fail-closed: any throwing computation degrades to a visible message
  * instead of crashing the surface (FlightSimulationTab audit §8 pattern).
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { JSX } from 'react';
 import { useRocketStore } from '../store/rocketStore';
 import { Flame, Gauge, Layers } from 'lucide-react';
@@ -29,11 +29,8 @@ import {
   regressBates,
   type GrainRegressionTrace,
 } from '../propulsion/grainRegression';
-import {
-  APCP_REFERENCE_PRESSURE,
-  apcpEquilibrium,
-  performance,
-} from '../propulsion/nozzleChemistry';
+import { APCP_REFERENCE_PRESSURE } from '../propulsion/nozzleChemistry';
+import { solveChamber, nozzlePerformance, type NozzlePerformance } from '../tauri/bridge';
 
 const MM = 1e-3;
 const BURN_RATE_M_S = 0.004; // constant linear regression rate (n = 0 lane)
@@ -71,6 +68,45 @@ export function PropulsionStudio({}: {}): JSX.Element {
   const [webStepMm, setWebStepMm] = useState('1');
 
   const motor: MotorSpec = catalog[selectedMotorId] ?? CERTIFIED_MOTORS.estes_c6;
+  // Chamber equilibrium + nozzle isentropics come from the Rust core.
+  // Grain regression stays TS-local (geometry, not an engine in scope).
+  const [eqState, setEqState] = useState<
+    { ok: true; Tc: number; gamma: number; molWeight: number } | { ok: false; message: string } | null
+  >(null);
+  useEffect(() => {
+    let live = true;
+    setEqState(null);
+    void solveChamber(APCP_REFERENCE_PRESSURE)
+      .then((eq) => { if (live) setEqState({ ok: true as const, Tc: eq.Tc, gamma: eq.gamma, molWeight: eq.molWeight }); })
+      .catch((err: unknown) => { if (live) setEqState({ ok: false as const, message: err instanceof Error ? err.message : String(err) }); });
+    return () => { live = false; };
+  }, []);
+  const [nozzlePerf, setNozzlePerf] = useState<
+    { ok: true; vac: NozzlePerformance; sea: NozzlePerformance } | { ok: false; message: string } | null
+  >(null);
+  useEffect(() => {
+    let live = true;
+    setNozzlePerf(null);
+    if (eqState === null) return () => { live = false; };
+    if (!eqState.ok) {
+      setNozzlePerf({ ok: false as const, message: eqState.message });
+      return () => { live = false; };
+    }
+    void (async () => {
+      try {
+        const vac = await nozzlePerformance(
+          eqState.Tc, eqState.gamma, eqState.molWeight, APCP_REFERENCE_PRESSURE, PE_SEA_LEVEL_PA, PA_VACUUM_PA,
+        );
+        const sea = await nozzlePerformance(
+          eqState.Tc, eqState.gamma, eqState.molWeight, APCP_REFERENCE_PRESSURE, PE_SEA_LEVEL_PA, PA_SEA_LEVEL_PA,
+        );
+        if (live) setNozzlePerf({ ok: true as const, vac, sea });
+      } catch (err: unknown) {
+        if (live) setNozzlePerf({ ok: false as const, message: err instanceof Error ? err.message : String(err) });
+      }
+    })();
+    return () => { live = false; };
+  }, [eqState]);
   const grain = useMemo(() => {
     try {
       const outerDiameter = parseFloat(outerDmm) * MM;
@@ -83,12 +119,13 @@ export function PropulsionStudio({}: {}): JSX.Element {
         BURN_RATE_M_S,
       );
       const peakBurnArea = Math.max(...trace.burnArea);
+      if (eqState === null) return { ok: false as const, message: 'Chamber equilibrium loading from native core…' };
+      if (!eqState.ok) return { ok: false as const, message: eqState.message };
+      if (nozzlePerf === null) return { ok: false as const, message: 'Nozzle performance loading from native core…' };
+      if (!nozzlePerf.ok) return { ok: false as const, message: nozzlePerf.message };
       // c* from the APCP chamber equilibrium at the 100-bar reference
       // pressure (frozen-flow isentropics, sea-level design exit).
-      const eq = apcpEquilibrium();
-      const cstar = performance(
-        eq.Tc, eq.gamma, eq.molWeight, APCP_REFERENCE_PRESSURE, PE_SEA_LEVEL_PA, PA_VACUUM_PA,
-      ).cstar;
+      const cstar = nozzlePerf.vac.cstar;
       const peakPcPa = chamberPressure(
         peakBurnArea, BURN_RATE_M_S, PROPELLANT_DENSITY_KG_M3, cstar, THROAT_AREA_M2,
       );
@@ -96,35 +133,24 @@ export function PropulsionStudio({}: {}): JSX.Element {
     } catch (err) {
       return { ok: false as const, message: err instanceof Error ? err.message : String(err) };
     }
-  }, [outerDmm, coreDmm, lengthMm, webStepMm]);
+  }, [outerDmm, coreDmm, lengthMm, webStepMm, eqState, nozzlePerf]);
 
-  const nozzle = useMemo(() => {
-    try {
-      const eq = apcpEquilibrium();
-      const vac = performance(
-        eq.Tc, eq.gamma, eq.molWeight, APCP_REFERENCE_PRESSURE, PE_SEA_LEVEL_PA, PA_VACUUM_PA,
-      );
-      const sea = performance(
-        eq.Tc, eq.gamma, eq.molWeight, APCP_REFERENCE_PRESSURE, PE_SEA_LEVEL_PA, PA_SEA_LEVEL_PA,
-      );
-      return {
-        ok: true as const,
-        Tc: eq.Tc,
-        gamma: eq.gamma,
-        ispVac: vac.ispVac,
-        ispSea: sea.ispSea,
-        cstar: vac.cstar,
-        cfVac: vac.cfVac,
-        cfSea: sea.cfSea,
-        exitMach: vac.exitMach,
-      };
-    } catch (err) {
-      return { ok: false as const, message: err instanceof Error ? err.message : String(err) };
-    }
-  }, []);
-
-  const peakIdx = grain.ok ? grain.trace.burnArea.indexOf(grain.peakBurnArea) : -1;
-
+  const nozzle = (() => {
+    if (eqState === null || nozzlePerf === null) return null;
+    if (!eqState.ok) return { ok: false as const, message: eqState.message };
+    if (!nozzlePerf.ok) return { ok: false as const, message: nozzlePerf.message };
+    return {
+      ok: true as const,
+      Tc: eqState.Tc,
+      gamma: eqState.gamma,
+      ispVac: nozzlePerf.vac.ispVac,
+      ispSea: nozzlePerf.sea.ispSea,
+      cstar: nozzlePerf.vac.cstar,
+      cfVac: nozzlePerf.vac.cfVac,
+      cfSea: nozzlePerf.sea.cfSea,
+      exitMach: nozzlePerf.vac.exitMach,
+    };
+  })();
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 overflow-hidden select-none">
       {/* Panel header — FlightSimulationTab modal-header styling */}
@@ -371,7 +397,11 @@ export function PropulsionStudio({}: {}): JSX.Element {
               100 bar chamber · pe 101325 Pa · frozen-flow isentropic (nozzleChemistry)
             </div>
 
-            {nozzle.ok ? (
+            {nozzle === null ? (
+              <div className="p-3 bg-zinc-950/60 rounded-xl border border-zinc-800 text-zinc-400 text-xs font-mono">
+                Nozzle performance loading from native core…
+              </div>
+            ) : nozzle.ok ? (
               <>
                 <table
                   role="table"

@@ -100,6 +100,29 @@ export async function solveChamber(chamberPressure?: number): Promise<ApcpEquili
   });
 }
 
+/** Frozen-flow nozzle isentropics via the Rust core (only path). */
+export interface NozzlePerformance {
+  ispVac: number;
+  ispSea: number;
+  cstar: number;
+  cfVac: number;
+  cfSea: number;
+  exitMach: number;
+}
+
+export async function nozzlePerformance(
+  tc: number,
+  gamma: number,
+  molWeight: number,
+  pc: number,
+  pe: number,
+  pa: number,
+): Promise<NozzlePerformance> {
+  return getInvoke()<NozzlePerformance>('nozzle_performance', {
+    tc, gamma, molWeight, pc, pe, pa,
+  });
+}
+
 /** Barrowman stability assembly via the Rust core (only path). */
 export async function stabilityOf(vehicle: RocketVehicle): Promise<StabilityAnalysis> {
   return getInvoke()<StabilityAnalysis>('stability', { vehicle: vehicleDto(vehicle) });

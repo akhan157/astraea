@@ -7,7 +7,38 @@ import { create } from 'zustand';
 import { RocketVehicle, RocketComponent, StabilityAnalysis } from '../core/types';
 import type { MotorSpec } from '../propulsion/motorDatabase';
 import { normalizeMotorId } from '../propulsion/motorDatabase';
-import { computeRocketStability } from '../aero/barrowman';
+import { stabilityOf } from '../tauri/bridge';
+
+/**
+ * Synchronous stability for store transitions. The native core is async
+ * (IPC), but zustand actions are synchronous — so transitions commit the
+ * vehicle immediately and reconcile stability when the IPC round-trip
+ * lands (last-write-wins per vehicle id). The fallback below is a
+ * fail-closed stale marker, never a computed number: it preserves the
+ * previous stability's shape with isStable=false until the core answers.
+ */
+function staleStability(prev: StabilityAnalysis): StabilityAnalysis {
+  return { ...prev, isStable: false, isOverStable: false };
+}
+
+/** Fire-and-forget stability refresh for the store's active vehicle. */
+function refreshStability(vehicle: RocketVehicle): void {
+  void stabilityOf(vehicle)
+    .then((next) => {
+      const current = useRocketStore.getState();
+      if (current.vehicle.id !== vehicle.id) return;
+      let same = current.vehicle.components.length === vehicle.components.length;
+      if (same) {
+        for (let i = 0; i < vehicle.components.length; i++) {
+          if (current.vehicle.components[i]?.id !== vehicle.components[i]?.id) { same = false; break; }
+        }
+      }
+      if (same) useRocketStore.setState({ stability: next });
+    })
+    .catch(() => {
+      // Fail-closed: keep the stale marker; the next edit retries.
+    });
+}
 
 export type ViewMode = 'solid' | 'wireframe' | 'xray';
 
@@ -295,7 +326,12 @@ function putCustomMotor(motors: Record<string, MotorSpec>, motor: MotorSpec, key
 
 export const useRocketStore = create<RocketStoreState>((set, get) => {
   const initialVehicle = PRESET_ESTES_ALPHA;
-  const initialStability = computeRocketStability(initialVehicle);
+  const initialStability: StabilityAnalysis = {
+    totalLength: 0, maxDiameter: 0, referenceDiameter: 0.05, totalMass: 0,
+    cg: 0, cp: 0, staticMarginCalibers: 0, totalCNa: 0,
+    isStable: false, isOverStable: false, contributions: [],
+  };
+  refreshStability(initialVehicle);
 
   return {
     vehicle: initialVehicle,
@@ -375,14 +411,15 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
         components: newComponents,
       };
 
-      const stability = computeRocketStability(updatedVehicle);
+
 
       set({
         vehicle: updatedVehicle,
-        stability,
+        stability: staleStability(state.stability),
         history: newHistory,
         future: [],
       });
+      refreshStability(updatedVehicle);
     },
 
     // RIVAL S2 (pattern 4): one undoable commit for an edited draft vehicle.
@@ -392,10 +429,11 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
       const newHistory = [...state.history, state.vehicle].slice(-30);
       set({
         vehicle,
-        stability: computeRocketStability(vehicle),
+        stability: staleStability(state.stability),
         history: newHistory,
         future: [],
       });
+      refreshStability(vehicle);
     },
 
     addComponent: (component, index) => {
@@ -410,15 +448,16 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
       }
 
       const updatedVehicle = { ...state.vehicle, components };
-      const stability = computeRocketStability(updatedVehicle);
+
 
       set({
         vehicle: updatedVehicle,
-        stability,
+        stability: staleStability(state.stability),
         selectedComponentId: component.id,
         history: newHistory,
         future: [],
       });
+      refreshStability(updatedVehicle);
     },
 
     removeComponent: (id) => {
@@ -428,15 +467,16 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
       const newHistory = [...state.history, state.vehicle].slice(-30);
       const components = state.vehicle.components.filter((c) => c.id !== id);
       const updatedVehicle = { ...state.vehicle, components };
-      const stability = computeRocketStability(updatedVehicle);
+
 
       set({
         vehicle: updatedVehicle,
-        stability,
+        stability: staleStability(state.stability),
         selectedComponentId: components[0]?.id || null,
         history: newHistory,
         future: [],
       });
+      refreshStability(updatedVehicle);
     },
 
     reorderComponents: (fromIndex, toIndex) => {
@@ -448,34 +488,41 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
       components.splice(toIndex, 0, moved);
 
       const updatedVehicle = { ...state.vehicle, components };
-      const stability = computeRocketStability(updatedVehicle);
+
 
       set({
         vehicle: updatedVehicle,
-        stability,
+        stability: staleStability(state.stability),
         history: newHistory,
         future: [],
       });
+      refreshStability(updatedVehicle);
     },
 
     setVehicle: (newVehicle) => {
       const state = get();
       const newHistory = [...state.history, state.vehicle].slice(-30);
-      const stability = computeRocketStability(newVehicle);
+
 
       set({
         vehicle: newVehicle,
-        stability,
+        stability: staleStability(state.stability),
         selectedComponentId: newVehicle.components[0]?.id || null,
         history: newHistory,
         future: [],
         cameraResetTrigger: state.cameraResetTrigger + 1,
       });
+      refreshStability(newVehicle);
     },
 
     resetStore: () => {
       const initialVehicle = PRESET_ESTES_ALPHA;
-      const initialStability = computeRocketStability(initialVehicle);
+      const initialStability: StabilityAnalysis = {
+        totalLength: 0, maxDiameter: 0, referenceDiameter: 0.05, totalMass: 0,
+        cg: 0, cp: 0, staticMarginCalibers: 0, totalCNa: 0,
+        isStable: false, isOverStable: false, contributions: [],
+      };
+      refreshStability(initialVehicle);
       set({
         vehicle: initialVehicle,
         selectedComponentId: initialVehicle.components[0].id,
@@ -507,14 +554,15 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
       const previous = state.history[state.history.length - 1];
       const newHistory = state.history.slice(0, -1);
       const newFuture = [state.vehicle, ...state.future];
-      const stability = computeRocketStability(previous);
+
 
       set({
         vehicle: previous,
-        stability,
+        stability: staleStability(state.stability),
         history: newHistory,
         future: newFuture,
       });
+      refreshStability(previous);
     },
 
     redo: () => {
@@ -524,14 +572,15 @@ export const useRocketStore = create<RocketStoreState>((set, get) => {
       const next = state.future[0];
       const newFuture = state.future.slice(1);
       const newHistory = [...state.history, state.vehicle];
-      const stability = computeRocketStability(next);
+
 
       set({
         vehicle: next,
-        stability,
+        stability: staleStability(state.stability),
         history: newHistory,
         future: newFuture,
       });
+      refreshStability(next);
     },
   };
 });

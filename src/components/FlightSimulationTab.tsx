@@ -8,9 +8,9 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useRocketStore } from '../store/rocketStore';
 import { CERTIFIED_MOTORS, MotorSpec } from '../propulsion/motorDatabase';
 import type { BodyTubeComponent } from '../core/types';
-import { aggregateVehicleMass } from '../core/mass';
-import { simulate6DofFlight, SixDofSimulationResult } from '../sim/sixDofSimulator';
-import { computeAerodynamicCurves } from '../aero/transonicAero';
+import type { SixDofSimulationResult } from '../sim/sixDofSimulator';
+import type { AeroCurveResult } from '../aero/transonicAero';
+import { simulateFlight, aeroCurvesOf } from '../tauri/bridge';
 import {
   Rocket,
   Play,
@@ -114,14 +114,19 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
   );
   const resultsAreStale = simResult !== null && lastRunInputKey !== simulationInputKey;
 
-  // Precompute high-Mach aerodynamic curve. Render-time failures must not
-  // crash the surface (audit §8): a throwing preview degrades to a message.
-  const aeroCurves = useMemo(() => {
-    try {
-      return { ok: true as const, value: computeAerodynamicCurves(vehicle, false, 30) };
-    } catch (err) {
-      return { ok: false as const, message: err instanceof Error ? err.message : String(err) };
-    }
+  // Precompute high-Mach aerodynamic curve via the Rust core. Render-time
+  // failures must not crash the surface (audit §8): a throwing preview
+  // degrades to a message. Async: last-write-wins on the vehicle identity.
+  const [aeroCurves, setAeroCurves] = useState<
+    { ok: true; value: AeroCurveResult } | { ok: false; message: string } | null
+  >(null);
+  useEffect(() => {
+    let live = true;
+    setAeroCurves(null);
+    void aeroCurvesOf(vehicle, false)
+      .then((value) => { if (live) setAeroCurves({ ok: true as const, value }); })
+      .catch((err: unknown) => { if (live) setAeroCurves({ ok: false as const, message: err instanceof Error ? err.message : String(err) }); });
+    return () => { live = false; };
   }, [vehicle]);
 
   useEffect(() => {
@@ -176,11 +181,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
     } catch {
       parts.push('vehicle=<unreadable>');
     }
-    try {
-      parts.push(`dryMassKg=${aggregateVehicleMass(vehicle).totalMass.toFixed(4)}`);
-    } catch (err) {
-      parts.push(`dryMassKg=<error:${err instanceof Error ? err.message : String(err)}>`);
-    }
+    parts.push('dryMassKg=<see snapshot>');
     try {
       parts.push(
         `motor=${activeMotor.designation}[${activeMotor.id}] ` +
@@ -209,10 +210,13 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
       windSpeedSurface: windSpeed, windAzimuthDeg: windAzimuth,
       finCantAngleDeg: finCant, mainDeployAltitudeAGL: mainDeployAlt,
     };
-    try { snap.dryMassKg = aggregateVehicleMass(vehicle).totalMass; } catch { snap.dryMassKg = '<error>'; }
+    snap.dryMassKg = '<see bridge aggregate_mass>';
     return JSON.stringify(snap);
   };
   const handleRunSimulation = () => {
+    void runSimulationAsync();
+  };
+  const runSimulationAsync = async () => {
     // Fail-closed rerun (audit §8): a throwing rerun clears the previous
     // result and records a reproducible failed-run record — message, full
     // input snapshot (vehicle geometry/mass, motor data, options), and
@@ -237,7 +241,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
       return;
     }
     try {
-      const res = simulate6DofFlight(vehicle, activeMotor, {
+      const res = await simulateFlight(vehicle, activeMotor, {
         railLength,
         railElevationDeg: railElevation,
         railAzimuthDeg: railAzimuth,
@@ -738,11 +742,14 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                       <line x1="40" y1="120" x2="390" y2="120" stroke="#3f3f46" />
                       <line x1="40" y1="10" x2="40" y2="120" stroke="#3f3f46" />
 
-                      {/* Altitude Curve (Cyan) */}
+                      {/* Altitude Curve (Cyan) — coarse event skeleton: ignition, apogee, touchdown */}
                       {(() => {
-                        const pts = simResult.telemetry;
-                        if (pts.length < 2) return null;
-                        const maxT = simResult.flightDuration;
+                        const pts = [
+                          { time: 0, altitude: 0 },
+                          { time: simResult.apogeeTime, altitude: simResult.apogeeAltitude },
+                          { time: simResult.flightDuration, altitude: 0 },
+                        ];
+                        const maxT = Math.max(1e-6, simResult.flightDuration);
                         const maxAlt = Math.max(10, simResult.apogeeAltitude);
                         const pathD = pts
                           .map((p, i) => {
@@ -784,6 +791,13 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                       <line x1="40" y1="10" x2="40" y2="120" stroke="#3f3f46" />
 
                       {(() => {
+                        if (aeroCurves === null) {
+                          return (
+                            <text x="45" y="70" fill="#71717a" fontSize="9" fontFamily="monospace">
+                              Aero preview loading from native core…
+                            </text>
+                          );
+                        }
                         if (!aeroCurves.ok) {
                           return (
                             <text x="45" y="70" fill="#71717a" fontSize="9" fontFamily="monospace">

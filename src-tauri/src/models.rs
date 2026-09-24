@@ -798,6 +798,22 @@ pub struct ChamberDto {
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct NozzleDto {
+    #[serde(rename = "ispVac")]
+    pub isp_vac: f64,
+    #[serde(rename = "ispSea")]
+    pub isp_sea: f64,
+    pub cstar: f64,
+    #[serde(rename = "cfVac")]
+    pub cf_vac: f64,
+    #[serde(rename = "cfSea")]
+    pub cf_sea: f64,
+    #[serde(rename = "exitMach")]
+    pub exit_mach: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MassComponentDto {
     pub id: String,
     pub mass: f64,
