@@ -1,6 +1,8 @@
 node_modules/
 dist/
-build/
+src-tauri/target/
+crates/*/target/
+crates/*/Cargo.lock
 out/
 .DS_Store
 *.local
@@ -15,3 +17,6 @@ venv/
 *.log
 .vscode/
 .idea/
+
+# cargo lockfiles for local builds (pinned deps resolve from the offline cache)
+**/Cargo.lock

@@ -1460,6 +1460,7 @@ pub struct SimEvent {
     pub name: String,
     pub altitude: f64,
     pub velocity: f64,
+    pub description: String,
 }
 
 #[derive(Clone, Debug)]
@@ -1475,6 +1476,7 @@ pub struct SimulationResult {
     pub apogee_position: Vec3,
     pub max_velocity: f64,
     pub max_mach: f64,
+    pub max_acceleration_g: f64,
     pub burnout_altitude: f64,
     pub burnout_velocity: f64,
     pub burnout_time: f64,
@@ -1636,6 +1638,7 @@ pub fn simulate_flight(
     let mut max_alpha_deg = 0.0f64;
     let mut apogee_time = 0.0f64;
     let mut apogee_pos = Vec3::zero();
+    let mut max_accel = 0.0f64;
 
     let mut rail_exit_vel = 0.0f64;
     let mut weathercock_angle_deg = 0.0f64;
@@ -1659,6 +1662,12 @@ pub fn simulate_flight(
         name: "Ignition & Rail Guidance".to_string(),
         altitude: 0.0,
         velocity: 0.0,
+        description: format!(
+            "Motor {} ignited at {:.1}° rail elevation. Liftoff mass: {:.2} kg.",
+            motor.designation,
+            rail_elevation_deg,
+            vehicle.dry_mass + motor.total_mass
+        ),
     }];
 
     let max_sim_time = 300.0f64;
@@ -1911,6 +1920,10 @@ pub fn simulate_flight(
                             name: "Launch Rail Departure".to_string(),
                             altitude: serve_root.r.z,
                             velocity: speed,
+                            description: format!(
+                                "Exited {:.1}m launch rail at {:.1} m/s (safe threshold >= 15 m/s). Total air-relative incidence at rail exit: {:.1}°.",
+                                rail_length, speed, weathercock_angle_deg
+                            ),
                         });
                     }
                     AstraeaEvent::MotorBurnout => {
@@ -1921,15 +1934,22 @@ pub fn simulate_flight(
                             name: "Motor Burnout".to_string(),
                             altitude: serve_root.r.z,
                             velocity: burnout_vel,
+                            description: format!(
+                                "Motor burnout at {:.0}m AGL. Burnout velocity: {:.0} m/s (Mach {:.2}). Transitioning to unpowered coast.",
+                                serve_root.r.z, burnout_vel, burnout_vel / atmosphere_at(launch_altitude_asl + serve_root.r.z).1
+                            ),
                         });
                     }
                     AstraeaEvent::ApogeeDrogue => {
                         let stashed = stashed_peak_time.map_or(false, |sp| sp <= b_t);
-                        if !stashed {
+                        let served_peak = if stashed {
+                            (max_altitude, apogee_time)
+                        } else {
                             max_altitude = serve_root.r.z;
                             apogee_time = serve_at;
                             apogee_pos = serve_root.r;
-                        }
+                            (serve_root.r.z, serve_at)
+                        };
                         is_apogee_reached = true;
                         is_drogue_deployed = true;
                         if vehicle.drogue.is_some() {
@@ -1938,6 +1958,10 @@ pub fn simulate_flight(
                                 name: "Apogee & Drogue Deployment".to_string(),
                                 altitude: serve_root.r.z,
                                 velocity: serve_root.v.norm(),
+                                description: format!(
+                                    "Physical peak {:.0}m ({:.0} ft) AGL at {:.2}s; recovery activated at {:.2}s (alt {:.0}m). High-speed drogue parachute ejected.",
+                                    served_peak.0, served_peak.0 * 3.28084, served_peak.1, ev_time, serve_root.r.z
+                                ),
                             });
                         }
                     }
@@ -1949,6 +1973,10 @@ pub fn simulate_flight(
                                 name: "Main Parachute Deployment".to_string(),
                                 altitude: serve_root.r.z,
                                 velocity: serve_root.v.z.abs(),
+                                description: format!(
+                                    "Main parachute opened at {:.0}m AGL. Decelerating descent for safe landing.",
+                                    serve_root.r.z
+                                ),
                             });
                         }
                     }
@@ -2076,7 +2104,10 @@ pub fn simulate_flight(
             omega_r = 0.0;
             q = normalize_quaternion(&initial_q);
         }
-        let _ = accel_world;
+        let scalar_accel = (accel_world.x * accel_world.x + accel_world.y * accel_world.y + accel_world.z * accel_world.z).sqrt();
+        if scalar_accel > max_accel {
+            max_accel = scalar_accel;
+        }
 
         prev_sample = EventSamplePair {
             t,
@@ -2138,6 +2169,7 @@ pub fn simulate_flight(
         apogee_position: apogee_pos,
         max_velocity: max_speed,
         max_mach,
+        max_acceleration_g: max_accel / G0,
         burnout_altitude: burnout_alt,
         burnout_velocity: burnout_vel,
         burnout_time: motor.burn_time,
@@ -2288,12 +2320,15 @@ fn fold_prefix(
 fn push_touchdown_event(events: &mut Vec<SimEvent>, time: f64, e_ground: &RigidState) {
     let speed = e_ground.v.norm();
     let drift = (e_ground.r.x * e_ground.r.x + e_ground.r.y * e_ground.r.y).sqrt();
-    let _ = drift;
     events.push(SimEvent {
         time,
         name: "Ground Touchdown".to_string(),
         altitude: 0.0,
         velocity: speed,
+        description: format!(
+            "Touchdown at {:.1} m/s. Total lateral wind drift: {:.0}m from pad.",
+            speed, drift
+        ),
     });
 }
 

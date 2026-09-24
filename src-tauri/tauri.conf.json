@@ -1,0 +1,31 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Astraea Workstation",
+  "version": "0.1.0",
+  "identifier": "com.astraea.workstation",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "",
+    "beforeBuildCommand": ""
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Astraea Workstation",
+        "width": 1280,
+        "height": 800
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Science",
+    "shortDescription": "Open-source rocket engineering environment",
+    "longDescription": "Astraea unified open-source rocket engineering environment: 6-DOF trajectory, Barrowman stability, Gibbs propulsion, Monte Carlo dispersion."
+  }
+}
