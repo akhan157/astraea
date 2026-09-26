@@ -99,6 +99,36 @@ describe('App drop-import disclosure', () => {
     expect(document.querySelector('[data-drop-import-error]')).toBeNull();
   });
 
+  it('migrates a legacy bare-vehicle JSON dropped on the app', async () => {
+    const { container } = render(<App />);
+    // The shape Header wrote before the envelope existed: a bare vehicle with
+    // no schemaVersion. It must load through the migration chain, not error.
+    const legacy = {
+      id: 'legacy-drop-1',
+      name: 'Legacy Dropped',
+      version: '1.0',
+      author: 'Legacy Author',
+      components: [
+        {
+          id: 'legacy-nc',
+          name: 'Nosecone',
+          type: 'nosecone',
+          shape: 'ogive',
+          length: 0.3,
+          baseDiameter: 0.1,
+          wallThickness: 0.002,
+          isHollow: true,
+          materialId: 'fiberglass',
+        },
+      ],
+    };
+    dropJson(container.firstElementChild as HTMLElement, JSON.stringify(legacy), 'legacy.json');
+
+    await waitFor(() => expect(useRocketStore.getState().vehicle.name).toBe('Legacy Dropped'));
+    expect(useRocketStore.getState().vehicle.id).toBe('legacy-drop-1');
+    expect(document.querySelector('[data-drop-import-error]')).toBeNull();
+  });
+
   it('fails closed on a JSON document the envelope reader rejects (unknown schema version)', async () => {
     const { container } = render(<App />);
     dropJson(

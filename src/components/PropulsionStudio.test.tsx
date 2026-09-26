@@ -21,6 +21,52 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { PropulsionStudio } from './PropulsionStudio';
 import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
 import { APCP_REFERENCE_PRESSURE } from '../propulsion/nozzleChemistry';
+import { useRocketStore } from '../store/rocketStore';
+import type { FetchImpl } from '../propulsion/thrustcurveApi';
+
+/** Minimal valid RASP .eng the download endpoint hands back (Estes C6 curve). */
+const SAMPLE_ENG = [
+  '; Estes C6 certified thrust curve (RASP .eng layout)',
+  'Estes C6 18 70 Estes 8.8 6.06 14.2 0.0125 0.0248',
+  '0.00 0.0',
+  '0.08 4.5',
+  '0.18 14.2',
+  '0.28 8.5',
+  '0.50 4.8',
+  '1.00 4.4',
+  '1.50 4.2',
+  '1.86 0.0',
+  '',
+].join('\n');
+
+const b64 = (text: string) => btoa(String.fromCharCode(...new TextEncoder().encode(text)));
+
+/**
+ * Mock Response shaped like the ThrustCurve client's needs (ok/status/json;
+ * statusText + headers are only read on the non-2xx path).
+ */
+function jsonResponse(body: unknown, status = 200): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    statusText: '',
+    headers: { get: () => null },
+    json: async () => body,
+  } as unknown as Response;
+}
+
+/** Injected fetch: dispatches on the endpoint URL so tests stay deterministic. */
+function mockFetch(
+  handler: (url: string, init: RequestInit) => Response | Promise<Response>,
+): FetchImpl {
+  return vi.fn(async (url: string, init: RequestInit) => handler(url, init));
+}
+
+function thrustCurveStatus(): string | null {
+  return (
+    document.querySelector('[data-thrustcurve-status]')?.getAttribute('data-thrustcurve-status') ?? null
+  );
+}
 
 /**
  * IPC-boundary mock: the ONLY seam under test. Components must await
@@ -122,6 +168,113 @@ describe('PropulsionStudio', () => {
     fireEvent.change(screen.getByLabelText(/core diameter/i), { target: { value: '80' } });
     const alert = screen.getByRole('alert');
     expect(alert.textContent).toMatch(/outerDiameter must exceed coreDiameter/);
+  });
+
+  it('reports an empty ThrustCurve query inline and calls no fetch', () => {
+    const fetchImpl = vi.fn() as unknown as FetchImpl;
+    render(<PropulsionStudio fetchImpl={fetchImpl} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+    expect(thrustCurveStatus()).toBe('error');
+    expect(document.querySelector('[data-thrustcurve-status="error"]')?.textContent).toMatch(
+      /Enter a motor designation or manufacturer/i,
+    );
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('renders mocked ThrustCurve search results with designation, maker, impulse, and diameter', async () => {
+    const fetchImpl = mockFetch(() =>
+      jsonResponse({
+        results: [
+          {
+            motorId: 'tc-c6',
+            manufacturer: 'Estes Industries',
+            designation: 'C6',
+            diameter: 18,
+            length: 70,
+            avgThrustN: 6.06,
+            totImpulseNs: 8.8,
+            burnTimeS: 1.86,
+          },
+        ],
+      }),
+    );
+    render(<PropulsionStudio fetchImpl={fetchImpl} />);
+    fireEvent.change(screen.getByLabelText('ThrustCurve search query'), { target: { value: 'C6' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+    expect(await screen.findByText('C6')).toBeTruthy();
+    expect(screen.getByText('Estes Industries')).toBeTruthy();
+    expect(screen.getByText('8.8 N·s')).toBeTruthy();
+    expect(screen.getByText('18 mm')).toBeTruthy();
+    expect(thrustCurveStatus()).toBe('ok');
+    expect(
+      document.querySelector('[data-thrustcurve-results]')?.getAttribute('data-thrustcurve-results'),
+    ).toBe('1');
+    // POSTs to the search endpoint with the trimmed query.
+    const call = (fetchImpl as unknown as { mock: { calls: Array<[string, RequestInit]> } }).mock.calls[0]!;
+    expect(call[0]).toContain('/search.json');
+    expect(JSON.parse(String(call[1].body))).toMatchObject({ designation: 'C6' });
+  });
+
+  it('surfaces a mocked ThrustCurve search error message inline', async () => {
+    const fetchImpl = mockFetch(() => jsonResponse({ error: 'Invalid designation "ZZZ9".' }));
+    render(<PropulsionStudio fetchImpl={fetchImpl} />);
+    fireEvent.change(screen.getByLabelText('ThrustCurve search query'), { target: { value: 'ZZZ9' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+    const status = await screen.findByText(/Invalid designation "ZZZ9"\./);
+    expect(status.textContent).toMatch(/ThrustCurve search failed/);
+    expect(thrustCurveStatus()).toBe('error');
+  });
+
+  it('imports a mocked RASP simfile and registers the motor in the catalog', async () => {
+    const motorId = 'tc-c6-import';
+    const fetchImpl = mockFetch((url) => {
+      if (url.endsWith('/search.json')) {
+        return jsonResponse({
+          results: [
+            {
+              motorId,
+              manufacturer: 'Estes Industries',
+              designation: 'C6',
+              diameter: 18,
+              length: 70,
+              avgThrustN: 6.06,
+              totImpulseNs: 8.8,
+              burnTimeS: 1.86,
+            },
+          ],
+        });
+      }
+      if (url.endsWith('/download.json')) {
+        return jsonResponse({
+          results: [{ motorId, simfileId: 'sim1', format: 'RASP', source: 'cert', data: b64(SAMPLE_ENG) }],
+        });
+      }
+      throw new Error(`unexpected URL ${url}`);
+    });
+
+    render(<PropulsionStudio fetchImpl={fetchImpl} />);
+    fireEvent.change(screen.getByLabelText('ThrustCurve search query'), {
+      target: { value: 'C6 import' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Import C6' }));
+
+    // Success is reported inline, naming the motor and its total impulse.
+    expect(await screen.findByText(/Imported Estes C6 \(8\.9 N·s total impulse\)/)).toBeTruthy();
+    expect(document.querySelector('[data-thrustcurve-import="ok"]')).toBeTruthy();
+
+    // The parsed motor is registered in the store and shows up in the catalog/selection.
+    const imported = Object.values(useRocketStore.getState().customMotors);
+    expect(imported).toHaveLength(1);
+    expect(imported[0]!.designation).toBe('Estes C6');
+    expect(imported[0]!.totalImpulse).toBeCloseTo(8.919, 2);
+    // The store key the import landed on is now selectable in the motor catalog.
+    const customKey = Object.keys(useRocketStore.getState().customMotors)[0]!;
+    const option = Array.from(motorSelect().querySelectorAll('option')).find((o) => o.value === customKey);
+    expect(option, `option for imported key ${customKey}`).toBeTruthy();
+    expect(option?.textContent).toContain('Estes C6');
   });
 
   it('renders finite APCP nozzle performance for all six columns', async () => {

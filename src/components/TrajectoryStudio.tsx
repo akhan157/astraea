@@ -220,6 +220,12 @@ export function TrajectoryStudio(): React.JSX.Element {
   const [mcProgress, setMcProgress] = useState<{ completed: number; total: number } | null>(null);
   /** Cancel request flag: checked before each chunk, never mid-chunk. */
   const mcCancelRequested = React.useRef<boolean>(false);
+  /**
+   * Mirrors the cancel flag for rendering: a ref mutation alone does not
+   * re-render, so the "stopping after the current chunk" notice would wait for
+   * the next chunk resolution to appear.
+   */
+  const [mcCancelPending, setMcCancelPending] = useState<boolean>(false);
   /** Full dependency snapshot captured at the last MC run (case + ensemble). */
   const [lastMcSnapshot, setLastMcSnapshot] = useState<RunSnapshot | null>(null);
   const [mcError, setMcError] = useState<string | null>(null);
@@ -349,6 +355,7 @@ export function TrajectoryStudio(): React.JSX.Element {
     setMcError(null);
     setMcProgress({ completed: 0, total: clampNRuns(mcNRuns) });
     mcCancelRequested.current = false;
+    setMcCancelPending(false);
     const nRuns = clampNRuns(mcNRuns);
     const recordBase = {
       runId: nextRunId(),
@@ -395,7 +402,16 @@ export function TrajectoryStudio(): React.JSX.Element {
       setMcResult(null);
       setLastMcSnapshot(null);
       setMcError(err instanceof Error ? err.message : String(err));
-      useRunStore.getState().recordAttempt({ ...recordBase, lifecycle: 'failed' });
+      // A cancelled ensemble is recorded as an INVALID failed attempt with the
+      // reason in its label: it produced no result, so it must never read as a
+      // completed run. (The partial cloud is discarded, not kept as evidence.)
+      const cancelled = mcCancelRequested.current;
+      useRunStore.getState().recordAttempt({
+        ...recordBase,
+        valid: !cancelled,
+        lifecycle: 'failed',
+        label: cancelled ? `MC ${nRuns} cancelled · ${motor.designation}` : recordBase.label,
+      });
       setLastAttemptId(recordBase.runId);
     } finally {
       setMcRunning(false);
@@ -797,6 +813,7 @@ export function TrajectoryStudio(): React.JSX.Element {
             <button
               onClick={() => {
                 mcCancelRequested.current = true;
+                setMcCancelPending(true);
               }}
               data-mc-cancel="true"
               className="ml-2 min-h-11 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-200 font-medium text-xs rounded-md border border-white/8 transition-colors inline-flex items-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
@@ -809,7 +826,7 @@ export function TrajectoryStudio(): React.JSX.Element {
         {mcRunning && mcProgress && (
           <div className="mt-2 text-[11px] text-zinc-400" role="status" aria-live="polite" data-mc-progress="true">
             {mcProgress.completed} / {mcProgress.total} runs complete
-            {mcCancelRequested.current ? ' — stopping after the current chunk…' : ''}
+            {mcCancelPending ? ' — stopping after the current chunk…' : ''}
           </div>
         )}
         {mcError && (

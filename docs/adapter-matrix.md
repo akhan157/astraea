@@ -46,8 +46,8 @@ module, with the prerequisite that unlocks it.
 - Header import: `.ork` (parse), `.rkt` (parse), `.json` (versioned envelope via `readProject`, legacy bare vehicle migrated), `.eng`/`.rse` (parse). Header export: `.ork`, versioned `.astraea.json` envelope via `writeProject`. App drop import: `.rkt`, `.json` envelope, `.ork`.
 - `InteropExportPanel`: `.cdx1`, aero-matrix `.csv`, blueprint `.svg`/`.png`, plus row-6 triggers `.rkt`/`.eng`/`.rse`/`.kml`/`.step`/`.stl` with omission previews. All planned row-6 triggers now exist; the KML trigger still refuses until a chosen run has a published telemetry payload.
 - `EvidenceStudio`: log-CSV + GPX paste (GPX via `parseGpxTrack` → `gpsToEnu` → `gpsAltitudeSeries`); RecoveryCard derived-bay 2D strip. `TrajectoryStudio`: manual wind table only (no CSV consumer). `SimFlightOverlay`: back-cast via `backcastTouchdown` engine; no dedicated GPS report surface.
-- Live motor search/download (`thrustcurveApi.ts`): tested module, no component/store consumer.
-- Project envelope (`projectJson.ts`): tested engine, no component/store consumer.
+- Live motor search/download (`thrustcurveApi.ts`): **wired 2026-09-26** — PropulsionStudio has a ThrustCurve search panel (injected `fetchImpl`, results list, per-result Import that downloads the simfile, parses `.eng`/`.rse`, and registers the motor in the store). Inline status only; no modal. Pins: `PropulsionStudio.test.tsx`.
+- Project envelope (`projectJson.ts`): **wired 2026-09-26** — Header import/export, App drop import, and the Header Save/Open durable slot (`projectStorage.ts`). Cases/snapshots/evidenceRefs are still not populated by the UI.
 - Curve editor (`curveEditing.ts`): tested engine, no component consumer. Onboarding (`questionnaire/guidance/explainers/tour`): tested content, shell wiring deferred to S7.
 
 ## Missing-cell list (prerequisite order)

@@ -9,7 +9,9 @@
  *     core diameter, length, web step) driving `regressBates`; an inline SVG
  *     burn-area-vs-burned-web sparkline and the equilibrium chamber pressure
  *     at the peak burn area, with c* from `apcpEquilibrium()`.
- *  3. APCP nozzle performance table — frozen-flow isentropics at the
+ *  3. ThrustCurve.org live motor search (searchMotors) and simfile import
+ *     (downloadMotorSimfile -> parseRaspEng/parseRseXml -> store).
+ *  4. APCP nozzle performance table — frozen-flow isentropics at the
  *     100-bar reference pressure, design exit pressure pe = 101325 Pa,
  *     vacuum and sea-level ambient columns.
  *
@@ -23,8 +25,15 @@ import { useEffect, useMemo, useState } from 'react';
 import type { JSX } from 'react';
 import { useRocketStore } from '../store/rocketStore';
 import { StudioHeader } from './ui/StudioHeader';
-import { Flame, Gauge, Layers } from 'lucide-react';
+import { Download, Flame, Gauge, Layers, Search } from 'lucide-react';
 import { CERTIFIED_MOTORS, type MotorSpec } from '../propulsion/motorDatabase';
+import {
+  searchMotors,
+  downloadMotorSimfile,
+  type FetchImpl,
+  type MotorSummary,
+} from '../propulsion/thrustcurveApi';
+import { parseRaspEng, parseRseXml } from '../formats/engParser';
 import {
   chamberPressure,
   regressBates,
@@ -56,13 +65,81 @@ function burnAreaPolyline(trace: GrainRegressionTrace): string {
     .join(' ');
 }
 
-export function PropulsionStudio(): JSX.Element {
+/** Live ThrustCurve search state, driving the inline status + result markers. */
+type ThrustCurveSearchState =
+  | { kind: 'idle' }
+  | { kind: 'loading' }
+  | { kind: 'ok'; results: MotorSummary[] }
+  | { kind: 'error'; message: string };
+
+/** Inline import outcome: success names the motor + impulse, failure the API message. */
+type ThrustCurveImportState = { kind: 'ok' | 'error'; message: string } | null;
+
+export interface PropulsionStudioProps {
+  /**
+   * Injected fetch for the ThrustCurve API client (search + simfile download).
+   * Defaults to the global fetch so the app uses the network; tests pass a
+   * vi.fn mock. Typed as the client's FetchImpl seam.
+   */
+  fetchImpl?: FetchImpl;
+}
+
+export function PropulsionStudio({ fetchImpl = globalThis.fetch }: PropulsionStudioProps = {}): JSX.Element {
   const customMotors = useRocketStore((s) => s.customMotors);
   // Shared flight-motor selection (Round-19): PropulsionStudio drives the
   // same store id that FlightSim and Trajectory read — one picker, one motor.
   const selectedMotorId = useRocketStore((s) => s.selectedMotorId);
   const selectMotor = useRocketStore((s) => s.selectMotor);
   const catalog: Record<string, MotorSpec> = { ...CERTIFIED_MOTORS, ...customMotors };
+  // ThrustCurve live search + simfile import (engine in ../propulsion/thrustcurveApi).
+  // All reporting is inline (no modal, no window.alert): search state drives the
+  // data-thrustcurve-status marker, results the data-thrustcurve-results marker.
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchState, setSearchState] = useState<ThrustCurveSearchState>({ kind: 'idle' });
+  const [importState, setImportState] = useState<ThrustCurveImportState>(null);
+  const [importingId, setImportingId] = useState<string | null>(null);
+
+  const runSearch = async (): Promise<void> => {
+    const query = searchQuery.trim();
+    if (query.length === 0) {
+      setImportState(null);
+      setSearchState({ kind: 'error', message: 'Enter a motor designation or manufacturer before searching.' });
+      return;
+    }
+    setImportState(null);
+    setSearchState({ kind: 'loading' });
+    try {
+      // hasDataFiles keeps the list to motors whose curve can actually be
+      // imported, so a result row never dead-ends at download time.
+      const results = await searchMotors(
+        { designation: query, hasDataFiles: true, maxResults: 25 },
+        fetchImpl,
+      );
+      setSearchState({ kind: 'ok', results });
+    } catch (err) {
+      setSearchState({ kind: 'error', message: err instanceof Error ? err.message : String(err) });
+    }
+  };
+
+  const importMotor = async (summary: MotorSummary): Promise<void> => {
+    setImportingId(summary.id);
+    setImportState(null);
+    try {
+      const text = await downloadMotorSimfile(summary.id, fetchImpl);
+      // RASP .eng is the default; RockSim .rse is the fallback and arrives as XML.
+      const motor = text.trim().startsWith('<') ? parseRseXml(text) : parseRaspEng(text);
+      useRocketStore.getState().importCustomMotor(motor);
+      setImportState({
+        kind: 'ok',
+        message: `Imported ${motor.designation} (${motor.totalImpulse.toFixed(1)} N·s total impulse) — now in the motor catalog.`,
+      });
+    } catch (err) {
+      const why = err instanceof Error ? err.message : String(err);
+      setImportState({ kind: 'error', message: `Import failed: ${why}` });
+    } finally {
+      setImportingId(null);
+    }
+  };
   const [outerDmm, setOuterDmm] = useState('54');
   const [coreDmm, setCoreDmm] = useState('18');
   const [lengthMm, setLengthMm] = useState('300');
@@ -227,8 +304,116 @@ export function PropulsionStudio(): JSX.Element {
           </div>
         </section>
 
+        {/* 2 — ThrustCurve live motor search & import (thrustcurve.org API) */}
+        <section
+          aria-label="ThrustCurve motor search"
+          className="space-y-3 p-4 bg-[#08090A] rounded-lg border border-white/8"
+        >
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-md bg-white/5 border border-white/8 text-zinc-300">
+              <Search className="w-3.5 h-3.5" />
+            </div>
+            <h3 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">
+              ThrustCurve Motor Search &amp; Import
+            </h3>
+            <span className="text-[10px] font-mono text-zinc-500 ml-auto">
+              thrustcurve.org/api/v1 · certified curves
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={searchQuery}
+              aria-label="ThrustCurve search query"
+              placeholder="Designation or manufacturer, e.g. C6 or Aerotech"
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void runSearch();
+              }}
+              className="flex-1 min-h-11 bg-[#08090A] text-zinc-100 px-3 py-2 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
+            />
+            <button
+              type="button"
+              onClick={() => void runSearch()}
+              className="inline-flex items-center justify-center gap-1.5 min-h-11 px-4 py-2 rounded-md bg-[#4C8DFF] text-white font-semibold hover:bg-[#3F7BEA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              Search
+            </button>
+          </div>
+
+          <div
+            role="status"
+            data-thrustcurve-status={
+              searchState.kind === 'error' ? 'error' : searchState.kind === 'ok' ? 'ok' : undefined
+            }
+            className={
+              searchState.kind === 'error'
+                ? 'p-2.5 rounded-md bg-rose-950/60 border border-rose-500/40 text-rose-300'
+                : 'p-2.5 rounded-md bg-[#0F1011] border border-white/8 text-zinc-400'
+            }
+          >
+            {searchState.kind === 'idle' && 'Search the ThrustCurve.org certified motor database, then import a curve.'}
+            {searchState.kind === 'loading' && 'Searching ThrustCurve…'}
+            {searchState.kind === 'ok' &&
+              (searchState.results.length === 0
+                ? 'No motors matched that query.'
+                : `${searchState.results.length} motor${searchState.results.length === 1 ? '' : 's'} found.`)}
+            {searchState.kind === 'error' && searchState.message}
+          </div>
+
+          {searchState.kind === 'ok' && searchState.results.length > 0 && (
+            <ul
+              aria-label="ThrustCurve search results"
+              data-thrustcurve-results={searchState.results.length}
+              className="divide-y divide-white/8 rounded-lg border border-white/8 overflow-hidden"
+            >
+              {searchState.results.map((m) => (
+                <li
+                  key={m.id}
+                  className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-[#0F1011]"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-zinc-100 truncate">{m.designation}</div>
+                    <div className="text-[10px] font-mono text-zinc-500 truncate">{m.manufacturer}</div>
+                  </div>
+                  <div className="flex items-center gap-4 font-mono text-zinc-200">
+                    <span>{m.totalImpulseNs.toFixed(1)} N·s</span>
+                    <span className="text-zinc-400">{m.diameterMm.toFixed(0)} mm</span>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label={`Import ${m.designation}`}
+                    disabled={importingId === m.id}
+                    onClick={() => void importMotor(m)}
+                    className="inline-flex items-center justify-center gap-1.5 min-h-9 px-3 py-1.5 rounded-md bg-white/5 border border-white/8 text-zinc-100 font-semibold hover:bg-white/10 disabled:opacity-50 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    {importingId === m.id ? 'Importing…' : 'Import'}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {importState !== null && (
+            <div
+              role="status"
+              data-thrustcurve-import={importState.kind}
+              className={
+                importState.kind === 'ok'
+                  ? 'p-2.5 rounded-md bg-emerald-950/60 border border-emerald-500/40 text-emerald-300'
+                  : 'p-2.5 rounded-md bg-rose-950/60 border border-rose-500/40 text-rose-300'
+              }
+            >
+              {importState.message}
+            </div>
+          )}
+        </section>
+
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-          {/* 2 — BATES grain regression */}
+          {/* 3 — BATES grain regression */}
           <section
             aria-label="BATES grain calculator"
             className="space-y-4 p-4 bg-[#08090A] rounded-lg border border-white/8"
@@ -370,7 +555,7 @@ export function PropulsionStudio(): JSX.Element {
             )}
           </section>
 
-          {/* 3 — APCP nozzle performance */}
+          {/* 4 — APCP nozzle performance */}
           <section
             aria-label="APCP nozzle performance"
             className="p-4 bg-[#08090A] rounded-lg border border-white/8"

@@ -25,6 +25,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { TrajectoryStudio } from './TrajectoryStudio';
 import { useRocketStore } from '../store/rocketStore';
+import { useRunStore } from '../store/runStore';
 import { computeProtuberanceDrag } from '../aero/protuberance';
 import type { RocketVehicle } from '../core/types';
 import { runMonteCarlo } from '../sim/monteCarlo';
@@ -439,6 +440,7 @@ describe('TrajectoryStudio', () => {
     // Gate every chunk so the in-flight state is observable before it resolves.
     const gates: Array<() => void> = [];
     const seen: Array<{ runStart: number; runEnd: number }> = [];
+    let captured: StubEnsembleReq | null = null;
     const win = window as unknown as { __TAURI__: { core: { invoke: unknown } } };
     const oracle = win.__TAURI__.core.invoke as (
       cmd: string,
@@ -446,6 +448,7 @@ describe('TrajectoryStudio', () => {
     ) => Promise<unknown>;
     win.__TAURI__.core.invoke = async (cmd: string, args: Record<string, unknown>) => {
       const req = args.req as StubEnsembleReq;
+      if (captured === null) captured = req;
       seen.push({ runStart: req.runStart as number, runEnd: req.runEnd as number });
       await new Promise<void>((resolve) => gates.push(resolve));
       return oracle(cmd, args);
@@ -480,6 +483,24 @@ describe('TrajectoryStudio', () => {
     });
     expect(document.querySelector('[data-mc-progress]')).toBeNull();
     expect(seen).toHaveLength(3);
+
+    // Host-scale numeric equality: the chunked 120-run cloud must reduce to the
+    // same dispersion as one whole-ensemble call over the same inputs (ragged
+    // tail included). The displayed mean is rounded to 0.1 m, so compare within
+    // that display precision.
+    const req = captured as unknown as StubEnsembleReq;
+    const whole = runMonteCarlo(
+      { vehicle: req.vehicle, motor: req.motor, options: req.options } as never,
+      req.sigmas as never,
+      req.nRuns,
+      req.seed,
+      'per-run-v2',
+    );
+    const meanText = screen.getByLabelText('Mean landing (m)').textContent ?? '';
+    const meanMatch = /E (-?\d+(?:\.\d+)?) · N (-?\d+(?:\.\d+)?)/.exec(meanText);
+    expect(meanMatch).toBeTruthy();
+    expect(Number(meanMatch![1])).toBeCloseTo(whole.mean.x, 1);
+    expect(Number(meanMatch![2])).toBeCloseTo(whole.mean.y, 1);
   }, 300000);
 
   it('stops before the next chunk on cancel and records no partial result', async () => {
@@ -506,6 +527,11 @@ describe('TrajectoryStudio', () => {
 
     await waitFor(() => expect(seen).toEqual([0]));
     fireEvent.click(screen.getByTitle(/Stop before the next chunk/));
+    // The notice renders immediately on the click, not on the next chunk
+    // resolution (a ref mutation alone would not re-render).
+    expect(document.querySelector('[data-mc-progress]')?.textContent).toMatch(
+      /stopping after the current chunk/,
+    );
     // The in-flight chunk still completes; the loop then stops before chunk 2.
     gates.shift()?.();
 
@@ -515,5 +541,13 @@ describe('TrajectoryStudio', () => {
     expect(seen).toEqual([0]);
     expect(screen.queryByText(/succeeded · /)).toBeNull();
     expect(document.querySelector('[data-mc-progress]')).toBeNull();
+
+    // The registry records the cancel as an INVALID failed attempt, never as a
+    // completed run: no partial cloud is kept and the label carries the reason.
+    const records = useRunStore.getState().records;
+    const cancelledRecord = records[records.length - 1];
+    expect(cancelledRecord.lifecycle).toBe('failed');
+    expect(cancelledRecord.valid).toBe(false);
+    expect(cancelledRecord.label).toMatch(/cancelled/);
   }, 300000);
 });

@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach, type Mock } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { InteropExportPanel, buildAeroMatrixRows } from './InteropExportPanel';
 import { renderBlueprintPng } from '../formats/blueprintPng';
 import { PRESET_ESTES_ALPHA } from '../store/rocketStore';
+import { useRocketStore } from '../store/rocketStore';
 import { useRunStore } from '../store/runStore';
 
 vi.mock('../formats/blueprintPng', () => ({
@@ -50,6 +51,7 @@ function mockAeroIpc() {
 afterEach(() => {
   vi.restoreAllMocks();
   useRunStore.getState().resetRuns();
+  useRocketStore.getState().selectMotor('estes_c6');
 });
 
 describe('buildAeroMatrixRows', () => {
@@ -234,6 +236,27 @@ describe('InteropExportPanel row-6 export triggers', () => {
     expect(text).toContain('<rocket-engine-data>');
     expect(text).toContain('<code>C6</code>');
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('exports the motor the preview described even if the selection moves before confirm', async () => {
+    const { createObjectURL } = stubDownload();
+    useRocketStore.getState().selectMotor('estes_c6');
+    render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);
+    fireEvent.click(screen.getByTitle(/\(\.rse\)/));
+    expect(screen.getByRole('dialog').textContent).toMatch(/estes_c6\.rse/);
+
+    // The shared flight-motor selection changes while the preview is open.
+    act(() => {
+      useRocketStore.getState().selectMotor('aerotech_h128w');
+    });
+
+    fireEvent.click(screen.getByTitle(/Confirm rse download/));
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    const text = await (createObjectURL.mock.calls[0][0] as Blob).text();
+    // The reviewed record (Estes C6) is what lands, under the reviewed name —
+    // never the newly selected motor under the old filename.
+    expect(text).toContain('<code>C6</code>');
+    expect(text).not.toContain('H128');
   });
 
   it('KML trigger refuses without a committed run', () => {

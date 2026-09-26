@@ -31,7 +31,7 @@ import { exportToEng, exportToRse } from '../formats/engParser';
 import { exportKml } from '../sim/waiverContainment';
 import { tessellateVehicle, exportStep } from '../formats/stepExport';
 import { exportStlBinary } from '../formats/stlExport';
-import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
+import { CERTIFIED_MOTORS, type MotorSpec } from '../propulsion/motorDatabase';
 import { useRocketStore } from '../store/rocketStore';
 import { useRunStore } from '../store/runStore';
 import {
@@ -72,6 +72,17 @@ function download(filename: string, text: string, mime: string): void {
   downloadBlob(filename, new Blob([text], { type: mime }));
 }
 
+/**
+ * The motor record a motor-based preview described. A staged 'eng'/'rse'
+ * preview always carries one; this guard fails closed rather than silently
+ * falling back to the live selection, which is the mismatch the snapshot
+ * exists to prevent.
+ */
+function requireStagedMotor(motor: MotorSpec | null): MotorSpec {
+  if (!motor) throw new Error('motor export preview lost its record — reopen the preview');
+  return motor;
+}
+
 export async function buildAeroMatrixRows(vehicle: RocketVehicle): Promise<AeroMatrixRow[]> {
   const [off, on, stab] = await Promise.all([
     aeroCurvesOf(vehicle, false),
@@ -90,7 +101,17 @@ export async function buildAeroMatrixRows(vehicle: RocketVehicle): Promise<AeroM
 
 export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehicle }) => {
   const [error, setError] = useState<string | null>(null);
-  const [staged, setStaged] = useState<{ kind: ExportTriggerKind; preview: OmissionPreview } | null>(null);
+  /**
+   * A staged preview is a SNAPSHOT of what will be exported: motor-based
+   * triggers carry the exact motor the preview described, so confirming after
+   * the shared motor selection moved on still emits the reviewed record under
+   * the reviewed filename (never a different motor under the old name).
+   */
+  const [staged, setStaged] = useState<{
+    kind: ExportTriggerKind;
+    preview: OmissionPreview;
+    motor: MotorSpec | null;
+  } | null>(null);
   const slug = useMemo(() => slugify(vehicle.name), [vehicle.name]);
 
   // Shared flight motor + last committed run (same single sources the
@@ -119,22 +140,22 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
     setError(null);
     switch (kind) {
       case 'rkt':
-        setStaged({ kind, preview: describeRktPreview(vehicle) });
+        setStaged({ kind, preview: describeRktPreview(vehicle), motor: null });
         break;
       case 'eng':
-        setStaged({ kind, preview: describeEngPreview(activeMotor) });
+        setStaged({ kind, preview: describeEngPreview(activeMotor), motor: activeMotor });
         break;
       case 'rse':
-        setStaged({ kind, preview: describeRsePreview(activeMotor) });
+        setStaged({ kind, preview: describeRsePreview(activeMotor), motor: activeMotor });
         break;
       case 'kml':
-        setStaged({ kind, preview: describeKmlPreview(kmlRun, slug) });
+        setStaged({ kind, preview: describeKmlPreview(kmlRun, slug), motor: null });
         break;
       case 'step':
-        setStaged({ kind, preview: describeStepPreview(vehicle) });
+        setStaged({ kind, preview: describeStepPreview(vehicle), motor: null });
         break;
       case 'stl':
-        setStaged({ kind, preview: describeStlPreview(vehicle) });
+        setStaged({ kind, preview: describeStlPreview(vehicle), motor: null });
         break;
     }
   };
@@ -152,10 +173,10 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
           download(staged.preview.filename, exportRkt(vehicle), 'application/xml');
           break;
         case 'eng':
-          download(staged.preview.filename, exportToEng(activeMotor), 'text/plain');
+          download(staged.preview.filename, exportToEng(requireStagedMotor(staged.motor)), 'text/plain');
           break;
         case 'rse':
-          download(staged.preview.filename, exportToRse(activeMotor), 'application/xml');
+          download(staged.preview.filename, exportToRse(requireStagedMotor(staged.motor)), 'application/xml');
           break;
         case 'kml': {
           if (!kmlRun) throw new Error('Committed run missing.');
