@@ -31,7 +31,7 @@ module, with the prerequisite that unlocks it.
 | 9 | ENG read | tested | `parseRaspEng` (`engParser.ts`), `engParser.test.ts`, wired in Header `.eng` import. Strict numeric tokens, curve checks, metrics recomputed. |
 | 10 | ENG write | tested | `exportToEng`, round-trip suite over every certified motor (exact dialect `parseRaspEng` accepts), wired via `InteropExportPanel.tsx` row-6 trigger with `describeEngPreview` (derivative-labeling omissions stated). |
 | 11 | RSE import | tested | `parseRseXml`, same suite, wired in Header `.rse` import. Field-spelling tolerant, data-tree harvest, `buildMotorSpec` finalizer shared with ENG. |
-| 12 | RSE export | tested engine / unwired UI | `exportToRse` (`engParser.ts`), round-trip suite over every certified motor + derived-motor + fail-closed cases. Designation mapping documented: manufacturer-prefixed codes round-trip exactly, others re-import manufacturer-qualified. **No UI trigger** — ENG trigger covers `.eng` only; RSE trigger is the remaining row-6 gap. |
+| 12 | RSE export | tested engine / **wired (2026-09-26)** | `exportToRse` (`engParser.ts`), round-trip suite over every certified motor + derived-motor + fail-closed cases. Designation mapping documented and now surfaced per record by `describeRsePreview`: manufacturer-prefixed codes round-trip exactly, others re-import manufacturer-qualified. Row-6 trigger `.rse` ships in `InteropExportPanel` with the omission preview. |
 | 13 | Wind CSV data import | unwired | `parseWindProfileCsv` (`sim/windProfile.ts`), `windProfile.test.ts` (headers, units, direction normalization, fail-closed rows). **No UI consumer** in components/store; `TrajectoryStudio` keeps a manual table. Prerequisite: mapping/units import view, persistent snapshot, real loads consumption (S5). |
 | 14 | Log CSV data import | tested parser / missing mapping | `parseAltimeterCsv` (`evidence/altimetry.ts`), `evidence.test.ts`, paste-wired in `EvidenceStudio.tsx`. Missing: dialect/unit mapping view, raw-bytes checksum preservation, processing-step log (S6). Generic CSV parsing is not native avionics support. |
 | 15 | Aero CSV purpose-export | tested | `exportAeroMatrix`, `rasaero.test.ts` (header, order, finite guards), wired via `InteropExportPanel.tsx`. Declared approximation: subsonic Barrowman `CNa` at AoA 0, CP from the power-off curve. |
@@ -44,7 +44,7 @@ module, with the prerequisite that unlocks it.
 ## UI wiring map (checked consumers)
 
 - Header import: `.ork` (parse), `.rkt` (parse), `.json` (versioned envelope via `readProject`, legacy bare vehicle migrated), `.eng`/`.rse` (parse). Header export: `.ork`, versioned `.astraea.json` envelope via `writeProject`. App drop import: `.rkt`, `.json` envelope, `.ork`.
-- `InteropExportPanel`: `.cdx1`, aero-matrix `.csv`, blueprint `.svg`/`.png`, plus row-6 triggers `.rkt`/`.eng`/`.kml`/`.step`/`.stl` with omission previews. Remaining row-6 gap: `.rse` trigger (writer + suite ship, no trigger).
+- `InteropExportPanel`: `.cdx1`, aero-matrix `.csv`, blueprint `.svg`/`.png`, plus row-6 triggers `.rkt`/`.eng`/`.rse`/`.kml`/`.step`/`.stl` with omission previews. All planned row-6 triggers now exist; the KML trigger still refuses until a chosen run has a published telemetry payload.
 - `EvidenceStudio`: log-CSV + GPX paste (GPX via `parseGpxTrack` → `gpsToEnu` → `gpsAltitudeSeries`); RecoveryCard derived-bay 2D strip. `TrajectoryStudio`: manual wind table only (no CSV consumer). `SimFlightOverlay`: back-cast via `backcastTouchdown` engine; no dedicated GPS report surface.
 - Live motor search/download (`thrustcurveApi.ts`): tested module, no component/store consumer.
 - Project envelope (`projectJson.ts`): tested engine, no component/store consumer.
@@ -54,9 +54,9 @@ module, with the prerequisite that unlocks it.
 
 1. ~~Versioned JSON project read/write UI cutover (S3)~~ — SHIPPED 2026-09-26 for the file import/export paths; only the revisioned durable-save backend (`createProjectStore`) remains unwired, and the envelope currently carries vehicle + motor records + bindings (cases/snapshots/evidenceRefs are accepted by the API but no UI populates them yet).
 2. CDX1 import strategy (reference-only until fitting specified).
-3. RSE export trigger (writer + round-trip suite ship; ENG-style trigger + preview pending).
+3. ~~RSE export trigger~~ — SHIPPED 2026-09-26 (`.rse` trigger + `describeRsePreview` omission preview; pinned by preview and panel tests).
 4. Wind-CSV import view + snapshot + loads consumption (S5); MC worker host with progress/cancel (E1 same work package).
 5. Log mapping/unit review + raw preservation (S6).
-6. ~~RKT/ENG/KML/STEP/STL download triggers with omission previews (S7 export pass)~~ — SHIPPED except the RSE trigger (item 3); KML refuses until the S4 payload channel publishes.
+6. ~~RKT/ENG/RSE/KML/STEP/STL download triggers with omission previews (S7 export pass)~~ — ALL SHIPPED (RSE added 2026-09-26); KML refuses until the S4 payload channel publishes.
 7. ORK/RKT staged-file adapter tests + UI loss disclosure.
 8. Live motor-cache flow (browser/cache/error/provenance) for `thrustcurveApi`.

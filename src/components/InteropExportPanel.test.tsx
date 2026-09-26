@@ -222,6 +222,20 @@ describe('InteropExportPanel row-6 export triggers', () => {
     expect(text.startsWith('Estes C6 ')).toBe(true);
   });
 
+  it('RSE trigger previews motor omissions, then downloads RockSim XML on confirm', async () => {
+    const { createObjectURL } = stubDownload();
+    render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);
+    fireEvent.click(screen.getByTitle(/\(\.rse\)/));
+    const dialog = screen.getByRole('dialog', { name: /RockSim motor.*preview/ });
+    expect(dialog.textContent).toMatch(/recomputed from the thrust curve/);
+    fireEvent.click(screen.getByTitle(/Confirm rse download/));
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    const text = await (createObjectURL.mock.calls[0][0] as Blob).text();
+    expect(text).toContain('<rocket-engine-data>');
+    expect(text).toContain('<code>C6</code>');
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
   it('KML trigger refuses without a committed run', () => {
     const { createObjectURL } = stubDownload();
     render(<InteropExportPanel vehicle={PRESET_ESTES_ALPHA} />);

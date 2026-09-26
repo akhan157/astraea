@@ -27,7 +27,7 @@ import type { RocketVehicle } from '../core/types';
 import { exportCdx1, exportAeroMatrix, type AeroMatrixRow } from '../formats/rasaero';
 import { aeroCurvesOf, stabilityOf } from '../tauri/bridge';
 import { exportRkt } from '../formats/rktExport';
-import { exportToEng } from '../formats/engParser';
+import { exportToEng, exportToRse } from '../formats/engParser';
 import { exportKml } from '../sim/waiverContainment';
 import { tessellateVehicle, exportStep } from '../formats/stepExport';
 import { exportStlBinary } from '../formats/stlExport';
@@ -37,6 +37,7 @@ import { useRunStore } from '../store/runStore';
 import {
   describeRktPreview,
   describeEngPreview,
+  describeRsePreview,
   describeKmlPreview,
   describeStepPreview,
   describeStlPreview,
@@ -123,6 +124,9 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
       case 'eng':
         setStaged({ kind, preview: describeEngPreview(activeMotor) });
         break;
+      case 'rse':
+        setStaged({ kind, preview: describeRsePreview(activeMotor) });
+        break;
       case 'kml':
         setStaged({ kind, preview: describeKmlPreview(kmlRun, slug) });
         break;
@@ -149,6 +153,9 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
           break;
         case 'eng':
           download(staged.preview.filename, exportToEng(activeMotor), 'text/plain');
+          break;
+        case 'rse':
+          download(staged.preview.filename, exportToRse(activeMotor), 'application/xml');
           break;
         case 'kml': {
           if (!kmlRun) throw new Error('Committed run missing.');
@@ -248,6 +255,9 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
       </button>
       <button onClick={() => openPreview('eng')} className={triggerClass} title="Preview RASP motor omissions (.eng)">
         .eng
+      </button>
+      <button onClick={() => openPreview('rse')} className={triggerClass} title="Preview RockSim motor omissions (.rse)">
+        .rse
       </button>
       <button onClick={() => openPreview('kml')} className={triggerClass} title="Preview waiver containment omissions (.kml)">
         .kml

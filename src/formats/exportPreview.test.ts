@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   describeRktPreview,
   describeEngPreview,
+  describeRsePreview,
   describeKmlPreview,
   describeStepPreview,
   describeStlPreview,
@@ -140,6 +141,43 @@ describe('describeEngPreview', () => {
     expect(preview.canExport).toBe(true);
     expect(preview.omissions.join('\n')).toMatch(/123/);
     expect(preview.omissions.join('\n')).toMatch(/dropped/);
+  });
+});
+
+describe('describeRsePreview', () => {
+  it('clears the Estes C6 and states the recomputed-metric and unit round-trip notes', () => {
+    const preview = describeRsePreview(CERTIFIED_MOTORS.estes_c6);
+    expect(preview.canExport).toBe(true);
+    expect(preview.refused).toEqual([]);
+    expect(preview.filename).toBe('estes_c6.rse');
+    const notes = preview.omissions.join('\n');
+    expect(notes).toMatch(/recomputed from the thrust curve/);
+    expect(notes).toMatch(/millimetres and masses in grams/);
+  });
+
+  it('names the exact re-import designation for a manufacturer-prefixed record', () => {
+    const preview = describeRsePreview(CERTIFIED_MOTORS.estes_c6);
+    const notes = preview.omissions.join('\n');
+    expect(notes).toMatch(/round-trips exactly/);
+    expect(notes).toContain('<code> "C6"');
+  });
+
+  it('warns that a designation without the manufacturer prefix gains it on re-import', () => {
+    const preview = describeRsePreview({
+      ...CERTIFIED_MOTORS.estes_c6,
+      designation: 'C6 Replica',
+    });
+    expect(preview.canExport).toBe(true);
+    const notes = preview.omissions.join('\n');
+    expect(notes).toMatch(/re-imports as "Estes C6 Replica"/);
+    expect(notes).not.toMatch(/round-trips exactly/);
+  });
+
+  it('refuses records the validator rejects', () => {
+    const preview = describeRsePreview({ ...CERTIFIED_MOTORS.estes_c6, thrustCurve: [] });
+    expect(preview.canExport).toBe(false);
+    expect(preview.refused).toHaveLength(1);
+    expect(preview.refused[0]).toContain('at least two points');
   });
 });
 

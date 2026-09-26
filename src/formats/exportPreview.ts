@@ -34,7 +34,7 @@ import { validateMotorSpec } from '../propulsion/motorDatabase';
 import { tessellateVehicle } from './stepExport';
 import type { RunFreshness } from '../store/runStore';
 
-export type ExportTriggerKind = 'rkt' | 'eng' | 'kml' | 'step' | 'stl';
+export type ExportTriggerKind = 'rkt' | 'eng' | 'rse' | 'kml' | 'step' | 'stl';
 
 export interface OmissionPreview {
   kind: ExportTriggerKind;
@@ -185,6 +185,51 @@ export function describeEngPreview(motor: MotorSpec): OmissionPreview {
     );
   }
   return preview('eng', 'RASP motor (.eng)', filename, [], omissions);
+}
+
+/**
+ * RockSim (.rse) motor preview. Same validateMotorSpec gate as the .eng
+ * trigger — an invalid record is refused, never a file the parser rejects.
+ *
+ * Lossy notes are stated per record, not generically: the RSE document
+ * carries manufacturer, code, diameter, length, initial weight, propellant
+ * weight, and the thrust curve, and re-import recomputes every impulse
+ * metric from the curve. The re-import designation is computed here so the
+ * preview names the exact string that comes back (manufacturer-prefixed
+ * designations round-trip verbatim; others gain the manufacturer prefix).
+ */
+export function describeRsePreview(motor: MotorSpec): OmissionPreview {
+  const filename = `${motor && motor.id ? motor.id : 'motor'}.rse`;
+  try {
+    validateMotorSpec(motor);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return preview('rse', 'RockSim motor (.rse)', filename, [message], []);
+  }
+  const manufacturer = motor.manufacturer.trim() || 'Unknown';
+  const designation = motor.designation.trim() || 'Unnamed Motor';
+  const carriesPrefix =
+    manufacturer !== 'Unknown' &&
+    designation.toLowerCase().startsWith(manufacturer.toLowerCase() + ' ');
+  const code = carriesPrefix
+    ? designation.slice(manufacturer.length + 1).trim() || designation
+    : designation;
+  const reimported = [manufacturer !== 'Unknown' ? manufacturer : null, code]
+    .filter((s): s is string => !!s)
+    .join(' ')
+    .trim() || 'Unnamed Motor';
+  const omissions: string[] = [
+    'Motor id, impulse class, average thrust, peak thrust, and burn time are not ' +
+      'serialized; every impulse metric is recomputed from the thrust curve on re-import.',
+    'Geometry is written in millimetres and masses in grams (exact unit round-trip).',
+  ];
+  omissions.push(
+    carriesPrefix
+      ? `Designation "${designation}" round-trips exactly as <manufacturer> "${manufacturer}" + <code> "${code}".`
+      : `Designation "${designation}" re-imports as "${reimported}": the code element cannot ` +
+          `carry a separate manufacturer, so the "${manufacturer}" prefix is added on read.`,
+  );
+  return preview('rse', 'RockSim motor (.rse)', filename, [], omissions);
 }
 
 /**

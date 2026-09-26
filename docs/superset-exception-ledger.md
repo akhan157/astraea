@@ -36,7 +36,8 @@ passed=true on a clean tree. Current 2026-09-26 check: 62 frontend files /
   strip (`deriveBays`, EvidenceStudio RecoveryCard — see E2, closed)
 - Altimetry CSV + GPX ingest, sim/flight alignment, Cd calibration, GPS back-cast
 - `.ork` bidirectional, `.rkt` import + `.rkt` export trigger, `.cdx1` + aero-matrix +
-  blueprint SVG/PNG export, STEP/STL/KML/ENG download triggers with omission previews
+  blueprint SVG/PNG export, STEP/STL/KML/ENG/RSE download triggers with omission
+  previews (the `.rse` trigger shipped 2026-09-26; KML refuses until the S4 payload channel publishes)
 - Versioned `.astraea.json` project envelope (`projectJson.ts`: migration chain +
   stale-write guard, tested); Header import/export and the App drop path now use
   `readProject`/`createProjectEnvelope`/`writeProject` (2026-09-26). Remaining gap:

@@ -91,7 +91,7 @@ Formats are supported on a per-direction and per-feature basis. Some modules are
 | **Aerodynamic Matrix (`.csv`)** | Export | Mach 0 to 4 sweep: $C_D$ (power-on/power-off), $C_{N\alpha}$, and Center of Pressure. |
 | **CAD Solid Models (`.step`)** | Export | AP203 manifold solid B-Rep export of outer mold line geometry. |
 | **Additive Manufacturing (`.stl`)** | Export | High-resolution binary STL surface tessellations for 3D printing. |
-| **Motor Curves (`.eng` / `.rse`)** | Import & Export | Import and tested writer engines; RSE export trigger is still unwired in the UI. |
+| **Motor Curves (`.eng` / `.rse`)** | Import & Export | Import plus `.eng`/`.rse` export triggers with omission previews (dropped nameplate metrics, recomputed-on-import notes, and the exact re-import designation). |
 | **Engineering Blueprints** | Export | Dimensioned technical drawing vector SVG and print-ready raster PNG. |
 | **Google Earth (`.kml`)** | Export | Trigger refuses until a committed run has published its telemetry payload. |
 | **Project Envelopes (`.json`)** | Import & Export | Versioned `.astraea.json` envelope via the fail-closed reader/builder; legacy bare-vehicle files migrate on read. Durable revisioned-save backend and case/snapshot/evidence payloads are not yet wired. |
