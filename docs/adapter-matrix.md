@@ -55,7 +55,7 @@ module, with the prerequisite that unlocks it.
 1. ~~Versioned JSON project read/write UI cutover (S3)~~ — SHIPPED 2026-09-26 for the file import/export paths; only the revisioned durable-save backend (`createProjectStore`) remains unwired, and the envelope currently carries vehicle + motor records + bindings (cases/snapshots/evidenceRefs are accepted by the API but no UI populates them yet).
 2. CDX1 import strategy (reference-only until fitting specified).
 3. ~~RSE export trigger~~ — SHIPPED 2026-09-26 (`.rse` trigger + `describeRsePreview` omission preview; pinned by preview and panel tests).
-4. Wind-CSV import view — SHIPPED 2026-09-26 (TrajectoryStudio Import CSV replaces the manual table, fail-closed). Still open in the same work package: persistent wind snapshot/loads consumption (S5) and the MC worker host with progress/cancel (E1).
+4. Wind-CSV import view — SHIPPED 2026-09-26 (TrajectoryStudio Import CSV replaces the manual table, fail-closed). Background Monte Carlo host — SHIPPED 2026-09-26 (chunked `run_ensemble_chunk` ranges with progress and cancel, cap raised to 1000 runs; see E1). Still open: persistent wind snapshot / loads consumption (S5).
 5. Log mapping/unit review + raw preservation (S6).
 6. ~~RKT/ENG/RSE/KML/STEP/STL download triggers with omission previews (S7 export pass)~~ — ALL SHIPPED (RSE added 2026-09-26); KML refuses until the S4 payload channel publishes.
 7. ORK/RKT staged-file adapter tests + UI loss disclosure.

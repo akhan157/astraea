@@ -10,13 +10,15 @@
  * fail-closed message so a missing backend can never silently return
  * zero-mass or zero-aero data.
  *
- * Coarse-grained IPC only: run_ensemble, simulate_flight, solve_chamber,
- * stability, aero_curves, aggregate_mass. Never per-step serialization.
+ * Coarse-grained IPC only: run_ensemble, run_ensemble_chunk, simulate_flight,
+ * solve_chamber, stability, aero_curves, aggregate_mass. Never per-step
+ * serialization.
  */
 import type { RocketVehicle, StabilityAnalysis } from '../core/types';
 import type { MotorSpec } from '../propulsion/motorDatabase';
 import type { SixDofOptions, SixDofSimulationResult } from '../sim/sixDofSimulator';
 import type { MonteCarloSimInput, PerturbationSigmas, DispersionResult, SamplingVersion } from '../sim/monteCarlo';
+import type { MonteCarloChunkResult } from '../sim/monteCarlo';
 import type { ApcpEquilibrium } from '../propulsion/nozzleChemistry';
 import type { AeroCurveResult } from '../aero/transonicAero';
 import type { VehicleMassRollup } from '../core/mass';
@@ -95,6 +97,38 @@ export async function runEnsemble(
       nRuns,
       seed,
       version,
+    },
+  });
+}
+
+/**
+ * One absolute run range of a `per-run-v2` ensemble (S5 background host).
+ *
+ * A chunk is bit-identical to the same range inside `runEnsemble`, so a host
+ * may partition an ensemble to report progress and stop early on cancel
+ * without changing the numbers a completed run would produce. The native
+ * command refuses `legacy-sequential-v1`, whose RNG stream is order-dependent.
+ */
+export async function runEnsembleChunk(
+  baseInput: MonteCarloSimInput,
+  perturbations: PerturbationSigmas,
+  nRuns: number,
+  seed: number,
+  runStart: number,
+  runEnd: number,
+  version: SamplingVersion = 'per-run-v2',
+): Promise<MonteCarloChunkResult> {
+  return getInvoke()<MonteCarloChunkResult>('run_ensemble_chunk', {
+    req: {
+      vehicle: vehicleDto(baseInput.vehicle),
+      motor: motorDto(baseInput.motor),
+      options: baseInput.options,
+      sigmas: perturbations,
+      nRuns,
+      seed,
+      version,
+      runStart,
+      runEnd,
     },
   });
 }

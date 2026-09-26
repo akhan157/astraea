@@ -65,19 +65,20 @@ What unblocks each item and the minimum viable payload:
   calibrated-Cd package count as supporting data, and what does a witnessed
   validation flight require?" Process answer, not a file; long pole, asked early.
 
-### E1. Background MC host (wind-CSV import view shipped 2026-09-26)
-- **Missing:** the chunk engine (`runMonteCarloChunk` / `accumulateMonteCarloChunks` /
-  `finalizeMonteCarloChunks`, `monteCarloWorker.ts`) is tested and bit-identical across
-  partitions, but no host drives it: TrajectoryStudio calls synchronous `runMonteCarlo`
-  (cap 200, no progress/cancel), so 500–1000-run competition ensembles still mean
-  sequential 200-batches concatenated by hand. `parseWindProfileCsv` now has a UI
-  consumer: TrajectoryStudio's Import CSV replaces the manual table fail-closed.
-- **Why deferred:** worker orchestration + progress/cancel UI, not physics; this
-  UI integration has not yet been delivered (the former frontend freeze is historical).
-- **Prerequisite:** engineering time only (chunk protocol + CSV parser already pinned).
-- **Alternative:** run sequential batches of 200 and concatenate landings;
-  statistics functions accept concatenated clouds; type wind rows by hand.
-- **Re-visit:** when a competition team needs >200-run ensembles interactively (drives the S5 host).
+### E1. CLOSED — background ensemble host + wind-CSV import view (2026-09-26)
+- **Shipped:** TrajectoryStudio drives the ensemble as absolute run ranges through a new
+  native `run_ensemble_chunk` command (chunks of 50, cap raised 200 → 1000) with a live
+  `N / M runs complete` readout and a Cancel that stops before the next chunk. A cancelled
+  ensemble records no result rather than a partial cloud dressed as a completed run.
+  `parseWindProfileCsv` also has a UI consumer: the Import CSV control replaces the manual
+  wind table fail-closed.
+- **Parity:** the native chunk command shares `run_chunk` with `run_ensemble`, so a chunk is
+  bit-identical to the same range inside a whole-ensemble call. Pinned by
+  `commands.rs::ensemble_chunk_tests` (chunked 4+2 equals whole 6, landings compared
+  element-wise) and by the studio's chunked-host tests. `legacy-sequential-v1` is refused on
+  the chunk path because its RNG stream is order-dependent.
+- **Not used:** `monteCarloWorker.ts` / the TS worker entrypoint remains an unused alternative
+  transport; the native command performs the compute, so no browser worker is needed.
 
 ### E2. CLOSED — recovery-bay 2D strip (C9 minimal; full 3D rejected)
 - **Shipped:** `deriveBays` (bodytubes + chute/sled spans, entered/assumed/missing provenance,

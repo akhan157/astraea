@@ -17,7 +17,7 @@ import { useWorkspaceStore } from '../../store/workspaceStore';
 import { useRunStore } from '../../store/runStore';
 import { useEditBufferStore } from '../../store/editBufferStore';
 import type { RocketVehicle } from '../../core/types';
-import { runMonteCarlo } from '../../sim/monteCarlo';
+import { runMonteCarlo, runMonteCarloChunk } from '../../sim/monteCarlo';
 import { computeRocketStability } from '../../aero/barrowman';
 
 const ALPHA_CLASS_VEHICLE: RocketVehicle = {
@@ -117,6 +117,22 @@ function installIpcStub(): void {
             req.version,
           );
         }
+        if (cmd === 'run_ensemble_chunk') {
+          // S5 background host: the studio drives absolute run ranges; the
+          // native chunk path shares run_chunk with the whole-ensemble call.
+          const req = args.req as {
+            vehicle: unknown; motor: unknown; options: unknown; sigmas: unknown;
+            nRuns: number; seed: number; runStart: number; runEnd: number;
+          };
+          return runMonteCarloChunk(
+            { vehicle: req.vehicle, motor: req.motor, options: req.options } as never,
+            req.sigmas as never,
+            req.nRuns,
+            req.seed,
+            req.runStart,
+            req.runEnd,
+          );
+        }
         if (cmd === 'stability') {
           const vehicle = (args.vehicle ?? args) as unknown as Parameters<typeof computeRocketStability>[0];
           return computeRocketStability(vehicle);
@@ -193,12 +209,21 @@ describe('WorkstationShell inline run', () => {
     await waitFor(() => expect(screen.getByText('5 succeeded · 0 failed')).toBeTruthy(), {
       timeout: 180000,
     });
-    // IPC boundary: the ensemble crossed as one coarse run_ensemble call
-    // with the 5-run / zero-sigma payload (never per-step serialization).
-    const ensembleCalls = seen.filter((s) => s.cmd === 'run_ensemble');
-    expect(ensembleCalls).toHaveLength(1);
-    const req = ensembleCalls[0].args.req as { nRuns: number; sigmas: Record<string, number> };
+    // IPC boundary: the ensemble crossed as ONE coarse chunk call covering the
+    // whole 5-run range (S5 host) — never per-step serialization, and never a
+    // whole-ensemble call once the chunked host is in use.
+    const chunkCalls = seen.filter((s) => s.cmd === 'run_ensemble_chunk');
+    expect(seen.filter((s) => s.cmd === 'run_ensemble')).toHaveLength(0);
+    expect(chunkCalls).toHaveLength(1);
+    const req = chunkCalls[0].args.req as {
+      nRuns: number;
+      runStart: number;
+      runEnd: number;
+      sigmas: Record<string, number>;
+    };
     expect(req.nRuns).toBe(5);
+    expect(req.runStart).toBe(0);
+    expect(req.runEnd).toBe(5);
     expect(req.sigmas.windAzimuthDegSigma).toBe(0);
     expect(req.sigmas.railAngleDegSigma).toBe(0);
     expect(req.sigmas.impulsePctSigma).toBe(0);

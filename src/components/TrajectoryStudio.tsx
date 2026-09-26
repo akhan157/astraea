@@ -39,7 +39,8 @@ import {
 import { StatusBadge } from './ui/StatusBadge';
 import type { SixDofOptions } from '../sim/sixDofSimulator';
 import type { DispersionResult } from '../sim/monteCarlo';
-import { runEnsemble } from '../tauri/bridge';
+import { runEnsembleChunk } from '../tauri/bridge';
+import { finalizeMonteCarloChunks, type MonteCarloChunkResult } from '../sim/monteCarlo';
 import type { WindLayer } from '../sim/weather';
 import { fetchSounding, windAtAltitude, windToENU } from '../sim/weather';
 import { parseWindProfileCsv, toManualWindTable } from '../sim/windProfile';
@@ -71,7 +72,12 @@ const DEFAULT_WIND_ROWS: WindRow[] = [{ altitudeM: 0, speedMs: 0, directionFromD
 /** Fixed PRNG seed: identical inputs ⇒ identical landings (determinism contract). */
 const MC_SEED = 20260909;
 const MC_NRUNS_DEFAULT = 50;
-const MC_NRUNS_MAX = 200;
+// S5 background host: the ensemble runs in chunks of MC_CHUNK_RUNS absolute
+// runs through `run_ensemble_chunk`, which is bit-identical to the same range
+// inside one whole-ensemble call. Chunking is what makes progress and cancel
+// possible for competition-scale ensembles (500-1000 runs).
+const MC_NRUNS_MAX = 1000;
+const MC_CHUNK_RUNS = 50;
 // Launch-rail elevation default: the simulator's declared domain is [70°, 90°].
 // A vertical (90°) rail plus any nonzero rail-angle sigma sends ~half the
 // Gaussian draws above 90° and the run is domain-rejected; 85° keeps the
@@ -210,6 +216,10 @@ export function TrajectoryStudio(): React.JSX.Element {
   const [mcImpulseSigmaPct, setMcImpulseSigmaPct] = useState<number>(3.0);
   const [mcRunning, setMcRunning] = useState<boolean>(false);
   const [mcResult, setMcResult] = useState<DispersionResult | null>(null);
+  /** Chunked-host progress while an ensemble is in flight (null when idle). */
+  const [mcProgress, setMcProgress] = useState<{ completed: number; total: number } | null>(null);
+  /** Cancel request flag: checked before each chunk, never mid-chunk. */
+  const mcCancelRequested = React.useRef<boolean>(false);
   /** Full dependency snapshot captured at the last MC run (case + ensemble). */
   const [lastMcSnapshot, setLastMcSnapshot] = useState<RunSnapshot | null>(null);
   const [mcError, setMcError] = useState<string | null>(null);
@@ -337,6 +347,8 @@ export function TrajectoryStudio(): React.JSX.Element {
     };
     setMcRunning(true);
     setMcError(null);
+    setMcProgress({ completed: 0, total: clampNRuns(mcNRuns) });
+    mcCancelRequested.current = false;
     const nRuns = clampNRuns(mcNRuns);
     const recordBase = {
       runId: nextRunId(),
@@ -349,17 +361,28 @@ export function TrajectoryStudio(): React.JSX.Element {
       label: `MC ${nRuns} · ${motor.designation}`,
     };
     try {
-      const result = await runEnsemble(
-        { vehicle, motor, options },
-        {
-          windAzimuthDegSigma: mcWindSigmaDeg,
-          railAngleDegSigma: mcRailSigmaDeg,
-          impulsePctSigma: mcImpulseSigmaPct,
-        },
-        nRuns,
-        MC_SEED,
-        'per-run-v2',
-      );
+      const sigmas = {
+        windAzimuthDegSigma: mcWindSigmaDeg,
+        railAngleDegSigma: mcRailSigmaDeg,
+        impulsePctSigma: mcImpulseSigmaPct,
+      };
+      // Chunked host: sequential absolute ranges, so the accumulated cloud is
+      // identical to one whole-ensemble call (the native chunk path shares
+      // run_chunk with run_ensemble). Cancel stops BEFORE issuing the next
+      // chunk and discards the partial cloud — a cancelled ensemble records no
+      // result rather than a partial one dressed up as a completed run.
+      const chunks: MonteCarloChunkResult[] = [];
+      for (let start = 0; start < nRuns; start += MC_CHUNK_RUNS) {
+        if (mcCancelRequested.current) {
+          throw new Error(`cancelled after ${start} of ${nRuns} runs — no result recorded`);
+        }
+        const end = Math.min(nRuns, start + MC_CHUNK_RUNS);
+        chunks.push(
+          await runEnsembleChunk({ vehicle, motor, options }, sigmas, nRuns, MC_SEED, start, end),
+        );
+        setMcProgress({ completed: end, total: nRuns });
+      }
+      const result = finalizeMonteCarloChunks(chunks, nRuns);
       setMcResult(result);
       // The run's snapshot is the freshness anchor: card + record + registry
       // all compare their captured identity against it (never an event).
@@ -376,6 +399,7 @@ export function TrajectoryStudio(): React.JSX.Element {
       setLastAttemptId(recordBase.runId);
     } finally {
       setMcRunning(false);
+      setMcProgress(null);
     }
   };
 
@@ -769,7 +793,25 @@ export function TrajectoryStudio(): React.JSX.Element {
             <Play className="w-4 h-4 fill-current" />
             {mcRunning ? `Running Monte Carlo (${clampNRuns(mcNRuns)} runs)…` : 'Run Monte Carlo'}
           </button>
+          {mcRunning && (
+            <button
+              onClick={() => {
+                mcCancelRequested.current = true;
+              }}
+              data-mc-cancel="true"
+              className="ml-2 min-h-11 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-200 font-medium text-xs rounded-md border border-white/8 transition-colors inline-flex items-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
+              title="Stop before the next chunk; a cancelled ensemble records no result"
+            >
+              Cancel
+            </button>
+          )}
         </div>
+        {mcRunning && mcProgress && (
+          <div className="mt-2 text-[11px] text-zinc-400" role="status" aria-live="polite" data-mc-progress="true">
+            {mcProgress.completed} / {mcProgress.total} runs complete
+            {mcCancelRequested.current ? ' — stopping after the current chunk…' : ''}
+          </div>
+        )}
         {mcError && (
           <div className="mt-2 p-2.5 bg-rose-950/40 rounded-lg border border-rose-500/40 text-rose-300 text-[11px]" role="alert">
             <AlertTriangle className="w-3.5 h-3.5 inline-block mr-1.5" />

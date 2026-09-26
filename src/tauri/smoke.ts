@@ -24,6 +24,7 @@ import {
   solveChamber,
   simulateFlight,
   runEnsemble,
+  runEnsembleChunk,
 } from './bridge';
 import type { RocketVehicle } from '../core/types';
 import type { MotorSpec } from '../propulsion/motorDatabase';
@@ -192,6 +193,28 @@ export const smokeCases: SmokeCase[] = [
         throw new Error(`smoke: run accounting ${d.successfulRuns}+${d.failedRuns} != 8`);
       }
       if (!(d.sigma1 >= 0 && d.sigma2 >= 0)) throw new Error('smoke: negative dispersion axis');
+    },
+  },
+  {
+    name: 'run_ensemble_chunk ranges reproduce the whole-ensemble landings',
+    check: async () => {
+      const base = { vehicle: V(estesAlphaVehicle()), motor: M(estesC6Motor()), options: { railLength: 1.0 } };
+      const sigmas = { windAzimuthDegSigma: 5.0, railAngleDegSigma: 1.0, impulsePctSigma: 2.0 };
+      const whole = await runEnsemble(base, sigmas, 8, 7, 'per-run-v2');
+      const first = await runEnsembleChunk(base, sigmas, 8, 7, 0, 5, 'per-run-v2');
+      const second = await runEnsembleChunk(base, sigmas, 8, 7, 5, 8, 'per-run-v2');
+      const chunked = [...first.landings, ...second.landings];
+      if (chunked.length !== whole.landings.length) {
+        throw new Error(`smoke: chunked runs ${chunked.length} != whole ${whole.landings.length}`);
+      }
+      for (let i = 0; i < chunked.length; i++) {
+        if (chunked[i].x !== whole.landings[i].x || chunked[i].y !== whole.landings[i].y) {
+          throw new Error(`smoke: run ${i} landing differs between chunked and whole ensemble`);
+        }
+      }
+      if (first.failedRuns + second.failedRuns !== whole.failedRuns) {
+        throw new Error('smoke: chunked failure accounting differs from the whole ensemble');
+      }
     },
   },
 ];

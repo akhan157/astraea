@@ -10,6 +10,7 @@ pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             commands::run_ensemble,
+            commands::run_ensemble_chunk,
             commands::simulate_flight,
             commands::solve_chamber,
             commands::nozzle_performance,

@@ -28,6 +28,19 @@ import { useRocketStore } from '../store/rocketStore';
 import { computeProtuberanceDrag } from '../aero/protuberance';
 import type { RocketVehicle } from '../core/types';
 import { runMonteCarlo } from '../sim/monteCarlo';
+import { runMonteCarloChunk } from '../sim/monteCarlo';
+
+interface StubEnsembleReq {
+  vehicle: unknown;
+  motor: unknown;
+  options: unknown;
+  sigmas: unknown;
+  nRuns: number;
+  seed: number;
+  version: 'legacy-sequential-v1' | 'per-run-v2';
+  runStart?: number;
+  runEnd?: number;
+}
 
 // IPC-boundary stub: the ONLY seam under test. The real bridge forwards to
 // window.__TAURI__.core.invoke; the stub answers run_ensemble with the
@@ -38,18 +51,23 @@ beforeEach(() => {
   win.__TAURI__ = {
     core: {
       invoke: async (cmd: string, args: Record<string, unknown>) => {
-        if (cmd !== 'run_ensemble') throw new Error(`unexpected IPC command ${cmd}`);
-        const req = args.req as {
-          vehicle: unknown; motor: unknown; options: unknown;
-          sigmas: unknown; nRuns: number; seed: number; version: 'legacy-sequential-v1' | 'per-run-v2';
-        };
-        return runMonteCarlo(
-          { vehicle: req.vehicle, motor: req.motor, options: req.options } as never,
-          req.sigmas as never,
-          req.nRuns,
-          req.seed,
-          req.version,
-        );
+        if (cmd !== 'run_ensemble' && cmd !== 'run_ensemble_chunk') {
+          throw new Error(`unexpected IPC command ${cmd}`);
+        }
+        const req = args.req as StubEnsembleReq;
+        const base = { vehicle: req.vehicle, motor: req.motor, options: req.options } as never;
+        if (cmd === 'run_ensemble_chunk') {
+          // Native chunk path shares run_chunk with the whole-ensemble call.
+          return runMonteCarloChunk(
+            base,
+            req.sigmas as never,
+            req.nRuns,
+            req.seed,
+            req.runStart as number,
+            req.runEnd as number,
+          );
+        }
+        return runMonteCarlo(base, req.sigmas as never, req.nRuns, req.seed, req.version);
       },
     },
   };
@@ -415,4 +433,87 @@ describe('TrajectoryStudio', () => {
     expect(screen.getByText(/SEPARATED/)).toBeTruthy();
     expect(screen.getByText(/half-angle 12\.\d/)).toBeTruthy();
   });
+
+  it('hosts the ensemble in chunks and reports progress while it runs', async () => {
+    renderStudio();
+    // Gate every chunk so the in-flight state is observable before it resolves.
+    const gates: Array<() => void> = [];
+    const seen: Array<{ runStart: number; runEnd: number }> = [];
+    const win = window as unknown as { __TAURI__: { core: { invoke: unknown } } };
+    const oracle = win.__TAURI__.core.invoke as (
+      cmd: string,
+      args: Record<string, unknown>,
+    ) => Promise<unknown>;
+    win.__TAURI__.core.invoke = async (cmd: string, args: Record<string, unknown>) => {
+      const req = args.req as StubEnsembleReq;
+      seen.push({ runStart: req.runStart as number, runEnd: req.runEnd as number });
+      await new Promise<void>((resolve) => gates.push(resolve));
+      return oracle(cmd, args);
+    };
+
+    fireEvent.change(runCountInput(), { target: { value: '120' } });
+    fireEvent.change(screen.getByLabelText('Wind direction sigma (deg)'), { target: { value: '0' } });
+    fireEvent.change(screen.getByLabelText('Rail angle sigma (deg)'), { target: { value: '0' } });
+    fireEvent.change(screen.getByLabelText('Impulse sigma (%)'), { target: { value: '0' } });
+    fireEvent.click(screen.getByRole('button', { name: /run monte carlo/i }));
+
+    // 120 runs / 50 per chunk = three absolute ranges, issued one at a time.
+    await waitFor(() => expect(seen.length).toBe(1));
+    expect(seen[0]).toEqual({ runStart: 0, runEnd: 50 });
+    expect(document.querySelector('[data-mc-progress]')?.textContent).toMatch(/0 \/ 120 runs complete/);
+
+    gates.shift()?.();
+    await waitFor(() => expect(seen.length).toBe(2));
+    expect(seen[1]).toEqual({ runStart: 50, runEnd: 100 });
+    await waitFor(() =>
+      expect(document.querySelector('[data-mc-progress]')?.textContent).toMatch(/50 \/ 120 runs complete/),
+    );
+
+    gates.shift()?.();
+    await waitFor(() => expect(seen.length).toBe(3));
+    expect(seen[2]).toEqual({ runStart: 100, runEnd: 120 });
+    gates.shift()?.();
+
+    // The accumulated cloud is a complete 120-run result; the host stops.
+    await waitFor(() => expect(screen.getByText('120 succeeded · 0 failed')).toBeTruthy(), {
+      timeout: 180000,
+    });
+    expect(document.querySelector('[data-mc-progress]')).toBeNull();
+    expect(seen).toHaveLength(3);
+  }, 300000);
+
+  it('stops before the next chunk on cancel and records no partial result', async () => {
+    renderStudio();
+    const gates: Array<() => void> = [];
+    const seen: number[] = [];
+    const win = window as unknown as { __TAURI__: { core: { invoke: unknown } } };
+    const oracle = win.__TAURI__.core.invoke as (
+      cmd: string,
+      args: Record<string, unknown>,
+    ) => Promise<unknown>;
+    win.__TAURI__.core.invoke = async (cmd: string, args: Record<string, unknown>) => {
+      const req = args.req as StubEnsembleReq;
+      seen.push(req.runStart as number);
+      await new Promise<void>((resolve) => gates.push(resolve));
+      return oracle(cmd, args);
+    };
+
+    fireEvent.change(runCountInput(), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText('Wind direction sigma (deg)'), { target: { value: '0' } });
+    fireEvent.change(screen.getByLabelText('Rail angle sigma (deg)'), { target: { value: '0' } });
+    fireEvent.change(screen.getByLabelText('Impulse sigma (%)'), { target: { value: '0' } });
+    fireEvent.click(screen.getByRole('button', { name: /run monte carlo/i }));
+
+    await waitFor(() => expect(seen).toEqual([0]));
+    fireEvent.click(screen.getByTitle(/Stop before the next chunk/));
+    // The in-flight chunk still completes; the loop then stops before chunk 2.
+    gates.shift()?.();
+
+    await waitFor(() =>
+      expect(document.querySelector('[role="alert"]')?.textContent).toMatch(/cancelled after 50 of 100 runs/),
+    );
+    expect(seen).toEqual([0]);
+    expect(screen.queryByText(/succeeded · /)).toBeNull();
+    expect(document.querySelector('[data-mc-progress]')).toBeNull();
+  }, 300000);
 });

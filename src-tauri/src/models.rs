@@ -117,6 +117,33 @@ pub struct SigmasDto {
     pub impulse_pct_sigma: Option<f64>,
 }
 
+/// One absolute run range of a `per-run-v2` ensemble (S5 background host).
+/// Chunk results are bit-identical to the same range inside a single
+/// `run_ensemble` call, so a host may partition the ensemble freely.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EnsembleChunkRequest {
+    pub vehicle: FrontendVehicle,
+    pub motor: FrontendMotor,
+    pub options: FlightOptionsDto,
+    pub sigmas: SigmasDto,
+    pub n_runs: i64,
+    pub seed: i64,
+    pub version: String,
+    pub run_start: i64,
+    pub run_end: i64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChunkResultDto {
+    pub run_start: i64,
+    pub run_end: i64,
+    pub landings: Vec<LandingPointDto>,
+    pub failed_runs: i64,
+    pub first_failure_message: Option<String>,
+}
+
 // ---------------------------------------------------------------------------
 // Small converters (TS wire <-> core enums)
 // ---------------------------------------------------------------------------

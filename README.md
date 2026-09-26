@@ -64,7 +64,7 @@ Collegiate competition teams (NASA Student Launch, Spaceport America Cup, EuRoC)
 ### 4. 6-DOF Flight Dynamics & Atmospheric Dispersion
 * **Rigorous Kinematics:** Full 6-DOF quaternion rigid-body equations of motion integrated with an adaptive Dormand-Prince DP5(4) ODE solver with dense root-finding for flight event boundaries.
 * **Atmospheric Modeling:** Integrated 1976 US Standard Atmosphere (ISA) with support for live atmospheric sounding ingestion via Open-Meteo REST API, manual wind shear profile tables, and wind-profile CSV import into the manual table.
-* **Monte Carlo Dispersion:** Statistical parameter perturbation sweeps (wind azimuth, launch rail elevation, motor impulse variations) outputting 1σ and 2σ landing dispersion ellipses.
+* **Monte Carlo Dispersion:** Statistical parameter perturbation sweeps (wind azimuth, launch rail elevation, motor impulse variations) outputting 1σ and 2σ landing dispersion ellipses. Ensembles run in absolute chunks (50 runs per call, up to 1000 runs) with live progress and a cancel that records no partial result.
 
 ### 5. Recovery Subsystem
 * **Dual-Deployment Sequencing:** Staged apogee drogue deployment with barometric main parachute deployment altitude triggers.
