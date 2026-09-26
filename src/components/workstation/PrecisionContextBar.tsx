@@ -28,11 +28,11 @@ export const PrecisionContextBar: React.FC<PrecisionContextBarProps> = ({ onRun 
   const selected = vehicle.components.find((c) => c.id === selectedComponentId);
 
   return (
-    <div className="flex items-center gap-2 flex-wrap px-3 py-1 bg-zinc-950 border-b border-zinc-800">
+    <div className="flex items-center gap-2 flex-wrap px-3 py-1 bg-[#08090A] border-b border-white/8">
       <SelectionFilter />
-      <div className="w-px h-5 bg-zinc-700" />
+      <div className="w-px h-5 bg-white/8" />
       <EditBufferStrip />
-      <div className="w-px h-5 bg-zinc-700" />
+      <div className="w-px h-5 bg-white/8" />
       {/* Whole-design run: the ensemble consumes the CURRENT DESIGN + case
           (never the selection). The chip sits outside the Selection group so
           the visible label "Run current design" is the scoping statement;
@@ -42,12 +42,12 @@ export const PrecisionContextBar: React.FC<PrecisionContextBarProps> = ({ onRun 
         onClick={onRun}
         data-run-design="true"
         title="Run the routine ensemble for the whole current design (Ctrl+Enter)"
-        className="px-2 py-0.5 rounded-md bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-500/40 font-semibold"
+        className="px-2 py-0.5 rounded-md bg-white hover:bg-zinc-200 text-black font-semibold"
       >
         Run current design ⏎
       </button>
       <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-        <span className="text-[10px] uppercase tracking-wide text-zinc-500">Selection</span>
+        <span className="text-[10px] uppercase tracking-wide text-zinc-400">Selection</span>
         <span data-selection-name="true" className="font-medium text-zinc-200 truncate max-w-40">
           {selected ? selected.name : 'none'}
         </span>
@@ -59,8 +59,8 @@ export const PrecisionContextBar: React.FC<PrecisionContextBarProps> = ({ onRun 
           title="Compare the current design against the last saved revision"
           className={`px-2 py-0.5 rounded-md border font-semibold ${
             compare.active
-              ? 'bg-cyan-500/25 text-cyan-200 border-cyan-500/40'
-              : 'bg-zinc-800/60 text-zinc-300 border-zinc-700/60 hover:bg-zinc-800'
+              ? 'bg-[#4C8DFF]/15 text-[#4C8DFF] border-[#4C8DFF]/40'
+              : 'bg-white/5 text-zinc-200 border-white/8 hover:bg-white/10'
           }`}
         >
           Compare vs saved ⧉

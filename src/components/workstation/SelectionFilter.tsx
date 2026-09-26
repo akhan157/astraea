@@ -81,7 +81,7 @@ export const SelectionFilter: React.FC<SelectionFilterProps> = ({ mounts: mounts
   return (
     <div
       data-precision-filter="true"
-      className="flex items-center gap-2 px-2 py-1 rounded-md border border-zinc-700/60 bg-zinc-800/40 text-[11px]"
+      className="flex items-center gap-2 px-2 py-1 rounded-md border border-white/8 bg-white/5 text-[11px]"
     >
       <span className="text-zinc-400 uppercase tracking-wide text-[10px]" id="filter-label">
         Filter
@@ -97,8 +97,8 @@ export const SelectionFilter: React.FC<SelectionFilterProps> = ({ mounts: mounts
               title={`${opt.title} (${counts[opt.id]})`}
               data-filter-type={opt.id}
               onClick={() => setFilter(opt.id)}
-              className={`px-1.5 py-0.5 rounded-md font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${
-                active ? 'bg-cyan-500/25 text-cyan-200' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/60'
+              className={`px-1.5 py-0.5 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] ${
+                active ? 'bg-white/10 text-zinc-100' : 'text-zinc-400 hover:bg-white/10'
               }`}
             >
               {opt.label}
@@ -110,15 +110,15 @@ export const SelectionFilter: React.FC<SelectionFilterProps> = ({ mounts: mounts
         })}
       </div>
 
-      <div className="w-px h-4 bg-zinc-700" />
+      <div className="w-px h-4 bg-white/8" />
 
-      <label className="flex items-center gap-1 text-[10px] text-zinc-500 uppercase tracking-wide">
+      <label className="flex items-center gap-1 text-[10px] text-zinc-400 uppercase tracking-wide">
         Scope
         <select
           aria-label="Selection scope"
           value={scope}
           onChange={(e) => setScope(e.target.value === 'stage' ? 'stage' : 'whole')}
-          className="bg-zinc-800/60 text-[11px] text-zinc-300 rounded border border-zinc-700/60 focus:outline-none"
+          className="bg-white/5 text-[11px] text-zinc-200 rounded-md border border-white/8 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
         >
           <option value="whole">Whole vehicle</option>
           <option value="stage" disabled>
@@ -127,10 +127,10 @@ export const SelectionFilter: React.FC<SelectionFilterProps> = ({ mounts: mounts
         </select>
       </label>
 
-      <div className="w-px h-4 bg-zinc-700" />
+      <div className="w-px h-4 bg-white/8" />
       <div className="flex items-center gap-1 text-[10px]" aria-label="Pick state legend">
         {(['candidate', 'selected', 'action-needed'] as PickState[]).map((state) => (
-          <span key={state} className={`flex items-center gap-0.5 ${state === 'selected' ? 'text-cyan-300' : state === 'action-needed' ? 'text-amber-300' : 'text-zinc-400'}`}>
+          <span key={state} className={`flex items-center gap-0.5 ${state === 'selected' ? 'text-zinc-100' : state === 'action-needed' ? 'text-amber-300' : 'text-zinc-400'}`}>
             <span aria-hidden="true" className="text-[9px]">
               {state === 'selected' ? '●' : state === 'action-needed' ? '▲' : '○'}
             </span>

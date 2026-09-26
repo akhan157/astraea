@@ -151,7 +151,7 @@ const StudioPanels: React.FC<StudioPanelsProps> = ({ viewportRef, webglLost, web
               <button
                 type="button"
                 onClick={onRetryWebGL}
-                className="px-3 py-1.5 rounded-lg border border-cyan-500/40 bg-cyan-500/20 text-cyan-200 text-xs font-semibold hover:bg-cyan-500/30"
+                className="px-3 py-1.5 rounded-md border border-white/8 bg-white/5 text-zinc-200 text-xs font-semibold hover:bg-white/10"
               >
                 Restore viewport
               </button>
@@ -264,7 +264,7 @@ const LeftPane: React.FC = () => {
       <button
         type="button"
         onClick={() => selectStudio('trajectory')}
-        className="mt-1 mx-1 px-2 py-1 rounded border border-zinc-600 text-[11px] text-zinc-300 hover:bg-zinc-800 text-left"
+        className="mt-1 mx-1 px-2 py-1 rounded-md border border-white/8 bg-white/5 text-[11px] text-zinc-200 hover:bg-white/10 text-left"
       >
         Run a trajectory first →
       </button>
@@ -316,7 +316,7 @@ const RightPane: React.FC<{ onRun: () => void }> = ({ onRun }) => {
           onClick={onRun}
           data-run-inline="true"
           title="Run routine simulation (Ctrl+Enter)"
-          className="px-3 py-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 text-xs font-semibold border border-cyan-500/40"
+          className="px-3 py-2 rounded-md bg-white hover:bg-zinc-200 text-black text-xs font-semibold"
         >
           Run routine simulation ⏎
         </button>
@@ -461,14 +461,14 @@ export const WorkstationShell: React.FC = () => {
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
       <Header onRun={runInline} />
 
-      <div className="flex items-center gap-2 px-3 py-1 bg-zinc-950 border-b border-zinc-800 flex-wrap">
+      <div className="flex items-center gap-2 px-3 py-1 bg-[#08090A] border-b border-white/8 flex-wrap">
         <StudioNavigation />
         <button
           type="button"
           onClick={runInline}
           data-run-inline="true"
           title="Run routine simulation inline (Ctrl+Enter)"
-          className="px-2.5 py-1 text-[11px] font-semibold rounded-md bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-500/40"
+          className="px-2.5 py-1 text-[11px] font-semibold rounded-md bg-white hover:bg-zinc-200 text-black"
         >
           Run ⏎
         </button>
@@ -565,12 +565,12 @@ export const WorkstationShell: React.FC = () => {
         </div>
       )}
 
-      <footer aria-label="Workstation status" className="flex items-center gap-4 px-3 py-1 bg-zinc-900/80 border-t border-zinc-800 text-[11px] text-zinc-400 flex-wrap">
+      <footer aria-label="Workstation status" className="flex items-center gap-4 px-3 py-1 bg-[#08090A] border-t border-white/8 text-[11px] text-zinc-400 flex-wrap">
         <button
           type="button"
           onClick={() => setDisplayUnits(displayUnits === 'metric' ? 'imperial' : 'metric')}
           aria-label={`Display units: ${displayUnits}. Activate to switch.`}
-          className="px-1.5 py-0.5 rounded border border-zinc-700 hover:bg-zinc-800 font-mono"
+          className="px-1.5 py-0.5 rounded-md border border-white/8 hover:bg-white/10 font-mono"
         >
           {displayUnits === 'metric' ? 'SI / m' : 'ft / in'}
         </button>

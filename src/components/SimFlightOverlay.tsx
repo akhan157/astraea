@@ -431,21 +431,21 @@ export function SimFlightOverlay(): React.JSX.Element {
     </>
   );
   const selectClass =
-    'bg-zinc-900/80 text-zinc-100 px-1.5 py-1 rounded-md border border-zinc-700 text-[10px] font-mono focus-visible:border-cyan-400 focus-visible:outline-none';
+    'bg-[#08090A] text-zinc-100 px-1.5 py-1 rounded-md border border-white/8 text-[10px] font-mono focus-visible:border-[#4C8DFF] focus-visible:outline-none';
 
   return (
-    <section aria-label="Sim versus flight overlay" className="bg-zinc-950/60 rounded-xl border border-zinc-800/80 p-4 space-y-4">
+    <section aria-label="Sim versus flight overlay" className="bg-[#0F1011] rounded-lg border border-white/8 p-4 space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <Scale className="w-4 h-4 text-cyan-300" />
-        <h3 className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">Sim vs Flight Overlay</h3>
-        <span className="text-[9px] text-zinc-500 font-mono">audit F4 · analysis-only, never mutates the model</span>
+        <Scale className="w-4 h-4 text-zinc-400" />
+        <h3 className="text-[11px] font-semibold text-white">Sim vs Flight Overlay</h3>
+        <span className="text-[9px] text-zinc-500">audit F4 · analysis-only, never mutates the model</span>
         <div role="tablist" aria-label="Overlay panes" className="ml-auto flex gap-1">
           <button
             role="tab"
             aria-selected={pane === 'inspect'}
             aria-controls="overlay-inspect-panel"
             onClick={() => setPane('inspect')}
-            className={`min-h-8 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono cursor-pointer transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${pane === 'inspect' ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-200' : 'bg-zinc-800 border border-zinc-700 text-zinc-400 hover:bg-zinc-700'}`}
+            className={`min-h-8 px-3 py-1.5 rounded-md text-[10px] font-semibold cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] border ${pane === 'inspect' ? 'bg-[#4C8DFF]/15 border-[#4C8DFF]/40 text-[#4C8DFF]' : 'bg-white/5 border-white/8 text-zinc-400 hover:bg-white/10'}`}
           >
             <Layers className="w-3 h-3 inline mr-1" />Inspect
           </button>
@@ -454,7 +454,7 @@ export function SimFlightOverlay(): React.JSX.Element {
             aria-selected={pane === 'compare'}
             aria-controls="overlay-compare-panel"
             onClick={() => setPane('compare')}
-            className={`min-h-8 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono cursor-pointer transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${pane === 'compare' ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-200' : 'bg-zinc-800 border border-zinc-700 text-zinc-400 hover:bg-zinc-700'}`}
+            className={`min-h-8 px-3 py-1.5 rounded-md text-[10px] font-semibold cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] border ${pane === 'compare' ? 'bg-[#4C8DFF]/15 border-[#4C8DFF]/40 text-[#4C8DFF]' : 'bg-white/5 border-white/8 text-zinc-400 hover:bg-white/10'}`}
           >
             <Scale className="w-3 h-3 inline mr-1" />Compare
           </button>
@@ -462,7 +462,7 @@ export function SimFlightOverlay(): React.JSX.Element {
       </div>
 
       {!simGrid && !chosen && (
-        <div role="status" className="p-2.5 bg-amber-950/40 rounded-xl border border-amber-500/30 text-amber-300 text-[10px] font-mono">
+        <div role="status" className="p-2.5 bg-amber-950/40 rounded-lg border border-amber-500/30 text-amber-300 text-[10px]">
           No committed simulation run yet — open Trajectory and run a case. Flight logs can still be ingested below.
         </div>
       )}
@@ -471,19 +471,19 @@ export function SimFlightOverlay(): React.JSX.Element {
         <div id="overlay-inspect-panel" role="tabpanel" aria-label="Inspect runs" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-4">
             <div className="space-y-3">
-              <h4 className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider font-mono inline-flex items-center gap-1">
+              <h4 className="text-[10px] font-medium text-zinc-300 inline-flex items-center gap-1">
                 <Archive className="w-3 h-3" />Run archive
               </h4>
-              {runRecords.length === 0 && <p className="text-[10px] text-zinc-500 font-mono">No sim runs yet — run a case in Trajectory Studio.</p>}
+              {runRecords.length === 0 && <p className="text-[10px] text-zinc-500">No sim runs yet — run a case in Trajectory Studio.</p>}
               {simGrid && (
-                <label className="flex items-center gap-2 p-2 bg-zinc-900/90 rounded-lg border border-cyan-500/30 text-[10px] font-mono cursor-pointer">
-                  <input type="checkbox" checked={layers.sim ?? false} onChange={() => toggleLayer('sim')} aria-label="Layer simulated altitude" className="accent-cyan-400" />
+                <label className="flex items-center gap-2 p-2 bg-[#08090A] rounded-lg border border-[#4C8DFF]/40 text-[10px] font-mono cursor-pointer">
+                  <input type="checkbox" checked={layers.sim ?? false} onChange={() => toggleLayer('sim')} aria-label="Layer simulated altitude" className="accent-[#4C8DFF]" />
                   <span className="inline-block w-4 h-0 border-t-2" style={{ borderColor: SIM_COLOR }} />
                   <span className="text-zinc-200">Sim [current]</span>
                 </label>
               )}
               {chosen && (
-                <div className={`p-2 rounded-lg border text-[10px] font-mono space-y-1 ${simEligible ? 'bg-zinc-900/90 border-cyan-500/40' : 'bg-zinc-900/60 border-zinc-800'}`}>
+                <div className={`p-2 rounded-lg border text-[10px] font-mono space-y-1 ${simEligible ? 'bg-[#08090A] border-[#4C8DFF]/40' : 'bg-[#08090A] border-white/8'}`}>
                   <div className="flex items-center gap-2">
                     <StatusBadge status={simBadge?.status ?? 'unknown'} label={simBadge?.label ?? 'No gate evaluated'} />
                   </div>
@@ -502,7 +502,7 @@ export function SimFlightOverlay(): React.JSX.Element {
                 </div>
               )}
               {runRecords.filter((r) => r.runId !== chosenRunId).length > 0 && (
-                <p className="text-[9px] text-zinc-600 font-mono">Archived runs (append-only, never rewritten):</p>
+                <p className="text-[9px] text-zinc-600">Archived runs (append-only, never rewritten):</p>
               )}
               {runRecords.filter((r) => r.runId !== chosenRunId).map((r) => {
                 // Registry freshness derives from the published COMPLETE
@@ -510,13 +510,13 @@ export function SimFlightOverlay(): React.JSX.Element {
                 // every row with a reason, never only after a rerun.
                 const q = displayFor(r, currentSnapshot ?? undefined);
                 return (
-                  <div key={r.runId} className="p-2 rounded-lg border bg-zinc-900/60 border-zinc-800 text-[10px] font-mono space-y-1">
+                  <div key={r.runId} className="p-2 rounded-lg border bg-[#08090A] border-white/8 text-[10px] font-mono space-y-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-zinc-300 truncate">{r.label}</span>
                       <div className="flex gap-2">
                         <StatusBadge status={q.status.status} label={q.status.label} />
                         {r.lifecycle === 'completed' && (
-                          <button onClick={() => { useRunStore.getState().chooseRun(r.runId); }} aria-label={`Make ${r.label} current`} className="text-violet-300 hover:text-violet-100 underline underline-offset-2 cursor-pointer">Make current</button>
+                          <button onClick={() => { useRunStore.getState().chooseRun(r.runId); }} aria-label={`Make ${r.label} current`} className="text-[#4C8DFF] hover:text-zinc-100 underline underline-offset-2 cursor-pointer">Make current</button>
                         )}
                       </div>
                     </div>
@@ -530,18 +530,18 @@ export function SimFlightOverlay(): React.JSX.Element {
                   </div>
                 );
               })}
-              {logs.length === 0 && <p className="text-[10px] text-zinc-500 font-mono">No flight logs yet — paste one below.</p>}
+              {logs.length === 0 && <p className="text-[10px] text-zinc-500">No flight logs yet — paste one below.</p>}
               {logs.map((log, i) => (
-                <div key={log.id} className={`p-2 rounded-lg border text-[10px] font-mono space-y-1 ${log.id === currentId ? 'bg-zinc-900/90 border-violet-500/40' : 'bg-zinc-900/60 border-zinc-800'}`}>
+                <div key={log.id} className={`p-2 rounded-lg border text-[10px] font-mono space-y-1 ${log.id === currentId ? 'bg-[#08090A] border-[#4C8DFF]/40' : 'bg-[#08090A] border-white/8'}`}>
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={layers[log.id] ?? false} onChange={() => toggleLayer(log.id)} aria-label={`Layer ${log.name}`} className="accent-violet-400" />
+                    <input type="checkbox" checked={layers[log.id] ?? false} onChange={() => toggleLayer(log.id)} aria-label={`Layer ${log.name}`} className="accent-[#4C8DFF]" />
                     <span className="inline-block w-4 h-0 border-t-2 border-dashed" style={{ borderColor: LOG_COLORS[i % LOG_COLORS.length] }} />
                     <span className="text-zinc-200">{log.name}{log.id === currentId ? ' [current]' : ''}</span>
                   </label>
                   <p className="text-zinc-500 pl-6">apogee {log.apogeeM.toFixed(1)} m @ {log.apogeeS.toFixed(1)} s · {log.samples.length} pts</p>
                   <div className="flex gap-2 pl-6">
                     {log.id !== currentId && (
-                      <button onClick={() => setCurrentId(log.id)} aria-label={`Make ${log.name} current`} className="text-violet-300 hover:text-violet-100 underline underline-offset-2 cursor-pointer">Make current</button>
+                      <button onClick={() => setCurrentId(log.id)} aria-label={`Make ${log.name} current`} className="text-[#4C8DFF] hover:text-zinc-100 underline underline-offset-2 cursor-pointer">Make current</button>
                     )}
                     <button
                       onClick={() => {
@@ -565,15 +565,15 @@ export function SimFlightOverlay(): React.JSX.Element {
                   aria-label="Flight log data (CSV or GPX)"
                   placeholder={'time_s,altitude_m\n0.0,12.0\n…  — or paste GPX track XML'}
                   spellCheck={false}
-                  className="w-full min-h-20 h-20 bg-zinc-900/80 text-zinc-100 px-2.5 py-2 rounded-lg border border-zinc-700 focus-visible:border-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 text-[10px] font-mono resize-y"
+                  className="w-full min-h-20 h-20 bg-[#08090A] text-zinc-100 px-2.5 py-2 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] text-[10px] font-mono resize-y"
                 />
                 <button
                   onClick={ingest}
-                  className="min-h-8 px-3 py-1.5 rounded-lg bg-violet-500/15 border border-violet-500/30 text-violet-300 hover:bg-violet-500/25 text-[10px] font-bold uppercase tracking-wider font-mono cursor-pointer transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300"
+                  className="min-h-8 px-3 py-1.5 rounded-md bg-white/5 border border-white/8 text-zinc-200 hover:bg-white/10 text-[10px] font-semibold cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
                 >
                   Add flight log
                 </button>
-                {ingestError && <div role="alert" className="p-2 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-[10px] font-mono">{ingestError}</div>}
+                {ingestError && <div role="alert" className="p-2 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-[10px]">{ingestError}</div>}
               </div>
             </div>
 
@@ -589,7 +589,7 @@ export function SimFlightOverlay(): React.JSX.Element {
                   />
                 </>
               ) : (
-                <p role="status" className="text-[10px] text-zinc-500 font-mono p-4 border border-dashed border-zinc-800 rounded-lg">
+                <p role="status" className="text-[10px] text-zinc-500 p-4 border border-dashed border-white/8 rounded-lg">
                   Nothing layered — layer the sim or a flight log to plot.
                 </p>
               )}
@@ -601,11 +601,11 @@ export function SimFlightOverlay(): React.JSX.Element {
       {pane === 'compare' && (
         <div id="overlay-compare-panel" role="tabpanel" aria-label="Compare runs" className="space-y-4">
           <div className="flex flex-wrap items-end gap-3">
-            <label className="text-[10px] text-zinc-400 font-mono space-y-1">
+            <label className="text-[10px] text-zinc-400 space-y-1">
               <span className="block font-semibold">Baseline</span>
               <select value={baselineSel} onChange={(e) => setBaselineSel(e.target.value)} aria-label="Baseline series" className={selectClass}>{pickerOptions}</select>
             </label>
-            <label className="text-[10px] text-zinc-400 font-mono space-y-1">
+            <label className="text-[10px] text-zinc-400 space-y-1">
               <span className="block font-semibold">Compare to</span>
               <select value={compareSel} onChange={(e) => { setCompareSel(e.target.value); setOotIndex(0); }} aria-label="Compare-to series" className={selectClass}>
                 <option value="">— pick —</option>
@@ -616,46 +616,46 @@ export function SimFlightOverlay(): React.JSX.Element {
               onClick={() => setAlignOn((v) => !v)}
               aria-pressed={alignOn}
               title={alignOn ? 'Alignment on: apogee-match. Switch off to show raw times.' : 'Alignment off: raw times. Switch on for apogee-match.'}
-              className="min-h-8 px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700 text-[10px] font-bold font-mono inline-flex items-center gap-1 cursor-pointer transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+              className="min-h-8 px-3 py-1.5 rounded-md bg-white/5 border border-white/8 text-zinc-200 hover:bg-white/10 text-[10px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
             >
               {alignOn ? <Link2 className="w-3 h-3 text-emerald-400" /> : <Unlink className="w-3 h-3 text-amber-400" />}
               {alignOn ? 'Aligned' : 'Unaligned'}
             </button>
-            <label className="text-[10px] text-zinc-400 font-mono space-y-1">
+            <label className="text-[10px] text-zinc-400 space-y-1">
               <span className="block font-semibold">Sync</span>
               <select value={sync} onChange={(e) => setSync(e.target.value as SyncMode)} aria-label="Synchronization mode" className={selectClass}>
                 <option value="union">union (recommended)</option>
                 <option value="intersection">intersection</option>
               </select>
             </label>
-            <label className="text-[10px] text-zinc-400 font-mono space-y-1">
+            <label className="text-[10px] text-zinc-400 space-y-1">
               <span className="block font-semibold">Interpolate</span>
               <select value={interp} onChange={(e) => setInterp(e.target.value as InterpMode)} aria-label="Interpolation mode" className={selectClass}>
                 <option value="linear">linear</option>
                 <option value="zoh">zero-order hold</option>
               </select>
             </label>
-            <label className="text-[10px] text-zinc-400 font-mono space-y-1">
+            <label className="text-[10px] text-zinc-400 space-y-1">
               <span className="block font-semibold">Abs tol (m)</span>
-              <input value={absText} onChange={(e) => setAbsText(e.target.value)} onBlur={(e) => applyTol('absTolM', e.target.value)} aria-label="Absolute tolerance meters" inputMode="decimal" className="w-20 bg-zinc-900/80 text-zinc-100 px-1.5 py-1 rounded-md border border-zinc-700 text-[10px] font-mono" />
+              <input value={absText} onChange={(e) => setAbsText(e.target.value)} onBlur={(e) => applyTol('absTolM', e.target.value)} aria-label="Absolute tolerance meters" inputMode="decimal" className="w-20 bg-[#08090A] text-zinc-100 px-1.5 py-1 rounded-md border border-white/8 text-[10px] font-mono" />
             </label>
-            <label className="text-[10px] text-zinc-400 font-mono space-y-1">
+            <label className="text-[10px] text-zinc-400 space-y-1">
               <span className="block font-semibold">Rel tol</span>
-              <input value={relText} onChange={(e) => setRelText(e.target.value)} onBlur={(e) => applyTol('relTol', e.target.value)} aria-label="Relative tolerance fraction" inputMode="decimal" className="w-20 bg-zinc-900/80 text-zinc-100 px-1.5 py-1 rounded-md border border-zinc-700 text-[10px] font-mono" />
+              <input value={relText} onChange={(e) => setRelText(e.target.value)} onBlur={(e) => applyTol('relTol', e.target.value)} aria-label="Relative tolerance fraction" inputMode="decimal" className="w-20 bg-[#08090A] text-zinc-100 px-1.5 py-1 rounded-md border border-white/8 text-[10px] font-mono" />
             </label>
-            <label className="text-[10px] text-zinc-400 font-mono space-y-1">
+            <label className="text-[10px] text-zinc-400 space-y-1">
               <span className="block font-semibold">Time tol (s)</span>
-              <input value={timeTolText} onChange={(e) => setTimeTolText(e.target.value)} onBlur={(e) => applyTol('timeTolS', e.target.value)} aria-label="Time tolerance seconds" inputMode="decimal" className="w-20 bg-zinc-900/80 text-zinc-100 px-1.5 py-1 rounded-md border border-zinc-700 text-[10px] font-mono" />
+              <input value={timeTolText} onChange={(e) => setTimeTolText(e.target.value)} onBlur={(e) => applyTol('timeTolS', e.target.value)} aria-label="Time tolerance seconds" inputMode="decimal" className="w-20 bg-[#08090A] text-zinc-100 px-1.5 py-1 rounded-md border border-white/8 text-[10px] font-mono" />
             </label>
           </div>
-          {tolError && <div role="alert" className="p-2 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-[10px] font-mono">{tolError}</div>}
+          {tolError && <div role="alert" className="p-2 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-[10px]">{tolError}</div>}
 
           {!result && !compareError && (
-            <p role="status" className="text-[10px] text-zinc-500 font-mono p-4 border border-dashed border-zinc-800 rounded-lg">
+            <p role="status" className="text-[10px] text-zinc-500 p-4 border border-dashed border-white/8 rounded-lg">
               Pick a baseline and a compare-to series to run the four-stage compare (align → sync → interpolate → tolerance).
             </p>
           )}
-          {compareError && <div role="alert" className="p-2 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-[10px] font-mono">{compareError}</div>}
+          {compareError && <div role="alert" className="p-2 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-[10px]">{compareError}</div>}
           {result && (
             <CompareView
               result={result}
@@ -668,7 +668,7 @@ export function SimFlightOverlay(): React.JSX.Element {
         </div>
       )}
 
-      <p className="text-[9px] text-zinc-600 font-mono leading-snug">
+      <p className="text-[9px] text-zinc-600 leading-snug">
         Display grid {DISPLAY_DT_S.toFixed(1)} s (Q4). Tolerance edits re-run on blur. Sim curve = deterministic re-derivation of the
         committed case, drawn only while the committed run record is valid, current, and key-matched ({chosen && simBadge ? simBadge.label.toLowerCase() : 'no committed run'}).
         Calibration candidates stay analysis-only until consumed in the Calibration card — this surface never writes the vehicle, motor, or sim run.
@@ -700,7 +700,7 @@ function InspectPlot(props: {
       role="img"
       aria-label={`Altitude overlay: ${props.series.map((x) => x.label).join(', ')}`}
       onClick={(e) => props.onPlotClick(e, s)}
-      className="w-full bg-zinc-900/80 rounded-lg border border-zinc-800 cursor-crosshair"
+      className="w-full bg-[#08090A] rounded-lg border border-white/8 cursor-crosshair"
     >
       <AxisLabels s={s} h={h} unit="m" />
       {props.series.map((entry) => (
@@ -735,8 +735,8 @@ function CursorControl(props: {
   const ct = props.cursorT;
   const t = ct ?? props.domain.t0;
   return (
-    <div className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800/80 space-y-1.5">
-      <label className="flex items-center gap-2 text-[10px] text-zinc-400 font-mono">
+    <div className="p-2.5 bg-[#08090A] rounded-lg border border-white/8/80 space-y-1.5">
+      <label className="flex items-center gap-2 text-[10px] text-zinc-400">
         <Crosshair className="w-3 h-3 text-zinc-500" />
         <span className="font-semibold">Time cursor (shared across panes)</span>
         <input
@@ -747,7 +747,7 @@ function CursorControl(props: {
           value={Math.max(props.domain.t0, Math.min(props.domain.t1, t))}
           onChange={(e) => props.onChange(Number(e.target.value))}
           aria-label="Overlay time cursor seconds"
-          className="flex-1 accent-cyan-400"
+          className="flex-1 accent-[#4C8DFF]"
         />
         <span className="text-zinc-200 w-16 text-right">{fmt(props.cursorT, 1)} s</span>
         <button onClick={() => props.onChange(null)} aria-label="Clear time cursor" className="text-zinc-500 hover:text-zinc-200 underline underline-offset-2 cursor-pointer">Clear</button>
@@ -762,7 +762,7 @@ function CursorControl(props: {
           ))}
         </dl>
       )}
-      <p className="text-[9px] text-zinc-600 font-mono">Cursor values are display-grid (0.1 s) interpolations. Click the plot to place the cursor.</p>
+      <p className="text-[9px] text-zinc-600">Cursor values are display-grid (0.1 s) interpolations. Click the plot to place the cursor.</p>
     </div>
   );
 }
@@ -800,20 +800,20 @@ function CompareView(props: {
         <span className={`px-2 py-0.5 rounded-full border ${result.aligned ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300' : 'bg-amber-500/10 border-amber-500/40 text-amber-300'}`}>
           {result.aligned ? `Aligned · apogee-match +${result.timeOffsetS.toFixed(1)}s` : 'Unaligned — raw times, deltas withheld'}
         </span>
-        <span className="px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-200">
+        <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/8 text-zinc-200">
           {result.nMatch} Match / {result.nMismatch} Mismatch / {result.nNotCompared} Not compared
         </span>
         {result.aligned && (
           <>
-            <span className="px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-cyan-300">Δapogee {fmt(result.apogeeDeltaM, 1)} m</span>
-            <span className="px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-cyan-300">
+            <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/8 text-zinc-100">Δapogee {fmt(result.apogeeDeltaM, 1)} m</span>
+            <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/8 text-zinc-100">
               Δburnout {result.burnoutVelDeltaMs === null ? 'n/a (log has no velocity)' : `${result.burnoutVelDeltaMs.toFixed(1)} m/s`}
             </span>
           </>
         )}
       </div>
 
-      <svg viewBox={`0 0 ${PLOT_W} ${topH}`} role="img" aria-label={`Compare plot: ${result.nMatch} match, ${result.nMismatch} mismatch`} onClick={(e) => props.onPlotClick(e, top)} className="w-full bg-zinc-900/80 rounded-lg border border-zinc-800 cursor-crosshair">
+      <svg viewBox={`0 0 ${PLOT_W} ${topH}`} role="img" aria-label={`Compare plot: ${result.nMatch} match, ${result.nMismatch} mismatch`} onClick={(e) => props.onPlotClick(e, top)} className="w-full bg-[#08090A] rounded-lg border border-white/8 cursor-crosshair">
         <AxisLabels s={top} h={topH} unit="m" />
         {bandPath !== '' && bandPath !== '  Z' && <path d={bandPath} fill="#34d399" opacity="0.15" />}
         <path d={pathOf(pts.filter((p) => p.compared).map((p) => ({ t: p.t, v: p.baseline })), top)} fill="none" stroke={SIM_COLOR} strokeWidth="1.5" />
@@ -821,7 +821,7 @@ function CompareView(props: {
         {props.cursorT !== null && <line x1={top.x(props.cursorT)} y1={8} x2={top.x(props.cursorT)} y2={topH - 20} stroke="#e4e4e7" strokeWidth="1" strokeDasharray="2 2" />}
       </svg>
 
-      <svg viewBox={`0 0 ${PLOT_W} ${botH}`} role="img" aria-label={`Signed difference: ${result.regions.length} out-of-tolerance regions`} onClick={(e) => props.onPlotClick(e, bot)} className="w-full bg-zinc-900/80 rounded-lg border border-zinc-800 cursor-crosshair">
+      <svg viewBox={`0 0 ${PLOT_W} ${botH}`} role="img" aria-label={`Signed difference: ${result.regions.length} out-of-tolerance regions`} onClick={(e) => props.onPlotClick(e, bot)} className="w-full bg-[#08090A] rounded-lg border border-white/8 cursor-crosshair">
         <AxisLabels s={bot} h={botH} unit="m" />
         <line x1={28} y1={bot.y(0)} x2={PLOT_W - 8} y2={bot.y(0)} stroke="#52525b" strokeWidth="1" />
         {diffBandPath !== '' && diffBandPath !== '  Z' && <path d={diffBandPath} fill="#34d399" opacity="0.12" />}
@@ -835,7 +835,7 @@ function CompareView(props: {
       </svg>
 
       <div
-        className="flex flex-wrap items-center gap-2 text-[10px] font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 rounded-lg"
+        className="flex flex-wrap items-center gap-2 text-[10px] font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] rounded-lg"
         tabIndex={0}
         role="group"
         aria-label="Out-of-tolerance region navigation (arrow keys step regions)"
@@ -848,7 +848,7 @@ function CompareView(props: {
           onClick={() => props.onGotoRegion(props.ootIndex - 1)}
           disabled={result.regions.length === 0}
           aria-label="Previous out-of-tolerance region"
-          className="min-h-8 px-2 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1"
+          className="min-h-8 px-2 py-1.5 rounded-md bg-white/5 border border-white/8 text-zinc-200 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1"
         >
           <ChevronLeft className="w-3 h-3" />Prev OOT
         </button>
@@ -859,7 +859,7 @@ function CompareView(props: {
           onClick={() => props.onGotoRegion(props.ootIndex + 1)}
           disabled={result.regions.length === 0}
           aria-label="Next out-of-tolerance region"
-          className="min-h-8 px-2 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1"
+          className="min-h-8 px-2 py-1.5 rounded-md bg-white/5 border border-white/8 text-zinc-200 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1"
         >
           Next OOT<ChevronRight className="w-3 h-3" />
         </button>

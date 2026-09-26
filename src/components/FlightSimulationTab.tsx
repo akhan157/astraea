@@ -22,6 +22,7 @@ import {
   Wind,
   Navigation,
 } from 'lucide-react';
+import { StudioHeader } from './ui/StudioHeader';
 
 interface FlightSimulationTabProps {
   isOpen: boolean;
@@ -268,41 +269,31 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
       <div
-        className="w-full max-w-5xl max-h-[92vh] bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden select-none animate-in fade-in zoom-in-95 duration-200"
+        className="w-full max-w-5xl max-h-[92vh] bg-[#0F1011] border border-white/8 rounded-lg flex flex-col overflow-hidden select-none"
         role="dialog"
         ref={dialogRef}
         aria-modal="true"
         aria-labelledby="flight-simulation-title"
       >
-        <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/90">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-              <Rocket className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2
-                  id="flight-simulation-title"
-                  className="text-sm font-bold text-white uppercase tracking-wider font-mono"
-                >
-                  6-DOF Flight Dynamics & Aerodynamics Engine
-                </h2>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono font-bold">
-                  RIGID BODY 6-DOF
-                </span>
-              </div>
-              <p className="text-xs text-zinc-400">
-                Quaternion Kinematics, Wind Shear, Aero Restoring Moments, and Screening Thresholds (preview — not competition gates)
-              </p>
-            </div>
-          </div>
+        <div className="p-4 border-b border-white/8 flex items-center justify-between gap-2">
+          <StudioHeader
+            icon={<Rocket className="w-5 h-5" />}
+            title="6-DOF Flight Dynamics & Aerodynamics Engine"
+            subtitle="Quaternion Kinematics, Wind Shear, Aero Restoring Moments, and Screening Thresholds (preview — not competition gates)"
+            chips={
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-zinc-300 border border-white/8">
+                RIGID BODY 6-DOF
+              </span>
+            }
+            titleId="flight-simulation-title"
+          />
 
           <button
             onClick={onClose}
             aria-label="Close flight simulation"
-            className="min-w-11 min-h-11 p-2.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 transition cursor-pointer"
+            className="min-w-11 min-h-11 p-2.5 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] transition-colors cursor-pointer"
             ref={closeButtonRef}
           >
             <X className="w-5 h-5" />
@@ -312,19 +303,19 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
         {/* Modal Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs text-zinc-200">
           {/* Top Configuration Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-zinc-950/60 rounded-xl border border-zinc-800/80">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-[#08090A] rounded-lg border border-white/8">
             {/* Column 1: Propulsion */}
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5">
-                  <Flame className="w-3.5 h-3.5 text-amber-400" />
+                <label className="text-[11px] font-medium text-zinc-300 flex items-center gap-1.5">
+                  <Flame className="w-3.5 h-3.5 text-zinc-400" />
                   <span>Rocket Motor (Certified + Imported)</span>
                 </label>
                 <select
                   value={selectedMotorId}
                   aria-label="Rocket motor"
                   onChange={(e) => selectMotor(e.target.value)}
-                  className="w-full min-h-11 bg-zinc-800 text-zinc-100 px-3 py-2 rounded-lg border border-zinc-600 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 font-medium cursor-pointer"
+                  className="w-full min-h-11 bg-[#08090A] text-zinc-100 px-3 py-2 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] font-medium cursor-pointer"
                 >
                   {Object.values(catalog).map((m) => {
                     const excludedReason = mountAssessment.ambiguous ? null : reasonMotorExcluded(m);
@@ -342,7 +333,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   })}
                 </select>
                 {mountAssessment.mounts.length === 1 && !mountAssessment.ambiguous && (
-                  <div className="text-[10px] font-mono text-zinc-500">
+                  <div className="text-[10px] text-zinc-500">
                     {mountAssessment.boreM === null
                       ? `Mount '${mountAssessment.mounts[0].name}' is a solid tube — no motor can be seated.`
                       : `Motor-mount bore ⌀${(mountAssessment.boreM * 1000).toFixed(0)}mm · ` +
@@ -353,8 +344,8 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px]">
-                  <span className="text-zinc-400 font-semibold">Main Parachute AGL</span>
-                  <span className="font-mono text-cyan-400">{mainDeployAlt} m</span>
+                  <span className="text-zinc-300 font-medium">Main Parachute AGL</span>
+                  <span className="font-mono text-zinc-100">{mainDeployAlt} m</span>
                 </div>
                 <input
                   type="range"
@@ -364,19 +355,19 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   value={mainDeployAlt}
                   aria-label="Main parachute deployment altitude in meters above ground level"
                   onChange={(e) => setMainDeployAlt(parseFloat(e.target.value))}
-                  className="w-full min-h-11 accent-cyan-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+                  className="w-full min-h-11 accent-zinc-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
                 />
               </div>
             </div>
 
             {/* Column 2: Launch Rail Setup (Elevation & Azimuth) */}
-            <div className="space-y-3 border-t md:border-t-0 md:border-l border-zinc-800 pt-3 md:pt-0 md:pl-4">
+            <div className="space-y-3 border-t md:border-t-0 md:border-l border-white/8 pt-3 md:pt-0 md:pl-4">
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px]">
-                  <span className="text-zinc-400 font-semibold flex items-center gap-1">
-                    <Navigation className="w-3 h-3 text-cyan-400" /> Rail Elevation
+                  <span className="text-zinc-300 font-medium flex items-center gap-1">
+                    <Navigation className="w-3 h-3 text-zinc-400" /> Rail Elevation
                   </span>
-                  <span className="font-mono text-cyan-400">{railElevation.toFixed(1)}° ({90 - railElevation}° off vert)</span>
+                  <span className="font-mono text-zinc-100">{railElevation.toFixed(1)}° ({90 - railElevation}° off vert)</span>
                 </div>
                 <input
                   type="range"
@@ -386,16 +377,16 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   value={railElevation}
                   aria-label="Launch rail elevation in degrees"
                   onChange={(e) => setRailElevation(parseFloat(e.target.value))}
-                  className="w-full min-h-11 accent-cyan-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+                  className="w-full min-h-11 accent-zinc-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
                 />
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px]">
-                  <span className="text-zinc-400 font-semibold flex items-center gap-1">
-                    <Compass className="w-3 h-3 text-cyan-400" /> Rail Azimuth (Aim)
+                  <span className="text-zinc-300 font-medium flex items-center gap-1">
+                    <Compass className="w-3 h-3 text-zinc-400" /> Rail Azimuth (Aim)
                   </span>
-                  <span className="font-mono text-cyan-400">{railAzimuth.toFixed(0)}°</span>
+                  <span className="font-mono text-zinc-100">{railAzimuth.toFixed(0)}°</span>
                 </div>
                 <input
                   type="range"
@@ -405,14 +396,14 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   value={railAzimuth}
                   aria-label="Launch rail azimuth in degrees"
                   onChange={(e) => setRailAzimuth(parseFloat(e.target.value))}
-                  className="w-full min-h-11 accent-cyan-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+                  className="w-full min-h-11 accent-zinc-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
                 />
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px]">
-                  <span className="text-zinc-400 font-semibold">Rail Length</span>
-                  <span className="font-mono text-cyan-400">{railLength.toFixed(1)} m</span>
+                  <span className="text-zinc-300 font-medium">Rail Length</span>
+                  <span className="font-mono text-zinc-100">{railLength.toFixed(1)} m</span>
                 </div>
                 <input
                   type="range"
@@ -422,19 +413,19 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   value={railLength}
                   aria-label="Launch rail length in meters"
                   onChange={(e) => setRailLength(parseFloat(e.target.value))}
-                  className="w-full min-h-11 accent-cyan-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+                  className="w-full min-h-11 accent-zinc-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
                 />
               </div>
             </div>
 
             {/* Column 3: Atmospheric Wind & Fin Cant */}
-            <div className="space-y-3 border-t md:border-t-0 md:border-l border-zinc-800 pt-3 md:pt-0 md:pl-4">
+            <div className="space-y-3 border-t md:border-t-0 md:border-l border-white/8 pt-3 md:pt-0 md:pl-4">
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px]">
-                  <span className="text-zinc-400 font-semibold flex items-center gap-1">
-                    <Wind className="w-3 h-3 text-amber-400" /> Surface Crosswind
+                  <span className="text-zinc-300 font-medium flex items-center gap-1">
+                    <Wind className="w-3 h-3 text-zinc-400" /> Surface Crosswind
                   </span>
-                  <span className="font-mono text-amber-400">{windSpeed.toFixed(1)} m/s ({(windSpeed * 2.23694).toFixed(1)} mph)</span>
+                  <span className="font-mono text-zinc-100">{windSpeed.toFixed(1)} m/s ({(windSpeed * 2.23694).toFixed(1)} mph)</span>
                 </div>
                 <input
                   type="range"
@@ -444,14 +435,14 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   value={windSpeed}
                   aria-label="Surface crosswind speed in meters per second"
                   onChange={(e) => setWindSpeed(parseFloat(e.target.value))}
-                  className="w-full min-h-11 accent-amber-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+                  className="w-full min-h-11 accent-zinc-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
                 />
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px]">
-                  <span className="text-zinc-400 font-semibold">Wind Direction (From)</span>
-                  <span className="font-mono text-amber-400">{windAzimuth.toFixed(0)}°</span>
+                  <span className="text-zinc-300 font-medium">Wind Direction (From)</span>
+                  <span className="font-mono text-zinc-100">{windAzimuth.toFixed(0)}°</span>
                 </div>
                 <input
                   type="range"
@@ -461,14 +452,14 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   value={windAzimuth}
                   aria-label="Wind direction from in degrees"
                   onChange={(e) => setWindAzimuth(parseFloat(e.target.value))}
-                  className="w-full min-h-11 accent-amber-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+                  className="w-full min-h-11 accent-zinc-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
                 />
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px]">
-                  <span className="text-zinc-400 font-semibold">Fin Cant Spin Angle</span>
-                  <span className="font-mono text-cyan-400">{finCant.toFixed(1)}°</span>
+                  <span className="text-zinc-300 font-medium">Fin Cant Spin Angle</span>
+                  <span className="font-mono text-zinc-100">{finCant.toFixed(1)}°</span>
                 </div>
                 <input
                   type="range"
@@ -478,7 +469,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   value={finCant}
                   aria-label="Fin cant spin angle in degrees"
                   onChange={(e) => setFinCant(parseFloat(e.target.value))}
-                  className="w-full min-h-11 accent-cyan-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+                  className="w-full min-h-11 accent-zinc-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
                 />
               </div>
             </div>
@@ -491,7 +482,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
               guaranteed to throw. */}
           {mountAssessment.ambiguous && (
             <div
-              className="p-3 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-xs font-mono"
+              className="p-3 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-xs"
               role="status"
             >
               <AlertTriangle className="w-3.5 h-3.5 inline-block mr-1.5" />
@@ -501,7 +492,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
           )}
           {!mountAssessment.ambiguous && mountAssessment.mounts.length === 0 && (
             <div
-              className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/40 text-amber-300 text-xs"
+              className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/40 text-amber-300 text-xs"
               role="status"
             >
               <AlertTriangle className="w-3.5 h-3.5 inline-block mr-1.5" />
@@ -511,7 +502,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
           )}
           {!mountAssessment.ambiguous && !runEligible && (
             <div
-              className="p-3 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-xs font-mono"
+              className="p-3 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-xs"
               role="status"
             >
               <AlertTriangle className="w-3.5 h-3.5 inline-block mr-1.5" />
@@ -524,7 +515,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
             <button
               onClick={handleRunSimulation}
               disabled={!runEligible}
-              className="min-h-11 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 disabled:opacity-40 disabled:cursor-not-allowed enabled:pointer-events-auto"
+              className="min-h-11 px-6 py-2.5 bg-white text-black hover:bg-zinc-200 font-semibold text-xs rounded-md transition-colors flex items-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] disabled:opacity-40 disabled:cursor-not-allowed enabled:pointer-events-auto"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>Run 6-DOF Trajectory Simulation</span>
@@ -534,22 +525,22 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
           {/* Simulation Output KPIs */}
           {simError && (
             <div
-              className="p-3 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-xs font-mono"
+              className="p-3 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-xs"
               role="alert"
             >
               Simulation failed at {simError.at}: {simError.message}. Inputs: {simError.inputs}. Previous results were cleared — no stale output is shown.
               <details className="mt-2">
                 <summary className="cursor-pointer text-rose-200 hover:text-rose-100">Full input snapshot (JSON, for reproduction)</summary>
-                <pre className="mt-1 p-2 bg-zinc-950/80 rounded-lg overflow-x-auto text-[10px] text-zinc-300 whitespace-pre-wrap break-all">{simError.snapshot}</pre>
+                <pre className="mt-1 p-2 bg-[#08090A] rounded-lg overflow-x-auto text-[10px] text-zinc-300 whitespace-pre-wrap break-all">{simError.snapshot}</pre>
               </details>
             </div>
           )}
           {simResult && (
-            <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="space-y-6">
               {/* Run manifest: the input snapshot these results were computed
                   from (audit §8.9). Values reflect current controls; results
                   are only trustworthy while the FRESH badge holds. */}
-              <div className="px-3 py-2 bg-zinc-950/60 rounded-xl border border-zinc-800 text-[10px] font-mono text-zinc-400 flex flex-wrap gap-x-4 gap-y-1">
+              <div className="px-3 py-2 bg-[#08090A] rounded-lg border border-white/8 text-[10px] font-mono text-zinc-400 flex flex-wrap gap-x-4 gap-y-1">
                 <span className="uppercase font-semibold text-zinc-500">Run manifest</span>
                 <span>motor {activeMotor.designation}</span>
                 <span>rail {railLength.toFixed(1)} m @ {railElevation.toFixed(1)}°/{railAzimuth.toFixed(0)}°</span>
@@ -561,7 +552,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
               </div>
               {/* Outcome, model validity, and freshness are independent (§2.6). */}
               <div
-                className="min-h-9 p-3 bg-zinc-950/80 rounded-xl border border-zinc-700 flex flex-wrap items-center gap-2"
+                className="min-h-9 p-3 bg-[#08090A] rounded-lg border border-white/8 flex flex-wrap items-center gap-2"
                 role="status"
                 aria-live="polite"
               >
@@ -602,12 +593,12 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                                 : 'FAIL · run did not complete',
                             }
                           : {
-                              c: 'text-zinc-300 bg-zinc-700/20 border-zinc-600/40',
+                              c: 'text-zinc-300 bg-white/5 border-white/8',
                               icon: <X className="w-3.5 h-3.5" />,
                               label: 'N/A · criterion excluded',
                             };
                   return (
-                    <span className={`px-2 py-1 rounded border text-[10px] font-mono font-bold inline-flex items-center gap-1 ${badge.c}`}>
+                    <span className={`px-2 py-1 rounded border text-[10px] font-semibold inline-flex items-center gap-1 ${badge.c}`}>
                       {badge.icon}
                       {badge.label}
                     </span>
@@ -636,7 +627,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   className={`text-[10px] px-2 py-1 rounded border font-mono ${
                     resultsAreStale
                       ? 'text-amber-300 bg-amber-500/10 border-amber-500/30'
-                      : 'text-cyan-300 bg-cyan-500/10 border-cyan-500/30'
+                      : 'text-zinc-100 bg-white/5 border-white/8'
                   }`}
                 >
                   {resultsAreStale ? 'STALE · configuration changed' : 'CURRENT · inputs match run'}
@@ -645,9 +636,9 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
 
               {/* Airframe/Status gates */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+                <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
                   <div className="text-[10px] text-zinc-500 uppercase font-semibold">Apogee Altitude</div>
-                  <div className="text-lg font-bold font-mono text-cyan-400 mt-1">
+                  <div className="text-lg font-bold font-mono text-zinc-100 mt-1">
                     {simResult.apogeeAltitude.toFixed(0)} m
                   </div>
                   <div className="text-[10px] text-zinc-400 font-mono">
@@ -655,7 +646,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   </div>
                 </div>
 
-                <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+                <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
                   <div className="text-[10px] text-zinc-500 uppercase font-semibold">Max Velocity</div>
                   <div className="text-lg font-bold font-mono text-zinc-100 mt-1">
                     {simResult.maxVelocity.toFixed(0)} m/s
@@ -665,7 +656,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   </div>
                 </div>
 
-                <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+                <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
                   <div className="text-[10px] text-zinc-500 uppercase font-semibold">Rail Exit Velocity</div>
                   <div className="text-lg font-bold font-mono text-zinc-100 mt-1 flex items-center gap-1">
                     {simResult.railExitVelocity.toFixed(1)} m/s
@@ -682,7 +673,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   </div>
                 </div>
 
-                <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+                <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
                   <div className="text-[10px] text-zinc-500 uppercase font-semibold">Rail-Exit Incidence</div>
                   <div className="text-lg font-bold font-mono text-amber-400 mt-1">
                     {simResult.weathercockAngleDeg.toFixed(1)}°
@@ -692,7 +683,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   </div>
                 </div>
 
-                <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+                <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
                   <div className="text-[10px] text-zinc-500 uppercase font-semibold">Landing Drift</div>
                   <div className="text-lg font-bold font-mono text-zinc-100 mt-1">
                     {simResult.landingDistance.toFixed(0)} m
@@ -703,7 +694,7 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                   </div>
                 </div>
 
-                <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+                <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
                   <div className="text-[10px] text-zinc-500 uppercase font-semibold">Touchdown Energy</div>
                   <div className="text-lg font-bold font-mono text-zinc-100 mt-1 flex items-center gap-1">
                     {simResult.landingKineticEnergy.toFixed(1)} J
@@ -726,12 +717,12 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
               {/* Graphical Curves Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* SVG 3D Flight Profile: Altitude & Velocity vs Time */}
-                <div className="p-4 bg-zinc-950/80 rounded-xl border border-zinc-800 space-y-2">
+                <div className="p-4 bg-[#08090A] rounded-lg border border-white/8 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-xs text-zinc-200">6-DOF Altitude Trajectory & Parachute Descent</span>
-                    <span className="text-[10px] font-mono text-cyan-400">Euler-Poinsot Quaternion ODE</span>
+                    <span className="text-[10px] text-zinc-100">Euler-Poinsot Quaternion ODE</span>
                   </div>
-                  <div className="h-44 w-full bg-zinc-900/60 rounded-lg p-2 relative flex items-center justify-center">
+                  <div className="h-44 w-full bg-[#08090A] rounded-lg p-2 relative flex items-center justify-center">
                     <svg
                       className="w-full h-full overflow-visible"
                       viewBox="0 0 400 140"
@@ -773,12 +764,12 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
                 </div>
 
                 {/* SVG Transonic Drag Breakdown: Cd vs Mach */}
-                <div className="p-4 bg-zinc-950/80 rounded-xl border border-zinc-800 space-y-2">
+                <div className="p-4 bg-[#08090A] rounded-lg border border-white/8 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-xs text-zinc-200">High-Mach Drag Breakdown: Total Cd vs Mach</span>
-                    <span className="text-[10px] font-mono text-amber-400">Van Driest II + Ackeret Wave Drag</span>
+                    <span className="text-[10px] text-zinc-400">Van Driest II + Ackeret Wave Drag</span>
                   </div>
-                  <div className="h-44 w-full bg-zinc-900/60 rounded-lg p-2 relative flex items-center justify-center">
+                  <div className="h-44 w-full bg-[#08090A] rounded-lg p-2 relative flex items-center justify-center">
                     <svg
                       className="w-full h-full overflow-visible"
                       viewBox="0 0 400 140"
@@ -835,12 +826,12 @@ export const FlightSimulationTab: React.FC<FlightSimulationTabProps> = ({ isOpen
               </div>
 
               {/* Event Timeline Sequence */}
-              <div className="p-4 bg-zinc-950/80 rounded-xl border border-zinc-800 space-y-2">
+              <div className="p-4 bg-[#08090A] rounded-lg border border-white/8 space-y-2">
                 <span className="font-semibold text-xs text-zinc-200 block">6-DOF Flight Sequence Timeline</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                   {simResult.events.map((evt, idx) => (
-                    <div key={idx} className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800/80 space-y-1">
-                      <div className="flex items-center justify-between text-[11px] font-bold text-cyan-400">
+                    <div key={idx} className="p-2.5 bg-[#08090A] rounded-lg border border-white/8/80 space-y-1">
+                      <div className="flex items-center justify-between text-[11px] font-bold text-zinc-100">
                         <span>{evt.name}</span>
                         <span className="font-mono text-zinc-400">{evt.time.toFixed(2)}s</span>
                       </div>

@@ -211,34 +211,34 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
 
 
   const triggerClass =
-    'px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-700 transition';
+    'px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-medium rounded-md border border-white/8 transition-colors';
 
   return (
     <div className="relative flex items-center gap-2">
       <button
         onClick={handleCdx1}
-        className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-700 transition"
+        className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-medium rounded-md border border-white/8 transition-colors"
         title="Export RASAero II outer mold line (.cdx1)"
       >
         .cdx1
       </button>
       <button
         onClick={handleCsv}
-        className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-700 transition"
+        className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-medium rounded-md border border-white/8 transition-colors"
         title="Export aerodynamic matrix (.csv)"
       >
         Aero .csv
       </button>
       <button
         onClick={handleBlueprint}
-        className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-700 transition"
+        className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-medium rounded-md border border-white/8 transition-colors"
         title="Export dimensioned blueprint (.svg)"
       >
         Blueprint
       </button>
       <button
         onClick={handlePng}
-        className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-700 transition"
+        className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-medium rounded-md border border-white/8 transition-colors"
         title="Export print-ready blueprint (.png)"
       >
         PNG
@@ -263,7 +263,7 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
         <div
           role="dialog"
           aria-label={`${staged.preview.title} export preview`}
-          className="absolute right-0 top-full mt-2 z-50 w-80 rounded-xl border border-zinc-700 bg-zinc-900 p-3 shadow-xl text-left"
+          className="absolute right-0 top-full mt-2 z-50 w-80 rounded-lg border border-white/8 bg-[#0F1011] p-3 text-left"
         >
           <div className="text-xs font-semibold text-zinc-100">{staged.preview.title} preview</div>
           <div className="mt-0.5 text-[10px] font-mono text-zinc-400">{staged.preview.filename}</div>
@@ -289,14 +289,14 @@ export const InteropExportPanel: React.FC<{ vehicle: RocketVehicle }> = ({ vehic
             <button
               onClick={handleConfirm}
               disabled={!staged.preview.canExport}
-              className="px-2.5 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 disabled:opacity-30 text-cyan-300 text-xs font-medium rounded-lg border border-cyan-500/40 transition"
+              className="px-2.5 py-1.5 bg-white text-black hover:bg-zinc-200 text-xs font-semibold rounded-md transition-colors"
               title={`Confirm ${staged.kind} download`}
             >
               Download
             </button>
             <button
               onClick={() => setStaged(null)}
-              className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-700 transition"
+              className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-medium rounded-md border border-white/8 transition-colors"
               title="Cancel export"
             >
               Cancel

@@ -56,15 +56,15 @@ export const PaneNavigation: React.FC<PaneNavigationProps> = ({ value, onSelect,
   };
 
   return (
-    <div data-pane-nav="true" className="flex items-center gap-2 px-3 py-1.5 bg-zinc-950 border-b border-zinc-800">
-      <span aria-hidden="true" className="text-[10px] uppercase tracking-wider text-zinc-500 shrink-0">
+    <div data-pane-nav="true" className="flex items-center gap-2 px-3 py-1.5 bg-[#08090A] border-b border-white/8">
+      <span aria-hidden="true" className="text-[10px] uppercase tracking-wider text-zinc-400 shrink-0">
         Pane
       </span>
       <div
         role="tablist"
         aria-label="Pane regions"
         onKeyDown={onTablistKeyDown}
-        className="flex items-center gap-0.5 bg-zinc-800/60 p-0.5 rounded-lg border border-zinc-700/60"
+        className="flex items-center gap-0.5 bg-white/5 p-0.5 rounded-full border border-white/8"
       >
         {PANE_REGIONS.map((region, i) => {
           const active = value === region.id;
@@ -83,8 +83,8 @@ export const PaneNavigation: React.FC<PaneNavigationProps> = ({ value, onSelect,
               }}
               tabIndex={active ? 0 : -1}
               onClick={() => onActivate(region.id)}
-              className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${
-                active ? 'bg-cyan-500/25 text-cyan-200' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/60'
+              className={`px-2.5 py-1 text-[11px] font-medium rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] ${
+                active ? 'bg-[#4C8DFF]/15 text-[#4C8DFF]' : 'text-zinc-400 hover:bg-white/10'
               }`}
             >
               {region.label}

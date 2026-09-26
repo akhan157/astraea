@@ -27,6 +27,7 @@
 import React, { useMemo, useState } from 'react';
 import { SimFlightOverlay } from './SimFlightOverlay';
 import { Activity, Variable, Package, ClipboardPaste } from 'lucide-react';
+import { StudioHeader } from './ui/StudioHeader';
 import { parseAltimeterCsv, resample, AltitudeSample } from '../evidence/altimetry';
 import { calibrateCd, CoastPoint, CalibrationResult } from '../evidence/calibration';
 import { useRocketStore } from '../store/rocketStore';
@@ -167,7 +168,7 @@ function NumberField({ label, value, onChange, step = '0.01', min = '0', suffix,
         step={step}
         aria-label={label}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full min-w-16 bg-zinc-900/80 text-zinc-100 px-1.5 py-1 rounded-md border border-zinc-700 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-300 text-[10px] font-mono"
+        className="w-full min-w-16 bg-[#08090A] text-zinc-100 px-1.5 py-1 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#4C8DFF] text-[10px] font-mono"
       />
       {suffix ? <span className={`text-[9px] font-mono ${suffixClass} shrink-0`}>{suffix}</span> : null}
     </div>
@@ -181,16 +182,8 @@ function Card({ title, kicker, icon, children }: {
   children: React.ReactNode;
 }): React.JSX.Element {
   return (
-    <section className="p-5 bg-zinc-950/80 rounded-2xl border border-zinc-800/80 space-y-3">
-      <div className="flex items-center gap-2.5">
-        <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-          {icon}
-        </div>
-        <div>
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">{title}</h3>
-          <p className="text-[10px] text-zinc-500">{kicker}</p>
-        </div>
-      </div>
+    <section className="p-5 bg-[#0F1011] rounded-lg border border-white/8 space-y-3">
+      <StudioHeader icon={icon} title={title} subtitle={kicker} />
       {children}
     </section>
   );
@@ -275,14 +268,14 @@ function AltimetryCard(): React.JSX.Element {
         aria-label="Altimeter CSV data"
         placeholder={'time_s,altitude_m\n0.0,12.0\n0.5,24.5\n1.0,37.5\n…'}
         spellCheck={false}
-        className="w-full min-h-28 h-28 bg-zinc-900/80 text-zinc-100 px-2.5 py-2 rounded-lg border border-zinc-700 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 text-[10px] font-mono resize-y"
+        className="w-full min-h-28 h-28 bg-[#08090A] text-zinc-100 px-2.5 py-2 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] text-[10px] font-mono resize-y"
       />
       <p className="text-[9px] text-zinc-600 leading-snug">{heading}</p>
 
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={handleParse}
-          className="min-h-8 px-3 py-1.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/25 text-[10px] font-bold uppercase tracking-wider font-mono inline-flex items-center gap-1 cursor-pointer transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          className="min-h-8 px-3 py-1.5 rounded-md bg-white/5 border border-white/8 text-zinc-200 hover:bg-white/10 text-[10px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
         >
           <ClipboardPaste className="w-3 h-3" />
           Parse
@@ -299,14 +292,14 @@ function AltimetryCard(): React.JSX.Element {
             min="0.01"
             aria-label="Resample time step seconds"
             onChange={(e) => setDtText(e.target.value)}
-            className="w-16 ml-1.5 bg-zinc-900/80 text-zinc-100 px-1.5 py-1 rounded-md border border-zinc-700 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-300 text-[10px] font-mono"
+            className="w-16 ml-1.5 bg-[#08090A] text-zinc-100 px-1.5 py-1 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#4C8DFF] text-[10px] font-mono"
           />
           <span className="text-zinc-500"> s</span>
         </label>
         <button
           onClick={handleResample}
           disabled={parsed === null}
-          className="min-h-8 px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700 text-[10px] font-bold uppercase tracking-wider font-mono cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          className="min-h-8 px-3 py-1.5 rounded-md bg-white/5 border border-white/8 text-zinc-200 hover:bg-white/10 text-[10px] font-semibold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
         >
           Resample
         </button>
@@ -314,7 +307,7 @@ function AltimetryCard(): React.JSX.Element {
 
       {error !== null && (
         <div
-          className="p-2.5 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-[10px] font-mono"
+          className="p-2.5 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-[10px]"
           role="alert"
         >
           {error}
@@ -322,26 +315,26 @@ function AltimetryCard(): React.JSX.Element {
       )}
 
       {error !== null && parsed !== null && (
-        <p role="status" aria-live="polite" className="text-[9px] text-rose-300/80 font-mono">
+        <p role="status" aria-live="polite" className="text-[9px] text-rose-300/80">
           ▲ Results reflect the last successful import — the current paste failed to parse.
         </p>
       )}
 
       <div role="status" aria-live="polite" className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800/80">
+        <div className="p-2.5 bg-[#08090A] rounded-lg border border-white/8">
           <KvRow label="Samples parsed" value={parsed === null ? '—' : String(parsed.length)} className={parsed ? 'text-emerald-400' : 'text-zinc-600'} />
         </div>
-        <div className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800/80">
+        <div className="p-2.5 bg-[#08090A] rounded-lg border border-white/8">
           <KvRow label="Samples @ dt" value={resampled === null ? '—' : String(resampled.length)} className={resampled ? 'text-emerald-400' : 'text-zinc-600'} />
         </div>
-        <div className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800/80">
-          <KvRow label="Apogee altitude" value={apogeeM() === null ? '—' : `${apogeeM()!.toFixed(1)} m`} className="text-cyan-400" />
+        <div className="p-2.5 bg-[#08090A] rounded-lg border border-white/8">
+          <KvRow label="Apogee altitude" value={apogeeM() === null ? '—' : `${apogeeM()!.toFixed(1)} m`} className="text-zinc-100" />
           <KvRow label="Apogee at" value={apogeeS() === null ? '—' : `${apogeeS()!.toFixed(1)} s`} className="text-zinc-400" />
         </div>
       </div>
 
       {csvDirty && (
-        <p className="text-[9px] text-amber-400/90 font-mono">
+        <p className="text-[9px] text-amber-400/90">
           ▲ CSV edited since Parse — results reflect the last parsed text.
         </p>
       )}
@@ -425,10 +418,10 @@ function CalibrationCard(): React.JSX.Element {
               <span className="flex flex-col items-start gap-0.5 py-0.5">
                 <span className="text-[10px] font-mono text-zinc-500 leading-none">{index + 1}</span>
                 <span
-                  className={`px-1 py-px rounded border text-[8px] font-mono font-bold leading-none ${
+                  className={`px-1 py-px rounded border text-[8px] font-semibold leading-none ${
                     row.origin === 'preset'
                       ? 'text-amber-300 border-amber-500/30 bg-amber-500/10'
-                      : 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10'
+                      : 'text-zinc-100 border-white/8 bg-white/5'
                   }`}
                 >
                   {row.origin === 'preset' ? 'PRESET' : 'SCRATCH'}
@@ -443,7 +436,7 @@ function CalibrationCard(): React.JSX.Element {
                 onClick={() => removeRow(index)}
                 aria-label={`Remove coast point row ${index + 1}`}
                 title="Remove row"
-                className="min-h-7 min-w-7 rounded-md border border-zinc-700 text-zinc-500 hover:text-rose-300 hover:border-rose-500/40 text-[11px] font-mono cursor-pointer transition focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-300"
+                className="min-h-7 min-w-7 rounded-md border border-white/8 text-zinc-500 hover:text-rose-300 hover:border-rose-500/40 text-[11px] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#4C8DFF]"
               >
                 ✕
               </button>
@@ -455,13 +448,13 @@ function CalibrationCard(): React.JSX.Element {
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={addRow}
-          className="min-h-8 px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700 text-[10px] font-bold uppercase tracking-wider font-mono cursor-pointer transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          className="min-h-8 px-3 py-1.5 rounded-md bg-white/5 border border-white/8 text-zinc-200 hover:bg-white/10 text-[10px] font-semibold cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
         >
           + Add row
         </button>
         <button
           onClick={handleCalibrate}
-          className="min-h-8 px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 font-bold text-[10px] font-mono uppercase rounded-xl shadow transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+          className="min-h-8 px-4 py-1.5 rounded-md bg-white text-black hover:bg-zinc-200 font-semibold text-[10px] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
         >
           Calibrate Cd
         </button>
@@ -471,14 +464,14 @@ function CalibrationCard(): React.JSX.Element {
       </div>
 
       {resultStale && (
-        <p role="status" aria-live="polite" className="text-[9px] text-amber-400/90 font-mono">
+        <p role="status" aria-live="polite" className="text-[9px] text-amber-400/90">
           ▲ Inputs changed since the last fit — result is stale, recalibrate.
         </p>
       )}
 
       {error !== null && (
         <div
-          className="p-2.5 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-[10px] font-mono"
+          className="p-2.5 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-[10px]"
           role="alert"
         >
           {error}
@@ -488,21 +481,21 @@ function CalibrationCard(): React.JSX.Element {
       {result !== null && (
         <div role="status" aria-live="polite" className="space-y-2.5">
           {!HAS_MAPPED_FLIGHT_LOG && (
-            <p className="text-[9px] text-amber-300/90 font-mono">
+            <p className="text-[9px] text-amber-300/90">
               ▲ Analysis-only candidate — no flight log is mapped to these rows; this fit never implies a calibrated Cd.
             </p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800/80">
-              <KvRow label="Cd candidate" value={fmt(result.cdCalibrated, 4)} className="text-cyan-400" />
+            <div className="p-2.5 bg-[#08090A] rounded-lg border border-white/8">
+              <KvRow label="Cd candidate" value={fmt(result.cdCalibrated, 4)} className="text-zinc-100" />
               <p className="text-[9px] text-zinc-600">analysis-only OLS fit over usable points — not flight-validated</p>
             </div>
-            <div className="p-2.5 bg-zinc-900/90 rounded-lg border border-zinc-800/80">
+            <div className="p-2.5 bg-[#08090A] rounded-lg border border-white/8">
               <KvRow label="Fit RMSE" value={`${fmt(result.rmse, 3)} N`} className="text-emerald-400" />
               <p className="text-[9px] text-zinc-600">RMS drag-force residual over usable points</p>
             </div>
           </div>
-          <p className="text-[9px] text-zinc-600 font-mono leading-snug">
+          <p className="text-[9px] text-zinc-600 leading-snug">
             Inputs: preset template rows (≈8 m/s velocity steps, ρ = 1.225 kg/m³, sea-level ISA) or scratch entries — not measured flight data; a = deceleration magnitude, positive.
           </p>
         </div>
@@ -513,7 +506,7 @@ function CalibrationCard(): React.JSX.Element {
 
 /** Provenance badge for one derived dimension: entered, assumed, or missing. */
 const PROVENANCE_META: Record<DerivedProvenance, { label: string; className: string }> = {
-  entered: { label: 'ENTERED', className: 'text-zinc-300 border-zinc-600/50 bg-zinc-800/50' },
+  entered: { label: 'ENTERED', className: 'text-zinc-300 border-white/8 bg-white/5' },
   assumed: { label: 'ASSUMED', className: 'text-amber-300 border-amber-500/30 bg-amber-500/10' },
   missing: { label: 'MISSING', className: 'text-rose-300 border-rose-500/30 bg-rose-500/10' },
 };
@@ -521,7 +514,7 @@ const PROVENANCE_META: Record<DerivedProvenance, { label: string; className: str
 function ProvTag({ provenance }: { provenance: DerivedProvenance }): React.JSX.Element {
   const meta = PROVENANCE_META[provenance];
   return (
-    <span className={`px-1.5 py-px rounded border text-[9px] font-mono font-bold ${meta.className}`}>
+    <span className={`px-1.5 py-px rounded border text-[9px] font-semibold ${meta.className}`}>
       {meta.label}
     </span>
   );
@@ -665,7 +658,7 @@ function RecoveryCard(): React.JSX.Element {
             value={effectiveSel}
             aria-label="Recovery bay"
             onChange={(e) => setBaySel(e.target.value)}
-            className="min-w-20 bg-zinc-900/80 text-zinc-100 px-1.5 py-1 rounded-md border border-zinc-700 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-300 text-[10px] font-mono cursor-pointer"
+            className="min-w-20 bg-[#08090A] text-zinc-100 px-1.5 py-1 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#4C8DFF] text-[10px] font-mono cursor-pointer"
           >
             {derived.bays.map((b) => (
               <option key={b.tubeId} value={b.tubeId}>{b.tubeName} (derived)</option>
@@ -675,17 +668,17 @@ function RecoveryCard(): React.JSX.Element {
         </div>
       )}
       {selectedBay?.ambiguityNote && (
-        <p role="status" className="text-[10px] font-mono text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-2.5 py-1.5">
+        <p role="status" className="text-[10px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-2.5 py-1.5">
           {selectedBay.ambiguityNote}
         </p>
       )}
       {derived.unplacedChutes.length > 0 && (
-        <p role="status" className="text-[10px] font-mono text-zinc-400">
+        <p role="status" className="text-[10px] text-zinc-400">
           Unplaced: {derived.unplacedChutes.join(', ')} — outside every tube span, excluded from every bay.
         </p>
       )}
       {showStrip && (
-        <div className="h-44 w-full bg-zinc-900/60 rounded-lg p-2 relative flex items-center justify-center">
+        <div className="h-44 w-full bg-[#08090A] rounded-lg p-2 relative flex items-center justify-center">
           <svg className="w-full h-full overflow-visible" viewBox="0 0 400 170" role="img" aria-label={stripLabel}>
             <rect x="40" y={70 - borePx / 2} width="350" height={borePx} fill="none" stroke="#52525b" strokeWidth="1.5" />
             <line x1="390" y1="30" x2="390" y2="110" stroke="#71717a" strokeDasharray="3" />
@@ -720,7 +713,7 @@ function RecoveryCard(): React.JSX.Element {
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Bay packing */}
-        <div className="space-y-2.5 p-3 bg-zinc-900/80 rounded-xl border border-zinc-800/80">
+        <div className="space-y-2.5 p-3 bg-[#08090A] rounded-lg border border-white/8">
           <div className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider">Bay packing</div>
           {selectedBay === null && (
             <>
@@ -734,7 +727,7 @@ function RecoveryCard(): React.JSX.Element {
               <DimRow label="Bay length" text={bayLength.value === null ? '—' : `${(bayLength.value * 1000).toFixed(1)} mm`} provenance={bayLength.provenance} />
               <DimRow label="Bay bore" text={bore.value === null ? '—' : `⌀${(bore.value * 1000).toFixed(1)} mm`} provenance={bore.provenance} />
               {items.map((item) => (
-                <div key={item.id} className="border-t border-zinc-800/70 pt-1 space-y-1">
+                <div key={item.id} className="border-t border-white/8/70 pt-1 space-y-1">
                   <div className="text-[10px] font-mono text-zinc-300">{item.name} · {item.kind}</div>
                   <DimRow
                     label="Axial length"
@@ -757,8 +750,8 @@ function RecoveryCard(): React.JSX.Element {
               ))}
             </div>
           )}
-          <div className="border-t border-zinc-800/70 pt-2">
-            <KvRow label="Bay volume" value={fmt(volumeM3, 4)} unit="m³" className="text-cyan-400" />
+          <div className="border-t border-white/8 pt-2">
+            <KvRow label="Bay volume" value={fmt(volumeM3, 4)} unit="m³" className="text-zinc-100" />
             <KvRow label="Packed density" value={fmt(densityGcm3, 3)} unit="g/cm³" className="text-zinc-100" />
             <KvRow
               label="Clearance"
@@ -768,14 +761,14 @@ function RecoveryCard(): React.JSX.Element {
               className={clearance === null ? 'text-zinc-600' : clearance.fits ? 'text-emerald-400' : 'text-rose-400'}
             />
             {excludedCount > 0 && (
-              <p role="status" className="text-[9px] text-zinc-500 font-mono">
+              <p role="status" className="text-[9px] text-zinc-500">
                 {excludedCount} item{excludedCount === 1 ? '' : 's'} excluded from clearance — packed length missing.
               </p>
             )}
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] text-zinc-500 font-semibold uppercase">Advisory</span>
               <span
-                className={`px-2 py-0.5 rounded border text-[10px] font-mono font-bold ${advisoryMeta ? advisoryMeta.badge : 'text-zinc-600 border-zinc-700/40 bg-zinc-800/40'}`}
+                className={`px-2 py-0.5 rounded border text-[10px] font-semibold ${advisoryMeta ? advisoryMeta.badge : 'text-zinc-600 border-white/8 bg-white/5'}`}
               >
                 {advisoryMeta ? advisoryMeta.label : '—'}
               </span>
@@ -788,10 +781,10 @@ function RecoveryCard(): React.JSX.Element {
         </div>
 
         {/* Separation charge */}
-        <div className="space-y-2.5 p-3 bg-zinc-900/80 rounded-xl border border-zinc-800/80">
+        <div className="space-y-2.5 p-3 bg-[#08090A] rounded-lg border border-white/8">
           <div className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider">Separation charge</div>
           {selectedBay === null && (
-            <p className="text-[9px] text-zinc-600 font-mono">Bulkhead ⌀ = manual bay ⌀.</p>
+            <p className="text-[9px] text-zinc-600">Bulkhead ⌀ = manual bay ⌀.</p>
           )}
           {selectedBay !== null && (
             <DimRow label="Bulkhead bore" text={bore.value === null ? '—' : `⌀${(bore.value * 1000).toFixed(1)} mm`} provenance={bore.provenance} />
@@ -805,7 +798,7 @@ function RecoveryCard(): React.JSX.Element {
               value={pinPreset}
               aria-label="Shear pin preset"
               onChange={(e) => setPinPreset(e.target.value === '2-56' ? '2-56' : '4-40')}
-              className="min-w-20 bg-zinc-900/80 text-zinc-100 px-1.5 py-1 rounded-md border border-zinc-700 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-300 text-[10px] font-mono cursor-pointer"
+              className="min-w-20 bg-[#08090A] text-zinc-100 px-1.5 py-1 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#4C8DFF] text-[10px] font-mono cursor-pointer"
             >
               <option value="2-56">2-56 (~{PIN_2_56.shearForceN} N)</option>
               <option value="4-40">4-40 (~{PIN_4_40.shearForceN} N)</option>
@@ -821,13 +814,13 @@ function RecoveryCard(): React.JSX.Element {
               step="1"
               aria-label="Shear pin count"
               onChange={(e) => setPinCountText(e.target.value)}
-              className="min-w-16 bg-zinc-900/80 text-zinc-100 px-1.5 py-1 rounded-md border border-zinc-700 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-300 text-[10px] font-mono"
+              className="min-w-16 bg-[#08090A] text-zinc-100 px-1.5 py-1 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#4C8DFF] text-[10px] font-mono"
             />
-            <span className="text-[9px] text-zinc-500 font-mono">pins · bulkhead ⌀ = bay ⌀</span>
+            <span className="text-[9px] text-zinc-500">pins · bulkhead ⌀ = bay ⌀</span>
           </div>
-          <div className="border-t border-zinc-800/70 pt-2">
-            <KvRow label="Target pressure" value={fmt(targetPressurePa !== null ? targetPressurePa / 1000 : null, 1)} unit="kPa" className="text-cyan-400" />
-            <KvRow label="BP mass" value={fmt(bpMassG, 2)} unit="g" className="text-cyan-400" />
+          <div className="border-t border-white/8 pt-2">
+            <KvRow label="Target pressure" value={fmt(targetPressurePa !== null ? targetPressurePa / 1000 : null, 1)} unit="kPa" className="text-zinc-100" />
+            <KvRow label="BP mass" value={fmt(bpMassG, 2)} unit="g" className="text-zinc-100" />
             <p className="text-[9px] text-zinc-600">
               2× shear safety · ideal-gas +{Math.round((1.20 - 1) * 100)}% charge margin · R 287 J/kg·K · 2000 K
             </p>
@@ -843,7 +836,7 @@ export function EvidenceStudio(): React.JSX.Element {
   return (
     <div className="p-6 space-y-6 text-xs text-zinc-200">
       <header>
-        <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+        <h2 className="text-sm font-semibold text-white">
           Evidence + Recovery Studio
         </h2>
         <p className="text-xs text-zinc-400">

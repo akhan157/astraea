@@ -74,7 +74,7 @@ export const CompareDock: React.FC<CompareDockProps> = ({ checkpoint: checkpoint
       <aside
         data-compare-dock="true"
         data-compare-rows="0"
-        className="absolute bottom-4 right-4 w-80 max-h-96 overflow-y-auto bg-zinc-900/90 border border-zinc-700 rounded-lg shadow-xl p-3 text-[11px] text-zinc-300"
+        className="absolute bottom-4 right-4 w-80 max-h-96 overflow-y-auto bg-[#0F1011] border border-white/8 rounded-lg p-3 text-[11px] text-zinc-300"
         aria-label="Compare vs last saved"
       >
         <div className="flex items-center justify-between">
@@ -84,7 +84,7 @@ export const CompareDock: React.FC<CompareDockProps> = ({ checkpoint: checkpoint
             onClick={() => setCompareActive(false)}
             data-compare-close="true"
             aria-label="Close compare"
-            className="px-1.5 rounded hover:bg-zinc-800 text-zinc-400"
+            className="px-1.5 rounded-md hover:bg-white/10 text-zinc-400"
           >
             ✕
           </button>
@@ -98,7 +98,7 @@ export const CompareDock: React.FC<CompareDockProps> = ({ checkpoint: checkpoint
     <aside
       data-compare-dock="true"
       data-compare-rows={String(rows.length)}
-      className="absolute bottom-4 right-4 w-80 max-h-96 overflow-y-auto bg-zinc-900/90 border border-zinc-700 rounded-lg shadow-xl p-3 text-[11px] text-zinc-300"
+      className="absolute bottom-4 right-4 w-80 max-h-96 overflow-y-auto bg-[#0F1011] border border-white/8 rounded-lg p-3 text-[11px] text-zinc-300"
       aria-label="Compare vs last saved"
     >
       <div className="flex items-center justify-between">
@@ -110,7 +110,7 @@ export const CompareDock: React.FC<CompareDockProps> = ({ checkpoint: checkpoint
           onClick={() => setCompareActive(false)}
           data-compare-close="true"
           aria-label="Close compare"
-          className="px-1.5 rounded hover:bg-zinc-800 text-zinc-400"
+          className="px-1.5 rounded-md hover:bg-white/10 text-zinc-400"
         >
           ✕
         </button>
@@ -135,15 +135,15 @@ export const CompareDock: React.FC<CompareDockProps> = ({ checkpoint: checkpoint
           aria-label="Compare blend — saved geometry opacity"
           data-compare-blend="true"
           onChange={(e) => setCompareBlend(parseFloat(e.target.value))}
-          className="w-full min-h-6 accent-cyan-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          className="w-full min-h-6 accent-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
         />
-        <span className="font-mono text-cyan-300">{compare.blend}%</span>
+        <span className="font-mono text-zinc-200">{compare.blend}%</span>
       </label>
 
       <ul className="mt-1.5 space-y-0.5 max-h-44 overflow-y-auto" aria-label="Design differences">
         {rows.map((row) => (
           <li key={`${row.kind}-${row.id}`} className={`truncate ${KIND_TONE[row.kind]}`} title={row.summary}>
-            <span className="font-mono text-[10px] opacity-70">{KIND_LABEL[row.kind]}</span> {row.name}
+            <span className="text-[10px] opacity-70">{KIND_LABEL[row.kind]}</span> {row.name}
           </li>
         ))}
       </ul>

@@ -26,7 +26,7 @@ export const AeroPanel: React.FC = () => {
   return (
     <div className="flex flex-col gap-3 min-w-0" data-studio-panel="aero">
       <div className="flex items-center gap-2 flex-wrap">
-        <h2 className="text-sm font-semibold text-zinc-100">Aerodynamics &amp; Flutter</h2>
+        <h2 className="text-[13px] font-semibold tracking-tight text-white">Aerodynamics &amp; flutter</h2>
         <StatusBadge
           status={stability.isStable ? 'pass' : 'fail'}
           label={stability.isStable ? `Stable — ${stability.staticMarginCalibers.toFixed(2)} cal` : 'Unstable — inspect contributions'}
@@ -48,8 +48,8 @@ export const AeroPanel: React.FC = () => {
           ['Static margin', `${stability.staticMarginCalibers.toFixed(2)} cal`],
           ['Total CNα', stability.totalCNa.toFixed(3)],
         ].map(([term, value]) => (
-          <div key={term} className="rounded-md border border-zinc-700/60 bg-zinc-900/60 px-2 py-1.5">
-            <dt className="text-zinc-500">{term}</dt>
+          <div key={term} className="rounded-md border border-white/8 bg-[#0F1011] px-2 py-1.5">
+            <dt className="text-zinc-400">{term}</dt>
             <dd className="font-mono text-zinc-100 text-xs">{value}</dd>
           </div>
         ))}
@@ -70,7 +70,7 @@ export const AeroPanel: React.FC = () => {
               y={88 - h}
               width={32}
               height={Math.max(1, h)}
-              className="fill-cyan-500/70"
+              className="fill-zinc-400/70"
             >
               <title>{`${c.name ?? c.id}: CNα ${(c.cna ?? NaN).toFixed(3)}`}</title>
             </rect>
@@ -80,7 +80,7 @@ export const AeroPanel: React.FC = () => {
 
       <table className="w-full text-left text-[11px]" aria-label="Component contributions table">
         <thead>
-          <tr className="text-zinc-500">
+            <tr className="text-zinc-400">
             <th className="text-left px-1.5">Component</th>
             <th className="text-right px-1.5">CNα</th>
             <th className="text-right px-1.5">CP (m)</th>
@@ -97,7 +97,7 @@ export const AeroPanel: React.FC = () => {
         </tbody>
       </table>
 
-      <p className="text-[11px] text-zinc-500">
+      <p className="text-[11px] text-zinc-400">
         Fin flutter bounds and structural loads bind to the selected fin set here in S7; this panel reports the
         shared stability computation every other studio already uses. The chart and table show the same numbers
         (SVG with matching data table — no chart dependency).

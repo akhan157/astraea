@@ -26,7 +26,7 @@ export const EditBufferStrip: React.FC<EditBufferStripProps> = ({ onDiscarded })
     return (
       <div
         data-edit-pending="0"
-        className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-zinc-700/60 bg-zinc-800/40 text-[11px] text-zinc-400"
+        className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-white/8 bg-white/5 text-[11px] text-zinc-400"
       >
         <span aria-hidden="true" className="text-[10px]">
           ✓
@@ -52,7 +52,7 @@ export const EditBufferStrip: React.FC<EditBufferStripProps> = ({ onDiscarded })
         onClick={applyAll}
         data-apply-drafts="true"
         title="Apply staged edits as one undoable step"
-        className="px-1.5 py-0.5 rounded-md bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-500/40 font-semibold"
+        className="px-1.5 py-0.5 rounded-md bg-white hover:bg-zinc-200 text-black font-semibold"
       >
         Apply ✓
       </button>

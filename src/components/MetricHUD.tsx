@@ -51,10 +51,10 @@ export const MetricHUD: React.FC = () => {
   const fineness = stability.maxDiameter > 0 ? (stability.totalLength / stability.maxDiameter).toFixed(1) : '—';
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 px-4 py-2 bg-zinc-900/90 backdrop-blur-md rounded-xl border border-zinc-800 shadow-2xl select-none">
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 px-4 py-2 bg-[#0F1011] rounded-lg border border-white/8 select-none">
       {/* Stability Margin Caliber Badge */}
-      <div className="flex items-center gap-2 pr-3 border-r border-zinc-800">
-        <div className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 text-xs font-mono font-bold ${statusBadge.bg}`}>
+      <div className="flex items-center gap-2 pr-3 border-r border-white/8">
+        <div className={`px-2.5 py-1 rounded-md border flex items-center gap-1.5 text-xs font-mono font-bold ${statusBadge.bg}`}>
           <StatusIcon className="w-3.5 h-3.5" />
           <span>{margin.toFixed(2)} cal</span>
           <span className="text-[10px] opacity-80 uppercase tracking-wider font-sans font-semibold">
@@ -67,7 +67,7 @@ export const MetricHUD: React.FC = () => {
       <div className="flex items-center gap-4 text-xs font-mono">
         {/* CG */}
         <div className="flex flex-col">
-          <span className="text-[10px] text-zinc-500 uppercase tracking-wider flex items-center gap-1">
+          <span className="text-[10px] font-sans text-zinc-400 uppercase tracking-wider flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> CG
           </span>
           <span className="font-semibold text-zinc-200">{cgMm} mm</span>
@@ -75,7 +75,7 @@ export const MetricHUD: React.FC = () => {
 
         {/* CP */}
         <div className="flex flex-col">
-          <span className="text-[10px] text-zinc-500 uppercase tracking-wider flex items-center gap-1">
+          <span className="text-[10px] font-sans text-zinc-400 uppercase tracking-wider flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> CP
           </span>
           <span className="font-semibold text-zinc-200">{cpMm} mm</span>
@@ -83,13 +83,13 @@ export const MetricHUD: React.FC = () => {
 
         {/* Mass */}
         <div className="flex flex-col">
-          <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Mass</span>
+          <span className="text-[10px] font-sans text-zinc-400 uppercase tracking-wider">Mass</span>
           <span className="font-semibold text-zinc-200">{massGrams}</span>
         </div>
 
         {/* Length x Diameter */}
         <div className="flex flex-col hidden sm:flex">
-          <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Length × Dia</span>
+          <span className="text-[10px] font-sans text-zinc-400 uppercase tracking-wider">Length × Dia</span>
           <span className="font-semibold text-zinc-200">
             {lengthMm} × {diamMm} mm
           </span>
@@ -97,7 +97,7 @@ export const MetricHUD: React.FC = () => {
 
         {/* Fineness Ratio */}
         <div className="flex flex-col hidden md:flex">
-          <span className="text-[10px] text-zinc-500 uppercase tracking-wider">L / D</span>
+          <span className="text-[10px] font-sans text-zinc-400 uppercase tracking-wider">L / D</span>
           <span className="font-semibold text-zinc-200">{fineness}:1</span>
         </div>
       </div>

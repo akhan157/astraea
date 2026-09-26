@@ -22,6 +22,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { JSX } from 'react';
 import { useRocketStore } from '../store/rocketStore';
+import { StudioHeader } from './ui/StudioHeader';
 import { Flame, Gauge, Layers } from 'lucide-react';
 import { CERTIFIED_MOTORS, type MotorSpec } from '../propulsion/motorDatabase';
 import {
@@ -55,7 +56,7 @@ function burnAreaPolyline(trace: GrainRegressionTrace): string {
     .join(' ');
 }
 
-export function PropulsionStudio({}: {}): JSX.Element {
+export function PropulsionStudio(): JSX.Element {
   const customMotors = useRocketStore((s) => s.customMotors);
   // Shared flight-motor selection (Round-19): PropulsionStudio drives the
   // same store id that FlightSim and Trajectory read — one picker, one motor.
@@ -152,46 +153,35 @@ export function PropulsionStudio({}: {}): JSX.Element {
     };
   })();
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 overflow-hidden select-none">
-      {/* Panel header — FlightSimulationTab modal-header styling */}
-      <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/90">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-            <Flame className="w-5 h-5" />
-          </div>
-          <div>
-            <h2
-              id="propulsion-studio-title"
-              className="text-sm font-bold text-white uppercase tracking-wider font-mono"
-            >
-              Propulsion Studio
-            </h2>
-            <p className="text-xs text-zinc-400">
-              Certified motor library, BATES grain regression, and APCP nozzle performance — self-contained panel, no vehicle wiring
-            </p>
-          </div>
-        </div>
-        <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono font-bold">
-          PROPULSION
-        </span>
-      </div>
+    <div className="rounded-lg border border-white/8 bg-[#0F1011] overflow-hidden select-none">
+      <StudioHeader
+        icon={<Flame className="w-5 h-5" />}
+        title="Propulsion Studio"
+        subtitle="Certified motor library, BATES grain regression, and APCP nozzle performance — self-contained panel, no vehicle wiring"
+        chips={
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-zinc-300 border border-white/8">
+            PROPULSION
+          </span>
+        }
+        titleId="propulsion-studio-title"
+      />
 
       <div className="p-5 space-y-5 text-xs text-zinc-200">
         {/* 1 — Certified motor library */}
         <section
           aria-label="Certified motor library"
-          className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-zinc-950/60 rounded-xl border border-zinc-800/80"
+          className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-[#08090A] rounded-lg border border-white/8"
         >
           <div className="md:col-span-2 space-y-1.5">
             <label className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5">
-              <Flame className="w-3.5 h-3.5 text-amber-400" />
+              <Flame className="w-3.5 h-3.5 text-zinc-400" />
               <span>Certified Motor</span>
             </label>
             <select
               value={selectedMotorId}
               aria-label="Certified motor"
               onChange={(e) => selectMotor(e.target.value)}
-              className="w-full min-h-11 bg-zinc-800 text-zinc-100 px-3 py-2 rounded-lg border border-zinc-600 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 font-medium cursor-pointer"
+              className="w-full min-h-11 bg-[#08090A] text-zinc-100 px-3 py-2 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] font-medium cursor-pointer"
             >
               {Object.values(catalog).map((m) => (
                 <option key={m.id} value={m.id}>
@@ -208,27 +198,27 @@ export function PropulsionStudio({}: {}): JSX.Element {
           </div>
 
           <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+            <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
               <div className="text-[10px] text-zinc-500 uppercase font-semibold">Peak Thrust</div>
-              <div className="text-lg font-bold font-mono text-cyan-400 mt-1">
+              <div className="text-lg font-bold font-mono text-zinc-100 mt-1">
                 {motor.maxThrust.toFixed(1)} N
               </div>
             </div>
-            <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+            <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
               <div className="text-[10px] text-zinc-500 uppercase font-semibold">Average Thrust</div>
-              <div className="text-lg font-bold font-mono text-cyan-400 mt-1">
+              <div className="text-lg font-bold font-mono text-zinc-100 mt-1">
                 {motor.avgThrust.toFixed(1)} N
               </div>
             </div>
-            <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+            <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
               <div className="text-[10px] text-zinc-500 uppercase font-semibold">Burn Time</div>
-              <div className="text-lg font-bold font-mono text-cyan-400 mt-1">
+              <div className="text-lg font-bold font-mono text-zinc-100 mt-1">
                 {motor.burnTime.toFixed(2)} s
               </div>
             </div>
-            <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+            <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
               <div className="text-[10px] text-zinc-500 uppercase font-semibold">Propellant Mass</div>
-              <div className="text-lg font-bold font-mono text-cyan-400 mt-1">
+              <div className="text-lg font-bold font-mono text-zinc-100 mt-1">
                 {motor.propellantMass < 1
                   ? `${(motor.propellantMass * 1000).toFixed(1)} g`
                   : `${motor.propellantMass.toFixed(3)} kg`}
@@ -241,10 +231,10 @@ export function PropulsionStudio({}: {}): JSX.Element {
           {/* 2 — BATES grain regression */}
           <section
             aria-label="BATES grain calculator"
-            className="space-y-4 p-4 bg-zinc-950/60 rounded-xl border border-zinc-800/80"
+            className="space-y-4 p-4 bg-[#08090A] rounded-lg border border-white/8"
           >
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+              <div className="p-1.5 rounded-md bg-white/5 border border-white/8 text-zinc-300">
                 <Layers className="w-3.5 h-3.5" />
               </div>
               <h3 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">
@@ -262,7 +252,7 @@ export function PropulsionStudio({}: {}): JSX.Element {
                   value={outerDmm}
                   aria-label="Grain outer diameter (mm)"
                   onChange={(e) => setOuterDmm(e.target.value)}
-                  className="w-full min-h-9 bg-zinc-800 text-zinc-100 px-2 py-1.5 rounded-lg border border-zinc-600 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 font-mono"
+                  className="w-full min-h-9 bg-[#08090A] text-zinc-100 px-2 py-1.5 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] font-mono"
                 />
               </label>
               <label className="block space-y-1">
@@ -274,7 +264,7 @@ export function PropulsionStudio({}: {}): JSX.Element {
                   value={coreDmm}
                   aria-label="Grain core diameter (mm)"
                   onChange={(e) => setCoreDmm(e.target.value)}
-                  className="w-full min-h-9 bg-zinc-800 text-zinc-100 px-2 py-1.5 rounded-lg border border-zinc-600 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 font-mono"
+                  className="w-full min-h-9 bg-[#08090A] text-zinc-100 px-2 py-1.5 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] font-mono"
                 />
               </label>
               <label className="block space-y-1">
@@ -286,7 +276,7 @@ export function PropulsionStudio({}: {}): JSX.Element {
                   value={lengthMm}
                   aria-label="Grain length (mm)"
                   onChange={(e) => setLengthMm(e.target.value)}
-                  className="w-full min-h-9 bg-zinc-800 text-zinc-100 px-2 py-1.5 rounded-lg border border-zinc-600 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 font-mono"
+                  className="w-full min-h-9 bg-[#08090A] text-zinc-100 px-2 py-1.5 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] font-mono"
                 />
               </label>
               <label className="block space-y-1">
@@ -298,7 +288,7 @@ export function PropulsionStudio({}: {}): JSX.Element {
                   value={webStepMm}
                   aria-label="Web step (mm)"
                   onChange={(e) => setWebStepMm(e.target.value)}
-                  className="w-full min-h-9 bg-zinc-800 text-zinc-100 px-2 py-1.5 rounded-lg border border-zinc-600 focus-visible:border-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 font-mono"
+                  className="w-full min-h-9 bg-[#08090A] text-zinc-100 px-2 py-1.5 rounded-md border border-white/8 focus-visible:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] font-mono"
                 />
               </label>
             </div>
@@ -306,20 +296,20 @@ export function PropulsionStudio({}: {}): JSX.Element {
             {grain.ok ? (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+                  <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
                     <div className="text-[10px] text-zinc-500 uppercase font-semibold">Peak Burn Area</div>
-                    <div className="text-base font-bold font-mono text-cyan-400 mt-1">
+                    <div className="text-base font-bold font-mono text-zinc-100 mt-1">
                       {grain.peakBurnArea.toFixed(4)} m²
                     </div>
                     <div className="text-[10px] text-zinc-400 font-mono">
                       {(grain.peakBurnArea * 1e4).toFixed(1)} cm²
                     </div>
                   </div>
-                  <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+                  <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
                     <div className="text-[10px] text-zinc-500 uppercase font-semibold">Pc @ Peak Burn Area</div>
                     <div
                       data-testid="peak-chamber-pressure"
-                      className="text-base font-bold font-mono text-amber-400 mt-1"
+                      className="text-base font-bold font-mono text-zinc-100 mt-1"
                     >
                       {(grain.peakPcPa / 1e6).toFixed(3)} MPa
                     </div>
@@ -327,14 +317,14 @@ export function PropulsionStudio({}: {}): JSX.Element {
                       {(grain.peakPcPa / 1e5).toFixed(1)} bar
                     </div>
                   </div>
-                  <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+                  <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
                     <div className="text-[10px] text-zinc-500 uppercase font-semibold">Regression Samples</div>
                     <div className="text-base font-bold font-mono text-zinc-100 mt-1">
                       {grain.trace.webBurned.length}
                     </div>
                     <div className="text-[10px] text-zinc-400 font-mono">webStep {webStepMm} mm</div>
                   </div>
-                  <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
+                  <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
                     <div className="text-[10px] text-zinc-500 uppercase font-semibold">Linear Burn Rate</div>
                     <div className="text-base font-bold font-mono text-zinc-100 mt-1">
                       {(BURN_RATE_M_S * 1000).toFixed(1)} mm/s
@@ -343,7 +333,7 @@ export function PropulsionStudio({}: {}): JSX.Element {
                   </div>
                 </div>
 
-                <div className="p-3 bg-zinc-900/70 rounded-lg border border-zinc-800">
+                <div className="p-3 bg-[#08090A] rounded-lg border border-white/8">
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[10px] text-zinc-500 uppercase font-semibold">
                       Burn Area vs Web Burned
@@ -372,7 +362,7 @@ export function PropulsionStudio({}: {}): JSX.Element {
               </>
             ) : (
               <div
-                className="p-3 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-xs font-mono"
+                className="p-3 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-xs"
                 role="alert"
               >
                 Grain trace unavailable: {grain.message}
@@ -383,10 +373,10 @@ export function PropulsionStudio({}: {}): JSX.Element {
           {/* 3 — APCP nozzle performance */}
           <section
             aria-label="APCP nozzle performance"
-            className="p-4 bg-zinc-950/60 rounded-xl border border-zinc-800/80"
+            className="p-4 bg-[#08090A] rounded-lg border border-white/8"
           >
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+              <div className="p-1.5 rounded-md bg-white/5 border border-white/8 text-zinc-300">
                 <Gauge className="w-3.5 h-3.5" />
               </div>
               <h3 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">
@@ -398,7 +388,7 @@ export function PropulsionStudio({}: {}): JSX.Element {
             </div>
 
             {nozzle === null ? (
-              <div className="p-3 bg-zinc-950/60 rounded-xl border border-zinc-800 text-zinc-400 text-xs font-mono">
+              <div className="p-3 bg-[#08090A] rounded-lg border border-white/8 text-zinc-400 text-xs">
                 Nozzle performance loading from native core…
               </div>
             ) : nozzle.ok ? (
@@ -419,7 +409,7 @@ export function PropulsionStudio({}: {}): JSX.Element {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="font-mono text-sm text-cyan-300">
+                    <tr className="font-mono text-sm text-zinc-100">
                       <td className="py-1.5 pr-3">{nozzle.ispVac.toFixed(1)}</td>
                       <td className="py-1.5 pr-3">{nozzle.ispSea.toFixed(1)}</td>
                       <td className="py-1.5 pr-3">{nozzle.cstar.toFixed(1)}</td>
@@ -435,7 +425,7 @@ export function PropulsionStudio({}: {}): JSX.Element {
               </>
             ) : (
               <div
-                className="p-3 bg-rose-950/60 rounded-xl border border-rose-500/40 text-rose-300 text-xs font-mono"
+                className="p-3 bg-rose-950/60 rounded-lg border border-rose-500/40 text-rose-300 text-xs"
                 role="alert"
               >
                 Nozzle performance unavailable: {nozzle.message}
