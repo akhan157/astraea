@@ -40,9 +40,11 @@ passed=true on a clean tree. Current 2026-09-26 check: 62 frontend files /
   previews (the `.rse` trigger shipped 2026-09-26; KML refuses until the S4 payload channel publishes)
 - Versioned `.astraea.json` project envelope (`projectJson.ts`: migration chain +
   stale-write guard, tested); Header import/export and the App drop path now use
-  `readProject`/`createProjectEnvelope`/`writeProject` (2026-09-26). Remaining gap:
-  no durable revisioned-save backend is wired, and the envelope carries vehicle +
-  motor records + bindings while cases/snapshots/evidenceRefs are not yet populated by the UI
+  `readProject`/`createProjectEnvelope`/`writeProject` (2026-09-26), and Header
+  Save/Open commit and reload a revisioned localStorage slot through
+  `projectStorage.ts` (`createDurableProject`: stale base refused, corrupt bytes
+  never overwritten). Remaining scope: the envelope carries vehicle + motor
+  records + bindings while cases/snapshots/evidenceRefs are not yet populated by the UI
 - Workstation shell (five studios, precision context bar, compare dock, edit buffer,
   append-only run registry), onboarding content pack (questionnaire/guidance/explainers/tour, engine only),
   thrust-curve editing primitives (`curveEditing.ts`, engine only — see E5)

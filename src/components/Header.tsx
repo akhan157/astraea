@@ -3,7 +3,7 @@
  * Top navigation with preset switcher, .ork file import/export, and undo/redo controls.
  */
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useRocketStore, PRESETS } from '../store/rocketStore';
 import { parseOrkFile, exportToOrk } from '../formats/orkParser';
 import { parseRktString } from '../formats/rktParser';
@@ -14,6 +14,7 @@ import {
   writeProject,
   type MotorRecord,
 } from '../formats/projectJson';
+import { createDurableProject } from '../formats/projectStorage';
 import { InteropExportPanel } from './InteropExportPanel';
 import {
   Upload,
@@ -30,6 +31,13 @@ interface HeaderProps {
   /** RIVAL S2: explicit Run — drives the inline trajectory ensemble, never a modal. */
   onRun?: () => void;
 }
+
+/**
+ * The workstation's single durable project slot. Module scope so the revision
+ * base survives component remounts within a session; the store re-reads the
+ * backend on every load/save, so a commit made in another tab is never clobbered.
+ */
+const durableProject = createDurableProject();
 
 export const Header: React.FC<HeaderProps> = ({ onRun }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -149,6 +157,41 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
     }
   };
 
+  const [projectStatus, setProjectStatus] = useState<string | null>(null);
+  const [projectError, setProjectError] = useState<string | null>(null);
+
+  /** Commit the current vehicle + session motors to the durable local slot. */
+  const handleSaveProject = () => {
+    try {
+      const project = createProjectEnvelope({ vehicle, motorRecords: customMotorRecords() });
+      const committed = durableProject.save(project);
+      setProjectError(null);
+      setProjectStatus(`Saved locally (revision ${committed.revision})`);
+    } catch (err) {
+      setProjectStatus(null);
+      setProjectError(`Save failed: ${(err as Error).message}`);
+    }
+  };
+
+  /** Replace the workspace with the durable local project, or report why not. */
+  const handleOpenProject = () => {
+    try {
+      const stored = durableProject.load();
+      if (stored === null) {
+        setProjectError(null);
+        setProjectStatus('No project saved in this browser yet');
+        return;
+      }
+      setVehicle(stored.vehicle);
+      restoreMotorRecords(stored.motorRecords);
+      setProjectError(null);
+      setProjectStatus(`Opened saved project (revision ${stored.revision})`);
+    } catch (err) {
+      setProjectStatus(null);
+      setProjectError(`Open failed: ${(err as Error).message}`);
+    }
+  };
+
   return (
     <header className="h-14 bg-[#08090A] border-b border-white/8 px-4 flex items-center justify-between z-30 select-none">
       {/* Brand & Project Name */}
@@ -257,6 +300,36 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
           <span className="hidden sm:inline">Import .ork / .rkt</span>
         </button>
         <InteropExportPanel vehicle={vehicle} />
+
+        <div className="flex items-center rounded-md border border-white/8 overflow-hidden">
+          <button
+            onClick={handleSaveProject}
+            data-project-save="true"
+            className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-medium transition-colors"
+            title="Save the current project to this browser (revisioned; refuses to clobber a newer commit)"
+          >
+            Save
+          </button>
+          <button
+            onClick={handleOpenProject}
+            data-project-open="true"
+            className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-medium border-l border-white/8 transition-colors"
+            title="Open the project saved in this browser"
+          >
+            Open
+          </button>
+        </div>
+
+        {(projectStatus || projectError) && (
+          <span
+            role={projectError ? 'alert' : 'status'}
+            data-project-status={projectError ? 'error' : 'ok'}
+            className={`max-w-[14rem] truncate text-[11px] ${projectError ? 'text-rose-300' : 'text-zinc-400'}`}
+            title={projectError ?? projectStatus ?? undefined}
+          >
+            {projectError ?? projectStatus}
+          </span>
+        )}
 
         <div className="flex items-center rounded-md border border-white/8 overflow-hidden">
           <button
