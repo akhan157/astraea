@@ -72,7 +72,7 @@ Collegiate competition teams (NASA Student Launch, Spaceport America Cup, EuRoC)
 * **Ejection Charge Sizing:** Automated black powder charge mass sizing ($m_{\text{BP}}$) based on shear pin ratings (2-56 / 4-40 nylon) and ideal gas expansion pressure requirements.
 
 ### 6. Closed-Loop Flight Validation Ledger
-* **Telemetry Log Ingestion:** Drag-and-drop parsing of flight logs from AltOS (CSV), FlightSketch, and GPS tracking files (GPX).
+* **Telemetry Log Ingestion:** Drag-and-drop parsing of flight logs from AltOS (CSV), FlightSketch, and GPS tracking files (GPX), with a provenance block recording the source name, a SHA-256 of the exact text, parsed row and skipped-line counts, a dialect hint, and the parser's stated unit assumptions.
 * **Sim vs. Flight Telemetry Overlay:** Time-synchronized multi-axis comparison of predicted vs. recorded altitude, velocity, and event markers.
 * **Effective $C_d$ Calibration Optimizer:** Solves the inverse flight dynamics problem against unpowered coasting data to extract the physical airframe drag coefficient and feed calibrated parameters back into future predictions.
 * **Landing Back-Cast Analysis:** Projects measured GPS landing coordinates onto simulation dispersion ellipses to assess trajectory compliance.
