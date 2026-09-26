@@ -37,8 +37,11 @@ passed=true on a clean tree. Current 2026-09-26 check: 62 frontend files /
 - Altimetry CSV + GPX ingest, sim/flight alignment, Cd calibration, GPS back-cast
 - `.ork` bidirectional, `.rkt` import + `.rkt` export trigger, `.cdx1` + aero-matrix +
   blueprint SVG/PNG export, STEP/STL/KML/ENG download triggers with omission previews
-- Versioned `.astraea.json` project envelope engine (`projectJson.ts`: migration chain +
-  stale-write guard, tested); Header/App still read/write the legacy bare vehicle (cutover pending)
+- Versioned `.astraea.json` project envelope (`projectJson.ts`: migration chain +
+  stale-write guard, tested); Header import/export and the App drop path now use
+  `readProject`/`createProjectEnvelope`/`writeProject` (2026-09-26). Remaining gap:
+  no durable revisioned-save backend is wired, and the envelope carries vehicle +
+  motor records + bindings while cases/snapshots/evidenceRefs are not yet populated by the UI
 - Workstation shell (five studios, precision context bar, compare dock, edit buffer,
   append-only run registry), onboarding content pack (questionnaire/guidance/explainers/tour, engine only),
   thrust-curve editing primitives (`curveEditing.ts`, engine only — see E5)

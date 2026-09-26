@@ -20,8 +20,8 @@ module, with the prerequisite that unlocks it.
 
 | # | Direction / format | Status | Grounding |
 |---|---|---|---|
-| 1 | JSON project read (versioned, schema migration) | tested engine / unwired UI | `readProject` (`src/formats/projectJson.ts`) + `projectJson.test.ts` (legacy bare-vehicle migration, fail-closed validation, future-version refusal). `App.tsx`/`Header.tsx` still do `JSON.parse` → `setVehicle` on the bare vehicle: unvalidated, no revision/binding/case content. Prerequisite: UI cutover to `readProject`. |
-| 2 | JSON project write (versioned, schema migration) | tested engine / unwired UI | `writeProject` + `createProjectStore` stale-write guard, same suite. `Header.tsx` `handleExportJson` still writes `JSON.stringify(vehicle)` — bare vehicle, no version. Prerequisite: UI cutover to `writeProject` envelope. |
+| 1 | JSON project read (versioned, schema migration) | tested engine / **wired (2026-09-26)** | `readProject` (`src/formats/projectJson.ts`) + `projectJson.test.ts` (legacy bare-vehicle migration, fail-closed validation, future-version refusal). `Header.tsx` `.json` import and `App.tsx` drop import now call `readProject` and re-register non-certified motor records; a rejected document fails closed (Header `alert`, App inline disclosure). Pins: `App.test.tsx` envelope drop + unknown-version refusal. |
+| 2 | JSON project write (versioned, schema migration) | tested engine / **wired (2026-09-26)** | `writeProject` + `createProjectStore` stale-write guard, same suite. `Header.tsx` `handleExportJson` now builds an envelope via `createProjectEnvelope` (vehicle + session custom-motor records + derived bindings) and serializes with `writeProject`. Revisioned durable save (`createProjectStore`) is still not wired to a UI backend. |
 | 3 | ORK read (supported subset) | tested | `parseOrkFile` (`src/formats/orkParser.ts`), round-trip suite `orkParser.test.ts` (F2 mass fidelity), wired in `Header.tsx` import + `App.tsx` drop. Traverses stage/subcomponents; elliptical + von Kármán mapped. |
 | 4 | ORK write (supported subset) | tested | `exportToOrk`, same suite, Header download path. Subset limit: emits exactly one `Sustainer Stage`; multi-stage/clustered input fidelity is unpinned and the UI shows no loss report (prerequisite: staged-file adapter test + loss disclosure). |
 | 5 | RKT read (supported subset) | tested | `parseRktString` (`rktParser.ts`), `rktParser.test.ts`, wired in Header/App. Reads `Stage*Parts` keys; RockSim ShapeCode 1–4 mapped (von Kármán → ogive by construction). Elliptical-fin import mapping is unpinned (parser imports only the trapezoid type). |
@@ -43,7 +43,7 @@ module, with the prerequisite that unlocks it.
 
 ## UI wiring map (checked consumers)
 
-- Header import: `.ork` (parse), `.rkt` (parse), `.json` (legacy bare vehicle — `readProject` cutover pending), `.eng`/`.rse` (parse). Header export: `.ork`, bare JSON (`writeProject` envelope cutover pending).
+- Header import: `.ork` (parse), `.rkt` (parse), `.json` (versioned envelope via `readProject`, legacy bare vehicle migrated), `.eng`/`.rse` (parse). Header export: `.ork`, versioned `.astraea.json` envelope via `writeProject`. App drop import: `.rkt`, `.json` envelope, `.ork`.
 - `InteropExportPanel`: `.cdx1`, aero-matrix `.csv`, blueprint `.svg`/`.png`, plus row-6 triggers `.rkt`/`.eng`/`.kml`/`.step`/`.stl` with omission previews. Remaining row-6 gap: `.rse` trigger (writer + suite ship, no trigger).
 - `EvidenceStudio`: log-CSV + GPX paste (GPX via `parseGpxTrack` → `gpsToEnu` → `gpsAltitudeSeries`); RecoveryCard derived-bay 2D strip. `TrajectoryStudio`: manual wind table only (no CSV consumer). `SimFlightOverlay`: back-cast via `backcastTouchdown` engine; no dedicated GPS report surface.
 - Live motor search/download (`thrustcurveApi.ts`): tested module, no component/store consumer.
@@ -52,7 +52,7 @@ module, with the prerequisite that unlocks it.
 
 ## Missing-cell list (prerequisite order)
 
-1. Versioned JSON project read/write UI cutover (S3) — engine + migration chain + stale-write guard ship tested; Header/App still use the legacy bare shape.
+1. ~~Versioned JSON project read/write UI cutover (S3)~~ — SHIPPED 2026-09-26 for the file import/export paths; only the revisioned durable-save backend (`createProjectStore`) remains unwired, and the envelope currently carries vehicle + motor records + bindings (cases/snapshots/evidenceRefs are accepted by the API but no UI populates them yet).
 2. CDX1 import strategy (reference-only until fitting specified).
 3. RSE export trigger (writer + round-trip suite ship; ENG-style trigger + preview pending).
 4. Wind-CSV import view + snapshot + loads consumption (S5); MC worker host with progress/cancel (E1 same work package).

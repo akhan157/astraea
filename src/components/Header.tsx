@@ -8,6 +8,12 @@ import { useRocketStore, PRESETS } from '../store/rocketStore';
 import { parseOrkFile, exportToOrk } from '../formats/orkParser';
 import { parseRktString } from '../formats/rktParser';
 import { parseRaspEng, parseRseXml } from '../formats/engParser';
+import {
+  createProjectEnvelope,
+  readProject,
+  writeProject,
+  type MotorRecord,
+} from '../formats/projectJson';
 import { InteropExportPanel } from './InteropExportPanel';
 import {
   Upload,
@@ -46,6 +52,33 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
   const historyLen = useRocketStore((s) => s.history.length);
   const futureLen = useRocketStore((s) => s.future.length);
 
+  /**
+   * Session custom motors as envelope motor records. The store's only
+   * production writer is this header's `.eng`/`.rse` import path, so the
+   * honest provenance label is 'import' — no other origin is claimed.
+   */
+  const customMotorRecords = (): MotorRecord[] =>
+    Object.values(useRocketStore.getState().customMotors).map((motor) => ({
+      id: motor.id,
+      motor,
+      provenance: { source: 'import' as const },
+    }));
+
+  /**
+   * Re-register an imported envelope's non-certified motor records so a
+   * reloaded project's bound custom motors stay usable. Certified records are
+   * already in the bundled library and are skipped. If a restored id collides
+   * with a different designation the store suffixes it, in which case the
+   * vehicle reference is left dangling (visible as unresolvable) rather than
+   * being silently rebound to the wrong motor.
+   */
+  const restoreMotorRecords = (records: MotorRecord[]) => {
+    for (const rec of records) {
+      if (rec.provenance.source === 'certified') continue;
+      importCustomMotor(rec.motor);
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -66,8 +99,12 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
         setVehicle(imported);
       } else if (file.name.endsWith('.json')) {
         const text = new TextDecoder().decode(buffer);
-        const parsed = JSON.parse(text);
-        setVehicle(parsed);
+        // S3-lite cutover: the versioned envelope reader validates and migrates
+        // (legacy bare vehicle included) and fails closed on unknown versions
+        // or structural violations, instead of an unchecked JSON.parse.
+        const project = readProject(text);
+        setVehicle(project.vehicle);
+        restoreMotorRecords(project.motorRecords);
       } else {
         const imported = await parseOrkFile(buffer);
         setVehicle(imported);
@@ -95,14 +132,21 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
   };
 
   const handleExportJson = () => {
-    const jsonStr = JSON.stringify(vehicle, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${vehicle.name.toLowerCase().replace(/\s+/g, '-')}.astraea.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      // Export the versioned envelope (vehicle + motor records + bindings)
+      // rather than the bare vehicle, so a reload keeps custom motors usable.
+      const project = createProjectEnvelope({ vehicle, motorRecords: customMotorRecords() });
+      const jsonStr = writeProject(project);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${vehicle.name.toLowerCase().replace(/\s+/g, '-')}.astraea.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(`Export failed: ${(err as Error).message}`);
+    }
   };
 
   return (

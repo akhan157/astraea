@@ -13,6 +13,7 @@ import { WorkstationShell } from './components/workstation/WorkstationShell';
 import { useRocketStore } from './store/rocketStore';
 import { parseOrkFile } from './formats/orkParser';
 import { parseRktString } from './formats/rktParser';
+import { readProject } from './formats/projectJson';
 import { UploadCloud } from 'lucide-react';
 
 /** Inline disclosure payload for a failed drop-import (never a modal alert). */
@@ -23,6 +24,7 @@ export interface DropImportReport {
 
 export const App: React.FC = () => {
   const setVehicle = useRocketStore((s) => s.setVehicle);
+  const importCustomMotor = useRocketStore((s) => s.importCustomMotor);
 
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [report, setReport] = useState<DropImportReport | null>(null);
@@ -53,8 +55,15 @@ export const App: React.FC = () => {
         setVehicle(imported);
       } else if (file.name.endsWith('.json')) {
         const text = new TextDecoder().decode(buffer);
-        const parsed = JSON.parse(text);
-        setVehicle(parsed);
+        // Versioned envelope reader: validates + migrates (legacy bare vehicle
+        // included) and fails closed into the disclosure banner below.
+        const project = readProject(text);
+        setVehicle(project.vehicle);
+        // Re-register non-certified motor records so bound custom motors stay
+        // usable after reload; certified records are already bundled.
+        for (const rec of project.motorRecords) {
+          if (rec.provenance.source !== 'certified') importCustomMotor(rec.motor);
+        }
       } else {
         const imported = await parseOrkFile(buffer);
         setVehicle(imported);

@@ -16,6 +16,7 @@ import {
   InvalidProjectError,
   StaleRevisionError,
   createMemoryBackend,
+  createProjectEnvelope,
   createProjectStore,
   readProject,
   writeProject,
@@ -303,5 +304,97 @@ describe('projectJson stale-write guard', () => {
     const store = createProjectStore(corrupt);
     expect(() => store.load()).toThrow(InvalidProjectError);
     expect(() => store.save(envelope(), 0)).toThrow(InvalidProjectError);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Envelope construction (S3-lite UI export cutover)
+// ---------------------------------------------------------------------------
+
+describe('projectJson createProjectEnvelope', () => {
+  it('derives certified records and mount bindings from the vehicle alone', () => {
+    const project = createProjectEnvelope({ vehicle: LEGACY_VEHICLE });
+    expect(project.schemaVersion).toBe(PROJECT_SCHEMA_VERSION);
+    expect(project.revision).toBe(INITIAL_REVISION);
+    expect(project.motorRecords.map((r) => r.id)).toEqual(['estes_c6']);
+    expect(project.motorRecords[0].provenance).toEqual({ source: 'certified' });
+    expect(project.bindings).toEqual([
+      { kind: 'motorMount', vehicleComponentId: MOUNT_TUBE_ID, motorRecordId: 'estes_c6' },
+    ]);
+    // Round-trips through the fail-closed writer and reader unchanged.
+    const reread = readProject(writeProject(project));
+    expect(reread.vehicle).toEqual(LEGACY_VEHICLE);
+    expect(reread.bindings).toEqual(project.bindings);
+  });
+
+  it('keeps a supplied record over the derived certified one, preserving its provenance', () => {
+    const project = createProjectEnvelope({
+      vehicle: LEGACY_VEHICLE,
+      motorRecords: [
+        {
+          id: 'Estes C6',
+          motor: CERTIFIED_MOTORS.estes_c6,
+          provenance: { source: 'import', sourceFile: 'estes-c6.eng' },
+        },
+      ],
+    });
+    expect(project.motorRecords).toHaveLength(1);
+    expect(project.motorRecords[0].id).toBe('estes_c6');
+    expect(project.motorRecords[0].provenance).toEqual({
+      source: 'import',
+      sourceFile: 'estes-c6.eng',
+    });
+    expect(project.bindings).toHaveLength(1);
+  });
+
+  it('leaves an unknown assigned motor id unreferenced rather than fabricating a record', () => {
+    const vehicle = {
+      ...LEGACY_VEHICLE,
+      components: [
+        LEGACY_VEHICLE.components[0],
+        { ...LEGACY_VEHICLE.components[1], assignedMotorId: 'session_custom_k550' },
+      ],
+    };
+    const project = createProjectEnvelope({ vehicle });
+    expect(project.motorRecords).toEqual([]);
+    expect(project.bindings).toEqual([]);
+    const reread = readProject(writeProject(project));
+    const tube = reread.vehicle.components.find((c) => c.id === MOUNT_TUBE_ID);
+    const assigned = tube && 'assignedMotorId' in tube ? tube.assignedMotorId : undefined;
+    expect(assigned).toBe('session_custom_k550');
+  });
+
+  it('carries caller payloads and revision without dropping or inventing any', () => {
+    const project = createProjectEnvelope({
+      vehicle: LEGACY_VEHICLE,
+      revision: 7,
+      cases: [
+        {
+          id: 'case-1',
+          kind: 'flight',
+          createdAt: T,
+          motorRecordId: 'estes_c6',
+          summary: { apogeeM: 120.5 },
+        },
+      ],
+      snapshots: [
+        {
+          id: 'snap-1',
+          kind: 'weather',
+          createdAt: T,
+          source: 'manual',
+          data: [{ altitudeM: 0, speedMs: 3, directionFromDeg: 270, tempC: 18, pressureHpa: 1013 }],
+        },
+      ],
+      evidenceRefs: [{ id: 'ev-1', kind: 'altimetry', createdAt: T, checksumSha256: SHA }],
+    });
+    expect(project.revision).toBe(7);
+    expect(project.cases).toHaveLength(1);
+    expect(project.snapshots).toHaveLength(1);
+    expect(project.evidenceRefs).toHaveLength(1);
+    const reread = readProject(writeProject(project));
+    expect(reread.revision).toBe(7);
+    expect(reread.cases[0].summary).toEqual({ apogeeM: 120.5 });
+    expect(reread.evidenceRefs[0].checksumSha256).toBe(SHA);
   });
 });

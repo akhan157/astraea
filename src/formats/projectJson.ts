@@ -228,31 +228,66 @@ function migrateToCurrent(doc: unknown): unknown {
  * and no binding — nothing is fabricated.
  */
 function migrateBareVehicleToV1(doc: unknown): ProjectEnvelope {
-  const vehicle = validateVehicle(doc);
+  return createProjectEnvelope({ vehicle: validateVehicle(doc) });
+}
+
+/**
+ * Build a current-schema envelope from live UI state (the S3-lite UI cutover).
+ *
+ * Motor records and mount bindings are derived from the vehicle's own
+ * `assignedMotorId` references, exactly as the legacy migration does: a
+ * bundled certified record resolves directly; an id the certified library does
+ * not know (typically a session custom motor) is left as a vehicle reference
+ * with no record and no binding — nothing is fabricated. Callers that DO hold
+ * the motor spec (e.g. the store's custom-motor registry) pass it in
+ * `motorRecords`; supplied records win over derived certified ones on id
+ * collision, so an import's provenance is never silently relabeled.
+ *
+ * The result is validated through `writeProject` on serialize; this function
+ * itself only assembles. Throws InvalidProjectError for a structurally invalid
+ * vehicle, same as the reader.
+ */
+export function createProjectEnvelope(seed: {
+  vehicle: RocketVehicle;
+  motorRecords?: ReadonlyArray<MotorRecord>;
+  cases?: ReadonlyArray<SimCase>;
+  snapshots?: ReadonlyArray<ProjectSnapshot>;
+  evidenceRefs?: ReadonlyArray<EvidenceRef>;
+  revision?: number;
+}): ProjectEnvelope {
+  const vehicle = validateVehicle(seed.vehicle);
   const motorRecords: MotorRecord[] = [];
-  const recordsSeen = new Set<string>();
+  const byId = new Map<string, MotorRecord>();
+  for (const rec of seed.motorRecords ?? []) {
+    const id = normalizeMotorId(rec.id);
+    if (byId.has(id)) continue; // first occurrence wins — caller order is authority
+    const normalized: MotorRecord = { ...rec, id };
+    byId.set(id, normalized);
+    motorRecords.push(normalized);
+  }
   const bindings: MotorMountBinding[] = [];
   for (const comp of vehicle.components) {
     const assigned = 'assignedMotorId' in comp ? comp.assignedMotorId : undefined;
     if (typeof assigned !== 'string' || assigned.length === 0) continue;
     const key = normalizeMotorId(assigned);
-    const certified = CERTIFIED_MOTORS[key];
-    if (!certified) continue;
-    if (!recordsSeen.has(key)) {
-      recordsSeen.add(key);
-      motorRecords.push({ id: key, motor: certified, provenance: { source: 'certified' } });
+    if (!byId.has(key)) {
+      const certified = CERTIFIED_MOTORS[key];
+      if (!certified) continue; // unknown id: no record, no binding — nothing fabricated
+      const derived: MotorRecord = { id: key, motor: certified, provenance: { source: 'certified' } };
+      byId.set(key, derived);
+      motorRecords.push(derived);
     }
     bindings.push({ kind: 'motorMount', vehicleComponentId: comp.id, motorRecordId: key });
   }
   return {
     schemaVersion: PROJECT_SCHEMA_VERSION,
-    revision: INITIAL_REVISION,
+    revision: seed.revision ?? INITIAL_REVISION,
     vehicle,
     motorRecords,
     bindings,
-    cases: [],
-    snapshots: [],
-    evidenceRefs: [],
+    cases: [...(seed.cases ?? [])],
+    snapshots: [...(seed.snapshots ?? [])],
+    evidenceRefs: [...(seed.evidenceRefs ?? [])],
   };
 }
 

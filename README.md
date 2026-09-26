@@ -94,7 +94,7 @@ Formats are supported on a per-direction and per-feature basis. Some modules are
 | **Motor Curves (`.eng` / `.rse`)** | Import & Export | Import and tested writer engines; RSE export trigger is still unwired in the UI. |
 | **Engineering Blueprints** | Export | Dimensioned technical drawing vector SVG and print-ready raster PNG. |
 | **Google Earth (`.kml`)** | Export | Trigger refuses until a committed run has published its telemetry payload. |
-| **Project Envelopes (`.json`)** | Import & Export | Versioned envelope engine is tested; Header/App still use the legacy bare-vehicle JSON UI path. |
+| **Project Envelopes (`.json`)** | Import & Export | Versioned `.astraea.json` envelope via the fail-closed reader/builder; legacy bare-vehicle files migrate on read. Durable revisioned-save backend and case/snapshot/evidence payloads are not yet wired. |
 
 ---
 

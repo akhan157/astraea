@@ -27,6 +27,46 @@ const dropBrokenJson = (root: HTMLElement) => {
   });
 };
 
+const dropJson = (root: HTMLElement, body: string, name = 'project.astraea.json') => {
+  fireEvent.drop(root, {
+    dataTransfer: { files: [new File([body], name, { type: 'application/json' })] },
+  });
+};
+
+
+
+/** A minimal validated envelope for the drop path (envelope reader contract). */
+function validEnvelopeJson(name: string): string {
+  return JSON.stringify({
+    schemaVersion: '1.0.0',
+    revision: 1,
+    vehicle: {
+      id: 'dropped-1',
+      name,
+      version: '1.0',
+      author: 'Drop Test',
+      components: [
+        {
+          id: 'nc-drop',
+          name: 'Nosecone',
+          type: 'nosecone',
+          shape: 'vonkarman',
+          length: 0.3,
+          baseDiameter: 0.1,
+          wallThickness: 0.002,
+          isHollow: true,
+          materialId: 'fiberglass',
+        },
+      ],
+    },
+    motorRecords: [],
+    bindings: [],
+    cases: [],
+    snapshots: [],
+    evidenceRefs: [],
+  });
+}
+
 describe('App drop-import disclosure', () => {
   it('reports a failed drop-import inline (role=alert banner), never window.alert or a dialog', async () => {
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
@@ -48,5 +88,27 @@ describe('App drop-import disclosure', () => {
     fireEvent.click(screen.getByLabelText('Dismiss disclosure'));
     await waitFor(() => expect(document.querySelector('[data-drop-import-error]')).toBeNull());
     expect(alertSpy).not.toHaveBeenCalled();
+  });
+
+  it('loads a versioned envelope dropped as JSON into the vehicle store', async () => {
+    const { container } = render(<App />);
+    dropJson(container.firstElementChild as HTMLElement, validEnvelopeJson('Envelope Dropped'));
+
+    await waitFor(() => expect(useRocketStore.getState().vehicle.name).toBe('Envelope Dropped'));
+    expect(useRocketStore.getState().vehicle.id).toBe('dropped-1');
+    expect(document.querySelector('[data-drop-import-error]')).toBeNull();
+  });
+
+  it('fails closed on a JSON document the envelope reader rejects (unknown schema version)', async () => {
+    const { container } = render(<App />);
+    dropJson(
+      container.firstElementChild as HTMLElement,
+      JSON.stringify({ schemaVersion: '99.0.0', vehicle: { components: [] } }),
+    );
+
+    await waitFor(() => expect(document.querySelector('[data-drop-import-error]')).toBeTruthy());
+    expect(document.querySelector('[data-drop-import-error]')?.textContent).toMatch(
+      /no migration|neither a versioned project envelope/,
+    );
   });
 });
