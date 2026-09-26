@@ -21,7 +21,7 @@ export interface TrajectorySample {
 }
 
 /** Recognized case-insensitive column names (already unquoted). */
-const TIME_HEADERS: Record<string, true> = {
+export const TIME_HEADERS: Record<string, true> = {
   time: true,
   t: true,
   timestamp: true,
@@ -29,7 +29,7 @@ const TIME_HEADERS: Record<string, true> = {
   'time (s)': true,
 };
 
-const ALT_HEADERS: Record<string, true> = {
+export const ALT_HEADERS: Record<string, true> = {
   alt: true,
   altitude: true,
   agl: true,

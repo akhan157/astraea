@@ -1,6 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi, afterEach } from 'vitest';
 import { alignSimToFlight, parseAltimeterCsv, resample, type TrajectorySample } from './altimetry';
+import { buildLogProvenance, countSkippedLines, detectLogDialect, sha256HexOfText, UNAVAILABLE_HASH } from './logProvenance';
 import { calibrateCd, MIN_VELOCITY_MS, type CoastPoint } from './calibration';
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('parseAltimeterCsv', () => {
   it('handles quoted headers with aliases and extra columns', () => {
@@ -76,6 +81,49 @@ describe('parseAltimeterCsv', () => {
     expect(() => parseAltimeterCsv('# only a comment\n; and another\n')).toThrow();
     expect(() => parseAltimeterCsv('time,alt\n')).toThrow();
     expect(() => parseAltimeterCsv('time,alt\nabc,def\n')).toThrow();
+  });
+});
+
+describe('logProvenance', () => {
+  const GENERIC_CSV = 'time,alt\n0,10\n1,20\n';
+
+  it('hashes identical text stably and differs on one changed byte', async () => {
+    const first = await sha256HexOfText(GENERIC_CSV);
+    expect(first).toMatch(/^[0-9a-f]{64}$/);
+    expect(await sha256HexOfText(GENERIC_CSV)).toBe(first);
+    expect(await sha256HexOfText('time,alt\n0,10\n1,21\n')).not.toBe(first);
+  });
+
+  it("reports 'unavailable' instead of fabricating when SubtleCrypto is missing", async () => {
+    vi.stubGlobal('crypto', undefined);
+    expect(await sha256HexOfText(GENERIC_CSV)).toBe(UNAVAILABLE_HASH);
+  });
+
+  it("reports 'unavailable' instead of fabricating when the digest rejects", async () => {
+    vi.stubGlobal('crypto', { subtle: { digest: () => Promise.reject(new Error('denied')) } });
+    expect(await sha256HexOfText(GENERIC_CSV)).toBe(UNAVAILABLE_HASH);
+  });
+  it('counts rows and skipped lines honestly', async () => {
+    const raw = ['# Flight log export', '', 'time,alt', '0,12', '', '1,18', '# trailing'].join('\n');
+    expect(parseAltimeterCsv(raw)).toHaveLength(2);
+    const record = await buildLogProvenance({ rawText: raw, fileName: 'flight.csv', rowCount: 2 });
+    expect(record.sourceFileName).toBe('flight.csv');
+    expect(record.rowCount).toBe(2);
+    expect(record.skippedLineCount).toBe(4);
+    expect(record.dialect).toBe('generic-csv');
+    expect(record.timeUnitAssumption).toMatch(/seconds/);
+    expect(record.altitudeUnitAssumption).toMatch(/meters/);
+  });
+
+  it('detects AltOS-flavoured logs and keeps plain CSV generic', () => {
+    expect(detectLogDialect('"time","altitude","battery"\n0,10,9.8\n')).toBe('altos-csv');
+    expect(detectLogDialect('# AltOS export\ntime,alt\n0,10\n')).toBe('altos-csv');
+    expect(detectLogDialect(GENERIC_CSV)).toBe('generic-csv');
+    expect(detectLogDialect('velocity,position\n0,10\n')).toBe('generic-csv');
+  });
+
+  it('never reports a negative skip count for over-claimed rows', () => {
+    expect(countSkippedLines(GENERIC_CSV, 99)).toBe(0);
   });
 });
 
