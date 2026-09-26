@@ -18,8 +18,8 @@
  *      separately from the current paste.
  */
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { EvidenceStudio } from './EvidenceStudio';
 import { useRocketStore } from '../store/rocketStore';
 
@@ -59,11 +59,16 @@ describe('EvidenceStudio', () => {
     render(<EvidenceStudio />);
   });
 
-  it('parses a pasted flight-log CSV, resamples at dt, and shows apogee', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('parses a pasted flight-log CSV, resamples at dt, and shows apogee', async () => {
     const textarea = screen.getByLabelText('Altimeter CSV data');
     fireEvent.change(textarea, { target: { value: FLIGHT_CSV } });
 
     fireEvent.click(screen.getByRole('button', { name: /parse/i }));
+    await screen.findByText('Log provenance — what was received, not inferred');
 
     expect(readKvValue('Samples parsed')).toBe('13');
     fireEvent.click(screen.getByRole('button', { name: /^resample$/i }));
@@ -71,6 +76,68 @@ describe('EvidenceStudio', () => {
     // Apogee of the resampled series: 214.2 m at 3.0 s, the raw max.
     expect(readKvValue('Apogee altitude')).toBe('214.2 m');
     expect(readKvValue('Apogee at')).toBe('3.0 s');
+  });
+
+  it('shows the provenance record after a paste: name, checksum, rows, dialect, units', async () => {
+    fireEvent.change(screen.getByLabelText('Altimeter CSV data'), { target: { value: FLIGHT_CSV } });
+    fireEvent.click(screen.getByRole('button', { name: /parse/i }));
+    await screen.findByText('Log provenance — what was received, not inferred');
+
+    expect(readKvValue('Source file')).toBe('pasted text');
+    expect(readKvValue('Rows parsed')).toBe('13');
+    expect(readKvValue('Dialect')).toBe('generic-csv');
+    expect(readKvValue('Time unit')).toMatch(/seconds/);
+    expect(readKvValue('Altitude unit')).toMatch(/meters/);
+    // Header + 13 data rows, no blanks: nothing skipped.
+    expect(readKvValue('Skipped lines')).toBe('0');
+    // Real SubtleCrypto digest: 64 lowercase hex chars, not a placeholder.
+    expect(readKvValue('SHA-256')).toMatch(/^[0-9a-f]{64}$/);
+    // Inspectable block with per-field attributes.
+    const record = document.querySelector('[data-log-provenance="record"]');
+    expect(record).not.toBeNull();
+    for (const key of ['source', 'checksum', 'rows', 'dialect', 'units', 'skipped']) {
+      expect(record!.querySelector(`[data-log-provenance="${key}"]`)).not.toBeNull();
+    }
+  });
+
+  it('imports a picked file under its file name and checksum', async () => {
+    const csv = 'time,alt\n0,10\n1,20\n';
+    const file = new File([csv], 'flight-log.csv', { type: 'text/csv' });
+    const input = screen.getByLabelText('Flight log file') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+    await screen.findByText('Log provenance — what was received, not inferred');
+
+    expect(readKvValue('Source file')).toBe('flight-log.csv');
+    expect(readKvValue('Rows parsed')).toBe('2');
+    expect(readKvValue('Skipped lines')).toBe('1');
+  });
+
+  it("reports 'checksum unavailable' instead of fabricating when hashing fails", async () => {
+    vi.stubGlobal('crypto', undefined);
+    fireEvent.change(screen.getByLabelText('Altimeter CSV data'), { target: { value: FLIGHT_CSV } });
+    fireEvent.click(screen.getByRole('button', { name: /parse/i }));
+    await screen.findByText('Log provenance — what was received, not inferred');
+
+    expect(readKvValue('SHA-256')).toBe('checksum unavailable');
+    // Nothing fabricated: source stays honest pasted-text, rows stay exact.
+    expect(readKvValue('Source file')).toBe('pasted text');
+    expect(readKvValue('Rows parsed')).toBe('13');
+  });
+
+  it('keeps the prior provenance record when a later paste fails', async () => {
+    const textarea = screen.getByLabelText('Altimeter CSV data');
+    fireEvent.change(textarea, { target: { value: FLIGHT_CSV } });
+    fireEvent.click(screen.getByRole('button', { name: /parse/i }));
+    await screen.findByText('Log provenance — what was received, not inferred');
+    const before = readKvValue('SHA-256');
+    expect(before).toMatch(/^[0-9a-f]{64}$/);
+
+    fireEvent.change(textarea, { target: { value: 'garbage header\n0,1' } });
+    fireEvent.click(screen.getByRole('button', { name: /parse/i }));
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/parseAltimeterCsv/i));
+
+    expect(readKvValue('SHA-256')).toBe(before);
+    expect(readKvValue('Rows parsed')).toBe('13');
   });
 
   it('returns a finite Cd candidate + RMSE for the 3-point calibration preset', () => {

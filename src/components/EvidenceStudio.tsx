@@ -24,11 +24,12 @@
  * this scoped panel.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { SimFlightOverlay } from './SimFlightOverlay';
 import { Activity, Variable, Package, ClipboardPaste } from 'lucide-react';
 import { StudioHeader } from './ui/StudioHeader';
 import { parseAltimeterCsv, resample, AltitudeSample } from '../evidence/altimetry';
+import { buildLogProvenance, LogProvenance, UNAVAILABLE_HASH } from '../evidence/logProvenance';
 import { calibrateCd, CoastPoint, CalibrationResult } from '../evidence/calibration';
 import { useRocketStore } from '../store/rocketStore';
 import {
@@ -194,25 +195,62 @@ function AltimetryCard(): React.JSX.Element {
   const [csvText, setCsvText] = useState<string>('');
   const [csvTextDirty, setCsvTextDirty] = useState<boolean>(false);
   const [parsed, setParsed] = useState<AltitudeSample[] | null>(null);
+  const [sourceName, setSourceName] = useState<string | null>(null);
+  const [provenance, setProvenance] = useState<LogProvenance | null>(null);
   const [dtText, setDtText] = useState<string>('0.5');
   const [resampled, setResampled] = useState<AltitudeSample[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-
+  const parseSeq = useRef(0);
   const csvDirty = csvTextDirty && parsed !== null;
 
-  const handleParse = () => {
+  const handleParse = async () => {
+    const seq = ++parseSeq.current;
     setCsvTextDirty(false);
     try {
       const samples = parseAltimeterCsv(csvText);
       setParsed(samples);
       setError(null);
       setResampled(null);
+      const record = await buildLogProvenance({
+        rawText: csvText,
+        fileName: sourceName,
+        rowCount: samples.length,
+      });
+      // A newer paste/import wins: a slow checksum must never overwrite it.
+      if (parseSeq.current === seq) setProvenance(record);
     } catch (err) {
       // A failed parse keeps the last successful import on screen, labeled
       // separately — a bad paste must never wipe prior evidence.
       setError(err instanceof Error ? err.message : String(err));
     }
   };
+
+  const handleFile = async (file: File) => {
+    const seq = ++parseSeq.current;
+    const text = await file.text();
+    // A newer paste/import started while reading: keep its bytes.
+    if (parseSeq.current !== seq) return;
+    try {
+      const samples = parseAltimeterCsv(text);
+      // Commit the new bytes only on success: a rejected file leaves the
+      // prior text, source name, and provenance untouched (fail-closed).
+      setCsvText(text);
+      setCsvTextDirty(false);
+      setSourceName(file.name);
+      setParsed(samples);
+      setError(null);
+      setResampled(null);
+      const record = await buildLogProvenance({
+        rawText: text,
+        fileName: file.name,
+        rowCount: samples.length,
+      });
+      if (parseSeq.current === seq) setProvenance(record);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
 
   const handleResample = () => {
     const dt = toNumber(dtText);
@@ -264,6 +302,9 @@ function AltimetryCard(): React.JSX.Element {
         onChange={(e) => {
           setCsvText(e.target.value);
           setCsvTextDirty(true);
+          // Edited text no longer matches the picked file: drop the name
+          // rather than show a filename beside foreign bytes.
+          setSourceName(null);
         }}
         aria-label="Altimeter CSV data"
         placeholder={'time_s,altitude_m\n0.0,12.0\n0.5,24.5\n1.0,37.5\n…'}
@@ -303,6 +344,20 @@ function AltimetryCard(): React.JSX.Element {
         >
           Resample
         </button>
+        <label className="min-h-8 px-3 py-1.5 rounded-md bg-white/5 border border-white/8 text-zinc-200 hover:bg-white/10 text-[10px] font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]">
+          Import file
+          <input
+            type="file"
+            accept=".csv,.txt,.log,text/csv,text/plain"
+            aria-label="Flight log file"
+            className="hidden"
+            onChange={(e) => {
+              const picked = e.target.files?.[0];
+              e.target.value = '';
+              if (picked !== undefined) void handleFile(picked);
+            }}
+          />
+        </label>
       </div>
 
       {error !== null && (
@@ -332,6 +387,40 @@ function AltimetryCard(): React.JSX.Element {
           <KvRow label="Apogee at" value={apogeeS() === null ? '—' : `${apogeeS()!.toFixed(1)} s`} className="text-zinc-400" />
         </div>
       </div>
+      {provenance !== null && parsed !== null && (
+        <div
+          data-log-provenance="record"
+          className="p-2.5 bg-[#08090A] rounded-lg border border-white/8 space-y-1.5"
+        >
+          <p className="text-[9px] text-zinc-500 font-semibold uppercase">
+            Log provenance — what was received, not inferred
+          </p>
+          <div data-log-provenance="source">
+            <KvRow label="Source file" value={provenance.sourceFileName ?? 'pasted text'} className="text-zinc-100" />
+          </div>
+          <div data-log-provenance="checksum">
+            <KvRow
+              label="SHA-256"
+              value={provenance.sha256Hex === UNAVAILABLE_HASH ? 'checksum unavailable' : provenance.sha256Hex}
+              className="text-zinc-100 break-all"
+            />
+          </div>
+          <div data-log-provenance="rows">
+            <KvRow label="Rows parsed" value={String(provenance.rowCount)} className="text-zinc-100" />
+          </div>
+          <div data-log-provenance="dialect">
+            <KvRow label="Dialect" value={provenance.dialect} className="text-zinc-100" />
+          </div>
+          <div data-log-provenance="units">
+            <KvRow label="Time unit" value={provenance.timeUnitAssumption} className="text-zinc-100" />
+            <KvRow label="Altitude unit" value={provenance.altitudeUnitAssumption} className="text-zinc-100" />
+          </div>
+          <div data-log-provenance="skipped">
+            <KvRow label="Skipped lines" value={String(provenance.skippedLineCount)} className="text-zinc-100" />
+          </div>
+        </div>
+      )}
+
 
       {csvDirty && (
         <p className="text-[9px] text-amber-400/90">
