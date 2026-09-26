@@ -388,7 +388,7 @@ export function PropulsionStudio(): JSX.Element {
             </div>
 
             {nozzle === null ? (
-              <div className="p-3 bg-zinc-950/60 rounded-md border border-zinc-800 text-zinc-400 text-xs font-mono">
+              <div className="p-3 bg-[#08090A] rounded-lg border border-white/8 text-zinc-400 text-xs">
                 Nozzle performance loading from native core…
               </div>
             ) : nozzle.ok ? (
