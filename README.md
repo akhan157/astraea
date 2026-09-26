@@ -42,7 +42,7 @@ Collegiate competition teams (NASA Student Launch, Spaceport America Cup, EuRoC)
 ```
 
 ### 1. Interactive 3D Parametric CAD
-* **Procedural Assembly Canvas:** Compose airframes with live WebGL rendering: conical, ogive, parabolic, von K\u00e1rm\u00e1n, and elliptical nosecones; hollow body tubes; conical transitions; and extruded trapezoidal or elliptical fin sets.
+* **Procedural Assembly Canvas:** Compose airframes with live WebGL rendering: conical, ogive, parabolic, von Kármán, and elliptical nosecones; hollow body tubes; conical transitions; and extruded trapezoidal or elliptical fin sets.
 * **Real-Time Stability Tracking:** Sub-millisecond Center of Pressure (CP) and Center of Gravity (CG) tracking updated via in-place `BufferGeometry` updates during slider manipulation.
 * **Multi-View Rendering:** Toggle between solid shaded, wireframe, and X-ray interior inspection modes with customizable coordinate axes, ground shadows, and dimension callouts.
 
@@ -62,8 +62,7 @@ Collegiate competition teams (NASA Student Launch, Spaceport America Cup, EuRoC)
 ### 4. 6-DOF Flight Dynamics & Atmospheric Dispersion
 * **Rigorous Kinematics:** Full 6-DOF quaternion rigid-body equations of motion integrated with an adaptive Dormand-Prince DP5(4) ODE solver with dense root-finding for flight event boundaries.
 * **Atmospheric Modeling:** Integrated 1976 US Standard Atmosphere (ISA) with support for live atmospheric sounding ingestion via Open-Meteo REST API and manual wind shear profile tables.
-* **Monte Carlo Dispersion:** Statistical parameter perturbation sweeps (wind azimuth, launch rail elevation, motor impulse variations) outputting 1\u03c3 and 2\u03c3 landing dispersion ellipses.
-* **Range Safety & Containment:** FAA waiver cylinder checks and arbitrary multi-vertex waiver polygon containment verification with KML 2.2 export for Google Earth.
+* **Monte Carlo Dispersion:** Statistical parameter perturbation sweeps (wind azimuth, launch rail elevation, motor impulse variations) outputting 1σ and 2σ landing dispersion ellipses.
 
 ### 5. Recovery Subsystem
 * **Dual-Deployment Sequencing:** Staged apogee drogue deployment with barometric main parachute deployment altitude triggers.
