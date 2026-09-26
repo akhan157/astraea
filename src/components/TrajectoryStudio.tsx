@@ -42,6 +42,7 @@ import type { DispersionResult } from '../sim/monteCarlo';
 import { runEnsemble } from '../tauri/bridge';
 import type { WindLayer } from '../sim/weather';
 import { fetchSounding, windAtAltitude, windToENU } from '../sim/weather';
+import { parseWindProfileCsv, toManualWindTable } from '../sim/windProfile';
 import { boattailSeparationCheck, computeProtuberanceDrag } from '../aero/protuberance';
 import { StudioHeader } from './ui/StudioHeader';
 import {
@@ -146,6 +147,38 @@ export function TrajectoryStudio(): React.JSX.Element {
         return next;
       }),
     );
+  };
+
+  // --- 1b. Wind-profile CSV import (C5) ---
+  // The parser and the ManualWindTable converter were tested with no UI
+  // consumer; this wires them to the table above. The import REPLACES the
+  // manual rows only after the whole file parses and converts, so a rejected
+  // file leaves the hand-entered table untouched and reports why.
+  const windCsvInputRef = React.useRef<HTMLInputElement>(null);
+  const [windCsvError, setWindCsvError] = useState<string | null>(null);
+  const [windCsvSource, setWindCsvSource] = useState<string | null>(null);
+
+  const handleWindCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const table = toManualWindTable(parseWindProfileCsv(text));
+      setWindRows(
+        table.layers.map((layer) => ({
+          altitudeM: layer.altitudeM,
+          speedMs: layer.speedMs,
+          directionFromDeg: layer.directionFromDeg,
+        })),
+      );
+      setWindCsvError(null);
+      setWindCsvSource(`${file.name} (${table.layers.length} layer${table.layers.length === 1 ? '' : 's'})`);
+    } catch (err) {
+      setWindCsvError(err instanceof Error ? err.message : String(err));
+      setWindCsvSource(null);
+    } finally {
+      if (windCsvInputRef.current) windCsvInputRef.current.value = '';
+    }
   };
 
   // --- 2. Live sounding (Open-Meteo, default fetch, no API key) ---
@@ -512,6 +545,32 @@ export function TrajectoryStudio(): React.JSX.Element {
             <Plus className="w-3.5 h-3.5" />
             Add Wind Layer
           </button>
+          <input
+            ref={windCsvInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            aria-label="Wind profile CSV file"
+            onChange={handleWindCsvUpload}
+          />
+          <button
+            onClick={() => windCsvInputRef.current?.click()}
+            className="mt-2 ml-2 min-h-8 px-2.5 py-1 rounded-md border border-white/8 bg-white/5 text-zinc-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] cursor-pointer inline-flex items-center gap-1"
+            title="Replace the manual table from a wind-profile CSV (altitude, speed, direction from)"
+          >
+            <Wind className="w-3.5 h-3.5" />
+            Import CSV
+          </button>
+          {windCsvSource && (
+            <p className="mt-1.5 text-[11px] text-emerald-300" data-wind-csv-source="true">
+              Imported {windCsvSource} — rows replaced by the file, sorted ascending by altitude.
+            </p>
+          )}
+          {windCsvError && (
+            <p className="mt-1.5 text-[11px] text-rose-300" role="alert" data-wind-csv-error="true">
+              Wind CSV rejected: {windCsvError} — the manual table is unchanged.
+            </p>
+          )}
         </div>
 
         <div className="bg-[#08090A] rounded-lg border border-white/8 p-4">

@@ -178,6 +178,41 @@ describe('TrajectoryStudio', () => {
     expect(screen.getByText('10.0 m/s')).toBeTruthy();
   });
 
+  it('replaces the manual table from a wind-profile CSV and reports the imported layer count', async () => {
+    renderStudio();
+    // Hand-enter a row first so the replacement (not an append) is observable.
+    fireEvent.change(screen.getByLabelText('Wind layer 1 speed (m/s)'), { target: { value: '3' } });
+
+    const csv = ['altitude,speed,direction', '500,12,270', '0,4,90'].join('\n');
+    fireEvent.change(screen.getByLabelText('Wind profile CSV file'), {
+      target: { files: [new File([csv], 'wind.csv', { type: 'text/csv' })] },
+    });
+
+    await waitFor(() => expect(screen.getByText(/Imported wind\.csv \(2 layers\)/)).toBeTruthy());
+    // Converter sorts ascending by altitude: row 1 is the 0 m layer.
+    expect((screen.getByLabelText('Wind layer 1 altitude (m)') as HTMLInputElement).value).toBe('0');
+    expect((screen.getByLabelText('Wind layer 1 speed (m/s)') as HTMLInputElement).value).toBe('4');
+    expect((screen.getByLabelText('Wind layer 1 direction from (deg)') as HTMLInputElement).value).toBe('90');
+    expect((screen.getByLabelText('Wind layer 2 altitude (m)') as HTMLInputElement).value).toBe('500');
+    expect((screen.getByLabelText('Wind layer 2 speed (m/s)') as HTMLInputElement).value).toBe('12');
+    expect(document.querySelector('[data-wind-csv-error]')).toBeNull();
+  });
+
+  it('leaves the manual table untouched and reports why when the CSV is rejected', async () => {
+    renderStudio();
+    fireEvent.change(screen.getByLabelText('Wind layer 1 speed (m/s)'), { target: { value: '7' } });
+
+    fireEvent.change(screen.getByLabelText('Wind profile CSV file'), {
+      target: { files: [new File(['altitude,speed,direction\n0,5'], 'broken.csv', { type: 'text/csv' })] },
+    });
+
+    await waitFor(() => expect(document.querySelector('[data-wind-csv-error]')).toBeTruthy());
+    expect(document.querySelector('[data-wind-csv-error]')?.textContent).toMatch(/manual table is unchanged/);
+    // The hand-entered row survives the rejection.
+    expect((screen.getByLabelText('Wind layer 1 speed (m/s)') as HTMLInputElement).value).toBe('7');
+    expect(document.querySelector('[data-wind-csv-source]')).toBeNull();
+  });
+
   it('shows the sounding layer count when a valid profile is fetched', async () => {
     renderStudio();
     vi.stubGlobal(

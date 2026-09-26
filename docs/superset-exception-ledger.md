@@ -65,15 +65,15 @@ What unblocks each item and the minimum viable payload:
   calibrated-Cd package count as supporting data, and what does a witnessed
   validation flight require?" Process answer, not a file; long pole, asked early.
 
-### E1. Background MC host + wind-CSV import view (worker orchestration + S5 UI)
+### E1. Background MC host (wind-CSV import view shipped 2026-09-26)
 - **Missing:** the chunk engine (`runMonteCarloChunk` / `accumulateMonteCarloChunks` /
   `finalizeMonteCarloChunks`, `monteCarloWorker.ts`) is tested and bit-identical across
   partitions, but no host drives it: TrajectoryStudio calls synchronous `runMonteCarlo`
   (cap 200, no progress/cancel), so 500–1000-run competition ensembles still mean
-  sequential 200-batches concatenated by hand. `parseWindProfileCsv` is likewise
-  tested with no UI consumer — the studio keeps a manual table.
-- **Why deferred:** worker orchestration + progress/cancel UI + wind mapping/units import
-  view, not physics; this UI integration has not yet been delivered (the former frontend freeze is historical).
+  sequential 200-batches concatenated by hand. `parseWindProfileCsv` now has a UI
+  consumer: TrajectoryStudio's Import CSV replaces the manual table fail-closed.
+- **Why deferred:** worker orchestration + progress/cancel UI, not physics; this
+  UI integration has not yet been delivered (the former frontend freeze is historical).
 - **Prerequisite:** engineering time only (chunk protocol + CSV parser already pinned).
 - **Alternative:** run sequential batches of 200 and concatenate landings;
   statistics functions accept concatenated clouds; type wind rows by hand.
