@@ -1,0 +1,28 @@
+# Project status and next work
+
+**As of 2026-09-26 (`main` at `6105f0e`).** This is the current delivery/roadmap entry point. The [master product specification](astraea-master-product-spec.md) and [normative physical contract](astraea-normative-physical-contract.md) define intended behavior; older dated capability queues and phase matrices record decisions at the time, not today's implementation status. Do not infer that a tested engine has a usable UI or that a passing test certifies a flight prediction.
+
+## What exists, and what the checks establish
+
+| Layer | Current state | Evidence and limit |
+|---|---|---|
+| Workstation | Five studios, 3D airframe, aero, propulsion, trajectory, evidence/recovery, import/export previews, Tauri 2 shell | `README.md` and `src/components/`; the browser-only Vite preview does **not** have native compute IPC. `src/tauri/bridge.ts` fails closed without Tauri. |
+| Compute | Rust `astraea-core` implements 6-DOF flight, Monte Carlo, Gibbs/nozzle, aero/stability and mass; seven coarse-grained Tauri commands expose native compute | `crates/astraea-core/`, `src-tauri/src/commands.rs`; TypeScript engines remain parity/test oracles, not a silent runtime fallback. |
+| Automated verification | On 2026-09-26, 791/791 frontend tests across 62 files, 72/72 Rust core tests, `pnpm build`, and `cargo check --manifest-path src-tauri/Cargo.toml` passed on Windows with Rust 1.98.1 and VS 2022 C++ Build Tools | These are build/test checks, **not** an installed-app end-to-end run, release packaging test, or empirical flight validation. Nonblocking Rust warnings and a Vite large-chunk warning remain. |
+| Browser evidence | The committed historical E2E record validates structurally (9 dumps, 10 behavioral markers via `node scripts/e2e-depth/validate-evidence.cjs`) | [Verdicts](../scripts/e2e-depth/VERDICTS.md) include an export-download escalation and a mount-repair finding. The evidence is from an earlier commit/browser session, not a fresh Tauri retest. |
+| Safety claim | Round-19 audit: **conditional go for restricted preview**, 8.2/10; no open correctness finding in that audit | [Round-19 audit](astra-round19-audit.md) explicitly leaves the real-flight data loop open. Do not present results as authoritative flight-readiness or certification evidence. |
+
+## Prioritized next work
+
+1. **Re-run actual desktop journeys.** Exercise native IPC from the packaged or development Tauri window, a nominal design→simulation→evidence loop, malformed import, download confirmation, repair navigation, stale result invalidation, and keyboard/narrow layout. Revisit the historical [E2E verdicts](../scripts/e2e-depth/VERDICTS.md) rather than treating either old findings or passing jsdom tests as a current browser verdict. Record OS, commit, screenshots/logs, outputs and failures.
+2. **Close at least one real-flight comparison.** Obtain a past altimeter CSV or GPX log, flown motor, and vehicle dimensions/mass or `.ork`. Import, align, compare apogee/descent/landing, calibrate effective drag, and publish residuals with model limits. The [exception ledger](superset-exception-ledger.md) gives the minimum data request. Until then, safety and performance claims remain restricted-preview.
+3. **Wire already-tested capabilities where user value warrants it.** Highest-leverage integration is versioned JSON project read/write in Header/App, then wind-CSV import and background Monte Carlo progress/cancel, `.rse` export trigger, log unit/provenance review and ThrustCurve search. See the [adapter matrix](adapter-matrix.md#missing-cell-list-prerequisite-order) and [E1/E5 exceptions](superset-exception-ledger.md#open-exceptions). These are distinct from the already working parser/solver tests. Add UI acceptance tests and live desktop checks for each cutover.
+4. **Scope deferred modeling only with evidence.** Terrain/tip-off/staging/clustering need validated data and a sponsor; raw `.eeprom` parsing needs a firmware-versioned dump plus matching CSV; certification requires an RSO/prefecture process answer. Full 3D packed-chute rendering remains rejected, not pending. See [exception ledger](superset-exception-ledger.md).
+5. **Release and documentation hygiene.** Produce and test a Windows desktop installer/release, check first-run prerequisites and downloads, keep a reproducible benchmark artifact on the release commit, and update the dated roadmap/exception rows when a workflow is actually wired and verified. A Tauri `cargo check` alone is not a release test.
+
+## Reading the older documents
+
+- [Competitive gap analysis](competitive-gap-analysis-and-backlog.md) is the **2026-09-08 baseline**. Its embedded *Planned* cells and “Phase 2 NEXT UP” heading are historical; later completion notes and this status supersede them. Do not use the old matrix as a current task list.
+- [Capability decision queue](capability-decision-queue.md) records **2026-09-10 product decisions**, including a now-superseded frontend freeze. Do not re-queue features marked BUILD without checking the actual integration and [exceptions](superset-exception-ledger.md).
+- [Adapter matrix](adapter-matrix.md) is a **2026-09-14 point-in-time UI inventory** with later amendments. Treat its missing-cell list as leads to verify against current code, not an independently current acceptance report.
+- [Round-17 audit](astra-round17-audit.md) is historical NO-GO context; [Round-19](astra-round19-audit.md) is the later disposition, still conditional on empirical closure.

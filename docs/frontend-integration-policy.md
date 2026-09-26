@@ -1,5 +1,7 @@
 # Frontend integration policy (master decision, 2026-09-10)
 
+> **Superseded 2026-09-26.** The worktree-residency and explicit-merge-gate policy below governed the September multi-worktree phase. The unified Tauri/Rust/Linear-Dense frontend has since been promoted to `main`, so treat this as historical context. Current status and sequencing live in [project status](project-status.md).
+
 - Frontend builds (Wave A/B, studios, UI work) are developed and committed
   in their worktrees (astraea-frontend, astraea-wa2, astraea-wa3, ...).
 - **Main does not receive frontend changes implicitly.** The developer/user

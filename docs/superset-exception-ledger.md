@@ -1,20 +1,23 @@
 # Astraea Superset Exception Ledger
 
-**Purpose:** every comparator workflow (OpenRocket, RockSim, RASAero II,
-RocketPy, openMotor, NASA CEA, AltOS/FlightSketch, ThrustCurve) that Astraea
-does **not** implement end-to-end is listed here with the exact missing
-feature, why it cannot currently be produced, the unavailable prerequisite,
-the closest safe in-app alternative, and the re-visit condition. Anything not
-listed here is implemented and covered by the test suite + evidence emitter.
+> **Status interpretation (2026-09-26):** This ledger combines implemented engines, UI wiring gaps, external-data prerequisites, and historical evidence counts. For the current verification snapshot and priority order, see [project status](project-status.md). “Tested” does not imply a working desktop user journey or real-flight validation. The September 10 frontend freeze cited below has been superseded by the Tauri frontend promotion.
+
+**Purpose:** track major comparator workflow limits (OpenRocket, RockSim,
+RASAero II, RocketPy, openMotor, NASA CEA, AltOS/FlightSketch, ThrustCurve),
+their prerequisites, safe alternatives, and re-visit conditions. The
+[adapter matrix](adapter-matrix.md) additionally tracks format/UI wiring gaps.
+Absence from this ledger is **not** proof of end-to-end implementation or validation.
 
 **Rule:** closing a row = shipping the capability + registering its tests in
 `scripts/emit-benchmark-metadata.cjs`. No silent removals.
 
 ## Shipped (no exception needed)
 
-All roadmap Phases 2–4 plus master-spec interop extras are implemented,
-tested, and wired into the workstation shell (58 suites / 760 cases per
-`f5105cf`, evidence emitter passed=true on a clean tree):
+Most roadmap Phase 2–4 engines and master-spec interop extras are implemented
+and tested; some UI paths remain unwired, as marked below and in the adapter
+matrix. Historical evidence at `f5105cf`: 58 suites / 760 cases, emitter
+passed=true on a clean tree. Current 2026-09-26 check: 62 frontend files /
+791 tests and 72 Rust core tests passed. Neither count proves flight accuracy:
 
 - Subsonic/transonic/supersonic aero (Barrowman+Rogers, Van Driest II, wave,
   base+plume, protuberance, boattail monitor, fin flutter NACA TN 4197,
@@ -66,7 +69,7 @@ What unblocks each item and the minimum viable payload:
   sequential 200-batches concatenated by hand. `parseWindProfileCsv` is likewise
   tested with no UI consumer — the studio keeps a manual table.
 - **Why deferred:** worker orchestration + progress/cancel UI + wind mapping/units import
-  view, not physics; frontend frozen until the feature set reconciles in one pass.
+  view, not physics; this UI integration has not yet been delivered (the former frontend freeze is historical).
 - **Prerequisite:** engineering time only (chunk protocol + CSV parser already pinned).
 - **Alternative:** run sequential batches of 200 and concatenate landings;
   statistics functions accept concatenated clouds; type wind rows by hand.

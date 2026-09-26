@@ -1,5 +1,7 @@
 # C15 adapter matrix (UI2 pre-implementation specification)
 
+> **Point-in-time integration inventory.** The table below originated on 2026-09-14 and received later row amendments. It distinguishes tested modules from UI consumers, but is not a fresh end-to-end desktop acceptance report. See [current project status](project-status.md) for priority and verification boundaries; recheck each row in the current UI before closing it.
+
 Binding spec for the plan's §9 paragraph-2 requirement: one row per
 direction/format before any implementation claim. Status is grounded in
 `src/formats`, `src/sim`, `src/evidence`, and UI consumers inspected

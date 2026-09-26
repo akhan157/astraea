@@ -7,6 +7,8 @@
 
 ## Overview
 
+**Current status and next steps:** See [docs/project-status.md](docs/project-status.md) for the verified build/test state, outstanding UI integrations, desktop acceptance work, and empirical flight-validation boundary. Astraea is a restricted-preview engineering tool, not certified flight-readiness software.
+
 Collegiate competition teams (NASA Student Launch, Spaceport America Cup, EuRoC), research laboratories, and high-power rocketry (HPR) engineers currently manage vehicles across a brittle, disconnected ecosystem of legacy tools:
 
 * **Geometry & CAD:** SolidWorks, Onshape, FreeCAD
@@ -77,22 +79,22 @@ Collegiate competition teams (NASA Student Launch, Spaceport America Cup, EuRoC)
 
 ---
 
-## Universal File Interoperability
+## File Interoperability
 
-Astraea maintains bidirectional compatibility across industry formats:
+Formats are supported on a per-direction and per-feature basis. Some modules are tested without a UI consumer, and some exports intentionally refuse when required data are absent. See the [adapter matrix](docs/adapter-matrix.md) and [current project status](docs/project-status.md) for boundaries.
 
 | Format | Direction | Scope / Capabilities |
 | :--- | :--- | :--- |
-| **OpenRocket (`.ork`)** | Import & Export | Full multi-stage component tree, mass overrides, and parachute recovery configurations. |
-| **RockSim (`.rkt`)** | Import & Export | Native XML airframe geometry, fin sets, and engine mount configurations with omission previews. |
+| **OpenRocket (`.ork`)** | Import & Export | Supported component subset; staged/clustered fidelity and loss disclosure are not fully pinned. |
+| **RockSim (`.rkt`)** | Import & Export | Supported XML subset with fail-closed omission preview; unsupported geometries are refused. |
 | **RASAero II (`.cdx1`)** | Export | Outer mold line (OML) dimensional stations. |
 | **Aerodynamic Matrix (`.csv`)** | Export | Mach 0 to 4 sweep: $C_D$ (power-on/power-off), $C_{N\alpha}$, and Center of Pressure. |
 | **CAD Solid Models (`.step`)** | Export | AP203 manifold solid B-Rep export of outer mold line geometry. |
 | **Additive Manufacturing (`.stl`)** | Export | High-resolution binary STL surface tessellations for 3D printing. |
-| **Motor Curves (`.eng` / `.rse`)** | Import & Export | Bidirectional RASP and RockSim motor definition curve exchange. |
+| **Motor Curves (`.eng` / `.rse`)** | Import & Export | Import and tested writer engines; RSE export trigger is still unwired in the UI. |
 | **Engineering Blueprints** | Export | Dimensioned technical drawing vector SVG and print-ready raster PNG. |
-| **Google Earth (`.kml`)** | Export | Georeferenced 3D flight trajectory lines, apogee placemarks, and landing scatter clouds. |
-| **Project Envelopes (`.json`)** | Import & Export | Schema-versioned Astraea Single Source of Truth envelope with optimistic revision concurrency. |
+| **Google Earth (`.kml`)** | Export | Trigger refuses until a committed run has published its telemetry payload. |
+| **Project Envelopes (`.json`)** | Import & Export | Versioned envelope engine is tested; Header/App still use the legacy bare-vehicle JSON UI path. |
 
 ---
 
@@ -124,12 +126,21 @@ pnpm dev
 
 Navigate to `http://localhost:5173` to explore the workstation studios.
 
+The browser preview has no Tauri IPC. Native compute operations fail closed there rather than silently falling back to the TypeScript test engines. Use the Tauri desktop application for simulations and other native compute workflows.
+
 #### 2. Native Desktop Application (Tauri + Rust Core)
-Launches the native desktop application powered by the compiled Rust backend:
+The native desktop application is powered by the compiled Rust backend. On Windows, use a **Visual Studio 2022 x64 Developer Command Prompt** so Rust finds the MSVC linker. The configured Tauri development URL is `http://localhost:1420`. In one terminal start Vite, and in another launch the native shell:
 
 ```bash
-cargo build --manifest-path src-tauri/Cargo.toml
-pnpm dev --port 5181
+pnpm dev --port 1420
+# in a second x64 Developer Command Prompt
+cargo run --manifest-path src-tauri/Cargo.toml
+```
+
+To verify compilation without launching the app:
+
+```bash
+cargo check --manifest-path src-tauri/Cargo.toml
 ```
 
 ---
@@ -152,6 +163,7 @@ node scripts/emit-benchmark-metadata.cjs
 * **Test Coverage:** 62 test files spanning 791 automated test cases in Vitest.
 * **Rust Engine Parity:** 72 cargo test vectors pinning bit-identical RNG streams (`mulberry32`), exact Barrowman stability centroids, and NASA CEA equilibrium tables within 0.5% relative error.
 * **Type Safety:** 100% strict TypeScript compilation (`tsc --noEmit` clean).
+* **Acceptance boundary:** These checks do not establish a packaged desktop release or empirical agreement with flight data. The [Round-19 audit](docs/astra-round19-audit.md) remains conditional for restricted preview.
 ---
 
 ## Project Timeline & Milestones

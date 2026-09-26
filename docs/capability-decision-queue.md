@@ -1,5 +1,28 @@
 # Astraea Capability Decision Queue (consolidated 2026-09-10)
 
+> **Historical product decisions, not an active dispatch queue (2026-09-26).** The frontend-freeze and worktree-dispatch language below records the September 10 sequencing and was superseded by the promoted Tauri/Rust/Linear-Dense frontend on `main`. Consult [current project status](project-status.md) and the [exception ledger](superset-exception-ledger.md) before scheduling an item: `BUILD` here does not imply it remains unimplemented or fully UI-wired. Tier 3 deferrals remain deliberate unless revisited with evidence.
+
+## Current disposition crosswalk
+
+This crosswalk supersedes the historical “queued/dispatched/pending” labels below. “Shipped” means the capability exists in code; it does not itself claim empirical flight validation.
+
+| Decision | Current disposition |
+|---|---|
+| C1 fin structure, C2 STEP/STL, C3 waiver/KML, C6 CP/CG breakdown | Engine/export/UI scope shipped; verify complete native desktop journeys before calling acceptance closed. KML refuses when the run has no telemetry payload. |
+| C4 live ThrustCurve, C5 wind CSV, C8 thrust-curve editor | API/parser/editor engines exist, but their corresponding search/import/edit UI surfaces remain outstanding. |
+| C7 staging | Design-only; no staged-flight sponsor/data. |
+| C9 recovery packaging | Minimal 2D strip and checks shipped; full 3D packing intentionally rejected. |
+| C10 additional grain geometries | BATES/star shipped; revisit finocyl/moon/c-slot only after usage evidence. |
+| C11 component-level aerodynamic loads | Parked. |
+| C12 evidence workflow | CSV/GPX, overlays, calibration and back-cast shipped; empirical comparison with a real flown vehicle is still needed. |
+| C13 onboarding | Content/logic exists, but end-user acceptance and integration scope should be checked before expansion claims. |
+| C14 motor uncertainty | Typical motor-variance defaults ship. |
+| C15 interop | RKT export and several other adapters ship; `.rse` export UI and project-envelope Header/App cutover remain gaps. |
+| C16 Gibbs equilibrium | 60-case restricted-species CEA corpus regression ships. Solver-to-nozzle preset coupling and shifting-equilibrium expansion are not implemented. |
+| C17–C21 | Remain closed/deferred per the historical decision unless fresh user evidence reopens them. |
+
+See [project status](project-status.md), [exception ledger](superset-exception-ledger.md), and [adapter matrix](adapter-matrix.md) for verification scope and sequencing.
+
 ## DECISIONS (user, 2026-09-10)
 
 **Frontend frozen until the feature set is established**; all UI accumulates in
@@ -31,8 +54,10 @@ frontend plan (astraea-frontend/docs/frontend-plan.md), exception ledger
 (docs/superset-exception-ledger.md), staging package
 (astraea-staging-research/docs/staging-design-package.md).
 
-**Standing policy:** frontend work is frozen until the feature set is
-established; UI accumulates in worktrees and reconciles in one pass.
+**Historical standing policy (superseded):** the frontend-freeze and worktree
+reconciliation process below was in force when this queue was written. The
+Tauri/Rust/Linear-Dense frontend has since been promoted to `main`; use
+`project-status.md` for current sequencing.
 
 Effort: S ≤1d, M 1-3d, L 3-7d, XL >1wk. Evidence: forum recurrence +
 tool-census verdict.
@@ -77,10 +102,12 @@ tool-census verdict.
 
 ---
 
-## Decision asked
+## Decision record (closed for this queue)
 
-Approve Tier 1 (C1–C6) as one build wave? Then pick any of Tier 2
-(C7–C16) to promote, and confirm Tier 3 stays closed or reopen any line.
+The approval prompt below was for the September 10 planning session and is
+historical, not an outstanding request. Many Tier 1 and Tier 2 capabilities
+were later implemented; consult `superset-exception-ledger.md` for
+current engine/UI status, and `project-status.md` for actual next work.
 
-Frontend remains frozen; UI for approved Tier 1/2 items gets folded into the
-final frontend reconciliation pass, not built now.
+Do not treat the former frontend-freeze instruction as current. UI additions
+should follow the active integration policy and acceptance checks.

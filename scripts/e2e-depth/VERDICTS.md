@@ -1,5 +1,7 @@
 # E2E-Depth — Jev Verdict Log
 
+> **Historical browser evidence, not a current desktop retest.** This log was recorded at `main @197a05e`; later unit tests and the current Tauri build do not resolve its browser findings by themselves. See [current project status](../../docs/project-status.md) and rerun the filed/export-escalated journeys in the native application before marking them closed.
+
 Run against the live app at http://localhost:5190 (main @197a05e, merged B shell, Hub main-app).
 Driver: headless Chromium via Orca's embedded browser (`browser.open`/`tab.run`/`observe`), all 7 areas in order.
 Each area produced a JSON state dump (`evidence/area-*.json`) and a Jev triage call
