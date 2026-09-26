@@ -2,6 +2,8 @@
 
 @layer base {
   body {
+    background-color: #08090A;
+    color: #fff;
     font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   }
   code, kbd, samp, pre {
@@ -15,12 +17,12 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(24, 24, 27, 0.5);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(63, 63, 70, 0.8);
+  background: rgba(255, 255, 255, 0.14);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(113, 113, 122, 1);
+  background: rgba(255, 255, 255, 0.22);
 }

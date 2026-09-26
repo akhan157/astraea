@@ -58,7 +58,7 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({ onUpdate, 
 
   if (!selectedComp) {
     return (
-      <aside className="w-80 bg-zinc-900/90 border-l border-zinc-800 flex flex-col h-[calc(100vh-3.5rem)] z-20 p-6 items-center justify-center text-center text-zinc-500 backdrop-blur-md">
+      <aside className="w-80 bg-[#0F1011] border-l border-white/8 flex flex-col h-[calc(100vh-3.5rem)] z-20 p-6 items-center justify-center text-center text-zinc-400">
         <Sliders className="w-8 h-8 stroke-1 mb-2 opacity-40" />
         <p className="text-xs">Select a component from the 3D viewport or the assembly tree to edit properties.</p>
       </aside>
@@ -75,14 +75,14 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({ onUpdate, 
   };
 
   return (
-    <aside className="w-80 bg-zinc-900/90 border-l border-zinc-800 flex flex-col h-[calc(100vh-3.5rem)] z-20 backdrop-blur-md overflow-hidden select-none">
+    <aside className="w-80 bg-[#0F1011] border-l border-white/8 flex flex-col h-[calc(100vh-3.5rem)] z-20 overflow-hidden select-none">
       {/* Sidebar Header */}
-      <div className="p-3.5 border-b border-zinc-800 flex items-center justify-between">
+      <div className="p-3.5 border-b border-white/8 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sliders className="w-4 h-4 text-cyan-400" />
-          <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">Properties</span>
+          <Sliders className="w-4 h-4 text-zinc-300" />
+          <span className="text-xs font-bold uppercase tracking-wider text-white">Properties</span>
         </div>
-        <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-800 font-mono text-cyan-400 uppercase">
+        <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 border border-white/8 font-mono text-zinc-400 uppercase">
           {selectedComp.type}
         </span>
       </div>
@@ -96,7 +96,7 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({ onUpdate, 
             type="text"
             value={selectedComp.name}
             onChange={(e) => handleUpdate({ name: e.target.value })}
-            className="w-full bg-zinc-800/80 text-zinc-100 px-2.5 py-1.5 rounded-lg border border-zinc-700/80 focus:border-cyan-500 focus:outline-none font-medium"
+            className="w-full bg-[#08090A] text-zinc-100 px-2.5 py-1.5 rounded-md border border-white/8 focus:border-[#4C8DFF] focus:outline-none font-medium"
           />
         </div>
 
@@ -106,7 +106,7 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({ onUpdate, 
           <select
             value={selectedComp.materialId}
             onChange={(e) => handleUpdate({ materialId: e.target.value })}
-            className="w-full bg-zinc-800/80 text-zinc-100 px-2.5 py-1.5 rounded-lg border border-zinc-700/80 focus:border-cyan-500 focus:outline-none font-medium cursor-pointer"
+            className="w-full bg-[#08090A] text-zinc-100 px-2.5 py-1.5 rounded-md border border-white/8 focus:border-[#4C8DFF] focus:outline-none font-medium cursor-pointer"
           >
             {Object.values(STANDARD_MATERIALS).map((m) => (
               <option key={m.id} value={m.id}>
@@ -124,9 +124,9 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({ onUpdate, 
               <button
                 key={color}
                 onClick={() => handleUpdate({ color })}
-                className={`w-6 h-6 rounded-full border transition ${
-                  selectedComp.color === color ? 'border-cyan-400 ring-2 ring-cyan-400/30' : 'border-zinc-700 hover:scale-110'
-                }`}
+              className={`w-6 h-6 rounded-full border transition-colors ${
+                selectedComp.color === color ? 'border-[#4C8DFF] ring-2 ring-[#4C8DFF]/40' : 'border-white/8'
+              }`}
                 style={{ backgroundColor: color }}
               />
             ))}
@@ -140,7 +140,7 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({ onUpdate, 
           </div>
         </div>
 
-        <div className="h-px bg-zinc-800 my-2" />
+        <div className="h-px bg-white/8 my-2" />
 
         {/* Component-Specific Parametric Geometry Controls */}
         {selectedComp.type === 'nosecone' && (
@@ -192,12 +192,12 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({ onUpdate, 
           />
         )}
 
-        <div className="h-px bg-zinc-800 my-2" />
+        <div className="h-px bg-white/8 my-2" />
 
         {/* Mass Override */}
-        <div className="p-3 bg-zinc-800/40 rounded-xl border border-zinc-800 space-y-2">
+        <div className="p-3 bg-[#08090A] rounded-lg border border-white/8 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-zinc-300">Explicit Mass Override</span>
+            <span className="text-[11px] font-semibold text-white">Explicit Mass Override</span>
             <input
               type="checkbox"
               checked={selectedComp.massOverride !== undefined && selectedComp.massOverride > 0}
@@ -208,14 +208,14 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({ onUpdate, 
                   handleUpdate({ massOverride: contrib ? contrib.mass : 0.05 });
                 }
               }}
-              className="rounded accent-cyan-500 cursor-pointer"
+              className="rounded accent-zinc-300 cursor-pointer"
             />
           </div>
           {selectedComp.massOverride !== undefined && (
             <div>
               <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-1">
                 <span>Scale Measured Mass</span>
-                <span className="font-mono text-cyan-400 font-bold">
+                <span className="font-mono text-white font-bold">
                   {(selectedComp.massOverride * 1000).toFixed(1)} g
                 </span>
               </div>
@@ -226,7 +226,7 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({ onUpdate, 
                 step="1"
                 value={selectedComp.massOverride * 1000}
                 onChange={(e) => handleUpdate({ massOverride: parseFloat(e.target.value) / 1000 })}
-                className="w-full accent-cyan-500"
+                className="w-full accent-zinc-300"
               />
             </div>
           )}
@@ -234,9 +234,9 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({ onUpdate, 
 
         {/* Live Physics Feedback Contribution Panel */}
         {contrib && (
-          <div className="p-3 bg-zinc-950/60 rounded-xl border border-zinc-800/80 space-y-1.5 font-mono text-[11px]">
+          <div className="p-3 bg-[#08090A] rounded-lg border border-white/8 space-y-1.5 font-mono text-[11px]">
             <div className="flex items-center gap-1.5 text-zinc-400 mb-1 font-sans font-semibold text-xs">
-              <Activity className="w-3.5 h-3.5 text-cyan-400" />
+              <Activity className="w-3.5 h-3.5 text-zinc-300" />
               <span>Calculated Component Physics</span>
             </div>
             <div className="flex justify-between text-zinc-400">
@@ -303,7 +303,7 @@ const SliderInput: React.FC<{
             value={mmVal.toFixed(1)}
             step={step}
             onChange={(e) => onChange(commitMM(parseFloat(e.target.value) || 0))}
-            className="w-16 bg-zinc-800 text-zinc-100 px-1.5 py-0.5 rounded text-right border border-zinc-700/80 focus:border-cyan-500 focus:outline-none"
+            className="w-16 bg-[#08090A] text-zinc-100 px-1.5 py-0.5 rounded-md text-right border border-white/8 focus:border-[#4C8DFF] focus:outline-none"
           />
           <span className="text-zinc-500 text-[10px]">mm</span>
         </div>
@@ -315,7 +315,7 @@ const SliderInput: React.FC<{
         step={step}
         value={mmVal}
         onChange={(e) => onChange(parseFloat(e.target.value) / 1000)}
-        className="w-full accent-cyan-500 h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
+        className="w-full accent-zinc-300 h-1.5 bg-white/5 rounded-md cursor-pointer"
       />
     </div>
   );
@@ -328,7 +328,7 @@ const NoseconeControls: React.FC<ControlProps<NoseconeComponent>> = ({ comp, onC
       <select
         value={comp.shape}
         onChange={(e) => onChange({ shape: e.target.value as NoseconeShape })}
-        className="w-full bg-zinc-800/80 text-zinc-100 px-2.5 py-1.5 rounded-lg border border-zinc-700/80 focus:border-cyan-500 focus:outline-none font-medium cursor-pointer"
+        className="w-full bg-[#08090A] text-zinc-100 px-2.5 py-1.5 rounded-md border border-white/8 focus:border-[#4C8DFF] focus:outline-none font-medium cursor-pointer"
       >
         <option value="ogive">Tangent Ogive (Classic Subsonic)</option>
         <option value="vonkarman">Von Kármán (Supersonic Minimal Drag)</option>
@@ -395,7 +395,7 @@ const BodyTubeControls: React.FC<ControlProps<BodyTubeComponent>> = ({ comp, onC
     />
 
     <div className="flex items-center justify-between">
-      <span className="text-[11px] font-semibold text-zinc-300">
+      <span className="text-[11px] font-semibold text-white">
         Is Motor Mount
       </span>
       <input
@@ -403,7 +403,7 @@ const BodyTubeControls: React.FC<ControlProps<BodyTubeComponent>> = ({ comp, onC
         checked={comp.isMotorMount === true}
         onChange={(e) => onChange({ isMotorMount: e.target.checked })}
         aria-label="Is motor mount"
-        className="rounded accent-cyan-500 cursor-pointer"
+        className="rounded accent-zinc-300 cursor-pointer"
       />
     </div>
     <p className="text-[10px] text-zinc-500">
@@ -448,14 +448,14 @@ const TrapezoidFinControls: React.FC<ControlProps<TrapezoidFinSetComponent>> = (
   return (
     <div className="space-y-3">
       {/* NACA TN 4197 Fin Flutter Boundary Card */}
-      <div className="p-3 bg-zinc-950/70 rounded-xl border border-zinc-800/80 space-y-1.5 font-mono text-[11px]">
+      <div className="p-3 bg-[#08090A] rounded-lg border border-white/8 space-y-1.5 font-mono text-[11px]">
         <div className="flex items-center justify-between">
-          <span className="text-zinc-300 font-sans font-semibold flex items-center gap-1.5">
-            <Gauge className="w-3.5 h-3.5 text-amber-400" />
+          <span className="text-white font-sans font-semibold flex items-center gap-1.5">
+            <Gauge className="w-3.5 h-3.5 text-zinc-300" />
             <span>Flutter Limit (NACA 4197)</span>
           </span>
           <span
-            className={`px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase ${
+            className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold tracking-wider uppercase ${
               flutter.isFlutterRiskSubsonic
                 ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
                 : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
@@ -472,11 +472,11 @@ const TrapezoidFinControls: React.FC<ControlProps<TrapezoidFinSetComponent>> = (
         </div>
         <div className="flex justify-between text-zinc-400">
           <span>Safe Speed (1.25x / 1.50x SF):</span>
-          <span className="text-cyan-400 font-bold">
+          <span className="text-zinc-200 font-bold">
             {flutter.safeVelocity125.toFixed(0)} / {flutter.safeVelocity150.toFixed(0)} m/s
           </span>
         </div>
-        <p className="text-[9px] text-zinc-500 font-sans leading-tight pt-1 border-t border-zinc-800/60">
+        <p className="text-[9px] text-zinc-400 font-sans leading-tight pt-1 border-t border-white/8">
           * Preliminary NACA TN 4197 boundary. Joint compliance & composite weave require physical testing.
         </p>
       </div>
@@ -487,10 +487,10 @@ const TrapezoidFinControls: React.FC<ControlProps<TrapezoidFinSetComponent>> = (
           <button
             key={count}
             onClick={() => onChange({ finCount: count })}
-            className={`py-1 rounded border text-xs font-mono font-bold transition ${
+            className={`py-1 rounded-md border text-xs font-mono font-bold transition-colors ${
               comp.finCount === count
-                ? 'bg-cyan-500 text-zinc-950 border-cyan-400 shadow-sm'
-                : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-700'
+                ? 'bg-white text-black border-white'
+                : 'bg-white/5 text-zinc-200 border-white/8 hover:bg-white/10'
             }`}
           >
             {count} Fins
@@ -504,7 +504,7 @@ const TrapezoidFinControls: React.FC<ControlProps<TrapezoidFinSetComponent>> = (
       <select
         value={comp.crossSection}
         onChange={(e) => onChange({ crossSection: e.target.value as FinCrossSection })}
-        className="w-full bg-zinc-800/80 text-zinc-100 px-2.5 py-1.5 rounded-lg border border-zinc-700/80 focus:border-cyan-500 focus:outline-none font-medium cursor-pointer"
+        className="w-full bg-[#08090A] text-zinc-100 px-2.5 py-1.5 rounded-md border border-white/8 focus:border-[#4C8DFF] focus:outline-none font-medium cursor-pointer"
       >
         <option value="square">Square / Flat Plate</option>
         <option value="rounded">Rounded Leading/Trailing Edges</option>
@@ -571,14 +571,14 @@ const EllipticalFinControls: React.FC<ControlProps<EllipticalFinSetComponent>> =
   return (
     <div className="space-y-3">
       {/* NACA TN 4197 Fin Flutter Boundary Card */}
-      <div className="p-3 bg-zinc-950/70 rounded-xl border border-zinc-800/80 space-y-1.5 font-mono text-[11px]">
+      <div className="p-3 bg-[#08090A] rounded-lg border border-white/8 space-y-1.5 font-mono text-[11px]">
         <div className="flex items-center justify-between">
-          <span className="text-zinc-300 font-sans font-semibold flex items-center gap-1.5">
-            <Gauge className="w-3.5 h-3.5 text-amber-400" />
+          <span className="text-white font-sans font-semibold flex items-center gap-1.5">
+            <Gauge className="w-3.5 h-3.5 text-zinc-300" />
             <span>Flutter Limit (NACA 4197)</span>
           </span>
           <span
-            className={`px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase ${
+            className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold tracking-wider uppercase ${
               flutter.isFlutterRiskSubsonic
                 ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
                 : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
@@ -595,11 +595,11 @@ const EllipticalFinControls: React.FC<ControlProps<EllipticalFinSetComponent>> =
         </div>
         <div className="flex justify-between text-zinc-400">
           <span>Safe Speed (1.25x / 1.50x SF):</span>
-          <span className="text-cyan-400 font-bold">
+          <span className="text-zinc-200 font-bold">
             {flutter.safeVelocity125.toFixed(0)} / {flutter.safeVelocity150.toFixed(0)} m/s
           </span>
         </div>
-        <p className="text-[9px] text-zinc-500 font-sans leading-tight pt-1 border-t border-zinc-800/60">
+        <p className="text-[9px] text-zinc-400 font-sans leading-tight pt-1 border-t border-white/8">
           * Preliminary NACA TN 4197 boundary. Joint compliance & composite weave require physical testing.
         </p>
       </div>
@@ -610,10 +610,10 @@ const EllipticalFinControls: React.FC<ControlProps<EllipticalFinSetComponent>> =
           <button
             key={count}
             onClick={() => onChange({ finCount: count })}
-            className={`py-1 rounded border text-xs font-mono font-bold transition ${
+            className={`py-1 rounded-md border text-xs font-mono font-bold transition-colors ${
               comp.finCount === count
-                ? 'bg-cyan-500 text-zinc-950 border-cyan-400 shadow-sm'
-                : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-700'
+                ? 'bg-white text-black border-white'
+                : 'bg-white/5 text-zinc-200 border-white/8 hover:bg-white/10'
             }`}
           >
             {count} Fins
@@ -681,7 +681,7 @@ const ParachuteControls: React.FC<ControlProps<ParachuteComponent>> = ({ comp, o
         step="0.05"
         value={comp.cd}
         onChange={(e) => onChange({ cd: parseFloat(e.target.value) })}
-        className="w-full accent-cyan-500"
+        className="w-full accent-zinc-300"
       />
     </div>
 
@@ -697,7 +697,7 @@ const ParachuteControls: React.FC<ControlProps<ParachuteComponent>> = ({ comp, o
         step="5"
         value={comp.mass * 1000}
         onChange={(e) => onChange({ mass: parseFloat(e.target.value) / 1000 })}
-        className="w-full accent-cyan-500"
+        className="w-full accent-zinc-300"
       />
     </div>
 
@@ -725,7 +725,7 @@ const MassComponentControls: React.FC<ControlProps<MassComponent>> = ({ comp, on
         step="1"
         value={comp.mass * 1000}
         onChange={(e) => onChange({ mass: parseFloat(e.target.value) / 1000 })}
-        className="w-full accent-cyan-500"
+        className="w-full accent-zinc-300"
       />
     </div>
 

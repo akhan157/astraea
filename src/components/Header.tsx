@@ -17,6 +17,7 @@ import {
   FolderOpen,
   FileCode,
   Flame,
+  Rocket,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -105,17 +106,17 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
   };
 
   return (
-    <header className="h-14 bg-zinc-900/90 border-b border-zinc-800 px-4 flex items-center justify-between z-30 select-none backdrop-blur-md">
+    <header className="h-14 bg-[#08090A] border-b border-white/8 px-4 flex items-center justify-between z-30 select-none">
       {/* Brand & Project Name */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold shadow-sm">
-            🚀
+          <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center text-zinc-200">
+            <Rocket className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold tracking-tight text-white font-mono text-base">ASTRAEA</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">
+              <span className="font-bold tracking-tight text-white text-base">ASTRAEA</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/5 text-zinc-400 border border-white/8">
                 v0.1.0-alpha
               </span>
             </div>
@@ -123,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
           </div>
         </div>
 
-        <div className="h-5 w-px bg-zinc-800 mx-1 hidden md:block" />
+        <div className="h-5 w-px bg-white/8 mx-1 hidden md:block" />
 
         {/* Vehicle Name Input */}
         <div className="hidden md:flex items-center gap-1.5">
@@ -131,7 +132,7 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
             type="text"
             value={vehicle.name}
             onChange={(e) => useRocketStore.getState().updateVehicleName(e.target.value)}
-            className="bg-zinc-800/60 hover:bg-zinc-800 text-zinc-100 text-xs px-2.5 py-1 rounded border border-zinc-700/60 focus:border-cyan-500 focus:outline-none transition font-medium w-48"
+            className="bg-white/5 hover:bg-white/10 text-zinc-100 text-xs px-2.5 py-1 rounded-md border border-white/8 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] transition-colors font-medium w-48"
             placeholder="Vehicle Name"
           />
         </div>
@@ -139,7 +140,7 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
 
       {/* Center Presets Dropdown */}
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5 bg-zinc-800/60 p-1 rounded-lg border border-zinc-700/60 text-xs text-zinc-300">
+        <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-md border border-white/8 text-xs text-zinc-300">
           <FolderOpen className="w-3.5 h-3.5 text-zinc-400 ml-1.5" />
           <span className="text-[11px] text-zinc-400">Preset:</span>
           <select
@@ -159,11 +160,11 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
           </select>
         </div>
         {/* Undo / Redo */}
-        <div className="flex items-center gap-1 ml-2 bg-zinc-800/60 p-0.5 rounded-lg border border-zinc-700/60">
+        <div className="flex items-center gap-1 ml-2 bg-white/5 p-0.5 rounded-md border border-white/8">
           <button
             onClick={undo}
             disabled={historyLen === 0}
-            className="p-1.5 rounded hover:bg-zinc-700 text-zinc-300 disabled:opacity-30 disabled:hover:bg-transparent transition"
+            className="p-1.5 rounded-md hover:bg-white/10 text-zinc-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
             title="Undo (Ctrl+Z)"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -171,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
           <button
             onClick={redo}
             disabled={futureLen === 0}
-            className="p-1.5 rounded hover:bg-zinc-700 text-zinc-300 disabled:opacity-30 disabled:hover:bg-transparent transition"
+            className="p-1.5 rounded-md hover:bg-white/10 text-zinc-300 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
             title="Redo (Ctrl+Y)"
           >
             <RotateCw className="w-3.5 h-3.5" />
@@ -186,10 +187,10 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
           type="button"
           onClick={onRun}
           data-run-inline="true"
-          className="px-3 py-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 text-xs font-semibold rounded-lg border border-amber-500/40 transition flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
+          className="px-3 py-1.5 bg-white hover:bg-zinc-200 text-black text-xs font-semibold rounded-md transition-colors flex items-center gap-1.5 cursor-pointer"
           title="Run routine simulation inline in Trajectory (Ctrl+Enter)"
         >
-          <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30" />
+          <Flame className="w-3.5 h-3.5" />
           <span>Run ⏎</span>
         </button>
       )}
@@ -205,7 +206,7 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
 
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-700 transition flex items-center gap-1.5 shadow-sm"
+          className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-medium rounded-md border border-white/8 transition-colors flex items-center gap-1.5"
           title="Import OpenRocket (.ork), RockSim (.rkt), or Astraea JSON"
         >
           <Upload className="w-3.5 h-3.5 text-zinc-400" />
@@ -213,18 +214,18 @@ export const Header: React.FC<HeaderProps> = ({ onRun }) => {
         </button>
         <InteropExportPanel vehicle={vehicle} />
 
-        <div className="flex items-center rounded-lg border border-cyan-500/30 overflow-hidden shadow-sm">
+        <div className="flex items-center rounded-md border border-white/8 overflow-hidden">
           <button
             onClick={handleExportOrk}
-            className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-medium transition flex items-center gap-1.5"
+            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-medium transition-colors flex items-center gap-1.5"
             title="Export to OpenRocket (.ork) Archive"
           >
-            <Download className="w-3.5 h-3.5 text-cyan-400" />
+            <Download className="w-3.5 h-3.5" />
             <span>Export .ork</span>
           </button>
           <button
             onClick={handleExportJson}
-            className="px-2 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs border-l border-cyan-500/30 transition"
+            className="px-2 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-200 text-xs border-l border-white/8 transition-colors"
             title="Export Astraea JSON Specification"
           >
             <FileCode className="w-3.5 h-3.5" />

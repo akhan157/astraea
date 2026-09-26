@@ -35,9 +35,9 @@ const TONE: Record<BadgeStatus, string> = {
   stale: 'bg-amber-500/10 text-amber-300 border-amber-500/40',
   invalid: 'bg-red-500/10 text-red-300 border-red-500/40',
   unknown: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/40',
-  running: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/40',
+  running: 'bg-zinc-400/10 text-zinc-200 border-zinc-400/40',
   idle: 'bg-zinc-500/10 text-zinc-400 border-zinc-600/60',
-  info: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/40',
+  info: 'bg-white/5 text-zinc-300 border-white/8',
 };
 
 export interface StatusBadgeProps {

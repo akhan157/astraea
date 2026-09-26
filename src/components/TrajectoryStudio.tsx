@@ -43,6 +43,7 @@ import { runEnsemble } from '../tauri/bridge';
 import type { WindLayer } from '../sim/weather';
 import { fetchSounding, windAtAltitude, windToENU } from '../sim/weather';
 import { boattailSeparationCheck, computeProtuberanceDrag } from '../aero/protuberance';
+import { StudioHeader } from './ui/StudioHeader';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -62,7 +63,7 @@ interface WindRow {
 }
 
 const NUMERIC_INPUT =
-  'w-full min-w-0 bg-zinc-800 text-zinc-100 px-1.5 py-1 rounded-md border border-zinc-600/80 focus:border-cyan-500 focus:outline-none font-mono text-right';
+  'w-full min-w-0 bg-[#08090A] text-zinc-100 px-1.5 py-1 rounded-md border border-white/8 focus:border-[#4C8DFF] focus:outline-none font-mono text-right';
 
 const DEFAULT_WIND_ROWS: WindRow[] = [{ altitudeM: 0, speedMs: 0, directionFromDeg: 0 }];
 
@@ -363,7 +364,7 @@ export function TrajectoryStudio(): React.JSX.Element {
   const boattail = boattailSeparationCheck(btForeDiameterM, btAftDiameterM, btLengthM);
 
   const sectionHeader = (icon: React.ReactNode, title: string, hint?: string) => (
-    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-300">
+    <div className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-300">
       {icon}
       <span>{title}</span>
       {hint ? <span className="text-[10px] text-zinc-500 font-normal">{hint}</span> : null}
@@ -372,44 +373,38 @@ export function TrajectoryStudio(): React.JSX.Element {
 
   return (
     <div
-      className="rounded-2xl border border-zinc-700/80 bg-zinc-900 p-5 space-y-5 text-xs text-zinc-200"
+      className="rounded-lg border border-white/8 bg-[#0F1011] p-5 space-y-5 text-xs text-zinc-200"
       role="region"
       aria-label="Trajectory and weather studio"
     >
       {/* Panel header: caller-owned vehicle + motor identity */}
-      <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-            <Wind className="w-4 h-4" />
-          </div>
-          <div>
-            <h2 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
-              Trajectory & Weather Studio
-            </h2>
-            <p className="text-[10px] text-zinc-400">
-              Wind shear, live sounding, Monte Carlo dispersion, and aero advisories
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-1.5 text-[10px] font-mono">
-          <span className="px-2 py-1 rounded bg-zinc-800/80 border border-zinc-700/60 text-cyan-300">
-            {vehicle.name}
-          </span>
-          {motor ? (
-            <span className="px-2 py-1 rounded bg-zinc-800/80 border border-zinc-700/60 text-amber-300">
-              {motor.designation}
-            </span>
-          ) : (
-            <button
-              type="button"
-              onClick={() => selectStudio('propulsion')}
-              className="px-2 py-1 rounded bg-red-500/10 border border-red-500/40 text-red-300 hover:bg-red-500/20"
-              title="The assigned motor id resolves to no record — assign one in Propulsion"
-            >
-              Unresolved motor — assign in Propulsion
-            </button>
-          )}
-        </div>
+      <div className="border-b border-white/8 pb-3">
+        <StudioHeader
+          icon={<Wind className="w-4 h-4" />}
+          title="Trajectory & Weather Studio"
+          subtitle="Wind shear, live sounding, Monte Carlo dispersion, and aero advisories"
+          chips={
+            <>
+              <span className="px-2 py-1 rounded-full bg-white/5 border border-white/8 text-zinc-300 text-[10px]">
+                <span className="font-mono">{vehicle.name}</span>
+              </span>
+              {motor ? (
+                <span className="px-2 py-1 rounded-full bg-white/5 border border-white/8 text-zinc-300 text-[10px]">
+                  <span className="font-mono">{motor.designation}</span>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => selectStudio('propulsion')}
+                  className="px-2 py-1 rounded-full bg-red-500/10 border border-red-500/40 text-red-300 hover:bg-red-500/20 text-[10px]"
+                  title="The assigned motor id resolves to no record — assign one in Propulsion"
+                >
+                  Unresolved motor — assign in Propulsion
+                </button>
+              )}
+            </>
+          }
+        />
       </div>
 
       {/* Run readiness + repair destination (S1 preflight, shared with every
@@ -441,7 +436,7 @@ export function TrajectoryStudio(): React.JSX.Element {
           />
         )}
         {attemptQual && (
-          <div data-run-record-fields="true" className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono">
+          <div data-run-record-fields="true" className="flex flex-wrap items-center gap-1.5 text-[11px]">
             <span className="text-zinc-400">Latest attempt:</span>
             <StatusBadge status={attemptQual.fields.execution.status} label={attemptQual.fields.execution.label} />
             <StatusBadge status={attemptQual.fields.validity.status} label={attemptQual.fields.validity.label} />
@@ -453,13 +448,13 @@ export function TrajectoryStudio(): React.JSX.Element {
 
       {/* --- Section 1: manual wind table + probe readout --- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-zinc-950/60 rounded-xl border border-zinc-800/80 p-4">
+        <div className="bg-[#08090A] rounded-lg border border-white/8 p-4">
           {sectionHeader(
-            <Wind className="w-3.5 h-3.5 text-cyan-400" />,
+            <Wind className="w-3.5 h-3.5 text-zinc-400" />,
             'Manual Wind Shear Table',
             'wind blows FROM the direction column',
           )}
-          <div className="mt-2.5 grid grid-cols-4 gap-1.5 text-[10px] text-zinc-500 font-mono uppercase">
+          <div className="mt-2.5 grid grid-cols-4 gap-1.5 text-[10px] text-zinc-500 uppercase">
             <span>Alt (m)</span>
             <span>Speed (m/s)</span>
             <span>From (°)</span>
@@ -494,7 +489,7 @@ export function TrajectoryStudio(): React.JSX.Element {
               <button
                 onClick={() => setWindRows(windRows.filter((_, ri) => ri !== i))}
                 aria-label={`Remove wind layer ${i + 1}`}
-                className="min-w-8 h-8 rounded-md border border-zinc-700/50 text-rose-300 hover:bg-rose-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 cursor-pointer"
+                className="min-w-8 h-8 rounded-md border border-white/8 text-rose-300 hover:bg-rose-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] cursor-pointer"
               >
                 <X className="w-3.5 h-3.5 mx-auto" />
               </button>
@@ -512,22 +507,22 @@ export function TrajectoryStudio(): React.JSX.Element {
                 },
               ])
             }
-            className="mt-2 min-h-8 px-2.5 py-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 cursor-pointer inline-flex items-center gap-1"
+            className="mt-2 min-h-8 px-2.5 py-1 rounded-md border border-white/8 bg-white/5 text-zinc-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] cursor-pointer inline-flex items-center gap-1"
           >
             <Plus className="w-3.5 h-3.5" />
             Add Wind Layer
           </button>
         </div>
 
-        <div className="bg-zinc-950/60 rounded-xl border border-zinc-800/80 p-4">
+        <div className="bg-[#08090A] rounded-lg border border-white/8 p-4">
           {sectionHeader(
-            <Compass className="w-3.5 h-3.5 text-cyan-400" />,
+            <Compass className="w-3.5 h-3.5 text-zinc-400" />,
             'Probe Wind @ Altitude',
             probeWind ? undefined : 'no layers — add rows to the left',
           )}
           <div className="mt-2 flex justify-between text-[11px]">
             <span className="text-zinc-400 font-semibold">Probe Altitude</span>
-            <span className="font-mono text-cyan-400">{probeAltitudeM} m</span>
+            <span className="font-mono text-zinc-100">{probeAltitudeM} m</span>
           </div>
           <input
             type="range"
@@ -537,27 +532,27 @@ export function TrajectoryStudio(): React.JSX.Element {
             value={probeAltitudeM}
             aria-label="Wind probe altitude (m)"
             onChange={(e) => setProbeAltitudeM(parseFloat(e.target.value))}
-            className="w-full min-h-11 accent-cyan-500 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+            className="w-full min-h-11 accent-zinc-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
           />
           {probeWind && probeENU ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
-              <div className="p-2 bg-zinc-950/80 rounded-lg border border-zinc-800">
+              <div className="p-2 bg-[#08090A] rounded-lg border border-white/8">
                 <div className="text-[10px] text-zinc-500 uppercase font-semibold">Speed</div>
-                <div className="font-mono text-cyan-300">{probeWind.speedMs.toFixed(1)} m/s</div>
+                <div className="font-mono text-zinc-100">{probeWind.speedMs.toFixed(1)} m/s</div>
               </div>
-              <div className="p-2 bg-zinc-950/80 rounded-lg border border-zinc-800">
+              <div className="p-2 bg-[#08090A] rounded-lg border border-white/8">
                 <div className="text-[10px] text-zinc-500 uppercase font-semibold">From</div>
-                <div className="font-mono text-cyan-300">{probeWind.directionFromDeg.toFixed(0)}°</div>
+                <div className="font-mono text-zinc-100">{probeWind.directionFromDeg.toFixed(0)}°</div>
               </div>
-              <div className="p-2 bg-zinc-950/80 rounded-lg border border-zinc-800">
+              <div className="p-2 bg-[#08090A] rounded-lg border border-white/8">
                 <div className="text-[10px] text-zinc-500 uppercase font-semibold">ENU East</div>
-                <div className="font-mono text-cyan-300" aria-label="ENU east (m/s)">
+                <div className="font-mono text-zinc-100" aria-label="ENU east (m/s)">
                   {probeENU.east.toFixed(2)} m/s
                 </div>
               </div>
-              <div className="p-2 bg-zinc-950/80 rounded-lg border border-zinc-800">
+              <div className="p-2 bg-[#08090A] rounded-lg border border-white/8">
                 <div className="text-[10px] text-zinc-500 uppercase font-semibold">ENU North</div>
-                <div className="font-mono text-cyan-300" aria-label="ENU north (m/s)">
+                <div className="font-mono text-zinc-100" aria-label="ENU north (m/s)">
                   {probeENU.north.toFixed(2)} m/s
                 </div>
               </div>
@@ -571,7 +566,7 @@ export function TrajectoryStudio(): React.JSX.Element {
       </div>
 
       {/* --- Section 2: live sounding --- */}
-      <div className="bg-zinc-950/60 rounded-xl border border-zinc-800/80 p-4">
+      <div className="bg-[#08090A] rounded-lg border border-white/8 p-4">
         {sectionHeader(
           <Wind className="w-3.5 h-3.5 text-amber-400" />,
           'Live Sounding (Open-Meteo)',
@@ -603,12 +598,12 @@ export function TrajectoryStudio(): React.JSX.Element {
           <button
             onClick={handleFetchSounding}
             disabled={soundingStatus === 'loading'}
-            className="min-h-9 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-zinc-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200"
+            className="min-h-9 px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-zinc-200 border border-white/8 font-semibold text-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
           >
             {soundingStatus === 'loading' ? 'Fetching…' : 'Fetch Live Sounding'}
           </button>
         </div>
-        <div className="mt-2 text-[11px] font-mono" role="status" aria-live="polite">
+        <div className="mt-2 text-[11px]" role="status" aria-live="polite">
           {soundingStatus === 'idle' ? (
             <span className="text-zinc-500">Ready — set coordinates and fetch a pressure-level profile.</span>
           ) : soundingStatus === 'loading' ? (
@@ -622,9 +617,9 @@ export function TrajectoryStudio(): React.JSX.Element {
       </div>
 
       {/* --- Section 3: Monte Carlo dispersion --- */}
-      <div className="bg-zinc-950/60 rounded-xl border border-zinc-800/80 p-4">
+      <div className="bg-[#08090A] rounded-lg border border-white/8 p-4">
         {sectionHeader(
-          <Navigation className="w-3.5 h-3.5 text-cyan-400" />,
+          <Navigation className="w-3.5 h-3.5 text-zinc-400" />,
           'Monte Carlo Dispersion',
           `fixed seed — deterministic per input set`,
         )}
@@ -698,7 +693,7 @@ export function TrajectoryStudio(): React.JSX.Element {
             />
           </label>
         </div>
-        <div className="mt-1.5 text-[10px] font-mono text-zinc-500" role="status">
+        <div className="mt-1.5 text-[10px] text-zinc-500" role="status">
           Wind for MC: {soundingOk
             ? `live sounding, interpolated @ ${probeAltitudeM} m (sounding takes precedence over the manual table)`
             : 'manual wind table (surface probe)'}
@@ -710,21 +705,21 @@ export function TrajectoryStudio(): React.JSX.Element {
             data-run-control="true"
             data-run-inline="true"
             title={resolved.runnable ? 'Run routine simulation inline (Ctrl+Enter)' : 'Resolve the blocking issues above to run'}
-            className="min-h-11 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition inline-flex items-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+            className="min-h-11 px-6 py-2.5 bg-white text-black hover:bg-zinc-200 font-semibold text-xs rounded-md transition-colors inline-flex items-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF]"
           >
             <Play className="w-4 h-4 fill-current" />
             {mcRunning ? `Running Monte Carlo (${clampNRuns(mcNRuns)} runs)…` : 'Run Monte Carlo'}
           </button>
         </div>
         {mcError && (
-          <div className="mt-2 p-2.5 bg-rose-950/40 rounded-lg border border-rose-500/40 text-rose-300 text-[11px] font-mono" role="alert">
+          <div className="mt-2 p-2.5 bg-rose-950/40 rounded-lg border border-rose-500/40 text-rose-300 text-[11px]" role="alert">
             <AlertTriangle className="w-3.5 h-3.5 inline-block mr-1.5" />
             Monte Carlo failed: {mcError}
           </div>
         )}
         {mcResult && (
           <div className="mt-2.5 space-y-2.5">
-            <div className="flex items-center gap-1.5 text-[11px] font-mono" role="status" aria-live="polite">
+            <div className="flex items-center gap-1.5 text-[11px]" role="status" aria-live="polite">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
               <span className="text-emerald-400">{mcResult.successfulRuns} succeeded · {mcResult.failedRuns} failed</span>
             </div>
@@ -750,37 +745,37 @@ export function TrajectoryStudio(): React.JSX.Element {
               )}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-              <div className="p-2.5 bg-zinc-950/80 rounded-lg border border-zinc-800">
+              <div className="p-2.5 bg-[#08090A] rounded-lg border border-white/8">
                 <div className="text-[10px] text-zinc-500 uppercase font-semibold">Mean Landing</div>
-                <div className="font-mono text-emerald-300" aria-label="Mean landing (m)">
+                <div className="font-mono text-zinc-100" aria-label="Mean landing (m)">
                   E {mcResult.mean.x.toFixed(1)} · N {mcResult.mean.y.toFixed(1)} m
                 </div>
               </div>
-              <div className="p-2.5 bg-zinc-950/80 rounded-lg border border-zinc-800">
+              <div className="p-2.5 bg-[#08090A] rounded-lg border border-white/8">
                 <div className="text-[10px] text-zinc-500 uppercase font-semibold">Sigma 1</div>
-                <div className="font-mono text-cyan-300" aria-label="Sigma 1 (m)">
+                <div className="font-mono text-zinc-100" aria-label="Sigma 1 (m)">
                   {mcResult.sigma1.toFixed(1)} m
                 </div>
               </div>
-              <div className="p-2.5 bg-zinc-950/80 rounded-lg border border-zinc-800">
+              <div className="p-2.5 bg-[#08090A] rounded-lg border border-white/8">
                 <div className="text-[10px] text-zinc-500 uppercase font-semibold">Sigma 2</div>
-                <div className="font-mono text-cyan-300" aria-label="Sigma 2 (m)">
+                <div className="font-mono text-zinc-100" aria-label="Sigma 2 (m)">
                   {mcResult.sigma2.toFixed(1)} m
                 </div>
               </div>
-              <div className="p-2.5 bg-zinc-950/80 rounded-lg border border-zinc-800">
+              <div className="p-2.5 bg-[#08090A] rounded-lg border border-white/8">
                 <div className="text-[10px] text-zinc-500 uppercase font-semibold">r50</div>
                 <div className="font-mono text-zinc-100" aria-label="r50 (m)">
                   {mcResult.containmentRadii.r50.toFixed(0)} m
                 </div>
               </div>
-              <div className="p-2.5 bg-zinc-950/80 rounded-lg border border-zinc-800">
+              <div className="p-2.5 bg-[#08090A] rounded-lg border border-white/8">
                 <div className="text-[10px] text-zinc-500 uppercase font-semibold">r90</div>
                 <div className="font-mono text-zinc-100" aria-label="r90 (m)">
                   {mcResult.containmentRadii.r90.toFixed(0)} m
                 </div>
               </div>
-              <div className="p-2.5 bg-zinc-950/80 rounded-lg border border-zinc-800">
+              <div className="p-2.5 bg-[#08090A] rounded-lg border border-white/8">
                 <div className="text-[10px] text-zinc-500 uppercase font-semibold">r99</div>
                 <div className="font-mono text-zinc-100" aria-label="r99 (m)">
                   {mcResult.containmentRadii.r99.toFixed(0)} m
@@ -793,7 +788,7 @@ export function TrajectoryStudio(): React.JSX.Element {
 
       {/* --- Section 4: boattail + protuberance advisories --- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-zinc-950/60 rounded-xl border border-zinc-800/80 p-4">
+        <div className="bg-[#08090A] rounded-lg border border-white/8 p-4">
           {sectionHeader(
             <Wind className="w-3.5 h-3.5 text-rose-400" />,
             'Protuberance Drag',
@@ -849,15 +844,15 @@ export function TrajectoryStudio(): React.JSX.Element {
               />
             </label>
           </div>
-          <div className="mt-2.5 p-2.5 bg-zinc-950/80 rounded-lg border border-zinc-800">
+          <div className="mt-2.5 p-2.5 bg-[#08090A] rounded-lg border border-white/8">
             <div className="text-[10px] text-zinc-500 uppercase font-semibold">Lug Drag Coefficient</div>
-            <div className="font-mono text-cyan-300" aria-label="Protuberance drag coefficient">
+            <div className="font-mono text-zinc-100" aria-label="Protuberance drag coefficient">
               {lugCd.toFixed(4)}
             </div>
           </div>
         </div>
 
-        <div className="bg-zinc-950/60 rounded-xl border border-zinc-800/80 p-4">
+        <div className="bg-[#08090A] rounded-lg border border-white/8 p-4">
           {sectionHeader(
             <Navigation className="w-3.5 h-3.5 text-rose-400" />,
             'Boattail Flow Separation',

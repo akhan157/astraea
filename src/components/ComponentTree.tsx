@@ -89,19 +89,19 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({ filter, highlight 
   const getComponentIcon = (type: ComponentType) => {
     switch (type) {
       case 'nosecone':
-        return <Compass className="w-4 h-4 text-amber-400" />;
+        return <Compass className="w-4 h-4 text-zinc-300" />;
       case 'bodytube':
-        return <Cylinder className="w-4 h-4 text-cyan-400" />;
+        return <Cylinder className="w-4 h-4 text-zinc-300" />;
       case 'transition':
-        return <Minimize2 className="w-4 h-4 text-emerald-400" />;
+        return <Minimize2 className="w-4 h-4 text-zinc-300" />;
       case 'trapezoidfinset':
       case 'ellipticalfinset':
-        return <Wind className="w-4 h-4 text-rose-400" />;
+        return <Wind className="w-4 h-4 text-zinc-300" />;
       case 'parachute':
-        return <CircleDot className="w-4 h-4 text-blue-400" />;
+        return <CircleDot className="w-4 h-4 text-zinc-300" />;
       case 'masscomponent':
       default:
-        return <Weight className="w-4 h-4 text-purple-400" />;
+        return <Weight className="w-4 h-4 text-zinc-300" />;
     }
   };
 
@@ -245,14 +245,14 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({ filter, highlight 
   };
 
   return (
-    <aside className="w-80 bg-zinc-900/90 border-r border-zinc-800 flex flex-col h-[calc(100vh-3.5rem)] z-20 backdrop-blur-md">
+    <aside className="w-80 bg-[#0F1011] border-r border-white/8 flex flex-col h-[calc(100vh-3.5rem)] z-20">
       {/* Sidebar Header */}
-      <div className="p-3.5 border-b border-zinc-800 flex items-center justify-between">
+      <div className="p-3.5 border-b border-white/8 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-cyan-400" />
-          <span className="text-xs font-bold uppercase tracking-wider text-zinc-200">Axial Assembly</span>
+          <Layers className="w-4 h-4 text-zinc-300" />
+          <span className="text-xs font-bold uppercase tracking-wider text-white">Axial Assembly</span>
         </div>
-        <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+        <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white/5 border border-white/8 text-zinc-400">
           {vehicle.components.length} parts
         </span>
       </div>
@@ -296,10 +296,10 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({ filter, highlight 
               ? ('selected' as TreePickState)
               : ('candidate' as TreePickState);
           const stateRow = state === 'selected'
-            ? 'bg-cyan-500/10 border-cyan-500/50 shadow-sm'
+            ? 'bg-[#4C8DFF]/10 border-[#4C8DFF]/40'
             : state === 'action-needed'
               ? 'bg-amber-500/10 border-amber-500/40'
-              : 'bg-zinc-800/40 border-zinc-800/80 hover:bg-zinc-800 hover:border-zinc-700';
+              : 'bg-white/5 border-white/8 hover:bg-white/10';
           const structuralLocked = filter !== undefined && filter !== 'all';
           const contrib = stability.contributions.find((c) => c.id === comp.id);
           const massDisplay = contrib ? (contrib.mass < 1 ? `${(contrib.mass * 1000).toFixed(1)}g` : `${contrib.mass.toFixed(2)}kg`) : '';
@@ -319,17 +319,17 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({ filter, highlight 
               }}
               data-state={state}
               data-component-id={comp.id}
-              className={`p-2.5 rounded-lg border transition cursor-pointer flex items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${stateRow}`}
+              className={`p-2.5 rounded-lg border transition-colors cursor-pointer flex items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4C8DFF] ${stateRow}`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="p-1.5 rounded-md bg-zinc-800 border border-zinc-700/50 shrink-0">
+                <div className="p-1.5 rounded-md bg-white/5 border border-white/8 shrink-0">
                   {getComponentIcon(comp.type)}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-semibold text-zinc-200 truncate">{comp.name}</span>
                     {state === 'action-needed' && (
-                      <span className="text-[9px] px-1 rounded bg-amber-500/20 text-amber-300" title="Needs action — inspect the motor mount">
+                      <span className="text-[9px] px-1 rounded-md bg-amber-500/20 text-amber-300" title="Needs action — inspect the motor mount">
                         needs action
                       </span>
                     )}
@@ -395,64 +395,64 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({ filter, highlight 
       </div>
 
       {/* Add Component Action Bar */}
-      <div className="p-3 border-t border-zinc-800 bg-zinc-900/60 relative">
+      <div className="p-3 border-t border-white/8 bg-[#0F1011] relative">
         <button
           onClick={() => setShowAddMenu(!showAddMenu)}
-          className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-lg border border-zinc-700 transition flex items-center justify-center gap-1.5 shadow-sm"
+          className="w-full py-2 bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-semibold rounded-md border border-white/8 transition-colors flex items-center justify-center gap-1.5"
         >
-          <Plus className="w-4 h-4 text-cyan-400" />
+          <Plus className="w-4 h-4 text-zinc-300" />
           <span>Add Airframe Component</span>
         </button>
 
         {showAddMenu && (
-          <div className="absolute bottom-16 left-3 right-3 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl p-1.5 z-50 space-y-1">
+          <div className="absolute bottom-16 left-3 right-3 bg-[#0F1011] border border-white/8 rounded-lg p-1.5 z-50 space-y-1">
             <button
               onClick={() => handleAddNew('nosecone')}
-              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 rounded-lg flex items-center gap-2"
+              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-white/10 rounded-md flex items-center gap-2 transition-colors"
             >
-              <Compass className="w-3.5 h-3.5 text-amber-400" />
+              <Compass className="w-3.5 h-3.5 text-zinc-300" />
               <span>Nosecone</span>
             </button>
             <button
               onClick={() => handleAddNew('bodytube')}
-              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 rounded-lg flex items-center gap-2"
+              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-white/10 rounded-md flex items-center gap-2 transition-colors"
             >
-              <Cylinder className="w-3.5 h-3.5 text-cyan-400" />
+              <Cylinder className="w-3.5 h-3.5 text-zinc-300" />
               <span>Body Tube</span>
             </button>
             <button
               onClick={() => handleAddNew('transition')}
-              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 rounded-lg flex items-center gap-2"
+              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-white/10 rounded-md flex items-center gap-2 transition-colors"
             >
-              <Minimize2 className="w-3.5 h-3.5 text-emerald-400" />
+              <Minimize2 className="w-3.5 h-3.5 text-zinc-300" />
               <span>Transition (Shoulder / Boattail)</span>
             </button>
             <button
               onClick={() => handleAddNew('trapezoidfinset')}
-              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 rounded-lg flex items-center gap-2"
+              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-white/10 rounded-md flex items-center gap-2 transition-colors"
             >
-              <Wind className="w-3.5 h-3.5 text-rose-400" />
+              <Wind className="w-3.5 h-3.5 text-zinc-300" />
               <span>Trapezoidal Fin Set</span>
             </button>
             <button
               onClick={() => handleAddNew('ellipticalfinset')}
-              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 rounded-lg flex items-center gap-2"
+              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-white/10 rounded-md flex items-center gap-2 transition-colors"
             >
-              <Wind className="w-3.5 h-3.5 text-rose-400" />
+              <Wind className="w-3.5 h-3.5 text-zinc-300" />
               <span>Elliptical Fin Set</span>
             </button>
             <button
               onClick={() => handleAddNew('parachute')}
-              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 rounded-lg flex items-center gap-2"
+              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-white/10 rounded-md flex items-center gap-2 transition-colors"
             >
-              <CircleDot className="w-3.5 h-3.5 text-blue-400" />
+              <CircleDot className="w-3.5 h-3.5 text-zinc-300" />
               <span>Recovery Parachute</span>
             </button>
             <button
               onClick={() => handleAddNew('masscomponent')}
-              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 rounded-lg flex items-center gap-2"
+              className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-white/10 rounded-md flex items-center gap-2 transition-colors"
             >
-              <Weight className="w-3.5 h-3.5 text-purple-400" />
+              <Weight className="w-3.5 h-3.5 text-zinc-300" />
               <span>Internal Mass / Avionics</span>
             </button>
           </div>
