@@ -55,6 +55,9 @@ passed=true on a clean tree. Current 2026-09-26 check: 62 frontend files /
 
 What unblocks each item and the minimum viable payload:
 
+> The actionable one-page version of this section, including the build-side asks and the consent
+> rules, is [team-data-request.md](team-data-request.md).
+
 - **Empirical closure:** one flight log (altimeter CSV or GPX) + motor flown +
   vehicle dims/mass (or `.ork`). Intake: `parseAltimeterCsv` / `parseGpxTrack` →
   overlay → Cd calibration. No new hardware needed — any past flight works.
