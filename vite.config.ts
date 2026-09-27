@@ -7,6 +7,9 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  // Relative asset paths so the same build works from the dev server root and
+  // from a hosted subpath (GitHub Pages serves this repo at /astraea/).
+  base: './',
   plugins: [
     react(),
     tailwindcss()

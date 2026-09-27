@@ -28,6 +28,14 @@ export const App: React.FC = () => {
 
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [report, setReport] = useState<DropImportReport | null>(null);
+  /**
+   * The native bridge is the only compute path (src/tauri/bridge.ts fails
+   * closed without it). In a plain browser — the hosted preview — say so up
+   * front instead of letting the first simulation look like a bug.
+   */
+  const nativeComputeAvailable =
+    typeof (window as unknown as { __TAURI__?: { core?: { invoke?: unknown } } }).__TAURI__?.core
+      ?.invoke === 'function';
 
   // Global Drag & Drop File Handling
   const handleDragOver = (e: React.DragEvent) => {
@@ -84,6 +92,18 @@ export const App: React.FC = () => {
       onDrop={handleDrop}
     >
       <WorkstationShell />
+
+      {!nativeComputeAvailable && (
+        <div
+          role="status"
+          data-web-preview="true"
+          className="px-3 py-2 border-b border-amber-500/30 bg-amber-950/40 text-amber-200 text-[11px]"
+        >
+          Browser preview: the airframe editor, imports/exports, and project files work here.
+          Simulations, Monte Carlo, stability, and aero curves need the native desktop build — the
+          bridge fails closed rather than substituting the test engines.
+        </div>
+      )}
 
       {/* Drop-import failure disclosure (onReport path) — inline role=alert
           banner, never a modal. Dismissing clears only this report. */}
