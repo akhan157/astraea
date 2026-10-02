@@ -9,6 +9,11 @@
   --font-schibsted: 'Schibsted Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-martian: 'Martian Mono', ui-monospace, Menlo, monospace;
   --font-unbounded: 'Unbounded', ui-sans-serif, system-ui, sans-serif;
+  --font-instrument: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-jb: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --font-archivo: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-source: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+  --font-source-mono: 'Source Code Pro', ui-monospace, Menlo, monospace;
   --font-figtree: 'Figtree', ui-sans-serif, system-ui, sans-serif;
 }
 

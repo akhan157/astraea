@@ -3,11 +3,15 @@ import Hub from './Hub';
 import { ConceptSwitcher } from './ConceptSwitcher';
 
 const Console = lazy(() => import('./concepts/console/Console'));
+const Refined = lazy(() => import('./concepts/console-refined/Refined'));
+const Ribbon = lazy(() => import('./concepts/console-ribbon/Ribbon'));
+const Quad = lazy(() => import('./concepts/console-quad/Quad'));
+const Solver = lazy(() => import('./concepts/console-solver/Solver'));
 const Drafting = lazy(() => import('./concepts/drafting/Drafting'));
 const Flow = lazy(() => import('./concepts/flow/Flow'));
 const Launch = lazy(() => import('./concepts/launch/Launch'));
 
-export type Route = '' | 'console' | 'drafting' | 'flow' | 'launch';
+export type Route = '' | 'console' | 'refined' | 'ribbon' | 'quad' | 'solver' | 'drafting' | 'flow' | 'launch';
 const read = (): Route => (location.hash.replace('#', '') as Route) || '';
 
 export default function App() {
@@ -21,6 +25,10 @@ export default function App() {
     <Suspense fallback={<div style={{ height: '100%', background: '#0b0d10' }} />}>
       {route === '' && <Hub />}
       {route === 'console' && <Console />}
+      {route === 'refined' && <Refined />}
+      {route === 'ribbon' && <Ribbon />}
+      {route === 'quad' && <Quad />}
+      {route === 'solver' && <Solver />}
       {route === 'drafting' && <Drafting />}
       {route === 'flow' && <Flow />}
       {route === 'launch' && <Launch />}

@@ -15,6 +15,12 @@ export interface RocketLook {
   /** Color an individual part to show selection. */
   highlight?: string | null;
   highlightColor?: string;
+  /** Parts to omit (feature rollback, visibility toggles). */
+  hide?: string[];
+  /** Section-view clipping planes. */
+  clip?: THREE.Plane[];
+  /** Draw silhouette edges over the shaded body (CAD "shaded with edges"). */
+  edges?: string;
 }
 
 export function noseRadius(shape: NoseShape, x: number, Ln: number, R: number): number {
@@ -75,32 +81,44 @@ export function RocketModel({ d, look, cg, cp, showMarkers = false }: { d: Desig
       opacity={look.opacity ?? 1}
       emissive={look.highlight === part ? look.highlightColor ?? '#22d3ee' : '#000000'}
       emissiveIntensity={look.highlight === part ? 0.35 : 0}
+      clippingPlanes={look.clip}
+      clipShadows
+      side={look.clip?.length ? THREE.DoubleSide : THREE.FrontSide}
     />
   );
 
   const nozzleR = (motor.diameter / 1000) * 0.42;
+  const show = (p: string) => !look.hide?.includes(p);
+  const edge = (geo: THREE.BufferGeometry) => look.edges ? <lineSegments><edgesGeometry args={[geo, 25]} /><lineBasicMaterial color={look.edges} clippingPlanes={look.clip} /></lineSegments> : null;
 
   return (
     <group>
-      <mesh geometry={noseGeo} castShadow>{mat(look.nose, 'nose')}</mesh>
-      <mesh position={[0, d.bodyLength / 2, 0]} castShadow>
-        <cylinderGeometry args={[R, R, d.bodyLength, 64, 1, false]} />
-        {mat(look.body, 'body')}
-      </mesh>
-      {/* coupler band */}
-      <mesh position={[0, d.bodyLength * 0.58, 0]}>
-        <cylinderGeometry args={[R * 1.004, R * 1.004, 0.035, 64, 1, true]} />
-        {mat(look.accent, 'band')}
-      </mesh>
-      {Array.from({ length: d.finCount }).map((_, i) => (
-        <mesh key={i} geometry={finGeo} rotation={[0, (i / d.finCount) * Math.PI * 2, 0]} castShadow>
-          {mat(look.fins, 'fins')}
+      {show('nose') && <group><mesh geometry={noseGeo} castShadow>{mat(look.nose, 'nose')}</mesh>{edge(noseGeo)}</group>}
+      {show('body') && (
+        <group position={[0, d.bodyLength / 2, 0]}>
+          <mesh castShadow>
+            <cylinderGeometry args={[R, R, d.bodyLength, 64, 1, false]} />
+            {mat(look.body, 'body')}
+          </mesh>
+          {look.edges && <BodyEdges R={R} L={d.bodyLength} color={look.edges} clip={look.clip} />}
+        </group>
+      )}
+      {show('band') && show('body') && (
+        <mesh position={[0, d.bodyLength * 0.58, 0]}>
+          <cylinderGeometry args={[R * 1.004, R * 1.004, 0.035, 64, 1, true]} />
+          {mat(look.accent, 'band')}
         </mesh>
+      )}
+      {show('fins') && Array.from({ length: d.finCount }).map((_, i) => (
+        <group key={i} rotation={[0, (i / d.finCount) * Math.PI * 2, 0]}>
+          <mesh geometry={finGeo} castShadow>{mat(look.fins, 'fins')}</mesh>
+          {edge(finGeo)}
+        </group>
       ))}
-      <mesh position={[0, -0.03, 0]}>
+      {show('motor') && <mesh position={[0, -0.03, 0]}>
         <cylinderGeometry args={[nozzleR * 0.8, nozzleR, 0.06, 32]} />
         <meshStandardMaterial color="#3f3f46" metalness={0.8} roughness={0.3} wireframe={look.wireframe} />
-      </mesh>
+      </mesh>}
       {showMarkers && cg !== undefined && <Marker y={L - cg} r={R} color="#38bdf8" />}
       {showMarkers && cp !== undefined && <Marker y={L - cp} r={R} color="#f43f5e" />}
     </group>
@@ -120,4 +138,18 @@ function Marker({ y, r, color }: { y: number; r: number; color: string }) {
       </mesh>
     </group>
   );
+}
+
+function BodyEdges({ R, L, color, clip }: { R: number; L: number; color: string; clip?: THREE.Plane[] }) {
+  const geo = useMemo(() => {
+    const pts: number[] = [];
+    for (const y of [-L / 2, L / 2]) for (let i = 0; i < 64; i++) {
+      const a = (i / 64) * Math.PI * 2, b = ((i + 1) / 64) * Math.PI * 2;
+      pts.push(Math.cos(a) * R, y, Math.sin(a) * R, Math.cos(b) * R, y, Math.sin(b) * R);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    return g;
+  }, [R, L]);
+  return <lineSegments geometry={geo}><lineBasicMaterial color={color} clippingPlanes={clip} /></lineSegments>;
 }

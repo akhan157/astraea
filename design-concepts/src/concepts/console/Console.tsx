@@ -20,8 +20,8 @@ import { Kbd, STATE_COLOR, ScrubField, Section, Segmented } from './ui';
 const C = { bg: '#0A0B0D', panel: '#0F1114', raised: '#15181C', line: 'rgba(255,255,255,0.06)', fg: '#E6E8EB', muted: '#8A9099', dim: '#5D636C', accent: '#67E8F9', cg: '#38BDF8', cp: '#FB7185' };
 const chartTheme: ChartTheme = { grid: 'rgba(255,255,255,0.05)', axis: 'rgba(255,255,255,0.18)', text: '#5D636C', font: 'Geist Mono, monospace', crosshair: 'rgba(255,255,255,0.25)', tooltipBg: '#1A1D22', tooltipFg: '#E6E8EB' };
 
-type Stage = 'mission' | 'airframe' | 'propulsion' | 'aero' | 'flight' | 'recovery' | 'verify' | 'fab';
-const STAGES: { id: Stage; label: string; icon: typeof Box; key: string }[] = [
+export type Stage = 'mission' | 'airframe' | 'propulsion' | 'aero' | 'flight' | 'recovery' | 'verify' | 'fab';
+export const STAGES: { id: Stage; label: string; icon: typeof Box; key: string }[] = [
   { id: 'mission', label: 'Mission', icon: Target, key: '1' },
   { id: 'airframe', label: 'Airframe', icon: Box, key: '2' },
   { id: 'propulsion', label: 'Propulsion', icon: Flame, key: '3' },
@@ -32,7 +32,7 @@ const STAGES: { id: Stage; label: string; icon: typeof Box; key: string }[] = [
   { id: 'fab', label: 'Fabricate', icon: Wrench, key: '8' }
 ];
 
-type Part = 'nose' | 'body' | 'fins' | 'motor' | 'payload' | 'recovery' | 'avionics';
+export type Part = 'nose' | 'body' | 'fins' | 'motor' | 'payload' | 'recovery' | 'avionics';
 type ViewMode = 'solid' | 'xray' | 'wire';
 
 export default function Console() {
@@ -192,7 +192,7 @@ function StageRail({ stage, setStage }: { stage: Stage; setStage: (s: Stage) => 
   );
 }
 
-const TREE: { id: Part; label: string; icon: typeof Box; children?: { label: string; id: Part }[] }[] = [
+export const TREE: { id: Part; label: string; icon: typeof Box; children?: { label: string; id: Part }[] }[] = [
   { id: 'nose', label: 'Nose cone', icon: Cone },
   { id: 'payload', label: 'Payload bay', icon: Package, children: [{ label: 'CubeSat payload (4.0 kg)', id: 'payload' }] },
   { id: 'recovery', label: 'Recovery', icon: Umbrella, children: [{ label: 'Main · 84 in toroidal', id: 'recovery' }, { label: 'Drogue · 24 in cruciform', id: 'recovery' }] },
@@ -383,7 +383,7 @@ function AirframeView({ part, setPart, view, setView }: { part: Part; setPart: (
   );
 }
 
-function StabilityStrip() {
+export function StabilityStrip() {
   const { a } = useEngineering();
   const L = a.length;
   const pos = (x: number) => `${(x / L) * 100}%`;
@@ -483,7 +483,7 @@ function FinThumb({ d }: { d: Design }) {
   return <svg width="48" height="46" aria-hidden><line x1="0" x2="48" y1="44" y2="44" stroke="#3F444B" /><polygon points={p} fill="rgba(103,232,249,.12)" stroke={C.accent} strokeWidth="1" /></svg>;
 }
 
-function RecoveryFields() {
+export function RecoveryFields() {
   const d = useDesignStore((s) => s.design);
   const set = useDesignStore((s) => s.set);
   return (
@@ -495,7 +495,7 @@ function RecoveryFields() {
   );
 }
 
-function MotorPicker({ compact }: { compact?: boolean }) {
+export function MotorPicker({ compact }: { compact?: boolean }) {
   const d = useDesignStore((s) => s.design);
   const set = useDesignStore((s) => s.set);
   return (
@@ -521,7 +521,7 @@ function MotorPicker({ compact }: { compact?: boolean }) {
 
 /* ───────────────────────── other stages ───────────────────────── */
 
-function PageHead({ title, sub, right }: { title: string; sub: string; right?: React.ReactNode }) {
+export function PageHead({ title, sub, right }: { title: string; sub: string; right?: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3 border-b px-5 py-4" style={{ borderColor: C.line }}>
       <div><h1 className="text-[17px] font-medium tracking-tight">{title}</h1><p className="mt-0.5 text-[12.5px] text-[#6B717A]">{sub}</p></div>
@@ -530,7 +530,7 @@ function PageHead({ title, sub, right }: { title: string; sub: string; right?: R
   );
 }
 
-function Stat({ k, v, sub, tone }: { k: string; v: string; sub?: string; tone?: string }) {
+export function Stat({ k, v, sub, tone }: { k: string; v: string; sub?: string; tone?: string }) {
   return (
     <div className="rounded-lg border px-3.5 py-3" style={{ borderColor: C.line, background: C.panel }}>
       <div className="text-[11.5px] text-[#6B717A]">{k}</div>
@@ -540,7 +540,7 @@ function Stat({ k, v, sub, tone }: { k: string; v: string; sub?: string; tone?: 
   );
 }
 
-function PropulsionView() {
+export function PropulsionView() {
   const { design: d, a } = useEngineering();
   const m = motorById(d.motorId);
   const curve = useMemo(() => Array.from({ length: 120 }, (_, i) => { const t = (i / 119) * (m.burn + 0.2); return { t, F: thrustAt(m, t) }; }), [m]);
@@ -562,7 +562,7 @@ function PropulsionView() {
   );
 }
 
-function FlightView() {
+export function FlightView() {
   const { design: d, r, stale } = useEngineering();
   const mc = useMemo(() => monteCarlo(d, 120), [d]);
   const ascent = r.series.filter((p) => p.t <= r.tApogee + 0.5);
@@ -605,7 +605,7 @@ function FlightView() {
   );
 }
 
-function VerifyView() {
+export function VerifyView() {
   const { gates, stale } = useEngineering();
   const counts = { pass: 0, warn: 0, fail: 0 };
   gates.forEach((g) => counts[g.state]++);
@@ -635,7 +635,7 @@ function VerifyView() {
   );
 }
 
-function MissionView() {
+export function MissionView() {
   const d = useDesignStore((s) => s.design);
   const set = useDesignStore((s) => s.set);
   return (
@@ -663,7 +663,7 @@ function MissionView() {
   );
 }
 
-function AeroView() {
+export function AeroView() {
   const { a } = useEngineering();
   const data = useMemo(() => Array.from({ length: 60 }, (_, i) => { const M = i * 0.03; const cd = a.cd * (M < 0.8 ? 1 : M < 1.05 ? 1 + 1.6 * (M - 0.8) / 0.25 : M < 1.4 ? 2.6 - 1.4 * (M - 1.05) / 0.35 : 1.2); return { M, cd }; }), [a.cd]);
   return (
@@ -683,7 +683,7 @@ function AeroView() {
   );
 }
 
-function RecoveryView() {
+export function RecoveryView() {
   const { r } = useEngineering();
   return (
     <div className="thin-scroll flex-1 overflow-y-auto">
@@ -699,7 +699,7 @@ function RecoveryView() {
   );
 }
 
-function FabView() {
+export function FabView() {
   const d = useDesignStore((s) => s.design);
   const items = useMemo(() => massItems(d), [d]);
   const cost: Record<string, number> = { nose: 189, payload: 0, main: 245, avionics: 610, drogue: 72, body: 312, fins: 96, mount: 58, motor: 365 };
