@@ -31,3 +31,6 @@
 - Where the copilot lives in the workstation UI (a side panel versus a ⌘K extension). Coordinate with the frontend branch.
 - How far the tier-1 assistant can go: intent matching, templated explanations, and a small curated FAQ from the docs.
 - The provider abstraction: one tool-calling interface that exposes a fixed set of engine "tools" (run case, stability breakdown, mass rollup, aero curves, sim, Monte Carlo) to whichever provider is connected.
+
+## UI data contract
+The engine branch owns `docs/ui-data-contract.md`: result shapes with confidence levels, gates, timelines and jobs. The copilot's engine "tools" should return exactly those shapes, so every number the copilot quotes carries the same confidence level and reason the UI shows.
