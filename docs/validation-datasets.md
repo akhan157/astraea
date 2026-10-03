@@ -3,9 +3,6 @@
 Date of research: 2026-10-03. Sandbox egress was restricted: only github.com git clones/GitHub API worked. rasaero.com, rocketryforum.com, nasa.gov, arxiv.org, zenodo.org, psu.edu, umn.edu, thrustcurve.org, readthedocs were blocked, so those are listed as UNVERIFIED leads only.
 Everything under "Verified" below was cloned (shallow) and inspected locally (headers, row counts, max values computed by me).
 
-## Key finding on licensing
-RocketPy repo (https://github.com/RocketPy-Team/RocketPy) is MIT licensed (LICENSE: "MIT License, Copyright (c) 2018 Giovani Hidalgo Ceotto"). The flight CSVs live in `data/rockets/*` and the vehicle definitions live as code in `docs/examples/*_flight_sim.ipynb`. No separate data licence. Each notebook states "Permission to use flight data given by <team member>, <year>" (Juno III README says data was shared with the RocketPy team). So: MIT for the repo, but the data's provenance is team permission to RocketPy, not an explicit data licence. Safest approach for Astraea: do not redistribute the CSVs inside Astraea's repo. Fetch them at test time (or cite and ask the teams), and keep the original attribution. Cite RocketPy as Ceotto et al., J. Aerospace Eng. 34(6), 2021, doi 10.1061/(ASCE)AS.1943-5525.0001331.
-
 Important caveat for ALL RocketPy cases: there is no .ork/.rkt/CDX1 file. Vehicle definition = Python parameters in the notebook (nose kind/length, radius, fin n/span/root/tip/sweep/position, mass, inertia, motor). Drag is usually a team-supplied Cd(Mach) curve (RASAero, OpenRocket, or a hand table) in `data/rockets/<name>/*.csv` or inline. For validating Astraea's own drag buildup, you must rebuild geometry from the notebook and ignore the supplied Cd curve. Body length, fin thickness and some tube lengths are often NOT given. Several teams give a sim-tuned mass and drag multiplier. Measured apogees below that I computed from the CSVs agree with the notebook's "official" figure unless noted.
 
 Clone used: `git clone --depth 1 https://github.com/RocketPy-Team/RocketPy` (HEAD dated 2026-07-21). Files are at `data/rockets/<dir>/`, motors at `data/motors/**.eng` (ThrustCurve-style RASP files), weather at `data/weather/*.nc` (ERA5 reanalysis).
@@ -21,7 +18,7 @@ Clone used: `git clone --depth 1 https://github.com/RocketPy-Team/RocketPy` (HEA
 - Motor: Cesaroni 7579M1520-P (Pro98 3G), `data/motors/cesaroni/Cesaroni_7579M1520-P.eng`; burn 4.897 s, prop 3.737 kg, case 2.981 kg.
 - Measured: official apogee 3898.37 m AGL; my max of TeleMega `height` = 3898.37 m; TeleMetrum `height` max 3903.77 m (differs by 5 m between the two units). Max `speed` on TeleMetrum 317.9 m/s (about Mach 0.93 at altitude, so top end of subsonic/transonic). RocketPy last sim 4190 m (+7.5%).
 - Conditions: 2022-06-24 09:17 local, Spaceport America, elevation 1401 m (the notebook sets env year 2023 but reanalysis file is spaceport_america_pressure_levels_2023_hourly.nc: date/year mismatch, treat the weather as approximate), rail 5.18 m, inclination 80 deg, heading 75 deg (assumed). Main at 457.2 m, drogue at apogee.
-- Caveats: the Cd table is the team's, not derived. Wind unknown. Permission "given by Giorgio Chassikos, 2024".
+- Caveats: the Cd table is the team's, not derived. Wind unknown.
 
 ### 2. Andromeda, Aristotle Space and Aeronautics Team (AUTH/ASAT), EuRoC 2022. Rating B+ (dims in notebook, raw log, transonic/supersonic)
 - Notebook: .../docs/examples/andromeda_flight_sim.ipynb. Data: `data/rockets/andromeda/flight_data.csv` (1140 rows; t, alt ft, vz ft/s, alt m, vz m/s), `thrust_curve.csv` (team static test of the motor), `drag_coefficient.csv`.
@@ -81,24 +78,22 @@ Clone used: `git clone --depth 1 https://github.com/RocketPy-Team/RocketPy` (HEA
 - Data in repo: `data/2026-09-05-L1-flight-55Hz.csv` (6,344 rows at 55 Hz, BMP581 + SPA06 pressure, 6-axis IMU), ground test CSV; the raw 42 MB log is attached to a GitHub release (I did not verify the release asset exists). Motor file `sim/AeroTech_H219T.eng`.
 - Vehicle: LOC IV-X2 kit (commercial kit, so published dims from the vendor, not in repo), dry mass 1.975 kg (in `sim/flysim.m`). No .ork. Drag coefficient is a guess (0.60 +/- 0.09 in the Monte Carlo).
 - Measured apogee 320.9 m (pressure-reduced with pad pressure 997.73 hPa and 23 C), 311.4 m with a standard-atmosphere reduction, peak velocity 92.2 m/s, peak accel 12.58 g. Deployment spikes corrupt the baro (readme explains).
-- Licence: none found in file listing (no LICENSE). Contact the author before redistributing.
 - Caveat: a hobbyist single flight, geometry must be sourced elsewhere. Useful for H-class sanity and Monte Carlo comparison. Note that the date is recent (about one month before today); data not independently vetted.
 
 ### 10. ISSUIUC (Illinois Space Society) Intrepid flights, with ISS_SILSIM model files. Rating C+ (raw logs for transonic/supersonic, vehicle files from a different configuration)
 - Flight data: https://github.com/ISSUIUC/flight-data (marked "migrated to Box" but the directories are still in the repo). Folders: 20211030 (Endurance), 20220507 / 20220623 (Intrepid I, II), 20221029 (Intrepid III test 1), 20230305, 20230507, 20230621 (Intrepid III, IREC 2023 competition), 20231001, 20231118, 20240323 (the last four I did not inspect).
 - 20230621 files: `irec_2023_telemega.csv` (15,939 rows), `irec_2023_easymega.csv` (6,891 rows), `irec_2023_tars.csv` (SRAD, 8,202 rows). AltOS fields. By my calculation the TeleMega `height` max is 8323.7 m and `speed` max 595.95 m/s (the AltOS CSV units are metres and m/s, so about Mach 1.9, 27,300 ft). Not verified against the official IREC score card.
 - Vehicle: https://github.com/ISSUIUC/ISS_SILSIM has `ork_files/rocket.ork` (plain XML; Haack nose 0.914 m, 6.18 in class body, custom motors incl. Cesaroni N3800/N3400) and `utils/RASAero_fetch/cdx1/Intrepid_5800_mk6_*.CDX1` (CDX1 for a 4.02 in diameter design with an N5800 motor, dated 2022-04-05). The ork and CDX1 are design-study files that do NOT obviously match the flown 2023 vehicle (different diameter/motor), so they cannot be used as ground truth.
-- No LICENSE file in either repo (all rights reserved by default); treat as view-only until you ask.
 - Value: the closest thing to a free high-altitude, supersonic raw log with an actual M/N motor. You would need to get the real Intrepid III dims from ISS/IREC papers (UNVERIFIED lead: ISS IREC 2023 technical report).
 
 ### 11. catsystems/euroc21-team-data (EuRoC 2021 shared logs). Rating C (logs only)
-- https://github.com/catsystems/euroc21-team-data, licence GPL-3.0 (LICENSE file present). Folders: Aris-Euler, Aris-Piccard (TeleMetrum and TeleMega .eeprom + CSV, CATS logs), ICLR (Eggtimer dumps), STA-CARL2 (Altimax, Eggtimer, RRC3 altimeters), SkywardER-Lynx (SRAD + Eggtimer).
+- https://github.com/catsystems/euroc21-team-data. Folders: Aris-Euler, Aris-Piccard (TeleMetrum and TeleMega .eeprom + CSV, CATS logs), ICLR (Eggtimer dumps), STA-CARL2 (Altimax, Eggtimer, RRC3 altimeters), SkywardER-Lynx (SRAD + Eggtimer).
 - No vehicle definition files; the READMEs say "Todo / Coming soon". Only useful if you can obtain the dims elsewhere (team papers).
 
 ### 12. Imperial College ART (icl-art/OpenRocket). Rating C (design only)
-- https://github.com/icl-art/OpenRocket: `Rockets that flew/ASTRA 11.04.2021.ork`, `ASTRA 13.06.2021.ork`, `APEX 29.08.2021.ork`. README says: ASTRA G-class, flights 2021-04-11 apogee 546 m, 2021-06-13 apogee 523 m. No log files, no licence file. Tiny, useful as a low-speed .ork parse test only.
+- https://github.com/icl-art/OpenRocket: `Rockets that flew/ASTRA 11.04.2021.ork`, `ASTRA 13.06.2021.ork`, `APEX 29.08.2021.ork`. README says: ASTRA G-class, flights 2021-04-11 apogee 546 m, 2021-06-13 apogee 523 m. No log files. Tiny, useful as a low-speed .ork parse test only.
 
-### 13. PSP-High-Altitude/OpenRocket-Files. Rating C-: many .ork designs (Argonia, DM2, DM3, Skyshot), no flight logs seen, no licence file. Not a validation source.
+### 13. PSP-High-Altitude/OpenRocket-Files. Rating C-: many .ork designs (Argonia, DM2, DM3, Skyshot), no flight logs seen. Not a validation source.
 
 ### 14. inoobs13/OpenRocket_FlightData_Plotter: only MATLAB code; no data. Not useful.
 
@@ -107,7 +102,7 @@ Clone used: `git clone --depth 1 https://github.com/RocketPy-Team/RocketPy` (HEA
 ## C. UNVERIFIED leads (could not fetch; do not treat as confirmed)
 - RASAero II "Comparisons with Altitude Data" page on rasaero.com: reports RASAero II apogee vs altimeter/optical/accelerometer/GPS data for a set of HPR and amateur flights (average 3.47% error, 80.6% within 10%, 41.7% within 5%, per a rocketryforum thread summary). Likely tabular only, with no raw logs. Seen via search snippets only.
 - Rocketry Forum threads: MESOS flight to 293k ft vs RASAero 290k ft; "Leave No Doubt" M2020 to Mach 3. Anecdotal.
-- NASA Student Launch PLAR/FRR PDFs (e.g., Penn State 2019 `https://liontechrocketlabs.psu.edu/files/2019/04/Penn-State-2019-PLAR.pdf`, 2018 `https://sites.psu.edu/psurocket/files/2018/04/PLAR-2017-2018-234m5gl.pdf`, FSU Panama City 2026 PLAR `https://web1.eng.famu.fsu.edu/me/senior_design/2026/team533pc/files/FloridaStateUniversityPanamaCity-2026-PLAR-Report.pdf`). They appear in search results; I could not read them. USLI rockets (about 4-6 in, 4000-5500 ft AGL, L/M motors) typically publish dims, mass, motor, predicted vs actual apogee. Expect altimeter plots, not CSV. Terms: team-copyright documents.
+- NASA Student Launch PLAR/FRR PDFs (e.g., Penn State 2019 `https://liontechrocketlabs.psu.edu/files/2019/04/Penn-State-2019-PLAR.pdf`, 2018 `https://sites.psu.edu/psurocket/files/2018/04/PLAR-2017-2018-234m5gl.pdf`, FSU Panama City 2026 PLAR `https://web1.eng.famu.fsu.edu/me/senior_design/2026/team533pc/files/FloridaStateUniversityPanamaCity-2026-PLAR-Report.pdf`). They appear in search results; I could not read them. USLI rockets (about 4-6 in, 4000-5500 ft AGL, L/M motors) typically publish dims, mass, motor, predicted vs actual apogee. Expect altimeter plots, not CSV.
 - UMN Space Grant Midwest Rocketry Competition post-flight report (UMD High Power Rocketeers) at dept.aem.umn.edu: blocked.
 - arXiv 2512.22248 "Amortized Inference for Model Rocket Aerodynamics": claims OpenRocket apogee MAE 19.9 m on 8 valid flights; I could not tell if the flight dataset is published.
 - HMC E80/E178 pages (pages.hmc.edu/spjut): course .ork + flight comparisons. Blocked.

@@ -45,7 +45,6 @@ Flow: `UI → zustand stores → application/caseResolver (immutable, content-ad
 - Rebuild each vehicle from the RocketPy notebook parameters. **Ignore the team-supplied Cd curves** when testing Astraea's own drag buildup.
 - Compare apogee, time to apogee, max velocity, burnout altitude and descent, not only apogee. Run Monte Carlo over Cd, mass and thrust scatter.
 - Publish the residuals and model limits. RocketPy's own published errors on the same flights (about +0.6% to +7.5%, and -9% on Halcyon) are a ready benchmark to compare against.
-- **Data licensing:** RocketPy is MIT, but the flight data is shared by team permission, not under a data licence. Credit the teams and RocketPy (Ceotto et al., J. Aerospace Eng. 34(6), 2021). **Fetch the data at test time; do not commit the CSVs into this repo.**
 - **Cheap first comparison:** Valetudo ships RASAero Cd curves. Plot Astraea's drag buildup against them on the same geometry to see where the two diverge, especially Mach 0.8 to 1.2.
 
 ### E2. Close the calibration loop
@@ -60,9 +59,9 @@ Flow: `UI → zustand stores → application/caseResolver (immutable, content-ad
 ### E4. Propellant recipe editor (the ProPEP 3 capability)
 - Today the Gibbs solver (`crates/astraea-core/src/gibbs.rs`) is fixed to one recipe (70% AP / 18% Al / 12% HTPB) with 10 species. It is well validated (60 NASA-CEA cases), but users cannot enter their own formulation. KNSB/KNDX sugar motors are impossible because there are no potassium species.
 - Build: an ingredient table (formula, heat of formation, density) from public sources; more product species (K, Mg, Na compounds, condensed phases); arbitrary formulations. Outputs: Tc, γ, MW, c*, theoretical Isp. These are the inputs to E3.
-- **Reference:** NASA CEA (public domain) is the primary validation target. ProPEP 3 outputs may also be used as a reference and tuning target (owner decision, 2026-10-03; see section 4).
+- **Reference:** NASA CEA (public domain) is the primary validation target. ProPEP 3 outputs may also be used as a reference and tuning target.
 
-### E5. External-value import (legal access to closed tools' results)
+### E5. External-value import
 - **RASAero drag table import:** the app exports .cdx1 but cannot import a Cd-vs-Mach table and fly with it. Add the import; flights using it are tagged "drag: RASAero (external)". This was already planned in `docs/rocketry-tools-reverse-engineering.md` ("CD(Mach) table ingestion").
 - **External flutter speed** (for example from AeroFinSim), compared against max velocity in a Verify gate.
 
@@ -75,28 +74,10 @@ Flow: `UI → zustand stores → application/caseResolver (immutable, content-ad
 ### E8. Export traceability (small)
 - When exporting STEP/STL/DXF, write a small manifest alongside: revision, whether the sim is current, key results, gate states and confidence levels. Optional additions: a 1:1 fin template DXF and a cut-list CSV. Export stays one-way; Astraea is the source of truth for flight-relevant geometry.
 
-## 4. Data and licensing decisions
-
-**Owner decision (2026-10-03):** the earlier AI-written `docs/clean-room-ip-compliance.md` was never an owner-agreed policy and has been removed. Reverse engineering closed tools (RASAero II, AeroFinSim, ProPEP 3) to understand how they work, and tuning Astraea's models against their outputs, are both allowed. What stays out: copying their source code or binaries into Astraea, or shipping them with it. The remaining rows are an AI reading of the licences, not legal advice.
-
-| Source | Licence | What we may use |
-|---|---|---|
-| RASAero II | Closed freeware | Reverse engineering to understand its methods is allowed, and Astraea's models may be tuned against RASAero outputs. Its code and binaries are not copied into or shipped with Astraea. Users may also import their own RASAero outputs (E5). |
-| AeroFinSim | Commercial, closed | Same policy as RASAero: study and tune against its outputs; do not copy or ship its code. User-entered external values (E5). |
-| ProPEP 3 | Closed freeware | Same policy as RASAero. NASA CEA (public domain) remains the primary reference. |
-| OpenRocket | GPL-3.0 | Ideas and equations, not code or the parts database (Astraea is Apache-2.0). |
-| openMotor | GPL-3.0 | Not its files. Take propellant a/n coefficients from the original published papers and test reports. |
-| RocketPy | MIT | Code and methods with credit. Flight data per team permission; fetch, don't bundle. |
-| ThrustCurve.org | Site terms | Already integrated (live search). Check the terms before bundling curves offline. |
-| NASA CEA, US Std Atmosphere | Public domain | Free to use. |
-
-Being free and open source does **not** relax any of this. Apache-2.0 redistribution means everything included must be passable to every downstream user. Open source does help when asking authors and teams for permission and data.
-
-## 5. Open questions for the owner
+## 4. Open questions for the owner
 - Which telemetry formats to support first for log import. AltOS is primary today; others are Featherweight, Eggtimer, StratoLogger, RRC3, Blue Raven and CATS. A configurable column/unit mapping editor (status doc item S6) is the deterministic path; AI-assisted mapping is a copilot-branch feature.
-- Whether to contact Rogers Aeroscience (RASAero) and the ProPEP author to ask what they would permit.
 
-## 6. UI data contract (requested by the owner, 2026-10-03)
+## 5. UI data contract (requested by the owner, 2026-10-03)
 The frontend is being designed while features are still in flux. It designs against agreed **data shapes** with mock data rather than waiting for finished engine code. Please own `docs/ui-data-contract.md` (TypeScript interfaces plus short prose) defining what the engine hands the UI:
 - **Every result:** `{ value, unit, confidence: 'measured' | 'calibrated' | 'modeled' | 'extrapolated' | 'unknown', reason, source? }`.
 - **Run and case identity, and freshness:** `current` / `stale`, and what changed since the committed run.
