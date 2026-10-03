@@ -5,20 +5,23 @@
 ## Owner's decisions so far
 
 - **It ships as an experimental feature**, off by default and clearly labeled.
-- **Two tiers:**
+- **Two tiers.** Tier 1 is always present and is the fallback whenever tier 2 is unavailable or fails:
   1. **Built-in basic assistant.** No LLM, no training budget, works offline. A coded, rule-based helper in the spirit of pre-LLM chatbots. Its best realistic form:
      - deterministic checks ("stability above 3 cal", "rail exit below 30 m/s", "descent above 7.6 m/s", "apogee off target by more than 5%")
      - each proposing a concrete fix that it **computes by running the engine**, for example bisecting fin span until stability reaches 2.2 cal, then showing before → after
      - plus keyword/intent-matched explanations of terms and results.
-  2. **Bring-your-own AI provider.** Users connect their own account, by OAuth where the provider supports it or by API key. Target providers: whatever collegiate students actually have. Candidates are OpenAI (ChatGPT), Anthropic (Claude) and Google (Gemini, which many students get through school or Google accounts). *Research task:* survey what students typically have access to, and what each provider allows for OAuth vs API key in a desktop app.
-- **Rejected:** shipping a local LLM (too heavy) and the project hosting or paying for a model (free, open-source project with no budget).
+  2. **AI assistant, with two options:**
+     - **2a. Small local model (primary).** An opt-in download (not bundled in the installer) of a small quantized model (about 1–4B parameters) run through llama.cpp, CPU-only on a typical student laptop. Slower answers are acceptable. The model only routes intent to engine tools, fills tool arguments under constrained (grammar-enforced) output, and writes prose around engine values; code inserts every number. *Open:* pick the model by a short bake-off on our own tool-calling cases; prefer a permissive licence (e.g. Apache 2.0 or MIT) over custom terms such as Gemma's, even though downloading on demand means Astraea does not redistribute the weights.
+     - **2b. Bring-your-own provider (sidelined, not dropped).** Users connect their own OpenAI, Anthropic or Google account by OAuth where supported or by API key. Not built now; whether it is needed is decided once 2a and the tool interface exist. Both options share one tool-calling interface, so adding 2b later is a provider adapter, not a redesign. *Research task (deferred with it):* what students typically have access to, and what each provider allows for OAuth vs API key in a desktop app.
+- **Rejected:** the project hosting or paying for a model (free, open-source project with no budget).
+- **Changed 2026-10-03:** a local LLM was originally rejected as too heavy; the owner now accepts a *small* local model as an optional download (option 2a above).
 
 ## Hard rules (from the "no fluff / no false certainty" principle)
 
 1. **The engine produces every number. The AI never does.** For any quantitative answer, the copilot must call the engine (via the same Tauri commands the UI uses) and quote the result with its confidence level (Measured, Calibrated, Modeled, Extrapolated or Unknown).
 2. **Nothing changes without the user's explicit click.** Every applied suggestion goes through the normal undoable edit path and appears in history.
-3. **Fail closed.** If the provider is unreachable, or the answer cannot be grounded in an engine result, say so. Do not guess.
-4. **Keys and tokens stay local**, in OS secure storage via Tauri, and are never logged or sent anywhere except to the user's chosen provider.
+3. **Fail closed.** If the model or provider is unavailable, or the answer cannot be grounded in an engine result, say so. Do not guess.
+4. **Keys and tokens stay local** (applies once option 2b is built), in OS secure storage via Tauri, and are never logged or sent anywhere except to the user's chosen provider.
 
 ## Proposed use cases (to prioritize)
 
@@ -30,7 +33,7 @@
 ## Design questions still open
 - Where the copilot lives in the workstation UI (a side panel versus a ⌘K extension). Coordinate with the frontend branch.
 - How far the tier-1 assistant can go: intent matching, templated explanations, and a small curated FAQ from the docs.
-- The provider abstraction: one tool-calling interface that exposes a fixed set of engine "tools" (run case, stability breakdown, mass rollup, aero curves, sim, Monte Carlo) to whichever provider is connected.
+- The provider abstraction (shared by options 2a and 2b): one tool-calling interface that exposes a fixed set of engine "tools" (run case, stability breakdown, mass rollup, aero curves, sim, Monte Carlo) to whichever provider is connected.
 
 ## UI data contract
 The engine branch owns `docs/ui-data-contract.md`: result shapes with confidence levels, gates, timelines and jobs. The copilot's engine "tools" should return exactly those shapes, so every number the copilot quotes carries the same confidence level and reason the UI shows.
