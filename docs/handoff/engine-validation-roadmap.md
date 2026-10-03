@@ -93,3 +93,14 @@ Being free and open source does **not** relax any of this. Apache-2.0 redistribu
 ## 5. Open questions for the owner
 - Which telemetry formats to support first for log import. AltOS is primary today; others are Featherweight, Eggtimer, StratoLogger, RRC3, Blue Raven and CATS. A configurable column/unit mapping editor (status doc item S6) is the deterministic path; AI-assisted mapping is a copilot-branch feature.
 - Whether to contact Rogers Aeroscience (RASAero) and the ProPEP author to ask what they would permit.
+
+## 6. UI data contract (requested by the owner, 2026-10-03)
+The frontend is being designed while features are still in flux. It designs against agreed **data shapes** with mock data rather than waiting for finished engine code. Please own `docs/ui-data-contract.md` (TypeScript interfaces plus short prose) defining what the engine hands the UI:
+- **Every result:** `{ value, unit, confidence: 'measured' | 'calibrated' | 'modeled' | 'extrapolated' | 'unknown', reason, source? }`.
+- **Run and case identity, and freshness:** `current` / `stale`, and what changed since the committed run.
+- **Gate result:** `{ id, label, value, criterion, outcome: 'pass' | 'warn' | 'fail' | 'unknown', confidence }`.
+- **Flight timeline series and events** (for the Flight-stage timeline), the stability breakdown per component, and the flutter margin over time.
+- **Long-running jobs:** progress, cancel, partial results (the Monte Carlo chunk host already does this).
+- **Imports:** a provenance block (checksum, dialect, units, skipped lines; `logProvenance.ts` already exists).
+
+Keep it versioned. The frontend branch (`claude/upbeat-allen-ol4h5e`) and the copilot branch both consume it, so change it deliberately and note changes at the top.
