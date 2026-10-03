@@ -188,3 +188,36 @@ export function explainStability(vehicle: RocketVehicle): StabilityExplainResult
     plainLanguage: buildPlainLanguage(vehicle, components, analysis),
   };
 }
+
+/**
+ * Same explanation built from an already-computed StabilityAnalysis (for
+ * example the native `stability` command's result), using the per-component
+ * mass and CG that analysis carries. Runs no physics of its own, so the
+ * explanation always matches the engine that produced `analysis`.
+ */
+export function explainStabilityAnalysis(
+  vehicle: RocketVehicle,
+  analysis: StabilityAnalysis
+): StabilityExplainResult {
+  const components: StabilityComponentBreakdown[] = analysis.contributions.map((c) => ({
+    id: c.id,
+    name: c.name,
+    type: c.type,
+    massKg: c.mass,
+    cgM: c.cg,
+    cnAlpha: c.cna ?? 0,
+    cpM: c.cp,
+    contributionPct:
+      c.cna !== undefined && c.cna !== 0 && analysis.totalCNa !== 0
+        ? (c.cna / analysis.totalCNa) * 100
+        : 0,
+  }));
+
+  return {
+    components,
+    totalCgM: analysis.cg,
+    totalCpM: analysis.cp,
+    staticMarginCalibers: analysis.staticMarginCalibers,
+    plainLanguage: buildPlainLanguage(vehicle, components, analysis),
+  };
+}

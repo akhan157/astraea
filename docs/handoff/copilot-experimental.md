@@ -36,3 +36,6 @@
 
 ## UI data contract
 The engine branch owns `docs/ui-data-contract.md`: result shapes with confidence levels, gates, timelines and jobs. The copilot's engine "tools" should return exactly those shapes, so every number the copilot quotes carries the same confidence level and reason the UI shows.
+
+## Status
+- **2026-10-03: tier-1 core, no UI yet** (`src/copilot/`). Checks with an editable requirement profile (defaults from this doc, which are stricter than the engine's own gates), engine-computed fixes (fin span → stability target, main parachute diameter → descent limit, rail length → rail exit as advice only), `applyFix` that stages into the edit buffer and refuses stale or conflicting fixes, intent matching, and a glossary that extends `src/onboarding/explainers.ts`. Engine access goes only through the native bridge; when it is unavailable, every check reports "not evaluated". The confidence mapping in `src/copilot/engine.ts` is provisional until `docs/ui-data-contract.md` lands. Not done yet: the experimental flag, the UI, and an apogee fix.
