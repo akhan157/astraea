@@ -38,3 +38,13 @@ Proposed first set, all backed by real engine output:
 - drei `<Html>` overlays drop sibling labels under React 19, so `src/shared/Anchors.tsx` (`Projector`) is used instead. Never pass an inline `style` object to `<Html>`.
 - StrictMode is disabled in `src/main.tsx` for the same reason.
 - `useDesignStore` keeps undo history (rapid same-field edits merge into one entry) and a `simDesign` snapshot for deltas and the ghost.
+
+## How to design while features are still in flux (agreed 2026-10-03)
+Features are still being decided, so design in three layers:
+1. **Shell and flow (stable, design to finished quality now):** the pipeline stage rail (Mission → Airframe → Motor → Aero → Flight → Recovery → Verify → Build), the layout (rail, parts tree, 3D view, inspector, bottom dock, status bar), navigation (⌘K, stage keys, undo), and the committed-vs-preview model.
+2. **Component kit (stable, most of the value right now):** value with unit, result with confidence level and reason, pass/fail gate row, chart, table, inspector section, import flow, long-running job with progress and cancel, empty state, and "not available yet" state. Every future feature is assembled from these.
+3. **Feature screens (in flux):** do **not** polish screens for undecided features (propellant recipe editor, calibration, copilot panel). Sketch them at most, and leave a labeled slot in the shell.
+
+**Contract with the engine branch:** design against agreed *data shapes* with mock data, not against finished engine code. For example, every result is `{ value, unit, confidence: 'measured' | 'calibrated' | 'modeled' | 'extrapolated' | 'unknown', reason }`. The engine branch (`claude/engine-validation-roadmap`) is asked to define these in `docs/ui-data-contract.md`. Until it exists, propose shapes here and agree them with that branch.
+
+**Next frontend work, in order:** finish the shell → build the component kit → fully design the features that already exist and work in the real app (airframe editing, 6-DOF flight, Monte Carlo, imports/exports) → labeled slots for everything else.
