@@ -34,7 +34,7 @@ Modern rocketeers and university competition teams currently design, simulate, a
 4. **Certified Propulsion Engine:** RASP motor database, thrust curve interpolation $F(t)$, and live propellant mass/CG depletion.
 5. **Numerical 6-DOF Trajectory & Weather Soundings:** ISA 1976 atmosphere, live Open-Meteo REST API wind soundings, and dual-mode Monte Carlo landing dispersion ellipses.
 6. **Closed-Loop Flight Evidence Ledger:** Ingesting AltOS/FlightSketch CSV logs, synchronizing simulated vs. actual curves, and automatically solving for the rocket's true real-world $C_D$.
-7. **Legal Clean-Room Architecture:** 100% public-domain NASA/NACA/USAF physics, zero proprietary code contamination, and fair-use file interoperability (`.ork`, `.rkt`, `.cdx1`, `.eng`).
+7. **File Interoperability:** read and write `.ork`, `.rkt`, `.cdx1`, `.eng` and `.rse`. Third-party code and binaries are not copied into or shipped with Astraea (see the data and licensing section of `docs/handoff/engine-validation-roadmap.md`).
 
 ---
 

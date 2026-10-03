@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-03. **Origin:** a frontend/UI-direction session (`claude/upbeat-allen-ol4h5e`, prototypes in `design-concepts/`) drifted into engine and validation questions. This document carries those decisions to an engine-focused session. No engine code was changed in that session; everything below is findings, decisions, and proposed work.
 
-Read with: [`docs/project-status.md`](../project-status.md), [`docs/clean-room-ip-compliance.md`](../clean-room-ip-compliance.md), [`docs/validation-datasets.md`](../validation-datasets.md) (research report produced in that session).
+Read with: [`docs/project-status.md`](../project-status.md), [`docs/validation-datasets.md`](../validation-datasets.md) (research report produced in that session).
 
 The AI copilot is split into its own branch (`claude/copilot-experimental`) and is out of scope here, except that every number the copilot shows must come from the engine work below.
 
@@ -60,7 +60,7 @@ Flow: `UI → zustand stores → application/caseResolver (immutable, content-ad
 ### E4. Propellant recipe editor (the ProPEP 3 capability)
 - Today the Gibbs solver (`crates/astraea-core/src/gibbs.rs`) is fixed to one recipe (70% AP / 18% Al / 12% HTPB) with 10 species. It is well validated (60 NASA-CEA cases), but users cannot enter their own formulation. KNSB/KNDX sugar motors are impossible because there are no potassium species.
 - Build: an ingredient table (formula, heat of formation, density) from public sources; more product species (K, Mg, Na compounds, condensed phases); arbitrary formulations. Outputs: Tc, γ, MW, c*, theoretical Isp. These are the inputs to E3.
-- **Reference:** NASA CEA (public domain). Validate against CEA directly. ProPEP 3 may be used only as an occasional cross-check (closed freeware; do not copy its code or database).
+- **Reference:** NASA CEA (public domain) is the primary validation target. ProPEP 3 outputs may also be used as a reference and tuning target (owner decision, 2026-10-03; see section 4).
 
 ### E5. External-value import (legal access to closed tools' results)
 - **RASAero drag table import:** the app exports .cdx1 but cannot import a Cd-vs-Mach table and fly with it. Add the import; flights using it are tagged "drag: RASAero (external)". This was already planned in `docs/rocketry-tools-reverse-engineering.md` ("CD(Mach) table ingestion").
@@ -75,13 +75,15 @@ Flow: `UI → zustand stores → application/caseResolver (immutable, content-ad
 ### E8. Export traceability (small)
 - When exporting STEP/STL/DXF, write a small manifest alongside: revision, whether the sim is current, key results, gate states and confidence levels. Optional additions: a 1:1 fin template DXF and a cut-list CSV. Export stays one-way; Astraea is the source of truth for flight-relevant geometry.
 
-## 4. Data and licensing decisions (my reading, not legal advice)
+## 4. Data and licensing decisions
+
+**Owner decision (2026-10-03):** the earlier AI-written `docs/clean-room-ip-compliance.md` was never an owner-agreed policy and has been removed. Reverse engineering closed tools (RASAero II, AeroFinSim, ProPEP 3) to understand how they work, and tuning Astraea's models against their outputs, are both allowed. What stays out: copying their source code or binaries into Astraea, or shipping them with it. The remaining rows are an AI reading of the licences, not legal advice.
 
 | Source | Licence | What we may use |
 |---|---|---|
-| RASAero II | Closed freeware | Public theory only (Barrowman, Missile DATCOM, Van Driest). **Do not** copy, or mass-sample to reconstruct, its tuned data. Users may import their own RASAero outputs (E5). |
-| AeroFinSim | Commercial, closed | Public NACA TN-4197 only; user-entered external values (E5). |
-| ProPEP 3 | Closed freeware | Benchmark occasionally only. Use NASA CEA (public domain) as the reference. |
+| RASAero II | Closed freeware | Reverse engineering to understand its methods is allowed, and Astraea's models may be tuned against RASAero outputs. Its code and binaries are not copied into or shipped with Astraea. Users may also import their own RASAero outputs (E5). |
+| AeroFinSim | Commercial, closed | Same policy as RASAero: study and tune against its outputs; do not copy or ship its code. User-entered external values (E5). |
+| ProPEP 3 | Closed freeware | Same policy as RASAero. NASA CEA (public domain) remains the primary reference. |
 | OpenRocket | GPL-3.0 | Ideas and equations, not code or the parts database (Astraea is Apache-2.0). |
 | openMotor | GPL-3.0 | Not its files. Take propellant a/n coefficients from the original published papers and test reports. |
 | RocketPy | MIT | Code and methods with credit. Flight data per team permission; fetch, don't bundle. |
