@@ -1,0 +1,40 @@
+P 
+CP 
+a! 
+6F  
+@ 
+free-stream static pressure, newtons per meter' 
+(pounds per foot2) 
+static pressure at base of model, newtons per meter2 (pounds per foot2) 
+free-stream dynamic pressure, newtons per meter2 (pounds per foot2) 
+maximum cross-sectional area of body, meters2 (feet2) 
+center-of-pressure location, percent body length 
+angle of attack of model center line, degrees 
+fin cant angle (setting with reference to body center line), degrees 
+fin roll angle, positive clockwise as viewed upstream aft of the model, degrees 
+APPARATUS AND TESTS 
+The investigation was made in the Langley 8-foot transonic pressure tunnel. The 
+test section of this tunnel is square in cross section with slotted upper and lower walls 
+to permit continuous operation through the transonic speed range. The total pressure of 
+the tunnel air can be varied from a minimum value of 0.25 atmosphere at all test Mach 
+numbers to a maximum value of 2.0 atmospheres at Mach numbers up to 0.4 and about 
+1.5 atmospheres at transonic Mach numbers. The tunnel air is dried sufficiently to 
+avoid condensation effects. 
+Model 
+The models used in the present investigation were sting-supported 1/2-scale 
+models of the Arcas meteorological sounding rocket. Details of the models are presented 
+in figure 1, and schlieren photographs of the forebody and centerbody juncture are pre­
+sented in figure 2. The models had an ogive nose, a cylindrical centerbody, and a boat-
+tail afterbody that ended with a reflex lip. Trapezoidal double-wedge fins were used to 
+stabilize the model. Two models differing in the length of the cylindrical centerbody 
+were investigated. The short model had a fineness ratio of 18.2 and the long model had 
+a fineness ratio of 23.8. 
+The models were investigated with fins at cant angles of 0
+'
+ 
+and 2'. 
+The cant angle 
+of 2' for each fin was in such a direction as to produce a positive rolling moment. The 
+models were also investigated without fins. The fin anchors (fig. l(b)) were used to 
+3 
+X 

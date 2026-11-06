@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main, release/v1]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6, Node 24
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/astraea-engine
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:engine
+      - run: pnpm exec tsc --noEmit
+      - run: pnpm test
+      - name: Startup trace page-script checks
+        run: node scripts/startup-trace.node.mjs
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium firefox webkit
+      # Reuse this build without consuming GitHub artifact-storage quota.
+      - name: Chromium acceptance
+        run: pnpm test:browser
+      - name: Firefox acceptance
+        run: pnpm test:browser
+        env:
+          ASTRAEA_BROWSER: firefox
+      - name: WebKit acceptance
+        run: pnpm test:browser
+        env:
+          ASTRAEA_BROWSER: webkit
+
+  rust:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
+        with:
+          persist-credentials: false
+      - name: Install Tauri system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            crates/astraea-core
+            crates/astraea-engine
+            src-tauri
+      - name: astraea-core tests
+        run: cargo test --manifest-path crates/astraea-core/Cargo.toml
+      - name: Engine command and parity tests
+        run: cargo test --manifest-path crates/astraea-engine/Cargo.toml --locked
+      - name: Desktop shell builds
+        # tauri-build needs a frontend dist directory to exist at compile time.
+        run: mkdir -p dist && cargo check --manifest-path src-tauri/Cargo.toml --locked
+      - name: Startup trace boundary checks
+        run: |
+          rustc --edition=2021 --test src-tauri/src/startup_trace.rs -o "$RUNNER_TEMP/astraea-startup-trace-tests"
+          "$RUNNER_TEMP/astraea-startup-trace-tests"

@@ -1,0 +1,166 @@
+{
+  "base_commit": "00e768b",
+  "files": [
+    {
+      "path": "19670020031-pdf-p06.png",
+      "bytes": 367584,
+      "sha256": "e7a06c2d9cadc91a57218a67b3d3dc41f542c64d03bc226f7a84c654678e43e8"
+    },
+    {
+      "path": "19670020031-pdf-p07.png",
+      "bytes": 276857,
+      "sha256": "3acd7626f3d95274f45ee89c194154446dbef05881cb052635d7966e4bfbc955"
+    },
+    {
+      "path": "19670020031-pdf-p10.png",
+      "bytes": 162058,
+      "sha256": "d0202b11ed876f62dbba3df6924679fe92c0534fdcbb3aa01c14c7d6d20b2616"
+    },
+    {
+      "path": "19670020031-pdf-p28.png",
+      "bytes": 452501,
+      "sha256": "bfebbd4ed6565ab0326c26ce7c1c938af76bd172315ec2919bb02bc58448c46c"
+    },
+    {
+      "path": "19670020031-pdf-p29.png",
+      "bytes": 624081,
+      "sha256": "226ad5b48ea19ee42c8d60a1ac7bf1e99e8a9b2eb7a987fc971f80b0681a43e7"
+    },
+    {
+      "path": "19670020031-pdf-p30.png",
+      "bytes": 678233,
+      "sha256": "a57c91e8bdd3034dec8348f922446cb4f02ceb8934c1bd81e3fe833f59443162"
+    },
+    {
+      "path": "19670020050-pdf-p06.png",
+      "bytes": 342040,
+      "sha256": "c62b2bf068460cce3ef8b39d1c099d5e794c6f195c2198c0eaf4c26bb5c488aa"
+    },
+    {
+      "path": "19670020050-pdf-p11.png",
+      "bytes": 98516,
+      "sha256": "b813371f18bcc01796aeb481d50f264ae7ae56debcfeb2e1fc2b3c85f8a91955"
+    },
+    {
+      "path": "19670020050-pdf-p12.png",
+      "bytes": 83742,
+      "sha256": "810fbe63002fa95f1e99c95e5bad1c41f5134feec7cce051ca0f0bda5242f62b"
+    },
+    {
+      "path": "19670020050-pdf-p23.png",
+      "bytes": 153217,
+      "sha256": "25a73767bd1915d95c6cefa35881bcfb658dd22f3db8cbcc5a4e449d3caf32dc"
+    },
+    {
+      "path": "19670020050-pdf-p24.png",
+      "bytes": 217195,
+      "sha256": "60320ba1431f5cc2428004a63ea13be69d87ac626c0a343ed9b6f99500fd5acc"
+    },
+    {
+      "path": "19670020050-pdf-p26.png",
+      "bytes": 136020,
+      "sha256": "55466a755bf3069ea68532563221abf3cbf8c7fe9bf687ba1b2cbf2c3444e7a2"
+    },
+    {
+      "path": "19670020050-pdf-p27.png",
+      "bytes": 137295,
+      "sha256": "c8fa9e22b66b486598b496237c8deb8ee04b7b40b0a0c3b02192a24791ec0039"
+    },
+    {
+      "path": "19670020050-pdf-p62.png",
+      "bytes": 125708,
+      "sha256": "5e781f93bf9c2617d9393af0ea555bd0ec683924386989756170f8de668542fc"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7958,
+      "sha256": "bf7f2c26eccec29f3b4cda9840544fdb9164dcbe0e4435139a7ce44a3fa67401"
+    },
+    {
+      "path": "comparison.json",
+      "bytes": 6266,
+      "sha256": "786864415f882061ed8ea2e686feeb91048f8b56e403169be1725734260ec1ed"
+    },
+    {
+      "path": "d4013-M1p2-CN-crop.png",
+      "bytes": 47579,
+      "sha256": "32f9367ec39a45dbbc8cfdc845797d81eeb590d80b1c604562f1fac4ad6c0f24"
+    },
+    {
+      "path": "d4013-M1p2-Cm-crop.png",
+      "bytes": 51285,
+      "sha256": "e81991b65b1a85ace011e94f0f2aff0e54e7aa85e5368531f8356d41dec71906"
+    },
+    {
+      "path": "d4013-alpha0-CAcorr-crop.png",
+      "bytes": 54512,
+      "sha256": "a7d7495dd5b705bdd78b8960352dd0a88b6b3df5352875ff66c08181de92a071"
+    },
+    {
+      "path": "d4013-cm-m1p20-first-reader-picks.png",
+      "bytes": 51647,
+      "sha256": "d995bae13951e609c5ec077be84dc1a304f40b9e6dccf78c040831c296b007d2"
+    },
+    {
+      "path": "d4013-cn-m1p20-first-reader-picks.png",
+      "bytes": 47815,
+      "sha256": "d11a05062d0290f5e8abafad1c7690aec908f3c5fd6d81a2758cff9177ea6a98"
+    },
+    {
+      "path": "d4014-M1p5-CA-crop.png",
+      "bytes": 111623,
+      "sha256": "f7449196b19cf675981f3ff0c08d39355d2f9ffe7e39b8b21e8fe47ae88624d9"
+    },
+    {
+      "path": "d4014-M1p5-CN-crop.png",
+      "bytes": 221865,
+      "sha256": "a182a08cfbf4bb1467d2507106eb69353a48d21305e3a303f296b85b9721d5f7"
+    },
+    {
+      "path": "d4014-M1p5-Cm-crop.png",
+      "bytes": 177201,
+      "sha256": "15f9b90fdfba9819aaf2af2085c8dcb5237b76b4ca2d63281890f0b5169b2afb"
+    },
+    {
+      "path": "digitization-point.schema.json",
+      "bytes": 2384,
+      "sha256": "75a23bc9fdeb83434bf4d11615e0f23de366d9fb17e47e53383de23aa7876b6a"
+    },
+    {
+      "path": "first-reader-calibrations.json",
+      "bytes": 2172,
+      "sha256": "4555dddd98bf70f2cc2366bab5026c19fd0dcb0c189e0c58b09baa6bc8b19994"
+    },
+    {
+      "path": "first-reader-points.csv",
+      "bytes": 2275,
+      "sha256": "7667a0f5abbf205eb52db3e99048883a4da3598ac9367252069edc920aadca49"
+    },
+    {
+      "path": "first-reader-points.json",
+      "bytes": 5120,
+      "sha256": "a285b667b7ddfc041db451afcd474680117d71786bdd623fd02869aa3b5847ae"
+    },
+    {
+      "path": "frozen-subset.json",
+      "bytes": 9399,
+      "sha256": "478e9157b7691d8201bb6c08c16e0a713124ca08d8b7c1033510a57571ccf534"
+    },
+    {
+      "path": "independent-root-pass.json",
+      "bytes": 2952,
+      "sha256": "869920c401a34982e475c6657320e993c91c6b3c75be04603553ab4869493f94"
+    },
+    {
+      "path": "normalized-reading-points.json",
+      "bytes": 16331,
+      "sha256": "5c34746879d629a6e13aee65f1666ce459c77c19eab51e2781426024c7b51f1a"
+    }
+  ],
+  "source_pdf_hashes_verified": true,
+  "downloads": 0,
+  "model_edits": 0,
+  "simulations": 0,
+  "raw_flight_outcomes_opened": false,
+  "status": "first extraction and independent reading comparison only; full geometry/CA/D4014 work pending"
+}

@@ -1,0 +1,14 @@
+{
+  "startedAt": "2026-10-26T04:20:08.042714+00:00",
+  "stoppedAt": "2026-10-26T04:20:14.136741+00:00",
+  "pid": 7,
+  "ready": true,
+  "exitBeforeControlledStop": null,
+  "wrapperExitCode": -15,
+  "controlledStop": "SIGTERM process group",
+  "forcedKill": false,
+  "requestCount": 1,
+  "exact204Count": 1,
+  "otherRequests": [],
+  "scope": "native check transport only; controlled stop is not app completion"
+}

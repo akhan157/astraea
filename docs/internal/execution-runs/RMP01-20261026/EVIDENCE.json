@@ -1,0 +1,246 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP01",
+  "subpacket": "A1d-2 native candidate trajectory, load query and curves",
+  "baseSha": "c80e7d356fe0a777bd793c56815388960ea597c7",
+  "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+  "owner": "coordinator/author session on execute-rmp01-package-c80e7d3",
+  "modelRouting": {
+    "model": "Sol-class reasoning session, high effort (author + coordinator review); independent reviewer: Codex CLI default model (GPT-6), read-only sandbox, three passes",
+    "effort": "high for cross-file numerical work; reviewer read-only, no builds/tests",
+    "usageTelemetry": "not supplied"
+  },
+  "effectiveInputs": [
+    "crates/astraea-engine/tests/fixtures/native-candidate-request.json sha256 ea853d96452372c9b662b9111cb56bd6ea510990adc16e24afdf691cac375a50 (synthetic, declared, not as-flown)",
+    "crates/astraea-engine/tests/fixtures/telemetry-parity.json wind0 vehicle/motor/options, request sha256 1a58a570d423ae49adf8e459815ce12e599eed0f188a8a5ee15ef67a29235fbd (retained longstanding synthetic Estes Alpha/C6 case)",
+    "package base c80e7d3; no holdout, scoring, telemetry-generation or external dataset opened"
+  ],
+  "sourceHashes": {
+    "crates/astraea-core/src/six_dof.rs": "06dbf2a288a0ffa04a81843a2251ef5d71bb2bdfba7167c16e6c34342ee23eea",
+    "crates/astraea-core/src/flight_provider.rs": "8fe135b330b1c9e18f8acdfdaa134a1853c10999d8adb9162f156bdcee153947",
+    "crates/astraea-core/src/lib.rs": "9224fa621aa14e8423e14dba87efdb093d89b5a48672f1dc363259ed1a3bb93f",
+    "crates/astraea-core/src/aero_coefficients.rs": "6c4c5715daecd0395232fed5f3cb825b97a92cc44437e9f47c96ad780be78e7c (reused, unchanged)",
+    "crates/astraea-engine/src/native_candidate.rs": "ce5e101643e6596ccb58648fe18d2d3e23c0df95b80123a7e4d886f5514e95ed",
+    "crates/astraea-engine/src/lib.rs": "6aec1f61df37a27c788c0c8491b20ea67ecbb4c3b40ea5b002346ea50a5711f8",
+    "crates/astraea-engine/examples/native_candidate_flight.rs": "0c0efe1d9aa0ae572e65241b656205c2a1da2750fdbfeb5cb4baf7b5b036b128",
+    "crates/astraea-engine/tests/native_candidate.rs": "5a6335c7471b58c4d514cbbc9313972e4c7f0b011fc63f1a566d100f311f898f",
+    "docs/internal/execution-package/INTERFACES.md": "1af4fdbf20be9581b1d0fe0bdfd42568c101d7ca2169ec54f513888608b80b52"
+  },
+  "runtimeHashes": {
+    "native_candidate_report": "a8b08ccb8630e0045a01eb7270f1d4830854170bb653de27c6b866d7e2bc8751",
+    "legacy_snapshot_after": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249",
+    "legacy_snapshot_before": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249",
+    "legacy_snapshot_bytes": 1969393
+  },
+  "artifactAvailability": [
+    "Raw logs, example report and the three independent review transcripts are under /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp01/ (external to Git; not portable).",
+    "The committed fixture is the portable synthetic input; the report is reproducible with the documented example command and fixture/motor data.",
+    "The reviewer transcripts record commands and reasoning; the reviewer ran no builds/tests."
+  ],
+  "checks": [
+    {
+      "id": "RMP01-C01",
+      "status": "pass",
+      "kind": "engine-native-integration + example",
+      "commandOrMechanism": "crates/astraea-engine/tests/native_candidate.rs::actual_dto_drives_a_finite_bounded_ascent_query_and_curves; native candidate example on the committed fixture",
+      "expectedRule": "real FrontendVehicle -> existing SB1 adapter -> prepared object actually drives a finite native ascent, query and curve samples",
+      "observed": "2.0 s bounded ascent, 201 committed samples, rail departure 0.5057 s, burnout 1.86 s, query and curves produced; report sha256 a8b08cc…",
+      "exitCode": 0,
+      "evidencePath": "external evidence-rmp01/native-candidate/report.json; fixture in crates/astraea-engine/tests/fixtures/native-candidate-request.json",
+      "sha256": "a8b08ccb8630e0045a01eb7270f1d4830854170bb653de27c6b866d7e2bc8751",
+      "limitation": "synthetic declared geometry/mass/recovery and prescribed CA0; not as-flown or source-qualified"
+    },
+    {
+      "id": "RMP01-C02",
+      "status": "pass",
+      "kind": "focused native integration test + report equivalence block",
+      "commandOrMechanism": "core test one_prepared_object_drives_trajectory_query_and_curve_identically; report equivalence.queryMatchesReferenceSample / curveMatchesReferenceSample",
+      "expectedRule": "same state/reference produces the same static coefficients and CG loads in trajectory, query and curves; no second coefficient law",
+      "observed": "static coefficient wrenches at datum and CG compare bit-for-bit between a committed sample, the direct query and a curve point at the same Mach; all three call aero_coefficients::evaluate_static",
+      "exitCode": 0,
+      "evidencePath": "core test in crates/astraea-core/src/flight_provider.rs; report equivalence block",
+      "sha256": "a8b08ccb8630e0045a01eb7270f1d4830854170bb653de27c6b866d7e2bc8751",
+      "limitation": "the curve reconstructs speed from Mach; dimensional loads may differ by last-bit rounding while coefficient wrenches are bit-identical"
+    },
+    {
+      "id": "RMP01-C03",
+      "status": "pass",
+      "kind": "native failure-path/structural test",
+      "commandOrMechanism": "core tests poisoned_legacy_slope_and_drag_carriers_cannot_change_a_candidate_run; preparation validates mechanics bounds; prepared carrier is NaN-poisoned",
+      "expectedRule": "candidate does not consult legacy slope/CP/drag carriers or their guards/defaults, while explicit mechanical bounds are still checked",
+      "observed": "absurd finite legacy carrier values and NaN values produce identical finite candidate trajectories; invalid mass/CG/length/D/motor bounds refuse at preparation",
+      "exitCode": 0,
+      "evidencePath": "crates/astraea-core/src/flight_provider.rs tests",
+      "sha256": "8fe135b330b1c9e18f8acdfdaa134a1853c10999d8adb9162f156bdcee153947",
+      "limitation": "NaN poisoning is a structural guard, not a proof against every future code path; reviewed by inspection"
+    },
+    {
+      "id": "RMP01-C04",
+      "status": "pass",
+      "kind": "core analytic fixtures + candidate datum/pure-couple test",
+      "commandOrMechanism": "accepted aero_coefficients tests (pure couple, translation, reference scaling, C0/null CP) + core test off_axis_datum_translation_preserves_the_cg_wrench_and_pure_couple",
+      "expectedRule": "full off-axis moment/datum/reference invariance and a synthetic independent pure couple with C0/null CP survive",
+      "observed": "shifted datum preserves the dimensional CG wrench and CP station; the inherited rate couple is force-free and datum-invariant; C0/zero-CP behaviour is the accepted core analytic fixture (SB1 supported geometry cannot produce C0, so the pure-couple assembly test is labeled as such)",
+      "exitCode": 0,
+      "evidencePath": "crates/astraea-core/src/aero_coefficients.rs retained tests; flight_provider datum test",
+      "sha256": "6c4c5715daecd0395232fed5f3cb825b97a92cc44437e9f47c96ad780be78e7c",
+      "limitation": "no single SB1-supported geometry yields a cancelled total C; the composition-level pure couple is the rate model"
+    },
+    {
+      "id": "RMP01-C05",
+      "status": "pass",
+      "kind": "analytic native test + independent equation review",
+      "commandOrMechanism": "core test signed_rate_couple_is_dimensional_and_static_diagnostics_stay_static; reviewer equations/units check",
+      "expectedRule": "signed pitch/roll/yaw rate couples use recorded dimensional lengths and signs; static diagnostics remain static",
+      "observed": "rate moment matches the independently recomputed expression, each axis moves only its own moment with the inherited sign, static coefficients/moments are unchanged by omega, curves carry no rate moment; reviewer: units/order/signs/lengths OK",
+      "exitCode": 0,
+      "evidencePath": "crates/astraea-core/src/flight_provider.rs tests; review transcripts",
+      "sha256": "8fe135b330b1c9e18f8acdfdaa134a1853c10999d8adb9162f156bdcee153947",
+      "limitation": "the inherited formula is numerically unqualified as real damping"
+    },
+    {
+      "id": "RMP01-C06",
+      "status": "pass",
+      "kind": "boundary tests",
+      "commandOrMechanism": "core tests zero_speed_policy_and_nonfinite_inputs_fail_closed; candidate_validation_refuses_nonfinite_motor_attitude_and_altitude; evaluate_static retained zero-speed fixture",
+      "expectedRule": "V0/omega0 zero loads with nullable flow; V0/nonzero omega refuses; nonfinite/invalid mechanics refuse before assertions; no JSON NaN/null substitution",
+      "observed": "zero-speed returns zero dimensional loads with absent flow/coefficient reasons; zero speed with rates refuses; nonfinite state/time/rate, degenerate or non-unit attitude, nonfinite motor mass and invalid impulse refuse as InvalidInput; JSON uses nulls for unavailable quantities, never NaN",
+      "exitCode": 0,
+      "evidencePath": "crates/astraea-core/src/flight_provider.rs tests; engine fixture/query tests",
+      "sha256": "8fe135b330b1c9e18f8acdfdaa134a1853c10999d8adb9162f156bdcee153947",
+      "limitation": "the zero-speed rate refusal is a declared support limit, not a physical impossibility"
+    },
+    {
+      "id": "RMP01-C07",
+      "status": "pass",
+      "kind": "query boundary tests + real run error injection",
+      "commandOrMechanism": "core test candidate_support_limits_fail_at_every_applicable_stage; real crosswind and fast-motor run injections; engine refusal tests",
+      "expectedRule": "M0.8, incidence>5deg, reverse/lateral flow, unsupported geometry/cant and drag scale!=1 fail at every applicable stage; rail/negligible forces give no waiver",
+      "observed": "0.799 supported, 0.8/0.9/1.2 refused; 5deg supported, 5.0001deg refused; reverse/lateral refused; unsupported geometry and incomplete declarations refuse at preparation; cant!=0 and drag scale!=1 refuse; real crosswind stops at the committed pad state and a fast motor stops in a speculative adaptive stage; every state above the versioned 1e-6-of-weight aero-negligibility bound is fully support-checked",
+      "exitCode": 0,
+      "evidencePath": "crates/astraea-core/src/flight_provider.rs tests; crates/astraea-engine/tests/native_candidate.rs",
+      "sha256": "8fe135b330b1c9e18f8acdfdaa134a1853c10999d8adb9162f156bdcee153947",
+      "limitation": "below the declared force bound dimensional aero loads are approximated as zero with no flow observation; this is documented in INTERFACES and is not an empirical claim"
+    },
+    {
+      "id": "RMP01-C08",
+      "status": "pass",
+      "kind": "direct branch/event tests",
+      "commandOrMechanism": "core tests canopy_branch_bypasses_airframe_and_retains_rate_and_canopy_models; canopy_support_precedes_negligibility_and_has_no_hidden_speed_floor",
+      "expectedRule": "a live canopy bypasses the airframe, labels coefficients N/A, retains the declared canopy/rate model, and offers no free-flight fallback",
+      "observed": "canopy applicability with airframe coefficients/derivatives/CP null and reasons; declared constant canopy drag matches the independent expression; rate couple retained; canopy Mach support is enforced before the negligibility approximation; a steep airframe state that fails support succeeds under canopy only because the airframe branch is inactive; no fallback",
+      "exitCode": 0,
+      "evidencePath": "crates/astraea-core/src/flight_provider.rs tests",
+      "sha256": "8fe135b330b1c9e18f8acdfdaa134a1853c10999d8adb9162f156bdcee153947",
+      "limitation": "recovery deployment/ordering is inherited from the shared driver; candidate runs use zero wind and stop before deployment"
+    },
+    {
+      "id": "RMP01-C09",
+      "status": "pass",
+      "kind": "driver clock/context trace + targeted tests",
+      "commandOrMechanism": "six_dof test bounded_driver_stops_exactly_at_an_off_grid_horizon; candidate/engine off-grid tests (1.234 s, 0.004 s, 2.0 s)",
+      "expectedRule": "off-grid/time0/short/exact-event horizons have matching final committed time/state and no planned query beyond stop",
+      "observed": "final_time equals the requested horizon exactly; the last committed macro sample is at that time with the identical state; no evaluator call exceeds the horizon; a horizon shorter than dt still integrates to the stop; invalid horizons refuse",
+      "exitCode": 0,
+      "evidencePath": "crates/astraea-core/src/six_dof.rs test; core/engine candidate tests",
+      "sha256": "06dbf2a288a0ffa04a81843a2251ef5d71bb2bdfba7167c16e6c34342ee23eea",
+      "limitation": "the legacy wrapper keeps its unchanged t+=dt 300 s behaviour; only the candidate bridge clamps"
+    },
+    {
+      "id": "RMP01-C10",
+      "status": "pass",
+      "kind": "separate result-schema tests + bounded-run assertions",
+      "commandOrMechanism": "core test result_schema_distinguishes_time_limit_from_completed_touchdown; bounded_horizon_is_exact_and_has_no_prefix_apogee_or_landing; engine report assertions",
+      "expectedRule": "a time limit has no landing/final-apogee/PASS fabrication; completed touchdown has actual event/landing evidence; prefix quantities are explicitly labeled",
+      "observed": "time-limit result has no landing, no apogee event, no legacy validity field, UNKNOWN dynamics and Unqualified empirical status; a synthetic touchdown outcome produces landing time/position/speed/mass from the actual final state and the driver touchdown event; prefix maxima are labeled committed-sample observations",
+      "exitCode": 0,
+      "evidencePath": "crates/astraea-core/src/flight_provider.rs tests",
+      "sha256": "8fe135b330b1c9e18f8acdfdaa134a1853c10999d8adb9162f156bdcee153947",
+      "limitation": "a candidate touchdown trajectory is unreachable under SB1 forward-flow support; touchdown mapping is a labeled schema test, not a flown candidate run"
+    },
+    {
+      "id": "RMP01-C11",
+      "status": "pass",
+      "kind": "shared-driver path tests + structured-record tests",
+      "commandOrMechanism": "retained A1d-1 driver tests; core candidate_errors_carry_phase_time_state_and_never_fall_back; engine refusal tests",
+      "expectedRule": "rejected adaptive trial, burnout/root/macro/rail/touchdown errors propagate with model/phase/time/state and no fallback",
+      "observed": "candidate failures carry composition/model ID, phase label, speculative flag, stage time, deployment/rail flags and the rigid state; a mid-ascent adaptive-stage failure is labeled speculative; no retry/fallback; the A1d-1 driver tests remain retained",
+      "exitCode": 0,
+      "evidencePath": "crates/astraea-core/src/six_dof.rs retained tests + flight_provider tests",
+      "sha256": "06dbf2a288a0ffa04a81843a2251ef5d71bb2bdfba7167c16e6c34342ee23eea",
+      "limitation": "legacy detector mismatch panics remain inherited; the candidate does not rewrite the integrator"
+    },
+    {
+      "id": "RMP01-C12",
+      "status": "pass",
+      "kind": "native input/result provenance tests",
+      "commandOrMechanism": "core test historical_calibration_is_refused_and_identities_name_the_axial_source; preparation identity refusals; engine report identities",
+      "expectedRule": "the candidate never transfers historical calibration; the explicit source is retained; an incompatible scale is refused",
+      "observed": "dragCdScale null/1.0 accepted, 0/0.5/1.000001/-1/NaN refused as non-transferable; axial provider/input identities, geometry identity, adapter ID and no-historical-calibration policy are in every sample and result; empty axial/adapter/mechanical/environment identities refuse",
+      "exitCode": 0,
+      "evidencePath": "crates/astraea-core/src/flight_provider.rs tests; engine report",
+      "sha256": "8fe135b330b1c9e18f8acdfdaa134a1853c10999d8adb9162f156bdcee153947",
+      "limitation": "caller source labels remain declarations, not content hashes; production identity/migration is RMP07"
+    },
+    {
+      "id": "RMP01-C13",
+      "status": "pass",
+      "kind": "retained suites + byte-identical legacy snapshot",
+      "commandOrMechanism": "cargo test core; cargo test engine --all-targets; legacy_flight_snapshot before/after with the longstanding synthetic Estes Alpha/C6 wind0 request",
+      "expectedRule": "existing legacy source/outputs remain compatible; changed primitives are independently justified when extraction is necessary",
+      "observed": "170 core and 65 engine tests pass; legacy snapshot is byte-identical before and after the extraction/provider/bridge (1,969,393 bytes, sha256 f37d195…); app dispatch still has no candidate command and the legacy command keeps its validity schema",
+      "exitCode": 0,
+      "evidencePath": "external evidence logs core-suite.log/engine-suite.log; legacy-before and native-candidate/legacy-after-final.json",
+      "sha256": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249",
+      "limitation": "one synthetic preservation fixture plus retained suites; not every possible vendor/project combination"
+    },
+    {
+      "id": "RMP01-C14",
+      "status": "pass",
+      "kind": "independent scientific review (three read-only passes)",
+      "commandOrMechanism": "Codex CLI read-only sandbox, default model, no edits/builds/tests by reviewer; focused re-reviews of the fixes",
+      "expectedRule": "independent reviewer accepts source math/units/references/rates/support/result semantics and retained limitations",
+      "observed": "pass 1 ACCEPT WITH REQUIRED FIXES (5 findings); pass 2 resolved 4/5 and raised 3 canopy issues; pass 3 ACCEPT with all findings resolved and no new issues",
+      "exitCode": 0,
+      "evidencePath": "external evidence-rmp01/independent-review-codex.txt, independent-rereview-codex.txt, independent-rereview2-codex.txt",
+      "sha256": "9807d6dd740f22a72195c7bff4542b0ec36bfc1c6e626c703000804b0a9b76ae",
+      "limitation": "reviewer did not execute builds/tests; the coordinator re-ran them and the byte-identical snapshot"
+    }
+  ],
+  "review": {
+    "reviewer": "Codex CLI / GPT-6, read-only, independent of the author session",
+    "independentOfAuthor": true,
+    "disposition": "accepted",
+    "findings": [
+      "Pass 1 blocking: fixed-speed flow floor admitted reverse flow below it; resolved by a bounded per-state aero-negligibility approximation with an explicit force bound and full support checks above it.",
+      "Pass 1 blocking: legacy motor validation missed nonfinite masses and zero impulse; resolved with candidate-specific validation before the shared primitive.",
+      "Pass 1 blocking: non-unit quaternions could form nonorthogonal frames; resolved with the shared near-unit attitude policy.",
+      "Pass 1 should-fix: atmosphere domain checked only at launch; resolved at instantaneous altitude in query, curves and trajectory.",
+      "Pass 1 should-fix: incomplete declared parachute could become absent; resolved with an explicit refusal.",
+      "Pass 2 high: canopy force inherited the legacy 1e-6 m/s floor, canopy Mach support was bypassed by the negligible branch, and a stationary canopy status precedence was wrong; all three resolved and re-reviewed.",
+      "Pass 3: ACCEPT, no new findings."
+    ]
+  },
+  "qualification": {
+    "computational": "bounded native increment complete and reviewed",
+    "physical": "unqualified",
+    "dynamic": "unknown"
+  },
+  "failedAttempts": [
+    "WIP patch (engineering/candidate-flight-20261026) not reused: its horizon control exits before integrating the final bracket and it returns legacy PASS/landing fields. Recorded in RUN.md.",
+    "Initial fixture was too heavy for the C6 motor and hovered on the rail; replaced with a declared lighter synthetic design. No physical model was changed.",
+    "First review's fixed 1e-2 m/s flow-direction floor was removed as a support exception after independent review; replaced with the bounded aero-negligibility policy."
+  ],
+  "remainingScope": [
+    "RMP06 complete axial/environment provider and RMP07 identity/app exposure; no candidate command, project field, default, migration or WASM asset exists.",
+    "Qualified axial source (prescribed constant CA0 only), measured mechanical data, qualified atmosphere/wind, recovery/rate/transonic physics and empirical/flight evidence remain open.",
+    "SB1 adapter motor-mount resolution remains a concrete blocker for DTOs with a flagged mount.",
+    "Candidate touchdown is not reachable under SB1 forward-flow support; no as-flown candidate flight exists."
+  ],
+  "nextActions": [
+    "Update the packet tracker/STATE to accepted bounded RMP01 and expand RMP06/RMP07 using the actual interfaces.",
+    "Prepare a concrete adapter extension for flagged motor mounts if a real DTO requires it.",
+    "Do not push, merge to main, tag, release, deploy, spend, contact externally or open new holdout outcomes without separate authorization."
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

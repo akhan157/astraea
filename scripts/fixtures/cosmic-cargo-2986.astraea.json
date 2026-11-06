@@ -1,0 +1,240 @@
+{
+  "schemaVersion": "1.4.0",
+  "revision": 1,
+  "vehicle": {
+    "id": "cosmic-cargo-like",
+    "name": "Cosmic Cargo (estimated)",
+    "version": "1.0",
+    "author": "flight validation",
+    "components": [
+      {
+        "id": "cc-nc",
+        "name": "Ogive Nosecone",
+        "type": "nosecone",
+        "materialId": "pla_3dprint",
+        "color": "#14b8a6",
+        "shape": "ogive",
+        "length": 0.07,
+        "baseDiameter": 0.0254,
+        "wallThickness": 0.0015,
+        "isHollow": true
+      },
+      {
+        "id": "cc-bt",
+        "name": "Main Body Tube (BT-50)",
+        "type": "bodytube",
+        "materialId": "cardboard",
+        "color": "#ffffff",
+        "length": 0.28,
+        "outerDiameter": 0.0254,
+        "innerDiameter": 0.0241,
+        "isMotorMount": true,
+        "assignedMotorId": "estes_c6"
+      },
+      {
+        "id": "cc-fins",
+        "name": "Molded Fins (3-Fin)",
+        "type": "trapezoidfinset",
+        "materialId": "pla_3dprint",
+        "color": "#14b8a6",
+        "finCount": 3,
+        "rootChord": 0.06,
+        "tipChord": 0.024,
+        "span": 0.045,
+        "sweepLength": 0.03,
+        "thickness": 0.002,
+        "crossSection": "rounded",
+        "axialOffset": 0.24
+      },
+      {
+        "id": "cc-chute",
+        "name": "12\" Parachute",
+        "type": "parachute",
+        "materialId": "cardboard",
+        "diameter": 0.305,
+        "cd": 0.8,
+        "mass": 0.008,
+        "axialOffset": 0.05
+      }
+    ],
+    "launchSite": {
+      "altitudeM": 10
+    }
+  },
+  "motorRecords": [
+    {
+      "id": "estes_c6",
+      "motor": {
+        "id": "estes_c6",
+        "designation": "Estes C6",
+        "manufacturer": "Estes",
+        "impulseClass": "C",
+        "diameter": 0.018,
+        "length": 0.07,
+        "totalImpulse": 8.8,
+        "avgThrust": 4.74,
+        "maxThrust": 14.09,
+        "burnTime": 1.86,
+        "propellantMass": 0.0108,
+        "totalMass": 0.0231,
+        "dryMass": 0.0123,
+        "thrustCurve": [
+          {
+            "time": 0,
+            "thrust": 0
+          },
+          {
+            "time": 0.031,
+            "thrust": 0.946
+          },
+          {
+            "time": 0.092,
+            "thrust": 4.826
+          },
+          {
+            "time": 0.139,
+            "thrust": 9.936
+          },
+          {
+            "time": 0.192,
+            "thrust": 14.09
+          },
+          {
+            "time": 0.209,
+            "thrust": 11.446
+          },
+          {
+            "time": 0.231,
+            "thrust": 7.381
+          },
+          {
+            "time": 0.248,
+            "thrust": 6.151
+          },
+          {
+            "time": 0.292,
+            "thrust": 5.489
+          },
+          {
+            "time": 0.37,
+            "thrust": 4.921
+          },
+          {
+            "time": 0.475,
+            "thrust": 4.448
+          },
+          {
+            "time": 0.671,
+            "thrust": 4.258
+          },
+          {
+            "time": 0.702,
+            "thrust": 4.542
+          },
+          {
+            "time": 0.723,
+            "thrust": 4.164
+          },
+          {
+            "time": 0.85,
+            "thrust": 4.448
+          },
+          {
+            "time": 1.063,
+            "thrust": 4.353
+          },
+          {
+            "time": 1.211,
+            "thrust": 4.353
+          },
+          {
+            "time": 1.242,
+            "thrust": 4.069
+          },
+          {
+            "time": 1.303,
+            "thrust": 4.258
+          },
+          {
+            "time": 1.468,
+            "thrust": 4.353
+          },
+          {
+            "time": 1.656,
+            "thrust": 4.448
+          },
+          {
+            "time": 1.821,
+            "thrust": 4.448
+          },
+          {
+            "time": 1.834,
+            "thrust": 2.933
+          },
+          {
+            "time": 1.847,
+            "thrust": 1.325
+          },
+          {
+            "time": 1.86,
+            "thrust": 0
+          }
+        ]
+      },
+      "provenance": {
+        "source": "certified"
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "kind": "motorMount",
+      "vehicleComponentId": "cc-bt",
+      "motorRecordId": "estes_c6"
+    }
+  ],
+  "cases": [],
+  "snapshots": [],
+  "evidenceRefs": [],
+  "workspace": {
+    "motorId": "estes_c6",
+    "launch": {
+      "railLengthM": 0.91,
+      "railElevationDeg": 88.84,
+      "railAzimuthDeg": 0,
+      "windSpeedMps": 0,
+      "windAzimuthDeg": 0,
+      "finCantDeg": 0,
+      "mainDeployAltitudeM": 150
+    },
+    "site": {
+      "latDeg": 47.6062,
+      "lonDeg": -122.3321,
+      "altitudeASLM": 10,
+      "launchTimeISO": null
+    },
+    "ensemble": {
+      "nRuns": 100,
+      "seed": 20260927,
+      "version": "per-run-v2",
+      "windAzimuthDegSigma": 10,
+      "railAngleDegSigma": 1,
+      "impulsePctSigma": 5
+    },
+    "aeroLimits": {
+      "minStaticMarginCal": 1,
+      "flutterMarginPct": 20,
+      "maxBoattailHalfAngleDeg": 10
+    },
+    "recovery": {
+      "shearPinCount": 2,
+      "chargeMethod": "unreviewed"
+    }
+  },
+  "mission": {
+    "name": "Cosmic Cargo flight 2986",
+    "site": "Recorded pad, 10 m ASL",
+    "targetApogeeM": 291.74
+  },
+  "ledger": []
+}

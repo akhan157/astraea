@@ -1,0 +1,16 @@
+{
+  "identifier": "com.astraea.updaterbridge204fixture",
+  "build": {
+    "beforeBuildCommand": ""
+  },
+  "bundle": {
+    "createUpdaterArtifacts": false
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "http://127.0.0.1:18749/bridge204"
+      ]
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "area": "2-csv-import",
+  "label": "valid-flight-log-ingested",
+  "url": "http://localhost:5190/",
+  "studio": "Recovery & flight evidence studio (shortcut 5)",
+  "banners": [],
+  "badges": [
+    "●Stable — 4.80 cal",
+    "▲Over-stable — weathercocking risk",
+    "●Run ready — inputs resolve",
+    "Ready — set coordinates and fetch a pressure-level profile.",
+    "Wind for MC: manual wind table (surface probe)",
+    "SAMPLES PARSED — SAMPLES @ DT — APOGEE ALTITUDE — APOGEE AT —",
+    "No committed simulation run yet — open Trajectory and run a case. Flight logs can still be ingested below.",
+    "1 item excluded from clearance — packed length missing.",
+    "Flight log archive: Flight 1 (CSV) [current] — apogee 37.5 m @ 1.0 s, 5 pts parsed"
+  ],
+  "consoleErrors": 0,
+  "overflow": {
+    "x": false,
+    "y": false
+  }
+}

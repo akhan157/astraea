@@ -1,0 +1,207 @@
+{
+ "vehicle": {
+  "components": [
+   {
+    "id": "alpha-nc",
+    "name": "Ogive Nosecone",
+    "type": "nosecone",
+    "materialId": "pla_3dprint",
+    "shape": "ogive",
+    "length": 0.165,
+    "baseDiameter": 0.0248,
+    "wallThickness": 0.0015,
+    "isHollow": true,
+    "color": "#ef4444"
+   },
+   {
+    "id": "alpha-bt",
+    "name": "Main Body Tube (BT-50)",
+    "type": "bodytube",
+    "materialId": "cardboard",
+    "length": 0.311,
+    "outerDiameter": 0.0248,
+    "innerDiameter": 0.0241,
+    "isMotorMount": true,
+    "color": "#ffffff"
+   },
+   {
+    "id": "alpha-fins",
+    "name": "Stabilizer Fins (3-Fin)",
+    "type": "trapezoidfinset",
+    "materialId": "pla_3dprint",
+    "finCount": 3,
+    "rootChord": 0.07,
+    "tipChord": 0.028,
+    "span": 0.051,
+    "sweepLength": 0.038,
+    "thickness": 0.002,
+    "crossSection": "rounded",
+    "axialOffset": 0.241,
+    "color": "#ef4444"
+   },
+   {
+    "id": "alpha-chute",
+    "name": "12\" Parachute",
+    "type": "parachute",
+    "materialId": "cardboard",
+    "diameter": 0.305,
+    "cd": 0.8,
+    "mass": 0.008,
+    "axialOffset": 0.05
+   }
+  ]
+ },
+ "motor": {
+  "id": "estes_c6",
+  "designation": "Estes C6",
+  "manufacturer": "Estes",
+  "impulseClass": "C",
+  "diameter": 0.018,
+  "length": 0.07,
+  "burnTime": 1.86,
+  "totalImpulse": 8.8,
+  "avgThrust": 4.74,
+  "propellantMass": 0.0108,
+  "totalMass": 0.0231,
+  "dryMass": 0.0123,
+  "maxThrust": 14.09,
+  "thrustCurve": [
+   {
+    "time": 0,
+    "thrust": 0
+   },
+   {
+    "time": 0.031,
+    "thrust": 0.946
+   },
+   {
+    "time": 0.092,
+    "thrust": 4.826
+   },
+   {
+    "time": 0.139,
+    "thrust": 9.936
+   },
+   {
+    "time": 0.192,
+    "thrust": 14.09
+   },
+   {
+    "time": 0.209,
+    "thrust": 11.446
+   },
+   {
+    "time": 0.231,
+    "thrust": 7.381
+   },
+   {
+    "time": 0.248,
+    "thrust": 6.151
+   },
+   {
+    "time": 0.292,
+    "thrust": 5.489
+   },
+   {
+    "time": 0.37,
+    "thrust": 4.921
+   },
+   {
+    "time": 0.475,
+    "thrust": 4.448
+   },
+   {
+    "time": 0.671,
+    "thrust": 4.258
+   },
+   {
+    "time": 0.702,
+    "thrust": 4.542
+   },
+   {
+    "time": 0.723,
+    "thrust": 4.164
+   },
+   {
+    "time": 0.85,
+    "thrust": 4.448
+   },
+   {
+    "time": 1.063,
+    "thrust": 4.353
+   },
+   {
+    "time": 1.211,
+    "thrust": 4.353
+   },
+   {
+    "time": 1.242,
+    "thrust": 4.069
+   },
+   {
+    "time": 1.303,
+    "thrust": 4.258
+   },
+   {
+    "time": 1.468,
+    "thrust": 4.353
+   },
+   {
+    "time": 1.656,
+    "thrust": 4.448
+   },
+   {
+    "time": 1.821,
+    "thrust": 4.448
+   },
+   {
+    "time": 1.834,
+    "thrust": 2.933
+   },
+   {
+    "time": 1.847,
+    "thrust": 1.325
+   },
+   {
+    "time": 1.86,
+    "thrust": 0
+   }
+  ]
+ },
+ "cases": [
+  {
+   "case": "astraea/0.6118",
+   "options": {
+    "railLength": 1,
+    "railElevationDeg": 90,
+    "railAzimuthDeg": 0,
+    "windSpeedSurface": 0,
+    "windAzimuthDeg": 90,
+    "mainDeployAltitudeAGL": 250,
+    "launchAltitudeASL": 1143,
+    "dragCdScale": 0.6118
+   },
+   "tsApogeeAltitude": 421.2080420830291,
+   "tsFlightDuration": 108.21349376680311,
+   "tsLandingVelocity": 4.215243028982188,
+   "tsLandingDistance": 1.5160150563632937e-13
+  },
+  {
+   "case": "astraea/0.44",
+   "options": {
+    "railLength": 1,
+    "railElevationDeg": 90,
+    "railAzimuthDeg": 0,
+    "windSpeedSurface": 0,
+    "windAzimuthDeg": 90,
+    "mainDeployAltitudeAGL": 250,
+    "launchAltitudeASL": 1143,
+    "dragCdScale": 0.44
+   },
+   "tsApogeeAltitude": 480.62918822228755,
+   "tsFlightDuration": 122.76805332186427,
+   "tsLandingVelocity": 4.215243029009222,
+   "tsLandingDistance": 1.7863317391467838e-13
+  }
+ ]
+}

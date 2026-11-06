@@ -1,0 +1,59 @@
+{
+  "schema": "rmp12-candidate-controls-run-seal/1.0.0",
+  "status": "sealed after accepted contract and independent implementation review; zero experiment attempts run at seal time",
+  "resealHistory": "Pre-experiment reseal (zero attempts spent in either seal generation): two checker invocations failed before output.mkdir and before any native process - (1) rustc not on caller PATH, (2) frozen input names resolved against repo root instead of the run directory. Checker fixed in commit ab0dbb0; both failures retained/described in RESULT. Binaries, inputs, plan and contract unchanged across reseal.",
+  "planningBaseSha": "803b76b5d16922bd862beea2eabdf771e04e23ef",
+  "contractSha256": "5e89f4151ad6058172d816297448d66dab2c637269a3e14c9e473b528be2de30",
+  "experimentSha256": "5bac79d87b57a6656bda3d474b29c4c99f463f47353f18edaef75ec6a507509d",
+  "sourceCommit": "ab0dbb0acc681f1797c399c110dfea3da99cc685",
+  "sources": {
+    "crates/astraea-core/src/six_dof.rs": "fe3e5629e0f973d5ab5e6afadc77bc292f36c4afd21a65b1d3c4091d77f064da",
+    "crates/astraea-core/src/flight_provider.rs": "a9fdc88bfc95f55f81aa369f01428fb8ab52f50cc701acfdbfce89e8c73a1342",
+    "crates/astraea-engine/src/native_candidate.rs": "9e098ec4781ff048d954d085fd0ab9bb4e1c08e442155b234648bd9a854e8092",
+    "crates/astraea-engine/src/profile_candidate.rs": "57ba13e16dfe233369f7e672909ab3dbfa0ff5d5cf7f729d4df44a0d355ecd9f",
+    "crates/astraea-engine/src/candidate_identity.rs": "92ee8290223ea8d31b6f41f63f7733a21d977c431f7c6e17217191f9a4995797",
+    "crates/astraea-engine/examples/native_candidate_flight.rs": "9eb6610999e753bccf9424061219de90b2537ab20e0f4b4b17c72e40ef0e3a17",
+    "crates/astraea-engine/examples/profile_candidate_flight.rs": "f4a3f81d8e9050be24638af37c747e6b1cb856837ab10e6586c5ed8b89bbc9b3",
+    "crates/astraea-engine/tests/native_candidate.rs": "b97dd6fb015ae8a4e75b34a4d5a5367adcd1fc5468523dad9cf2511468d5e425",
+    "crates/astraea-engine/tests/candidate_identity.rs": "cd4494b0723b4f81b5ff47a3b282949c686639b27bc973310792d558ddb06ded",
+    "crates/astraea-engine/tests/profile_candidate.rs": "f357c371481193a8011a1fd98504876fe8a77092d30c9721cea3c5ebf2125105"
+  },
+  "checker": {
+    "scripts/diagnostics/check-candidate-controls.py": "5825514aee4496aaa595a5ffbb658efb01f0352d975d62a6251072726263c621",
+    "scripts/diagnostics/test_candidate_controls.py": "47ac827564743b92931ba5531b50e21b1f78d0658d134b3abb38722fb3fd0e56"
+  },
+  "binaries": {
+    "profileExample": {
+      "path": "/home/ak/.paseo/worktrees/3s8t98rp/target-rmp01/debug/examples/profile_candidate_flight",
+      "sha256": "bf18b6faadaa180a9a31f4ef7be50d57aec609ee0a1beb5acbbe5aa1a0cb7e5c"
+    },
+    "legacyExample": {
+      "path": "/home/ak/.paseo/worktrees/3s8t98rp/target-rmp01/debug/examples/legacy_flight_snapshot",
+      "sha256": "b28bfd95ea2cf05c809fedfc29eaa7ba3484849a3a6f15dc5a21eb209bc8bf20"
+    }
+  },
+  "inputs": {
+    "baseInputSha256": "f790a2472543771d7fbd7efe5503dca9add94153988a6b60c9f19078c4a37bb2",
+    "legacyInputSha256": "1a58a570d423ae49adf8e459815ce12e599eed0f188a8a5ee15ef67a29235fbd",
+    "retainedBaselineStdoutSha256": "d1b55a501b798cadf141732e1134e7baf73c0b453ffaa12d0bdff0d3120d6b9a"
+  },
+  "toolchain": {
+    "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)"
+  },
+  "equationBlockIdentityGate": "scripts/diagnostics/test_candidate_controls.py::equation blocks textually and semantically identical (10/10 pure checks pass)",
+  "review": {
+    "contractReview": "ACCEPT after three focused rounds (docs REVIEW.md)",
+    "implementationReview": "initial REQUEST_CHANGES incl. controls-injection blocker; re-review ACCEPT after nested-DTO fix, F/G N/A mechanism rows, B-mirrors-A assertion and adopted hardening (bPolicyId assert, sidecar try, RMP07a absent-digest pin, comparisonsUnresolved flag, residual-floor placement); one non-blocking flag-semantics note tightened in commit 3f40fcc (strictly fail-closed direction)",
+    "reviewRecord": "docs/internal/execution-runs/RMP12-candidate-controls/REVIEW.md (updated at result time)",
+    "rawReviews": "external-local-only /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/"
+  },
+  "nonClaims": [
+    "production default selection",
+    "closed RMP12-C02 or numerical/mission budget",
+    "adaptive convergence/global error bound/full6D",
+    "physical/source/empirical accuracy",
+    "native-WASM or installed-platform qualification",
+    "aerospace safety or flight authorization"
+  ]
+}

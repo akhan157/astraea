@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "astraea-rmp12-runtime-artifact-evidence/1.0",
+  "sourceSha": "9443d91b600f0762de6e166b97c54491f2f3dc62",
+  "authorSession": "bb4735ed-ea47-4041-a188-e79100812511",
+  "authorRoute": "deepseek/deepseek-flash",
+  "authorCatalogName": "DeepSeek V4.1 Flash 1017",
+  "authorEffort": "max",
+  "externalEvidence": "../evidence-rmp12-runtime-artifacts/",
+  "externalIndexSha256": "f6d0ca8eb4840193f3f8139a0453d1fbb2389515c15bb0dfc755efb485949307",
+  "independentReview": {
+    "reviewer": "coordinating OpenAI",
+    "disposition": "accepted diagnosis; actual-byte identities; no production build change",
+    "indexedFilesChecked": 535,
+    "hashMismatches": 0,
+    "remappedWasmSectionComparison": [
+      {
+        "id": 1,
+        "aSize": 683,
+        "bSize": 683,
+        "sameBytes": true
+      },
+      {
+        "id": 3,
+        "aSize": 1114,
+        "bSize": 1114,
+        "sameBytes": true
+      },
+      {
+        "id": 4,
+        "aSize": 7,
+        "bSize": 7,
+        "sameBytes": true
+      },
+      {
+        "id": 5,
+        "aSize": 3,
+        "bSize": 3,
+        "sameBytes": true
+      },
+      {
+        "id": 6,
+        "aSize": 9,
+        "bSize": 9,
+        "sameBytes": true
+      },
+      {
+        "id": 7,
+        "aSize": 96,
+        "bSize": 96,
+        "sameBytes": true
+      },
+      {
+        "id": 9,
+        "aSize": 407,
+        "bSize": 406,
+        "sameBytes": false
+      },
+      {
+        "id": 10,
+        "aSize": 1130149,
+        "bSize": 1130149,
+        "sameBytes": false
+      },
+      {
+        "id": 11,
+        "aSize": 694180,
+        "bSize": 694180,
+        "sameBytes": true
+      }
+    ],
+    "dataSegmentsEqual": true,
+    "newBuilds": 0,
+    "newRuntimeRuns": 0
+  },
+  "remaining": "RMP12-C04 partial; no cross-root or cross-machine reproducibility claim; prior numeric/display failures retained"
+}

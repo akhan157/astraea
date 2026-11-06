@@ -1,0 +1,4962 @@
+{
+  "allDefaultParityPass": true,
+  "allTerminated": true,
+  "analyticSummary": {
+    "cases": 90,
+    "maxima": {
+      "endpointMaxError": {
+        "attitudeRad": 1.361186718895624e-10,
+        "positionM": 6.363449970431256e-05,
+        "rateRadS": 0.0,
+        "velocityMs": 0.0001831893102580695
+      },
+      "offNodeMaxError": {
+        "attitudeRad": 3.5078827065326834e-09,
+        "positionM": 0.00022405868789987515,
+        "rateRadS": 1.1102230246251565e-16,
+        "velocityMs": 0.0007843695809044426
+      }
+    },
+    "rootChecks": 108,
+    "wholeFlightCalls": 0
+  },
+  "binarySha256": "244b9d2edb70856bc95efb011b0d2a66aebf18fb36ef8a64be72a200f8456c1b",
+  "defaultParity": {
+    "allFourDefaultParityPass": true,
+    "cases": [
+      {
+        "caseId": "cosmic-cargo-2986",
+        "eventCounts": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "events": 6,
+        "fieldCounts": {
+          "arrays": 3,
+          "boolean": 7,
+          "null": 0,
+          "numeric": 130039,
+          "objects": 25010,
+          "string": 28
+        },
+        "numericGroups": {
+          "coarseAndTerminal": {
+            "maxAbsoluteDifference": 4.809565232197075e-20,
+            "maxAbsolutePath": "telemetry.4999.velocity.y",
+            "maxBudgetFraction": 4.809565232197075e-12,
+            "maxBudgetFractionPath": "telemetry.4999.velocity.y",
+            "nonzeroDifferences": 1,
+            "numericFields": 60,
+            "outOfBudget": 0
+          },
+          "exactRoundedNonterminal": {
+            "maxAbsoluteDifference": 0.0,
+            "maxAbsolutePath": null,
+            "maxBudgetFraction": 0.0,
+            "maxBudgetFractionPath": null,
+            "nonzeroDifferences": 0,
+            "numericFields": 104979,
+            "outOfBudget": 0
+          },
+          "telemetryQuaternion": {
+            "maxAbsoluteDifference": 0.0,
+            "maxAbsolutePath": null,
+            "maxBudgetFraction": 0.0,
+            "maxBudgetFractionPath": null,
+            "nonzeroDifferences": 0,
+            "numericFields": 20000,
+            "outOfBudget": 0
+          },
+          "telemetryTime": {
+            "maxAbsoluteDifference": 0.0,
+            "maxAbsolutePath": null,
+            "maxBudgetFraction": 0.0,
+            "maxBudgetFractionPath": null,
+            "nonzeroDifferences": 0,
+            "numericFields": 5000,
+            "outOfBudget": 0
+          }
+        },
+        "ordinal": 1,
+        "ordinaryCounts": {
+          "accepted": 21532,
+          "attempted": 21532,
+          "rejected": 0,
+          "segments": 10767
+        },
+        "status": "complete-parity-pass",
+        "telemetryPoints": 5000
+      },
+      {
+        "caseId": "mini-dx3-g69n-2017-06-30",
+        "eventCounts": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "events": 4,
+        "fieldCounts": {
+          "arrays": 3,
+          "boolean": 7,
+          "null": 0,
+          "numeric": 56921,
+          "objects": 10948,
+          "string": 24
+        },
+        "numericGroups": {
+          "coarseAndTerminal": {
+            "maxAbsoluteDifference": 1.4210854715202004e-14,
+            "maxAbsolutePath": "landingDistance",
+            "maxBudgetFraction": 1.2466869736779964e-06,
+            "maxBudgetFractionPath": "telemetry.2187.angleOfAttackDeg",
+            "nonzeroDifferences": 7,
+            "numericFields": 54,
+            "outOfBudget": 0
+          },
+          "exactRoundedNonterminal": {
+            "maxAbsoluteDifference": 0.0,
+            "maxAbsolutePath": null,
+            "maxBudgetFraction": 0.0,
+            "maxBudgetFractionPath": null,
+            "nonzeroDifferences": 0,
+            "numericFields": 45927,
+            "outOfBudget": 0
+          },
+          "telemetryQuaternion": {
+            "maxAbsoluteDifference": 5.551115123125783e-16,
+            "maxAbsolutePath": "telemetry.834.q.x",
+            "maxBudgetFraction": 0.00027755575615628914,
+            "maxBudgetFractionPath": "telemetry.834.q.x",
+            "nonzeroDifferences": 988,
+            "numericFields": 8752,
+            "outOfBudget": 0
+          },
+          "telemetryTime": {
+            "maxAbsoluteDifference": 0.0,
+            "maxAbsolutePath": null,
+            "maxBudgetFraction": 0.0,
+            "maxBudgetFractionPath": null,
+            "nonzeroDifferences": 0,
+            "numericFields": 2188,
+            "outOfBudget": 0
+          }
+        },
+        "ordinal": 2,
+        "ordinaryCounts": {
+          "accepted": 6573,
+          "attempted": 6573,
+          "rejected": 0,
+          "segments": 3288
+        },
+        "status": "complete-parity-pass",
+        "telemetryPoints": 2188
+      },
+      {
+        "caseId": "top-shot-e12-2017-12-14",
+        "eventCounts": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "events": 4,
+        "fieldCounts": {
+          "arrays": 3,
+          "boolean": 7,
+          "null": 0,
+          "numeric": 28997,
+          "objects": 5578,
+          "string": 24
+        },
+        "numericGroups": {
+          "coarseAndTerminal": {
+            "maxAbsoluteDifference": 7.105427357601002e-15,
+            "maxAbsolutePath": "landingDistance",
+            "maxBudgetFraction": 5.517754786085699e-07,
+            "maxBudgetFractionPath": "landingDistance",
+            "nonzeroDifferences": 4,
+            "numericFields": 54,
+            "outOfBudget": 0
+          },
+          "exactRoundedNonterminal": {
+            "maxAbsoluteDifference": 0.0,
+            "maxAbsolutePath": null,
+            "maxBudgetFraction": 0.0,
+            "maxBudgetFractionPath": null,
+            "nonzeroDifferences": 0,
+            "numericFields": 23373,
+            "outOfBudget": 0
+          },
+          "telemetryQuaternion": {
+            "maxAbsoluteDifference": 3.3306690738754696e-16,
+            "maxAbsolutePath": "telemetry.184.q.x",
+            "maxBudgetFraction": 0.00016653345369377348,
+            "maxBudgetFractionPath": "telemetry.184.q.x",
+            "nonzeroDifferences": 285,
+            "numericFields": 4456,
+            "outOfBudget": 0
+          },
+          "telemetryTime": {
+            "maxAbsoluteDifference": 0.0,
+            "maxAbsolutePath": null,
+            "maxBudgetFraction": 0.0,
+            "maxBudgetFractionPath": null,
+            "nonzeroDifferences": 0,
+            "numericFields": 1114,
+            "outOfBudget": 0
+          }
+        },
+        "ordinal": 3,
+        "ordinaryCounts": {
+          "accepted": 3487,
+          "attempted": 3487,
+          "rejected": 0,
+          "segments": 1745
+        },
+        "status": "complete-parity-pass",
+        "telemetryPoints": 1114
+      },
+      {
+        "caseId": "adventurer-j510w-2021-04-17",
+        "eventCounts": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "events": 4,
+        "fieldCounts": {
+          "arrays": 3,
+          "boolean": 7,
+          "null": 0,
+          "numeric": 87731,
+          "objects": 16873,
+          "string": 24
+        },
+        "numericGroups": {
+          "coarseAndTerminal": {
+            "maxAbsoluteDifference": 1.797680385627609e-14,
+            "maxAbsolutePath": "telemetry.3372.angleOfAttackDeg",
+            "maxBudgetFraction": 1.7976765221420658e-06,
+            "maxBudgetFractionPath": "telemetry.3372.angleOfAttackDeg",
+            "nonzeroDifferences": 4,
+            "numericFields": 54,
+            "outOfBudget": 0
+          },
+          "exactRoundedNonterminal": {
+            "maxAbsoluteDifference": 0.0,
+            "maxAbsolutePath": null,
+            "maxBudgetFraction": 0.0,
+            "maxBudgetFractionPath": null,
+            "nonzeroDifferences": 0,
+            "numericFields": 70812,
+            "outOfBudget": 0
+          },
+          "telemetryQuaternion": {
+            "maxAbsoluteDifference": 4.440892098500626e-16,
+            "maxAbsolutePath": "telemetry.1186.q.w",
+            "maxBudgetFraction": 0.0002220446049250313,
+            "maxBudgetFractionPath": "telemetry.1186.q.w",
+            "nonzeroDifferences": 3170,
+            "numericFields": 13492,
+            "outOfBudget": 0
+          },
+          "telemetryTime": {
+            "maxAbsoluteDifference": 0.0,
+            "maxAbsolutePath": null,
+            "maxBudgetFraction": 0.0,
+            "maxBudgetFractionPath": null,
+            "nonzeroDifferences": 0,
+            "numericFields": 3373,
+            "outOfBudget": 0
+          }
+        },
+        "ordinal": 4,
+        "ordinaryCounts": {
+          "accepted": 10300,
+          "attempted": 10300,
+          "rejected": 0,
+          "segments": 5151
+        },
+        "status": "complete-parity-pass",
+        "telemetryPoints": 3373
+      }
+    ],
+    "maximumAbsoluteNumericDifference": 1.797680385627609e-14,
+    "numericFieldsCompared": 303688,
+    "outOfBudgetFields": 0,
+    "reviewManifestSha256": "5d26776953735fcc371b40f9c8136b963b3c7f38185e7fe35515242daae972b5",
+    "schema": "N1-default-parity-summary-v1",
+    "totalNativeFlightAttempts": 4
+  },
+  "experiments": [
+    {
+      "experiment": "integration-0.1",
+      "maximumAbsoluteEventTimeDeltaS": 0.0,
+      "maximumRelativeAttitudeAtExactCommonRetainedTimesRad": 0.0,
+      "referenceExperiment": "default-parity",
+      "retainedPeakMaximumAbsoluteValueDeltas": {
+        "acceleration": 0.0,
+        "altitude": 0.0,
+        "angleOfAttackDeg": 0.0,
+        "angularRateNorm": 0.0,
+        "drag": 0.0,
+        "dynamicPressure": 0.0,
+        "mach": 0.0,
+        "speed": 0.0,
+        "thrust": 0.0
+      },
+      "scalarMaximumAbsoluteDeltas": {
+        "apogeeAltitude": 0.0,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.0,
+        "apogeePosition.z": 0.0,
+        "apogeeTime": 0.0,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.0,
+        "flightDuration": 0.0,
+        "landingDistance": 0.0,
+        "landingKineticEnergy": 0.0,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.0,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 0.0,
+        "railExitVelocity": 0.0,
+        "weathercockAngleDeg": 0.0
+      }
+    },
+    {
+      "experiment": "integration-0.01",
+      "maximumAbsoluteEventTimeDeltaS": 0.0023828125000306954,
+      "maximumRelativeAttitudeAtExactCommonRetainedTimesRad": 0.00023664214038759024,
+      "referenceExperiment": "default-parity",
+      "retainedPeakMaximumAbsoluteValueDeltas": {
+        "acceleration": 0.0,
+        "altitude": 0.09999999999990905,
+        "angleOfAttackDeg": 0.0,
+        "angularRateNorm": 0.0,
+        "drag": 0.0,
+        "dynamicPressure": 0.0,
+        "mach": 0.0,
+        "speed": 0.0,
+        "thrust": 0.0
+      },
+      "scalarMaximumAbsoluteDeltas": {
+        "apogeeAltitude": 0.01869187831312047,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.0009876088804503524,
+        "apogeePosition.z": 0.01869187831312047,
+        "apogeeTime": 8.789062499836575e-05,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.004305886292939931,
+        "flightDuration": 0.0023828125000306954,
+        "landingDistance": 0.0013205523745227765,
+        "landingKineticEnergy": 0.011575450315376656,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.0013205523745227765,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0002475988094801096,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 5.684341886080802e-14,
+        "railExitVelocity": 7.105427357601002e-15,
+        "weathercockAngleDeg": 3.944304526105059e-31
+      }
+    },
+    {
+      "experiment": "event-root-1e-6",
+      "maximumAbsoluteEventTimeDeltaS": 9.76562500198952e-06,
+      "maximumRelativeAttitudeAtExactCommonRetainedTimesRad": 1.6660747058553985e-05,
+      "referenceExperiment": "integration-0.01",
+      "retainedPeakMaximumAbsoluteValueDeltas": {
+        "acceleration": 0.0,
+        "altitude": 0.0,
+        "angleOfAttackDeg": 0.0,
+        "angularRateNorm": 0.0,
+        "drag": 0.0,
+        "dynamicPressure": 0.0,
+        "mach": 0.0,
+        "speed": 0.0,
+        "thrust": 0.0
+      },
+      "scalarMaximumAbsoluteDeltas": {
+        "apogeeAltitude": 6.740048831943568e-06,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 7.467958039342193e-05,
+        "apogeePosition.z": 6.740048831943568e-06,
+        "apogeeTime": 9.155273438921085e-06,
+        "burnoutAltitude": 3.6208707854257227e-06,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 1.4846019098513352e-06,
+        "flightDuration": 9.76562500198952e-06,
+        "landingDistance": 0.00021408508189324493,
+        "landingKineticEnergy": 0.002709928186959587,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.00021408508189324493,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 2.2217671535429417e-05,
+        "maxAccelerationG": 1.5056045299388643e-09,
+        "maxMach": 4.4392193254694234e-09,
+        "maxVelocity": 1.5037847873600185e-06,
+        "railExitVelocity": 0.0014794678073641876,
+        "weathercockAngleDeg": 2.0002784703805102e-14
+      }
+    },
+    {
+      "experiment": "event-root-1e-7",
+      "maximumAbsoluteEventTimeDeltaS": 9.841918945596717e-06,
+      "maximumRelativeAttitudeAtExactCommonRetainedTimesRad": 1.7132015323871557e-05,
+      "referenceExperiment": "integration-0.01",
+      "retainedPeakMaximumAbsoluteValueDeltas": {
+        "acceleration": 0.0,
+        "altitude": 0.0,
+        "angleOfAttackDeg": 0.0,
+        "angularRateNorm": 0.0,
+        "drag": 0.0,
+        "dynamicPressure": 0.0,
+        "mach": 0.0,
+        "speed": 0.0,
+        "thrust": 0.0
+      },
+      "scalarMaximumAbsoluteDeltas": {
+        "apogeeAltitude": 8.428895796441793e-06,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 7.956772523698419e-05,
+        "apogeePosition.z": 8.428895796441793e-06,
+        "apogeeTime": 9.538677563369902e-06,
+        "burnoutAltitude": 4.528160090444544e-06,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 1.8565869908115928e-06,
+        "flightDuration": 9.841918945596717e-06,
+        "landingDistance": 0.00022579856192805892,
+        "landingKineticEnergy": 0.002893288754421519,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.00022579856192805892,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 2.2405178455642272e-05,
+        "maxAccelerationG": 1.589244291722025e-09,
+        "maxMach": 5.551519910440561e-09,
+        "maxVelocity": 1.8805763630780348e-06,
+        "railExitVelocity": 0.0015616606309052372,
+        "weathercockAngleDeg": 1.922055082648185e-14
+      }
+    }
+  ],
+  "failedOrRetriedAttempts": 0,
+  "frozenWasmSha256": "c1a1a177d56b73e4f5862d29098743e0bc31f51499d1c7534776b34ba2e8c4fe",
+  "historicalProvenanceDiscrepancies": [
+    {
+      "atPreparationSha256": "9127834063236011ff8f600f3f97735e65df694859d67aa23368df03821fa0da",
+      "explanation": "Historical preparer bytes unavailable; mismatch predates this resume. Actual generated source is independently reconstructed and matched to base Git.",
+      "path": "scripts/diagnostics/numerical-controls.py",
+      "retainedOnResumeSha256": "7f642a5d3dda99e51d44d4afee9e3137185883045caf14b2fbed5cdeb4e8d2d5"
+    }
+  ],
+  "historicalRecipeIdentity": "unverified; preparation-time script hash differs from retained script; actual generated source and recorded binary build hash independently verified",
+  "ledgerSha256": "68ae7c2c972f839eaa07ce8eae17a5a63d51776e51d4626ea86993ff079a00a1",
+  "limitations": [
+    "Computational sensitivity on four frozen wire DTOs; no observed trajectory data or physical accuracy inference.",
+    "Both ordinary and event integration tolerances change together; root-only probes retain integration scale 0.01.",
+    "Coarse production scalars and event quantities use their existing engine definitions; no canonical continuous-time peak recomputation.",
+    "Telemetry uses display cadence (every fifth macro step before apogee, every macro step before rail exit/after apogee), display rounding, and decimation to at most 5000 retained samples.",
+    "Telemetry is bounded/decimated, not silently truncated; original full-series point counts cannot be recovered from these DTOs. All retained runs cover touchdown.",
+    "Retained-sample peak differences include rounding and changing sample selection; no index-aligned trajectory norm or continuous maximum is inferred.",
+    "No monotonic-convergence or universal numerical/physical error bound.",
+    "Production PASS validity and safety flags retain their legacy meanings; this diagnostic does not certify primary use.",
+    "RSS is sampled process-tree resident memory, not a kernel-enforced memory cap."
+  ],
+  "nativeFlightAttempts": 20,
+  "newWasmCalls": 0,
+  "priorWasmCallsReused": 20,
+  "reviewManifestSha256": "5d26776953735fcc371b40f9c8136b963b3c7f38185e7fe35515242daae972b5",
+  "runs": [
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 0,
+        "exactCommonRetainedTimes": 5000,
+        "maxRelativeAttitudeRad": 0.0,
+        "maxRelativeAttitudeTimeS": null,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 0
+      },
+      "caseId": "cosmic-cargo-2986",
+      "coarseScalars": {
+        "apogeeAltitude": 371.7042160703002,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 13.077352581628823,
+        "apogeePosition.z": 371.7042160703002,
+        "apogeeTime": 7.984941406249874,
+        "burnoutAltitude": 122.78021387658326,
+        "burnoutTime": 1.86,
+        "burnoutVelocity": 113.42907508329628,
+        "flightDuration": 107.61718750001813,
+        "landingDistance": 13.699396964177577,
+        "landingKineticEnergy": 0.34463199746645434,
+        "landingMass": 0.050136287840496424,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 13.699396964177577,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 3.707803490055425,
+        "maxAccelerationG": 22.771243941476925,
+        "maxMach": 0.33530580062642756,
+        "maxVelocity": 113.93447037559935,
+        "railExitVelocity": 17.513733343384885,
+        "weathercockAngleDeg": 1.6344311959039614e-15
+      },
+      "controls": {
+        "eventScale": 1.0,
+        "eventTimeToleranceS": 1e-05,
+        "ordinaryScale": 1.0
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 161551,
+        "ordinary": {
+          "accepted": 21532,
+          "attempted": 21532,
+          "rejected": 0,
+          "segments": 10767
+        },
+        "rootIterations": 40
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.19124023437500004
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 1.86
+        },
+        {
+          "name": "Apogee & Drogue Deployment",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 7.984941406249874
+        },
+        {
+          "name": "Main Parachute Deployment",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 67.30747070312253
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 107.61718750001813
+        }
+      ],
+      "evidenceSha256": {
+        "01.native.json": "c45ab153e2bf9fe13d1542a7045d6bff68aa55de32551ace35195144a1dfe786",
+        "01.parity.json": "edd9eb5af859df032f278735d19201c637b3d7eafcb9cfaa3457e9a08fd9fcdf",
+        "01.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "default-parity",
+      "ordinal": 1,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": true,
+        "isLandingVelocitySafe": true,
+        "isRailExitSafe": true,
+        "offNominalExcursion": false,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "PASS"
+      },
+      "referenceExperiment": "default-parity",
+      "referenceOrdinal": 1,
+      "resource": {
+        "elapsedSeconds": 0.5427239100026782,
+        "observedAggregatePeakRssKiB": 57736
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 10,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.19,
+          "unit": "m/s^2",
+          "value": 223.3
+        },
+        "altitude": {
+          "retainedIndex": 88,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 7.99,
+          "unit": "m AGL",
+          "value": 371.7
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 112,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.46,
+          "unit": "degrees",
+          "value": 131.96
+        },
+        "angularRateNorm": {
+          "retainedIndex": 88,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 7.99,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 0.58
+        },
+        "drag": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.9,
+          "unit": "N",
+          "value": 2.1
+        },
+        "dynamicPressure": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "Pa",
+          "value": 7831.0
+        },
+        "mach": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "dimensionless",
+          "value": 0.335
+        },
+        "speed": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "m/s airspeed",
+          "value": 113.8
+        },
+        "thrust": {
+          "retainedIndex": 10,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.19,
+          "unit": "N",
+          "value": 13.9
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": true,
+        "firstTimeS": 0.0,
+        "lastTimeS": 107.61718750001813,
+        "pointCountMatchesReference": true,
+        "points": 5000,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": true
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 0.0,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.0,
+        "apogeePosition.z": 0.0,
+        "apogeeTime": 0.0,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.0,
+        "flightDuration": 0.0,
+        "landingDistance": 0.0,
+        "landingKineticEnergy": 0.0,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.0,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 0.0,
+        "railExitVelocity": 0.0,
+        "weathercockAngleDeg": 0.0
+      },
+      "status": "complete-parity-pass"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 0,
+        "exactCommonRetainedTimes": 2188,
+        "maxRelativeAttitudeRad": 0.0,
+        "maxRelativeAttitudeTimeS": null,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 0
+      },
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "coarseScalars": {
+        "apogeeAltitude": 1173.936843974693,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 67.64498300603181,
+        "apogeePosition.z": 1173.936843974693,
+        "apogeeTime": 13.90552734374975,
+        "burnoutAltitude": 258.124734201607,
+        "burnoutTime": 2.0,
+        "burnoutVelocity": 212.39222079907407,
+        "flightDuration": 32.82194335937704,
+        "landingDistance": 86.27961478769039,
+        "landingKineticEnergy": 2260.175264712174,
+        "landingMass": 0.48351,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 86.27961478769039,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 96.69039320835267,
+        "maxAccelerationG": 14.75320654517917,
+        "maxMach": 0.6542348552023158,
+        "maxVelocity": 219.9878253325108,
+        "railExitVelocity": 21.875660044574385,
+        "weathercockAngleDeg": 2.326278375131257e-15
+      },
+      "controls": {
+        "eventScale": 1.0,
+        "eventTimeToleranceS": 1e-05,
+        "ordinaryScale": 1.0
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 49359,
+        "ordinary": {
+          "accepted": 6573,
+          "attempted": 6573,
+          "rejected": 0,
+          "segments": 3288
+        },
+        "rootIterations": 40
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.19189453125
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 2.0
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 32.82194335937704
+        }
+      ],
+      "evidenceSha256": {
+        "02.native.json": "412b3899b81c5b3b710321cdaf65b664ccbad4221422ba49c7f950230ea71897",
+        "02.parity.json": "edd9eb5af859df032f278735d19201c637b3d7eafcb9cfaa3457e9a08fd9fcdf",
+        "02.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "default-parity",
+      "ordinal": 2,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "default-parity",
+      "referenceOrdinal": 2,
+      "resource": {
+        "elapsedSeconds": 0.2197331249990384,
+        "observedAggregatePeakRssKiB": 27136
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 33,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.85,
+          "unit": "m/s^2",
+          "value": 144.7
+        },
+        "altitude": {
+          "retainedIndex": 292,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 13.8,
+          "unit": "m AGL",
+          "value": 1173.9
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 374,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 14.7,
+          "unit": "degrees",
+          "value": 118.09
+        },
+        "angularRateNorm": {
+          "retainedIndex": 508,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 16.04,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 2.63
+        },
+        "drag": {
+          "retainedIndex": 56,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.0,
+          "unit": "N",
+          "value": 20.0
+        },
+        "dynamicPressure": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "Pa",
+          "value": 26764.0
+        },
+        "mach": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "dimensionless",
+          "value": 0.654
+        },
+        "speed": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "m/s airspeed",
+          "value": 220.0
+        },
+        "thrust": {
+          "retainedIndex": 39,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.15,
+          "unit": "N",
+          "value": 86.4
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 32.82194335937704,
+        "pointCountMatchesReference": true,
+        "points": 2188,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": true
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 0.0,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.0,
+        "apogeePosition.z": 0.0,
+        "apogeeTime": 0.0,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.0,
+        "flightDuration": 0.0,
+        "landingDistance": 0.0,
+        "landingKineticEnergy": 0.0,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.0,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 0.0,
+        "railExitVelocity": 0.0,
+        "weathercockAngleDeg": 0.0
+      },
+      "status": "complete-parity-pass"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 0,
+        "exactCommonRetainedTimes": 1114,
+        "maxRelativeAttitudeRad": 0.0,
+        "maxRelativeAttitudeTimeS": null,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 0
+      },
+      "caseId": "top-shot-e12-2017-12-14",
+      "coarseScalars": {
+        "apogeeAltitude": 301.6267529814552,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 22.06102122890737,
+        "apogeePosition.z": 301.6267529814552,
+        "apogeeTime": 8.155605468749869,
+        "burnoutAltitude": 113.87582375990712,
+        "burnoutTime": 2.44,
+        "burnoutVelocity": 77.45611363174282,
+        "flightDuration": 17.392265624999922,
+        "landingDistance": 28.773887805217207,
+        "landingKineticEnergy": 336.4437552594217,
+        "landingMass": 0.21950000000000006,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 28.773887805217207,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 55.36737979135875,
+        "maxAccelerationG": 12.301351967364763,
+        "maxMach": 0.2309857067957414,
+        "maxVelocity": 77.81319210970075,
+        "railExitVelocity": 19.195701276613335,
+        "weathercockAngleDeg": 2.319673811278709e-15
+      },
+      "controls": {
+        "eventScale": 1.0,
+        "eventTimeToleranceS": 1e-05,
+        "ordinaryScale": 1.0
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 26214,
+        "ordinary": {
+          "accepted": 3487,
+          "attempted": 3487,
+          "rejected": 0,
+          "segments": 1745
+        },
+        "rootIterations": 40
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.3115136718750001
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 2.44
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 17.392265624999922
+        }
+      ],
+      "evidenceSha256": {
+        "03.native.json": "496001da03db50451d292fe63f1714403119e959a1f1b8fe29d5bd6312a1483c",
+        "03.parity.json": "edd9eb5af859df032f278735d19201c637b3d7eafcb9cfaa3457e9a08fd9fcdf",
+        "03.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "default-parity",
+      "ordinal": 3,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "default-parity",
+      "referenceOrdinal": 3,
+      "resource": {
+        "elapsedSeconds": 0.11851794899848755,
+        "observedAggregatePeakRssKiB": 15444
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.28,
+          "unit": "m/s^2",
+          "value": 120.6
+        },
+        "altitude": {
+          "retainedIndex": 186,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.05,
+          "unit": "m AGL",
+          "value": 301.6
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 230,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.57,
+          "unit": "degrees",
+          "value": 103.58
+        },
+        "angularRateNorm": {
+          "retainedIndex": 300,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 9.27,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 4.31
+        },
+        "drag": {
+          "retainedIndex": 74,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.45,
+          "unit": "N",
+          "value": 3.0
+        },
+        "dynamicPressure": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "Pa",
+          "value": 3402.0
+        },
+        "mach": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "dimensionless",
+          "value": 0.231
+        },
+        "speed": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "m/s airspeed",
+          "value": 77.8
+        },
+        "thrust": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.28,
+          "unit": "N",
+          "value": 32.7
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 17.392265624999922,
+        "pointCountMatchesReference": true,
+        "points": 1114,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": true
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 0.0,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.0,
+        "apogeePosition.z": 0.0,
+        "apogeeTime": 0.0,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.0,
+        "flightDuration": 0.0,
+        "landingDistance": 0.0,
+        "landingKineticEnergy": 0.0,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.0,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 0.0,
+        "railExitVelocity": 0.0,
+        "weathercockAngleDeg": 0.0
+      },
+      "status": "complete-parity-pass"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 0,
+        "exactCommonRetainedTimes": 3373,
+        "maxRelativeAttitudeRad": 0.0,
+        "maxRelativeAttitudeTimeS": null,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 0
+      },
+      "caseId": "adventurer-j510w-2021-04-17",
+      "coarseScalars": {
+        "apogeeAltitude": 3040.3641420428758,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 177.60637405535851,
+        "apogeePosition.z": 3040.3641420428758,
+        "apogeeTime": 22.293408203125686,
+        "burnoutAltitude": 614.4727157053741,
+        "burnoutTime": 2.5,
+        "burnoutVelocity": 336.638606060517,
+        "flightDuration": 51.45336914062334,
+        "landingDistance": 277.37385140068193,
+        "landingKineticEnergy": 32561.84424781864,
+        "landingMass": 2.4580000000000006,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 277.37385140068193,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 162.77157127843697,
+        "maxAccelerationG": 33.02515690611806,
+        "maxMach": 1.0635244923874994,
+        "maxVelocity": 356.77006084806794,
+        "railExitVelocity": 32.4387948733507,
+        "weathercockAngleDeg": 2.3531488346946625e-15
+      },
+      "controls": {
+        "eventScale": 1.0,
+        "eventTimeToleranceS": 1e-05,
+        "ordinaryScale": 1.0
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 3.3306690738754696e-16,
+        "observedStates": 77311,
+        "ordinary": {
+          "accepted": 10300,
+          "attempted": 10300,
+          "rejected": 0,
+          "segments": 5151
+        },
+        "rootIterations": 40
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.12419921874999997
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 2.5
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 51.45336914062334
+        }
+      ],
+      "evidenceSha256": {
+        "04.native.json": "b6a69497e669889085056aaab38fdb610a1f0030441d5508e6e59b858844cb1a",
+        "04.parity.json": "edd9eb5af859df032f278735d19201c637b3d7eafcb9cfaa3457e9a08fd9fcdf",
+        "04.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "default-parity",
+      "ordinal": 4,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "default-parity",
+      "referenceOrdinal": 4,
+      "resource": {
+        "elapsedSeconds": 0.3396339690007153,
+        "observedAggregatePeakRssKiB": 40004
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 4,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.04,
+          "unit": "m/s^2",
+          "value": 323.9
+        },
+        "altitude": {
+          "retainedIndex": 455,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 22.25,
+          "unit": "m AGL",
+          "value": 3040.4
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 530,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 23.04,
+          "unit": "degrees",
+          "value": 81.12
+        },
+        "angularRateNorm": {
+          "retainedIndex": 654,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 24.28,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 1.96
+        },
+        "drag": {
+          "retainedIndex": 61,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.55,
+          "unit": "N",
+          "value": 127.1
+        },
+        "dynamicPressure": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "Pa",
+          "value": 69063.0
+        },
+        "mach": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "dimensionless",
+          "value": 1.063
+        },
+        "speed": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "m/s airspeed",
+          "value": 356.8
+        },
+        "thrust": {
+          "retainedIndex": 4,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.04,
+          "unit": "N",
+          "value": 1036.4
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 51.45336914062334,
+        "pointCountMatchesReference": true,
+        "points": 3373,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": true
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 0.0,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.0,
+        "apogeePosition.z": 0.0,
+        "apogeeTime": 0.0,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.0,
+        "flightDuration": 0.0,
+        "landingDistance": 0.0,
+        "landingKineticEnergy": 0.0,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.0,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 0.0,
+        "railExitVelocity": 0.0,
+        "weathercockAngleDeg": 0.0
+      },
+      "status": "complete-parity-pass"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 0,
+        "exactCommonRetainedTimes": 5000,
+        "maxRelativeAttitudeRad": 0.0,
+        "maxRelativeAttitudeTimeS": null,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 0
+      },
+      "caseId": "cosmic-cargo-2986",
+      "coarseScalars": {
+        "apogeeAltitude": 371.7042160703002,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 13.077352581628823,
+        "apogeePosition.z": 371.7042160703002,
+        "apogeeTime": 7.984941406249874,
+        "burnoutAltitude": 122.78021387658326,
+        "burnoutTime": 1.86,
+        "burnoutVelocity": 113.42907508329628,
+        "flightDuration": 107.61718750001813,
+        "landingDistance": 13.699396964177577,
+        "landingKineticEnergy": 0.34463199746645434,
+        "landingMass": 0.050136287840496424,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 13.699396964177577,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 3.707803490055425,
+        "maxAccelerationG": 22.771243941476925,
+        "maxMach": 0.33530580062642756,
+        "maxVelocity": 113.93447037559935,
+        "railExitVelocity": 17.513733343384885,
+        "weathercockAngleDeg": 1.6344311959039614e-15
+      },
+      "controls": {
+        "eventScale": 0.1,
+        "eventTimeToleranceS": 1e-05,
+        "ordinaryScale": 0.1
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 161551,
+        "ordinary": {
+          "accepted": 21532,
+          "attempted": 21532,
+          "rejected": 0,
+          "segments": 10767
+        },
+        "rootIterations": 40
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.19124023437500004
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 1.86
+        },
+        {
+          "name": "Apogee & Drogue Deployment",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 7.984941406249874
+        },
+        {
+          "name": "Main Parachute Deployment",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 67.30747070312253
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 107.61718750001813
+        }
+      ],
+      "evidenceSha256": {
+        "05.native.json": "c45ab153e2bf9fe13d1542a7045d6bff68aa55de32551ace35195144a1dfe786",
+        "05.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "integration-0.1",
+      "ordinal": 5,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": true,
+        "isLandingVelocitySafe": true,
+        "isRailExitSafe": true,
+        "offNominalExcursion": false,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "PASS"
+      },
+      "referenceExperiment": "default-parity",
+      "referenceOrdinal": 1,
+      "resource": {
+        "elapsedSeconds": 0.5301944329985417,
+        "observedAggregatePeakRssKiB": 57708
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 10,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.19,
+          "unit": "m/s^2",
+          "value": 223.3
+        },
+        "altitude": {
+          "retainedIndex": 88,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 7.99,
+          "unit": "m AGL",
+          "value": 371.7
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 112,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.46,
+          "unit": "degrees",
+          "value": 131.96
+        },
+        "angularRateNorm": {
+          "retainedIndex": 88,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 7.99,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 0.58
+        },
+        "drag": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.9,
+          "unit": "N",
+          "value": 2.1
+        },
+        "dynamicPressure": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "Pa",
+          "value": 7831.0
+        },
+        "mach": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "dimensionless",
+          "value": 0.335
+        },
+        "speed": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "m/s airspeed",
+          "value": 113.8
+        },
+        "thrust": {
+          "retainedIndex": 10,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.19,
+          "unit": "N",
+          "value": 13.9
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": true,
+        "firstTimeS": 0.0,
+        "lastTimeS": 107.61718750001813,
+        "pointCountMatchesReference": true,
+        "points": 5000,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": true
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 0.0,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.0,
+        "apogeePosition.z": 0.0,
+        "apogeeTime": 0.0,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.0,
+        "flightDuration": 0.0,
+        "landingDistance": 0.0,
+        "landingKineticEnergy": 0.0,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.0,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 0.0,
+        "railExitVelocity": 0.0,
+        "weathercockAngleDeg": 0.0
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 0,
+        "exactCommonRetainedTimes": 2188,
+        "maxRelativeAttitudeRad": 0.0,
+        "maxRelativeAttitudeTimeS": null,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 0
+      },
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "coarseScalars": {
+        "apogeeAltitude": 1173.936843974693,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 67.64498300603181,
+        "apogeePosition.z": 1173.936843974693,
+        "apogeeTime": 13.90552734374975,
+        "burnoutAltitude": 258.124734201607,
+        "burnoutTime": 2.0,
+        "burnoutVelocity": 212.39222079907407,
+        "flightDuration": 32.82194335937704,
+        "landingDistance": 86.27961478769039,
+        "landingKineticEnergy": 2260.175264712174,
+        "landingMass": 0.48351,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 86.27961478769039,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 96.69039320835267,
+        "maxAccelerationG": 14.75320654517917,
+        "maxMach": 0.6542348552023158,
+        "maxVelocity": 219.9878253325108,
+        "railExitVelocity": 21.875660044574385,
+        "weathercockAngleDeg": 2.326278375131257e-15
+      },
+      "controls": {
+        "eventScale": 0.1,
+        "eventTimeToleranceS": 1e-05,
+        "ordinaryScale": 0.1
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 49359,
+        "ordinary": {
+          "accepted": 6573,
+          "attempted": 6573,
+          "rejected": 0,
+          "segments": 3288
+        },
+        "rootIterations": 40
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.19189453125
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 2.0
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 32.82194335937704
+        }
+      ],
+      "evidenceSha256": {
+        "06.native.json": "412b3899b81c5b3b710321cdaf65b664ccbad4221422ba49c7f950230ea71897",
+        "06.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "integration-0.1",
+      "ordinal": 6,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "default-parity",
+      "referenceOrdinal": 2,
+      "resource": {
+        "elapsedSeconds": 0.2099917829982587,
+        "observedAggregatePeakRssKiB": 27172
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 33,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.85,
+          "unit": "m/s^2",
+          "value": 144.7
+        },
+        "altitude": {
+          "retainedIndex": 292,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 13.8,
+          "unit": "m AGL",
+          "value": 1173.9
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 374,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 14.7,
+          "unit": "degrees",
+          "value": 118.09
+        },
+        "angularRateNorm": {
+          "retainedIndex": 508,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 16.04,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 2.63
+        },
+        "drag": {
+          "retainedIndex": 56,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.0,
+          "unit": "N",
+          "value": 20.0
+        },
+        "dynamicPressure": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "Pa",
+          "value": 26764.0
+        },
+        "mach": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "dimensionless",
+          "value": 0.654
+        },
+        "speed": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "m/s airspeed",
+          "value": 220.0
+        },
+        "thrust": {
+          "retainedIndex": 39,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.15,
+          "unit": "N",
+          "value": 86.4
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 32.82194335937704,
+        "pointCountMatchesReference": true,
+        "points": 2188,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": true
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 0.0,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.0,
+        "apogeePosition.z": 0.0,
+        "apogeeTime": 0.0,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.0,
+        "flightDuration": 0.0,
+        "landingDistance": 0.0,
+        "landingKineticEnergy": 0.0,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.0,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 0.0,
+        "railExitVelocity": 0.0,
+        "weathercockAngleDeg": 0.0
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 0,
+        "exactCommonRetainedTimes": 1114,
+        "maxRelativeAttitudeRad": 0.0,
+        "maxRelativeAttitudeTimeS": null,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 0
+      },
+      "caseId": "top-shot-e12-2017-12-14",
+      "coarseScalars": {
+        "apogeeAltitude": 301.6267529814552,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 22.06102122890737,
+        "apogeePosition.z": 301.6267529814552,
+        "apogeeTime": 8.155605468749869,
+        "burnoutAltitude": 113.87582375990712,
+        "burnoutTime": 2.44,
+        "burnoutVelocity": 77.45611363174282,
+        "flightDuration": 17.392265624999922,
+        "landingDistance": 28.773887805217207,
+        "landingKineticEnergy": 336.4437552594217,
+        "landingMass": 0.21950000000000006,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 28.773887805217207,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 55.36737979135875,
+        "maxAccelerationG": 12.301351967364763,
+        "maxMach": 0.2309857067957414,
+        "maxVelocity": 77.81319210970075,
+        "railExitVelocity": 19.195701276613335,
+        "weathercockAngleDeg": 2.319673811278709e-15
+      },
+      "controls": {
+        "eventScale": 0.1,
+        "eventTimeToleranceS": 1e-05,
+        "ordinaryScale": 0.1
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 26214,
+        "ordinary": {
+          "accepted": 3487,
+          "attempted": 3487,
+          "rejected": 0,
+          "segments": 1745
+        },
+        "rootIterations": 40
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.3115136718750001
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 2.44
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 17.392265624999922
+        }
+      ],
+      "evidenceSha256": {
+        "07.native.json": "496001da03db50451d292fe63f1714403119e959a1f1b8fe29d5bd6312a1483c",
+        "07.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "integration-0.1",
+      "ordinal": 7,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "default-parity",
+      "referenceOrdinal": 3,
+      "resource": {
+        "elapsedSeconds": 0.11471376699773828,
+        "observedAggregatePeakRssKiB": 15444
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.28,
+          "unit": "m/s^2",
+          "value": 120.6
+        },
+        "altitude": {
+          "retainedIndex": 186,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.05,
+          "unit": "m AGL",
+          "value": 301.6
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 230,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.57,
+          "unit": "degrees",
+          "value": 103.58
+        },
+        "angularRateNorm": {
+          "retainedIndex": 300,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 9.27,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 4.31
+        },
+        "drag": {
+          "retainedIndex": 74,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.45,
+          "unit": "N",
+          "value": 3.0
+        },
+        "dynamicPressure": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "Pa",
+          "value": 3402.0
+        },
+        "mach": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "dimensionless",
+          "value": 0.231
+        },
+        "speed": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "m/s airspeed",
+          "value": 77.8
+        },
+        "thrust": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.28,
+          "unit": "N",
+          "value": 32.7
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 17.392265624999922,
+        "pointCountMatchesReference": true,
+        "points": 1114,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": true
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 0.0,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.0,
+        "apogeePosition.z": 0.0,
+        "apogeeTime": 0.0,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.0,
+        "flightDuration": 0.0,
+        "landingDistance": 0.0,
+        "landingKineticEnergy": 0.0,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.0,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 0.0,
+        "railExitVelocity": 0.0,
+        "weathercockAngleDeg": 0.0
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 0,
+        "exactCommonRetainedTimes": 3373,
+        "maxRelativeAttitudeRad": 0.0,
+        "maxRelativeAttitudeTimeS": null,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 0
+      },
+      "caseId": "adventurer-j510w-2021-04-17",
+      "coarseScalars": {
+        "apogeeAltitude": 3040.3641420428758,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 177.60637405535851,
+        "apogeePosition.z": 3040.3641420428758,
+        "apogeeTime": 22.293408203125686,
+        "burnoutAltitude": 614.4727157053741,
+        "burnoutTime": 2.5,
+        "burnoutVelocity": 336.638606060517,
+        "flightDuration": 51.45336914062334,
+        "landingDistance": 277.37385140068193,
+        "landingKineticEnergy": 32561.84424781864,
+        "landingMass": 2.4580000000000006,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 277.37385140068193,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 162.77157127843697,
+        "maxAccelerationG": 33.02515690611806,
+        "maxMach": 1.0635244923874994,
+        "maxVelocity": 356.77006084806794,
+        "railExitVelocity": 32.4387948733507,
+        "weathercockAngleDeg": 2.3531488346946625e-15
+      },
+      "controls": {
+        "eventScale": 0.1,
+        "eventTimeToleranceS": 1e-05,
+        "ordinaryScale": 0.1
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 3.3306690738754696e-16,
+        "observedStates": 77311,
+        "ordinary": {
+          "accepted": 10300,
+          "attempted": 10300,
+          "rejected": 0,
+          "segments": 5151
+        },
+        "rootIterations": 40
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.12419921874999997
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 2.5
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 51.45336914062334
+        }
+      ],
+      "evidenceSha256": {
+        "08.native.json": "b6a69497e669889085056aaab38fdb610a1f0030441d5508e6e59b858844cb1a",
+        "08.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "integration-0.1",
+      "ordinal": 8,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "default-parity",
+      "referenceOrdinal": 4,
+      "resource": {
+        "elapsedSeconds": 0.30687205200229073,
+        "observedAggregatePeakRssKiB": 39988
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 4,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.04,
+          "unit": "m/s^2",
+          "value": 323.9
+        },
+        "altitude": {
+          "retainedIndex": 455,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 22.25,
+          "unit": "m AGL",
+          "value": 3040.4
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 530,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 23.04,
+          "unit": "degrees",
+          "value": 81.12
+        },
+        "angularRateNorm": {
+          "retainedIndex": 654,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 24.28,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 1.96
+        },
+        "drag": {
+          "retainedIndex": 61,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.55,
+          "unit": "N",
+          "value": 127.1
+        },
+        "dynamicPressure": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "Pa",
+          "value": 69063.0
+        },
+        "mach": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "dimensionless",
+          "value": 1.063
+        },
+        "speed": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "m/s airspeed",
+          "value": 356.8
+        },
+        "thrust": {
+          "retainedIndex": 4,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.04,
+          "unit": "N",
+          "value": 1036.4
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 51.45336914062334,
+        "pointCountMatchesReference": true,
+        "points": 3373,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": true
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 0.0,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.0,
+        "apogeePosition.z": 0.0,
+        "apogeeTime": 0.0,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.0,
+        "flightDuration": 0.0,
+        "landingDistance": 0.0,
+        "landingKineticEnergy": 0.0,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.0,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 0.0,
+        "railExitVelocity": 0.0,
+        "weathercockAngleDeg": 0.0
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 1,
+        "exactCommonRetainedTimes": 4999,
+        "maxRelativeAttitudeRad": 4.23522455022541e-05,
+        "maxRelativeAttitudeTimeS": 7.99,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 1
+      },
+      "caseId": "cosmic-cargo-2986",
+      "coarseScalars": {
+        "apogeeAltitude": 371.71291265897247,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 13.077648197469545,
+        "apogeePosition.z": 371.71291265897247,
+        "apogeeTime": 7.985019531249874,
+        "burnoutAltitude": 122.78021387658326,
+        "burnoutTime": 1.86,
+        "burnoutVelocity": 113.43303295004219,
+        "flightDuration": 107.61957031251816,
+        "landingDistance": 13.699696244096499,
+        "landingKineticEnergy": 0.34463199730818267,
+        "landingMass": 0.050136287840496424,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 13.699696244096499,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 3.7078034892040237,
+        "maxAccelerationG": 22.771243941476925,
+        "maxMach": 0.33530580062642756,
+        "maxVelocity": 113.93447037559935,
+        "railExitVelocity": 17.513733343384885,
+        "weathercockAngleDeg": 1.6344311959039614e-15
+      },
+      "controls": {
+        "eventScale": 0.01,
+        "eventTimeToleranceS": 1e-05,
+        "ordinaryScale": 0.01
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 161600,
+        "ordinary": {
+          "accepted": 21535,
+          "attempted": 21539,
+          "rejected": 4,
+          "segments": 10767
+        },
+        "rootIterations": 40
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.19124023437500004
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.003957866745906813,
+          "timeS": 1.86
+        },
+        {
+          "name": "Apogee & Drogue Deployment",
+          "signedAltitudeDeltaM": 0.008696588672250982,
+          "signedTimeDeltaS": 7.812499999992895e-05,
+          "signedVelocityDeltaMs": 7.4134630454469885e-06,
+          "timeS": 7.985019531249874
+        },
+        {
+          "name": "Main Parachute Deployment",
+          "signedAltitudeDeltaM": -4.816837275711805e-06,
+          "signedTimeDeltaS": 0.0023828125000022737,
+          "signedVelocityDeltaMs": -8.667084827607141e-10,
+          "timeS": 67.30985351562254
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0023828125000306954,
+          "signedVelocityDeltaMs": -8.514011717863923e-10,
+          "timeS": 107.61957031251816
+        }
+      ],
+      "evidenceSha256": {
+        "09.native.json": "b0901ae8fef00cb2daf0746b912da3a0571bc88173b1ee67b6a4c0a205d0c1eb",
+        "09.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "integration-0.01",
+      "ordinal": 9,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": true,
+        "isLandingVelocitySafe": true,
+        "isRailExitSafe": true,
+        "offNominalExcursion": false,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "PASS"
+      },
+      "referenceExperiment": "default-parity",
+      "referenceOrdinal": 1,
+      "resource": {
+        "elapsedSeconds": 0.5562188550029532,
+        "observedAggregatePeakRssKiB": 57740
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 10,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.19,
+          "unit": "m/s^2",
+          "value": 223.3
+        },
+        "altitude": {
+          "retainedIndex": 88,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 7.99,
+          "unit": "m AGL",
+          "value": 371.7
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 112,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.46,
+          "unit": "degrees",
+          "value": 131.96
+        },
+        "angularRateNorm": {
+          "retainedIndex": 88,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 7.99,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 0.58
+        },
+        "drag": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.9,
+          "unit": "N",
+          "value": 2.1
+        },
+        "dynamicPressure": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "Pa",
+          "value": 7831.0
+        },
+        "mach": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "dimensionless",
+          "value": 0.335
+        },
+        "speed": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "m/s airspeed",
+          "value": 113.8
+        },
+        "thrust": {
+          "retainedIndex": 10,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.19,
+          "unit": "N",
+          "value": 13.9
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": true,
+        "firstTimeS": 0.0,
+        "lastTimeS": 107.61957031251816,
+        "pointCountMatchesReference": true,
+        "points": 5000,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": false
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 0.008696588672250982,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.00029561584072190783,
+        "apogeePosition.z": 0.008696588672250982,
+        "apogeeTime": 7.812499999992895e-05,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.003957866745906813,
+        "flightDuration": 0.0023828125000306954,
+        "landingDistance": 0.00029927991892186867,
+        "landingKineticEnergy": -1.5827167354487415e-10,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.00029927991892186867,
+        "landingPosition.z": 0.0,
+        "landingVelocity": -8.514011717863923e-10,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 0.0,
+        "railExitVelocity": 0.0,
+        "weathercockAngleDeg": 0.0
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 1,
+        "exactCommonRetainedTimes": 2187,
+        "maxRelativeAttitudeRad": 0.00023664214038759024,
+        "maxRelativeAttitudeTimeS": 16.08,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 1
+      },
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "coarseScalars": {
+        "apogeeAltitude": 1173.955535853006,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 67.64597061491226,
+        "apogeePosition.z": 1173.955535853006,
+        "apogeeTime": 13.905615234374748,
+        "burnoutAltitude": 258.124734201607,
+        "burnoutTime": 2.0,
+        "burnoutVelocity": 212.396526685367,
+        "flightDuration": 32.822216796877036,
+        "landingDistance": 86.28093534006491,
+        "landingKineticEnergy": 2260.1868401624893,
+        "landingMass": 0.48351,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 86.28093534006491,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 96.69064080716215,
+        "maxAccelerationG": 14.75320654517917,
+        "maxMach": 0.6542348552023158,
+        "maxVelocity": 219.9878253325108,
+        "railExitVelocity": 21.875660044574385,
+        "weathercockAngleDeg": 2.326278375131257e-15
+      },
+      "controls": {
+        "eventScale": 0.01,
+        "eventTimeToleranceS": 1e-05,
+        "ordinaryScale": 0.01
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 3.3306690738754696e-16,
+        "observedStates": 49415,
+        "ordinary": {
+          "accepted": 6577,
+          "attempted": 6581,
+          "rejected": 4,
+          "segments": 3288
+        },
+        "rootIterations": 40
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.19189453125
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.004305886292939931,
+          "timeS": 2.0
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.00027343749999886313,
+          "signedVelocityDeltaMs": 0.0002475988094801096,
+          "timeS": 32.822216796877036
+        }
+      ],
+      "evidenceSha256": {
+        "10.native.json": "bdb84794e7b5f6738e6323505d652c5eaa34e19e63c771ed243fe5bcab286db7",
+        "10.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "integration-0.01",
+      "ordinal": 10,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "default-parity",
+      "referenceOrdinal": 2,
+      "resource": {
+        "elapsedSeconds": 0.2156834780034842,
+        "observedAggregatePeakRssKiB": 27172
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 33,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.85,
+          "unit": "m/s^2",
+          "value": 144.7
+        },
+        "altitude": {
+          "retainedIndex": 294,
+          "signedPeakTimeDeltaS": 0.09999999999999964,
+          "signedValueDelta": 0.09999999999990905,
+          "timeS": 13.9,
+          "unit": "m AGL",
+          "value": 1174.0
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 374,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 14.7,
+          "unit": "degrees",
+          "value": 118.09
+        },
+        "angularRateNorm": {
+          "retainedIndex": 508,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 16.04,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 2.63
+        },
+        "drag": {
+          "retainedIndex": 56,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.0,
+          "unit": "N",
+          "value": 20.0
+        },
+        "dynamicPressure": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "Pa",
+          "value": 26764.0
+        },
+        "mach": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "dimensionless",
+          "value": 0.654
+        },
+        "speed": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "m/s airspeed",
+          "value": 220.0
+        },
+        "thrust": {
+          "retainedIndex": 39,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.15,
+          "unit": "N",
+          "value": 86.4
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 32.822216796877036,
+        "pointCountMatchesReference": true,
+        "points": 2188,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": false
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 0.01869187831312047,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.0009876088804503524,
+        "apogeePosition.z": 0.01869187831312047,
+        "apogeeTime": 8.789062499836575e-05,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.004305886292939931,
+        "flightDuration": 0.00027343749999886313,
+        "landingDistance": 0.0013205523745227765,
+        "landingKineticEnergy": 0.011575450315376656,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.0013205523745227765,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0002475988094801096,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 0.0,
+        "railExitVelocity": 0.0,
+        "weathercockAngleDeg": 0.0
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 0,
+        "exactCommonRetainedTimes": 1114,
+        "maxRelativeAttitudeRad": 0.0,
+        "maxRelativeAttitudeTimeS": null,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 0
+      },
+      "caseId": "top-shot-e12-2017-12-14",
+      "coarseScalars": {
+        "apogeeAltitude": 301.6267529814552,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 22.06102122890737,
+        "apogeePosition.z": 301.6267529814552,
+        "apogeeTime": 8.155605468749869,
+        "burnoutAltitude": 113.87582375990712,
+        "burnoutTime": 2.44,
+        "burnoutVelocity": 77.45611363174282,
+        "flightDuration": 17.392265624999922,
+        "landingDistance": 28.773887805217207,
+        "landingKineticEnergy": 336.4437552594217,
+        "landingMass": 0.21950000000000006,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 28.773887805217207,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 55.36737979135875,
+        "maxAccelerationG": 12.301351967364763,
+        "maxMach": 0.2309857067957414,
+        "maxVelocity": 77.81319210970075,
+        "railExitVelocity": 19.195701276613335,
+        "weathercockAngleDeg": 2.319673811278709e-15
+      },
+      "controls": {
+        "eventScale": 0.01,
+        "eventTimeToleranceS": 1e-05,
+        "ordinaryScale": 0.01
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 26214,
+        "ordinary": {
+          "accepted": 3487,
+          "attempted": 3487,
+          "rejected": 0,
+          "segments": 1745
+        },
+        "rootIterations": 40
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.3115136718750001
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 2.44
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 17.392265624999922
+        }
+      ],
+      "evidenceSha256": {
+        "11.native.json": "496001da03db50451d292fe63f1714403119e959a1f1b8fe29d5bd6312a1483c",
+        "11.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "integration-0.01",
+      "ordinal": 11,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "default-parity",
+      "referenceOrdinal": 3,
+      "resource": {
+        "elapsedSeconds": 0.1201238249996095,
+        "observedAggregatePeakRssKiB": 15476
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.28,
+          "unit": "m/s^2",
+          "value": 120.6
+        },
+        "altitude": {
+          "retainedIndex": 186,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.05,
+          "unit": "m AGL",
+          "value": 301.6
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 230,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.57,
+          "unit": "degrees",
+          "value": 103.58
+        },
+        "angularRateNorm": {
+          "retainedIndex": 300,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 9.27,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 4.31
+        },
+        "drag": {
+          "retainedIndex": 74,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.45,
+          "unit": "N",
+          "value": 3.0
+        },
+        "dynamicPressure": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "Pa",
+          "value": 3402.0
+        },
+        "mach": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "dimensionless",
+          "value": 0.231
+        },
+        "speed": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "m/s airspeed",
+          "value": 77.8
+        },
+        "thrust": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.28,
+          "unit": "N",
+          "value": 32.7
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 17.392265624999922,
+        "pointCountMatchesReference": true,
+        "points": 1114,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": true
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 0.0,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 0.0,
+        "apogeePosition.z": 0.0,
+        "apogeeTime": 0.0,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 0.0,
+        "flightDuration": 0.0,
+        "landingDistance": 0.0,
+        "landingKineticEnergy": 0.0,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.0,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": 0.0,
+        "railExitVelocity": 0.0,
+        "weathercockAngleDeg": 0.0
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 0,
+        "exactCommonRetainedTimes": 3373,
+        "maxRelativeAttitudeRad": 4.6629367034256575e-15,
+        "maxRelativeAttitudeTimeS": 27.28,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 0
+      },
+      "caseId": "adventurer-j510w-2021-04-17",
+      "coarseScalars": {
+        "apogeeAltitude": 3040.3641420428758,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 177.6063740553588,
+        "apogeePosition.z": 3040.3641420428758,
+        "apogeeTime": 22.293408203125686,
+        "burnoutAltitude": 614.4727157053741,
+        "burnoutTime": 2.5,
+        "burnoutVelocity": 336.6386060605171,
+        "flightDuration": 51.45336914062334,
+        "landingDistance": 277.37385140068267,
+        "landingKineticEnergy": 32561.84424781864,
+        "landingMass": 2.4580000000000006,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 277.37385140068267,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 162.77157127843697,
+        "maxAccelerationG": 33.02515690611806,
+        "maxMach": 1.0635244923874994,
+        "maxVelocity": 356.7700608480679,
+        "railExitVelocity": 32.43879487335071,
+        "weathercockAngleDeg": 2.353148834694662e-15
+      },
+      "controls": {
+        "eventScale": 0.01,
+        "eventTimeToleranceS": 1e-05,
+        "ordinaryScale": 0.01
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 77325,
+        "ordinary": {
+          "accepted": 10302,
+          "attempted": 10302,
+          "rejected": 0,
+          "segments": 5151
+        },
+        "rootIterations": 40
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": 1.5543122344752192e-15,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 7.105427357601002e-15,
+          "timeS": 0.12419921874999997
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 5.684341886080802e-14,
+          "timeS": 2.5
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 51.45336914062334
+        }
+      ],
+      "evidenceSha256": {
+        "12.native.json": "12e03f919fdac72c0911cd3fc47c530b6e3578afa2e94e00d6b6c0b1fe3762e4",
+        "12.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "integration-0.01",
+      "ordinal": 12,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "default-parity",
+      "referenceOrdinal": 4,
+      "resource": {
+        "elapsedSeconds": 0.3218029760028003,
+        "observedAggregatePeakRssKiB": 39984
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 4,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.04,
+          "unit": "m/s^2",
+          "value": 323.9
+        },
+        "altitude": {
+          "retainedIndex": 455,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 22.25,
+          "unit": "m AGL",
+          "value": 3040.4
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 530,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 23.04,
+          "unit": "degrees",
+          "value": 81.12
+        },
+        "angularRateNorm": {
+          "retainedIndex": 654,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 24.28,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 1.96
+        },
+        "drag": {
+          "retainedIndex": 61,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.55,
+          "unit": "N",
+          "value": 127.1
+        },
+        "dynamicPressure": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "Pa",
+          "value": 69063.0
+        },
+        "mach": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "dimensionless",
+          "value": 1.063
+        },
+        "speed": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "m/s airspeed",
+          "value": 356.8
+        },
+        "thrust": {
+          "retainedIndex": 4,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.04,
+          "unit": "N",
+          "value": 1036.4
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 51.45336914062334,
+        "pointCountMatchesReference": true,
+        "points": 3373,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": true
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 0.0,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 2.8421709430404007e-13,
+        "apogeePosition.z": 0.0,
+        "apogeeTime": 0.0,
+        "burnoutAltitude": 0.0,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 5.684341886080802e-14,
+        "flightDuration": 0.0,
+        "landingDistance": 7.389644451905042e-13,
+        "landingKineticEnergy": 0.0,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 7.389644451905042e-13,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 0.0,
+        "maxAccelerationG": 0.0,
+        "maxMach": 0.0,
+        "maxVelocity": -5.684341886080802e-14,
+        "railExitVelocity": 7.105427357601002e-15,
+        "weathercockAngleDeg": -3.944304526105059e-31
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 1,
+        "exactCommonRetainedTimes": 4999,
+        "maxRelativeAttitudeRad": 1.6660747058553985e-05,
+        "maxRelativeAttitudeTimeS": 71.71,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 1
+      },
+      "caseId": "cosmic-cargo-2986",
+      "coarseScalars": {
+        "apogeeAltitude": 371.7129193990213,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 13.077648103461174,
+        "apogeePosition.z": 371.7129193990213,
+        "apogeeTime": 7.985010986327999,
+        "burnoutAltitude": 122.78021749745405,
+        "burnoutTime": 1.86,
+        "burnoutVelocity": 113.4330344346441,
+        "flightDuration": 107.6195629882994,
+        "landingDistance": 13.699702819855597,
+        "landingKineticEnergy": 0.34463199841660747,
+        "landingMass": 0.050136287840496424,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 13.699702819855597,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 3.7078034951666465,
+        "maxAccelerationG": 22.771243941476925,
+        "maxMach": 0.3353058050656469,
+        "maxVelocity": 113.93447187938413,
+        "railExitVelocity": 17.51332193868573,
+        "weathercockAngleDeg": 1.634469590257517e-15
+      },
+      "controls": {
+        "eventScale": 0.01,
+        "eventTimeToleranceS": 1e-06,
+        "ordinaryScale": 0.01
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 161600,
+        "ordinary": {
+          "accepted": 21535,
+          "attempted": 21539,
+          "rejected": 4,
+          "segments": 10767
+        },
+        "rootIterations": 56
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": -3.2064892806826784e-05,
+          "signedTimeDeltaS": -1.8310546874844569e-06,
+          "signedVelocityDeltaMs": -0.00041140469915390554,
+          "timeS": 0.19123840332031256
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 3.6208707854257227e-06,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 1.4846019098513352e-06,
+          "timeS": 1.86
+        },
+        {
+          "name": "Apogee & Drogue Deployment",
+          "signedAltitudeDeltaM": 6.740048831943568e-06,
+          "signedTimeDeltaS": -8.544921874964473e-06,
+          "signedVelocityDeltaMs": 1.8067570299873381e-06,
+          "timeS": 7.985010986327999
+        },
+        {
+          "name": "Main Parachute Deployment",
+          "signedAltitudeDeltaM": 2.9174933644071643e-05,
+          "signedTimeDeltaS": -6.103515630684342e-06,
+          "signedVelocityDeltaMs": 5.249536805251864e-09,
+          "timeS": 67.3098474121069
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": -7.32421875682121e-06,
+          "signedVelocityDeltaMs": 5.962622839916776e-09,
+          "timeS": 107.6195629882994
+        }
+      ],
+      "evidenceSha256": {
+        "13.native.json": "fa9b63b52ee1e6f87572a5a9db59ffd59a854c040216f34db5114f104c08996c",
+        "13.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "event-root-1e-6",
+      "ordinal": 13,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": true,
+        "isLandingVelocitySafe": true,
+        "isRailExitSafe": true,
+        "offNominalExcursion": false,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "PASS"
+      },
+      "referenceExperiment": "integration-0.01",
+      "referenceOrdinal": 9,
+      "resource": {
+        "elapsedSeconds": 0.5517482840004959,
+        "observedAggregatePeakRssKiB": 57736
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 10,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.19,
+          "unit": "m/s^2",
+          "value": 223.3
+        },
+        "altitude": {
+          "retainedIndex": 88,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 7.99,
+          "unit": "m AGL",
+          "value": 371.7
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 112,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.46,
+          "unit": "degrees",
+          "value": 131.96
+        },
+        "angularRateNorm": {
+          "retainedIndex": 88,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 7.99,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 0.58
+        },
+        "drag": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.9,
+          "unit": "N",
+          "value": 2.1
+        },
+        "dynamicPressure": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "Pa",
+          "value": 7831.0
+        },
+        "mach": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "dimensionless",
+          "value": 0.335
+        },
+        "speed": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "m/s airspeed",
+          "value": 113.8
+        },
+        "thrust": {
+          "retainedIndex": 10,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.19,
+          "unit": "N",
+          "value": 13.9
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": true,
+        "firstTimeS": 0.0,
+        "lastTimeS": 107.6195629882994,
+        "pointCountMatchesReference": true,
+        "points": 5000,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": false
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 6.740048831943568e-06,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": -9.400837086559477e-08,
+        "apogeePosition.z": 6.740048831943568e-06,
+        "apogeeTime": -8.544921874964473e-06,
+        "burnoutAltitude": 3.6208707854257227e-06,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 1.4846019098513352e-06,
+        "flightDuration": -7.32421875682121e-06,
+        "landingDistance": 6.575759098126355e-06,
+        "landingKineticEnergy": 1.1084247963921712e-09,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 6.575759098126355e-06,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 5.962622839916776e-09,
+        "maxAccelerationG": 0.0,
+        "maxMach": 4.4392193254694234e-09,
+        "maxVelocity": 1.5037847873600185e-06,
+        "railExitVelocity": -0.00041140469915390554,
+        "weathercockAngleDeg": 3.8394353555496506e-20
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 1,
+        "exactCommonRetainedTimes": 2187,
+        "maxRelativeAttitudeRad": 1.4245867663299585e-06,
+        "maxRelativeAttitudeTimeS": 15.84,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 1
+      },
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "coarseScalars": {
+        "apogeeAltitude": 1173.9555332745056,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 67.64603102524038,
+        "apogeePosition.z": 1173.9555332745056,
+        "apogeeTime": 13.905614013671624,
+        "burnoutAltitude": 258.12473384971105,
+        "burnoutTime": 2.0,
+        "burnoutVelocity": 212.3965267037604,
+        "flightDuration": 32.82221435547079,
+        "landingDistance": 86.28104755911382,
+        "landingKineticEnergy": 2260.186761540866,
+        "landingMass": 0.48351,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 86.28104755911382,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 96.69063912544827,
+        "maxAccelerationG": 14.753206546684774,
+        "maxMach": 0.6542348552486931,
+        "maxVelocity": 219.9878253487934,
+        "railExitVelocity": 21.87492508502982,
+        "weathercockAngleDeg": 2.617151100806399e-15
+      },
+      "controls": {
+        "eventScale": 0.01,
+        "eventTimeToleranceS": 1e-06,
+        "ordinaryScale": 0.01
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 49415,
+        "ordinary": {
+          "accepted": 6577,
+          "attempted": 6581,
+          "rejected": 4,
+          "segments": 3288
+        },
+        "rootIterations": 56
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": -0.00012009137004076464,
+          "signedTimeDeltaS": -5.493164062508882e-06,
+          "signedVelocityDeltaMs": -0.0007349595445660384,
+          "timeS": 0.1918890380859375
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": -3.5189594882467645e-07,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 1.8393393474980257e-08,
+          "timeS": 2.0
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": -2.4414062451683094e-06,
+          "signedVelocityDeltaMs": -1.6817138828173483e-06,
+          "timeS": 32.82221435547079
+        }
+      ],
+      "evidenceSha256": {
+        "14.native.json": "b2774ed396600a9d29d91c3c94e01f3f6a99603a3ab44913b8ee0458a47f2829",
+        "14.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "event-root-1e-6",
+      "ordinal": 14,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "integration-0.01",
+      "referenceOrdinal": 10,
+      "resource": {
+        "elapsedSeconds": 0.21933434200036572,
+        "observedAggregatePeakRssKiB": 27156
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 33,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.85,
+          "unit": "m/s^2",
+          "value": 144.7
+        },
+        "altitude": {
+          "retainedIndex": 294,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 13.9,
+          "unit": "m AGL",
+          "value": 1174.0
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 374,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 14.7,
+          "unit": "degrees",
+          "value": 118.09
+        },
+        "angularRateNorm": {
+          "retainedIndex": 508,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 16.04,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 2.63
+        },
+        "drag": {
+          "retainedIndex": 56,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.0,
+          "unit": "N",
+          "value": 20.0
+        },
+        "dynamicPressure": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "Pa",
+          "value": 26764.0
+        },
+        "mach": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "dimensionless",
+          "value": 0.654
+        },
+        "speed": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "m/s airspeed",
+          "value": 220.0
+        },
+        "thrust": {
+          "retainedIndex": 39,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.15,
+          "unit": "N",
+          "value": 86.4
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 32.82221435547079,
+        "pointCountMatchesReference": true,
+        "points": 2188,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": false
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": -2.5785004709177883e-06,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 6.04103281176549e-05,
+        "apogeePosition.z": -2.5785004709177883e-06,
+        "apogeeTime": -1.2207031243605115e-06,
+        "burnoutAltitude": -3.5189594882467645e-07,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 1.8393393474980257e-08,
+        "flightDuration": -2.4414062451683094e-06,
+        "landingDistance": 0.00011221904890135193,
+        "landingKineticEnergy": -7.862162328819977e-05,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.00011221904890135193,
+        "landingPosition.z": 0.0,
+        "landingVelocity": -1.6817138828173483e-06,
+        "maxAccelerationG": 1.5056045299388643e-09,
+        "maxMach": 4.63772353853642e-11,
+        "maxVelocity": 1.6282598380712443e-08,
+        "railExitVelocity": -0.0007349595445660384,
+        "weathercockAngleDeg": 2.908727256751421e-16
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 1,
+        "exactCommonRetainedTimes": 1113,
+        "maxRelativeAttitudeRad": 2.029748760346355e-06,
+        "maxRelativeAttitudeTimeS": 9.11,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 1
+      },
+      "caseId": "top-shot-e12-2017-12-14",
+      "coarseScalars": {
+        "apogeeAltitude": 301.62675165462963,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 22.06103559145378,
+        "apogeePosition.z": 301.62675165462963,
+        "apogeeTime": 8.155598264479513,
+        "burnoutAltitude": 113.87582346929919,
+        "burnoutTime": 2.44,
+        "burnoutVelocity": 77.45611367851335,
+        "flightDuration": 17.39225585937492,
+        "landingDistance": 28.77394064747861,
+        "landingKineticEnergy": 336.44348524500623,
+        "landingMass": 0.21950000000000006,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 28.77394064747861,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 55.367357573687215,
+        "maxAccelerationG": 12.301351967364763,
+        "maxMach": 0.23098570693172893,
+        "maxVelocity": 77.81319215576494,
+        "railExitVelocity": 19.195348031117096,
+        "weathercockAngleDeg": 2.154022463776056e-14
+      },
+      "controls": {
+        "eventScale": 0.01,
+        "eventTimeToleranceS": 1e-06,
+        "ordinaryScale": 0.01
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 26214,
+        "ordinary": {
+          "accepted": 3487,
+          "attempted": 3487,
+          "rejected": 0,
+          "segments": 1745
+        },
+        "rootIterations": 56
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": -7.025328968568445e-05,
+          "signedTimeDeltaS": -3.6621093749689138e-06,
+          "signedVelocityDeltaMs": -0.00035324549623894086,
+          "timeS": 0.31151000976562515
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": -2.9060792883228714e-07,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 4.6770523454142676e-08,
+          "timeS": 2.44
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": -9.76562500198952e-06,
+          "signedVelocityDeltaMs": -2.2217671535429417e-05,
+          "timeS": 17.39225585937492
+        }
+      ],
+      "evidenceSha256": {
+        "15.native.json": "1e2b589879c194c28651639dde9e14c178d24afb500e650e0da2ae585d256064",
+        "15.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "event-root-1e-6",
+      "ordinal": 15,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "integration-0.01",
+      "referenceOrdinal": 11,
+      "resource": {
+        "elapsedSeconds": 0.15017556100065121,
+        "observedAggregatePeakRssKiB": 15440
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.28,
+          "unit": "m/s^2",
+          "value": 120.6
+        },
+        "altitude": {
+          "retainedIndex": 186,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.05,
+          "unit": "m AGL",
+          "value": 301.6
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 230,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.57,
+          "unit": "degrees",
+          "value": 103.58
+        },
+        "angularRateNorm": {
+          "retainedIndex": 300,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 9.27,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 4.31
+        },
+        "drag": {
+          "retainedIndex": 74,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.45,
+          "unit": "N",
+          "value": 3.0
+        },
+        "dynamicPressure": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "Pa",
+          "value": 3402.0
+        },
+        "mach": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "dimensionless",
+          "value": 0.231
+        },
+        "speed": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "m/s airspeed",
+          "value": 77.8
+        },
+        "thrust": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.28,
+          "unit": "N",
+          "value": 32.7
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 17.39225585937492,
+        "pointCountMatchesReference": true,
+        "points": 1114,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": false
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": -1.3268255543152918e-06,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 1.4362546409074639e-05,
+        "apogeePosition.z": -1.3268255543152918e-06,
+        "apogeeTime": -7.204270355387621e-06,
+        "burnoutAltitude": -2.9060792883228714e-07,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 4.6770523454142676e-08,
+        "flightDuration": -9.76562500198952e-06,
+        "landingDistance": 5.284226140389592e-05,
+        "landingKineticEnergy": -0.00027001441549145966,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 5.284226140389592e-05,
+        "landingPosition.z": 0.0,
+        "landingVelocity": -2.2217671535429417e-05,
+        "maxAccelerationG": 0.0,
+        "maxMach": 1.3598752679477855e-10,
+        "maxVelocity": 4.6064187131378276e-08,
+        "railExitVelocity": -0.00035324549623894086,
+        "weathercockAngleDeg": 1.922055082648185e-14
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 1,
+        "exactCommonRetainedTimes": 3372,
+        "maxRelativeAttitudeRad": 1.2065653767213311e-06,
+        "maxRelativeAttitudeTimeS": 25.57,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 1
+      },
+      "caseId": "adventurer-j510w-2021-04-17",
+      "coarseScalars": {
+        "apogeeAltitude": 3040.364136698012,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 177.6064487349392,
+        "apogeePosition.z": 3040.364136698012,
+        "apogeeTime": 22.293399047852247,
+        "burnoutAltitude": 614.4727150901739,
+        "burnoutTime": 2.5,
+        "burnoutVelocity": 336.6386060767267,
+        "flightDuration": 51.453359985349906,
+        "landingDistance": 277.37406548576456,
+        "landingKineticEnergy": 32561.841537890454,
+        "landingMass": 2.4580000000000006,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 277.37406548576456,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 162.77156450518305,
+        "maxAccelerationG": 33.02515690611806,
+        "maxMach": 1.0635244924228073,
+        "maxVelocity": 356.77006086161003,
+        "railExitVelocity": 32.437315405543345,
+        "weathercockAngleDeg": 2.2355933538499765e-14
+      },
+      "controls": {
+        "eventScale": 0.01,
+        "eventTimeToleranceS": 1e-06,
+        "ordinaryScale": 0.01
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 3.3306690738754696e-16,
+        "observedStates": 77325,
+        "ordinary": {
+          "accepted": 10302,
+          "attempted": 10302,
+          "rejected": 0,
+          "segments": 5151
+        },
+        "rootIterations": 56
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": -0.00017807901106614565,
+          "signedTimeDeltaS": -5.493164062508882e-06,
+          "signedVelocityDeltaMs": -0.0014794678073641876,
+          "timeS": 0.12419372558593746
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": -6.152001787995687e-07,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 1.6209639852604596e-08,
+          "timeS": 2.5
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": -9.155273431815658e-06,
+          "signedVelocityDeltaMs": -6.773253915071109e-06,
+          "timeS": 51.453359985349906
+        }
+      ],
+      "evidenceSha256": {
+        "16.native.json": "729bb00e7113f91ba954f7f7900605646adf835a9b8197c43477831d639df6bc",
+        "16.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "event-root-1e-6",
+      "ordinal": 16,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "integration-0.01",
+      "referenceOrdinal": 12,
+      "resource": {
+        "elapsedSeconds": 0.3353704719993402,
+        "observedAggregatePeakRssKiB": 40008
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 4,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.04,
+          "unit": "m/s^2",
+          "value": 323.9
+        },
+        "altitude": {
+          "retainedIndex": 455,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 22.25,
+          "unit": "m AGL",
+          "value": 3040.4
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 530,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 23.04,
+          "unit": "degrees",
+          "value": 81.12
+        },
+        "angularRateNorm": {
+          "retainedIndex": 654,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 24.28,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 1.96
+        },
+        "drag": {
+          "retainedIndex": 61,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.55,
+          "unit": "N",
+          "value": 127.1
+        },
+        "dynamicPressure": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "Pa",
+          "value": 69063.0
+        },
+        "mach": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "dimensionless",
+          "value": 1.063
+        },
+        "speed": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "m/s airspeed",
+          "value": 356.8
+        },
+        "thrust": {
+          "retainedIndex": 4,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.04,
+          "unit": "N",
+          "value": 1036.4
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 51.453359985349906,
+        "pointCountMatchesReference": true,
+        "points": 3373,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": false
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": -5.344863893697038e-06,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 7.467958039342193e-05,
+        "apogeePosition.z": -5.344863893697038e-06,
+        "apogeeTime": -9.155273438921085e-06,
+        "burnoutAltitude": -6.152001787995687e-07,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 1.6209639852604596e-08,
+        "flightDuration": -9.155273431815658e-06,
+        "landingDistance": 0.00021408508189324493,
+        "landingKineticEnergy": -0.002709928186959587,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.00021408508189324493,
+        "landingPosition.z": 0.0,
+        "landingVelocity": -6.773253915071109e-06,
+        "maxAccelerationG": 0.0,
+        "maxMach": 3.5307978762944003e-11,
+        "maxVelocity": 1.3542148735723458e-08,
+        "railExitVelocity": -0.0014794678073641876,
+        "weathercockAngleDeg": 2.0002784703805102e-14
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 1,
+        "exactCommonRetainedTimes": 4999,
+        "maxRelativeAttitudeRad": 1.7132015323871557e-05,
+        "maxRelativeAttitudeTimeS": 71.79,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 1
+      },
+      "caseId": "cosmic-cargo-2986",
+      "coarseScalars": {
+        "apogeeAltitude": 371.71292108786827,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 13.077650344108797,
+        "apogeePosition.z": 371.71292108786827,
+        "apogeeTime": 7.985010910131145,
+        "burnoutAltitude": 122.78021840474335,
+        "burnoutTime": 1.86,
+        "burnoutVelocity": 113.43303480662918,
+        "flightDuration": 107.61956344606307,
+        "landingDistance": 13.699705108112418,
+        "landingKineticEnergy": 0.34463199841590386,
+        "landingMass": 0.050136287840496424,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 13.699705108112418,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 3.7078034951628616,
+        "maxAccelerationG": 22.771243941476925,
+        "maxMach": 0.3353058061779475,
+        "maxVelocity": 113.93447225617571,
+        "railExitVelocity": 17.51321908772758,
+        "weathercockAngleDeg": 1.6344791891075388e-15
+      },
+      "controls": {
+        "eventScale": 0.01,
+        "eventTimeToleranceS": 1e-07,
+        "ordinaryScale": 0.01
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 161600,
+        "ordinary": {
+          "accepted": 21535,
+          "attempted": 21539,
+          "rejected": 4,
+          "segments": 10767
+        },
+        "rootIterations": 68
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": -4.0080998283453795e-05,
+          "signedTimeDeltaS": -2.288818359369449e-06,
+          "signedVelocityDeltaMs": -0.000514255657304119,
+          "timeS": 0.19123794555664067
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": 4.528160090444544e-06,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 1.8565869908115928e-06,
+          "timeS": 1.86
+        },
+        {
+          "name": "Apogee & Drogue Deployment",
+          "signedAltitudeDeltaM": 8.428895796441793e-06,
+          "signedTimeDeltaS": -8.621118729124078e-06,
+          "signedVelocityDeltaMs": 2.0087865884033107e-06,
+          "timeS": 7.985010910131145
+        },
+        {
+          "name": "Main Parachute Deployment",
+          "signedAltitudeDeltaM": 2.9153516834412585e-05,
+          "signedTimeDeltaS": -5.645751969041157e-06,
+          "signedVelocityDeltaMs": 5.245683443177995e-09,
+          "timeS": 67.30984786987057
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": -6.866455095178026e-06,
+          "signedVelocityDeltaMs": 5.958837867581224e-09,
+          "timeS": 107.61956344606307
+        }
+      ],
+      "evidenceSha256": {
+        "17.native.json": "65ffe3dba7ea742977e6d13822cb0c362b84b942dc85598220f4f0e6dcd4e6a3",
+        "17.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "event-root-1e-7",
+      "ordinal": 17,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": true,
+        "isLandingVelocitySafe": true,
+        "isRailExitSafe": true,
+        "offNominalExcursion": false,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "PASS"
+      },
+      "referenceExperiment": "integration-0.01",
+      "referenceOrdinal": 9,
+      "resource": {
+        "elapsedSeconds": 0.5237780660027056,
+        "observedAggregatePeakRssKiB": 57752
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 10,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.19,
+          "unit": "m/s^2",
+          "value": 223.3
+        },
+        "altitude": {
+          "retainedIndex": 88,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 7.99,
+          "unit": "m AGL",
+          "value": 371.7
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 112,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.46,
+          "unit": "degrees",
+          "value": 131.96
+        },
+        "angularRateNorm": {
+          "retainedIndex": 88,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 7.99,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 0.58
+        },
+        "drag": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.9,
+          "unit": "N",
+          "value": 2.1
+        },
+        "dynamicPressure": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "Pa",
+          "value": 7831.0
+        },
+        "mach": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "dimensionless",
+          "value": 0.335
+        },
+        "speed": {
+          "retainedIndex": 27,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.85,
+          "unit": "m/s airspeed",
+          "value": 113.8
+        },
+        "thrust": {
+          "retainedIndex": 10,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.19,
+          "unit": "N",
+          "value": 13.9
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": true,
+        "firstTimeS": 0.0,
+        "lastTimeS": 107.61956344606307,
+        "pointCountMatchesReference": true,
+        "points": 5000,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": false
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": 8.428895796441793e-06,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 2.1466392521318767e-06,
+        "apogeePosition.z": 8.428895796441793e-06,
+        "apogeeTime": -8.621118729124078e-06,
+        "burnoutAltitude": 4.528160090444544e-06,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 1.8565869908115928e-06,
+        "flightDuration": -6.866455095178026e-06,
+        "landingDistance": 8.864015919485269e-06,
+        "landingKineticEnergy": 1.107721192550315e-09,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 8.864015919485269e-06,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 5.958837867581224e-09,
+        "maxAccelerationG": 0.0,
+        "maxMach": 5.551519910440561e-09,
+        "maxVelocity": 1.8805763630780348e-06,
+        "railExitVelocity": -0.000514255657304119,
+        "weathercockAngleDeg": 4.799320357738681e-20
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 1,
+        "exactCommonRetainedTimes": 2187,
+        "maxRelativeAttitudeRad": 1.5037306416722267e-06,
+        "maxRelativeAttitudeTimeS": 15.84,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 1
+      },
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "coarseScalars": {
+        "apogeeAltitude": 1173.955533131261,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 67.64603366948822,
+        "apogeePosition.z": 1173.955533131261,
+        "apogeeTime": 13.90561373335281,
+        "burnoutAltitude": 258.12473383016146,
+        "burnoutTime": 2.0,
+        "burnoutVelocity": 212.3965267047824,
+        "flightDuration": 32.82221412658896,
+        "landingDistance": 86.28105375875721,
+        "landingKineticEnergy": 2260.1867530266127,
+        "landingMass": 0.48351,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 86.28105375875721,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 96.69063894332868,
+        "maxAccelerationG": 14.753206546768414,
+        "maxMach": 0.6542348552512697,
+        "maxVelocity": 219.987825349698,
+        "railExitVelocity": 21.87488425396243,
+        "weathercockAngleDeg": 2.6171559859098687e-15
+      },
+      "controls": {
+        "eventScale": 0.01,
+        "eventTimeToleranceS": 1e-07,
+        "ordinaryScale": 0.01
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 49415,
+        "ordinary": {
+          "accepted": 6577,
+          "attempted": 6581,
+          "rejected": 4,
+          "segments": 3288
+        },
+        "rootIterations": 68
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": -0.00012676299451652717,
+          "signedTimeDeltaS": -5.798339843765543e-06,
+          "signedVelocityDeltaMs": -0.0007757906119536528,
+          "timeS": 0.19188873291015623
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": -3.7144553743928554e-07,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 1.9415381302678725e-08,
+          "timeS": 2.0
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": -2.6702880759899017e-06,
+          "signedVelocityDeltaMs": -1.863833475113097e-06,
+          "timeS": 32.82221412658896
+        }
+      ],
+      "evidenceSha256": {
+        "18.native.json": "b63894abe237de2e693cb8e9b7b3aaa497ae46597757aba7ecc550f765100445",
+        "18.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "event-root-1e-7",
+      "ordinal": 18,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "integration-0.01",
+      "referenceOrdinal": 10,
+      "resource": {
+        "elapsedSeconds": 0.21398831700207666,
+        "observedAggregatePeakRssKiB": 27136
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 33,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.85,
+          "unit": "m/s^2",
+          "value": 144.7
+        },
+        "altitude": {
+          "retainedIndex": 294,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 13.9,
+          "unit": "m AGL",
+          "value": 1174.0
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 374,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 14.7,
+          "unit": "degrees",
+          "value": 118.09
+        },
+        "angularRateNorm": {
+          "retainedIndex": 508,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 16.04,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 2.63
+        },
+        "drag": {
+          "retainedIndex": 56,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.0,
+          "unit": "N",
+          "value": 20.0
+        },
+        "dynamicPressure": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "Pa",
+          "value": 26764.0
+        },
+        "mach": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "dimensionless",
+          "value": 0.654
+        },
+        "speed": {
+          "retainedIndex": 51,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.75,
+          "unit": "m/s airspeed",
+          "value": 220.0
+        },
+        "thrust": {
+          "retainedIndex": 39,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.15,
+          "unit": "N",
+          "value": 86.4
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 32.82221412658896,
+        "pointCountMatchesReference": true,
+        "points": 2188,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": false
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": -2.7217449769523228e-06,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 6.305457596056385e-05,
+        "apogeePosition.z": -2.7217449769523228e-06,
+        "apogeeTime": -1.5010219378552847e-06,
+        "burnoutAltitude": -3.7144553743928554e-07,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 1.9415381302678725e-08,
+        "flightDuration": -2.6702880759899017e-06,
+        "landingDistance": 0.00011841869229556323,
+        "landingKineticEnergy": -8.713587658348843e-05,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.00011841869229556323,
+        "landingPosition.z": 0.0,
+        "landingVelocity": -1.863833475113097e-06,
+        "maxAccelerationG": 1.589244291722025e-09,
+        "maxMach": 4.8953840980914265e-11,
+        "maxVelocity": 1.7187204548463342e-08,
+        "railExitVelocity": -0.0007757906119536528,
+        "weathercockAngleDeg": 2.9087761077861177e-16
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 1,
+        "exactCommonRetainedTimes": 1113,
+        "maxRelativeAttitudeRad": 2.029748782994904e-06,
+        "maxRelativeAttitudeTimeS": 9.11,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 1
+      },
+      "caseId": "top-shot-e12-2017-12-14",
+      "coarseScalars": {
+        "apogeeAltitude": 301.62675165462963,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 22.06103559145378,
+        "apogeePosition.z": 301.62675165462963,
+        "apogeeTime": 8.155598264479513,
+        "burnoutAltitude": 113.87582346929919,
+        "burnoutTime": 2.44,
+        "burnoutVelocity": 77.45611367851335,
+        "flightDuration": 17.392255783080977,
+        "landingDistance": 28.77394062131737,
+        "landingKineticEnergy": 336.44348296620933,
+        "landingMass": 0.21950000000000006,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 28.77394062131737,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 55.367357386180295,
+        "maxAccelerationG": 12.301351967364763,
+        "maxMach": 0.23098570693172893,
+        "maxVelocity": 77.81319215576494,
+        "railExitVelocity": 19.195348031117096,
+        "weathercockAngleDeg": 2.154022463776056e-14
+      },
+      "controls": {
+        "eventScale": 0.01,
+        "eventTimeToleranceS": 1e-07,
+        "ordinaryScale": 0.01
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 26214,
+        "ordinary": {
+          "accepted": 3487,
+          "attempted": 3487,
+          "rejected": 0,
+          "segments": 1745
+        },
+        "rootIterations": 68
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": -7.025328968568445e-05,
+          "signedTimeDeltaS": -3.6621093749689138e-06,
+          "signedVelocityDeltaMs": -0.00035324549623894086,
+          "timeS": 0.31151000976562515
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": -2.9060792883228714e-07,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 4.6770523454142676e-08,
+          "timeS": 2.44
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": -9.841918945596717e-06,
+          "signedVelocityDeltaMs": -2.2405178455642272e-05,
+          "timeS": 17.392255783080977
+        }
+      ],
+      "evidenceSha256": {
+        "19.native.json": "52c614e2df011dc994b84118d9426ad1779a31c593c7e25d3bfabe65eb517cdf",
+        "19.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "event-root-1e-7",
+      "ordinal": 19,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "integration-0.01",
+      "referenceOrdinal": 11,
+      "resource": {
+        "elapsedSeconds": 0.12125263300549705,
+        "observedAggregatePeakRssKiB": 15480
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.28,
+          "unit": "m/s^2",
+          "value": 120.6
+        },
+        "altitude": {
+          "retainedIndex": 186,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.05,
+          "unit": "m AGL",
+          "value": 301.6
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 230,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 8.57,
+          "unit": "degrees",
+          "value": 103.58
+        },
+        "angularRateNorm": {
+          "retainedIndex": 300,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 9.27,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 4.31
+        },
+        "drag": {
+          "retainedIndex": 74,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.45,
+          "unit": "N",
+          "value": 3.0
+        },
+        "dynamicPressure": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "Pa",
+          "value": 3402.0
+        },
+        "mach": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "dimensionless",
+          "value": 0.231
+        },
+        "speed": {
+          "retainedIndex": 73,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.4,
+          "unit": "m/s airspeed",
+          "value": 77.8
+        },
+        "thrust": {
+          "retainedIndex": 28,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.28,
+          "unit": "N",
+          "value": 32.7
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 17.392255783080977,
+        "pointCountMatchesReference": true,
+        "points": 1114,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": false
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": -1.3268255543152918e-06,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 1.4362546409074639e-05,
+        "apogeePosition.z": -1.3268255543152918e-06,
+        "apogeeTime": -7.204270355387621e-06,
+        "burnoutAltitude": -2.9060792883228714e-07,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 4.6770523454142676e-08,
+        "flightDuration": -9.841918945596717e-06,
+        "landingDistance": 5.2816100161834356e-05,
+        "landingKineticEnergy": -0.00027229321239019555,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 5.2816100161834356e-05,
+        "landingPosition.z": 0.0,
+        "landingVelocity": -2.2405178455642272e-05,
+        "maxAccelerationG": 0.0,
+        "maxMach": 1.3598752679477855e-10,
+        "maxVelocity": 4.6064187131378276e-08,
+        "railExitVelocity": -0.00035324549623894086,
+        "weathercockAngleDeg": 1.922055082648185e-14
+      },
+      "status": "complete"
+    },
+    {
+      "attitudeAtCommonRetainedTimes": {
+        "currentUnmatchedTimes": 1,
+        "exactCommonRetainedTimes": 3372,
+        "maxRelativeAttitudeRad": 1.2735970502665035e-06,
+        "maxRelativeAttitudeTimeS": 25.57,
+        "maxRetainedQuaternionNormError": 2.220446049250313e-16,
+        "method": "sign-invariant conjugate(reference)*current; 2*atan2(vector norm, abs scalar); exact common timestamps only, no interpolation",
+        "referenceUnmatchedTimes": 1
+      },
+      "caseId": "adventurer-j510w-2021-04-17",
+      "coarseScalars": {
+        "apogeeAltitude": 3040.3641364010527,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 177.60645362308404,
+        "apogeePosition.z": 3040.3641364010527,
+        "apogeeTime": 22.293398664448123,
+        "burnoutAltitude": 614.4727150559961,
+        "burnoutTime": 2.5,
+        "burnoutVelocity": 336.63860607762695,
+        "flightDuration": 51.45335937499834,
+        "landingDistance": 277.3740771992446,
+        "landingKineticEnergy": 32561.841354529886,
+        "landingMass": 2.4580000000000006,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 277.3740771992446,
+        "landingPosition.z": 0.0,
+        "landingVelocity": 162.77156404688762,
+        "maxAccelerationG": 33.02515690611806,
+        "maxMach": 1.0635244924247675,
+        "maxVelocity": 356.770060862362,
+        "railExitVelocity": 32.4372332127198,
+        "weathercockAngleDeg": 3.137682833162288e-15
+      },
+      "controls": {
+        "eventScale": 0.01,
+        "eventTimeToleranceS": 1e-07,
+        "ordinaryScale": 0.01
+      },
+      "counts": {
+        "event": {
+          "accepted": 8,
+          "attempted": 8,
+          "rejected": 0,
+          "segments": 4
+        },
+        "maxQuaternionNormError": 2.220446049250313e-16,
+        "observedStates": 77325,
+        "ordinary": {
+          "accepted": 10302,
+          "attempted": 10302,
+          "rejected": 0,
+          "segments": 5151
+        },
+        "rootIterations": 68
+      },
+      "dispositionMatchesReference": true,
+      "eventNamesOrderMatchesReference": true,
+      "events": [
+        {
+          "name": "Ignition & Rail Guidance",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 0.0,
+          "timeS": 0.0
+        },
+        {
+          "name": "Launch Rail Departure",
+          "signedAltitudeDeltaM": -0.00018797205131315664,
+          "signedTimeDeltaS": -5.798339843751665e-06,
+          "signedVelocityDeltaMs": -0.0015616606309052372,
+          "timeS": 0.12419342041015621
+        },
+        {
+          "name": "Motor Burnout",
+          "signedAltitudeDeltaM": -6.493779665106558e-07,
+          "signedTimeDeltaS": 0.0,
+          "signedVelocityDeltaMs": 1.7109869077103212e-08,
+          "timeS": 2.5
+        },
+        {
+          "name": "Ground Touchdown",
+          "signedAltitudeDeltaM": 0.0,
+          "signedTimeDeltaS": -9.765624994884092e-06,
+          "signedVelocityDeltaMs": -7.2315493468977365e-06,
+          "timeS": 51.45335937499834
+        }
+      ],
+      "evidenceSha256": {
+        "20.native.json": "74428657873cc5c2460a2a6cc4bfd79438bda60e810cf409d89dacdbed033679",
+        "20.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "experiment": "event-root-1e-7",
+      "ordinal": 20,
+      "productionDisposition": {
+        "enveloped": true,
+        "isLandingSafe": false,
+        "isLandingVelocitySafe": false,
+        "isRailExitSafe": false,
+        "offNominalExcursion": true,
+        "terminated": true,
+        "terminationReason": "touchdown",
+        "touchdownNominal": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN",
+        "validity": "UNKNOWN"
+      },
+      "referenceExperiment": "integration-0.01",
+      "referenceOrdinal": 12,
+      "resource": {
+        "elapsedSeconds": 0.31675886700395495,
+        "observedAggregatePeakRssKiB": 40008
+      },
+      "retainedSamplePeaks": {
+        "acceleration": {
+          "retainedIndex": 4,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.04,
+          "unit": "m/s^2",
+          "value": 323.9
+        },
+        "altitude": {
+          "retainedIndex": 455,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 22.25,
+          "unit": "m AGL",
+          "value": 3040.4
+        },
+        "angleOfAttackDeg": {
+          "retainedIndex": 530,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 23.04,
+          "unit": "degrees",
+          "value": 81.12
+        },
+        "angularRateNorm": {
+          "retainedIndex": 654,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 24.28,
+          "unit": "rad/s from displayed p,q,r",
+          "value": 1.96
+        },
+        "drag": {
+          "retainedIndex": 61,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 2.55,
+          "unit": "N",
+          "value": 127.1
+        },
+        "dynamicPressure": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "Pa",
+          "value": 69063.0
+        },
+        "mach": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "dimensionless",
+          "value": 1.063
+        },
+        "speed": {
+          "retainedIndex": 49,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 1.95,
+          "unit": "m/s airspeed",
+          "value": 356.8
+        },
+        "thrust": {
+          "retainedIndex": 4,
+          "signedPeakTimeDeltaS": 0.0,
+          "signedValueDelta": 0.0,
+          "timeS": 0.04,
+          "unit": "N",
+          "value": 1036.4
+        }
+      },
+      "retainedTelemetry": {
+        "atWireCap": false,
+        "firstTimeS": 0.0,
+        "lastTimeS": 51.45335937499834,
+        "pointCountMatchesReference": true,
+        "points": 3373,
+        "terminalTimeMatchesDuration": true,
+        "timestampArrayMatchesReference": false
+      },
+      "signedScalarDeltas": {
+        "apogeeAltitude": -5.641823008772917e-06,
+        "apogeePosition.x": 0.0,
+        "apogeePosition.y": 7.956772523698419e-05,
+        "apogeePosition.z": -5.641823008772917e-06,
+        "apogeeTime": -9.538677563369902e-06,
+        "burnoutAltitude": -6.493779665106558e-07,
+        "burnoutTime": 0.0,
+        "burnoutVelocity": 1.7109869077103212e-08,
+        "flightDuration": -9.765624994884092e-06,
+        "landingDistance": 0.00022579856192805892,
+        "landingKineticEnergy": -0.002893288754421519,
+        "landingMass": 0.0,
+        "landingPosition.x": 0.0,
+        "landingPosition.y": 0.00022579856192805892,
+        "landingPosition.z": 0.0,
+        "landingVelocity": -7.2315493468977365e-06,
+        "maxAccelerationG": 0.0,
+        "maxMach": 3.726818853522218e-11,
+        "maxVelocity": 1.4294130323833087e-08,
+        "railExitVelocity": -0.0015616606309052372,
+        "weathercockAngleDeg": 7.845339984676261e-16
+      },
+      "status": "complete"
+    }
+  ],
+  "schema": "N1-numerical-controls-results-v1",
+  "sourceCommit": "00e768b2d2dcfc9913b2a9428040a67fd42d3d58"
+}

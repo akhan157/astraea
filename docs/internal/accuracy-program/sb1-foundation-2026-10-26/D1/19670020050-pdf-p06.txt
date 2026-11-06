@@ -1,0 +1,49 @@
+plug the slots in the boattailed afterbody when the short model was investigated without 
+fins, whereas the slots were plugged with balsa and faired flush with the model skin when 
+the long model was investigated without fins. 
+6
+The investigation was conducted at a constant Reynolds number of 9.8 X 10 per 
+meter (3.0 X lo6 per foot) through the Mach number range. Both models were investi­
+gated at Mach numbers of 0.60, 0.80, 0.90, 1.00, and 1.20. The short model was also 
+investigated at a Mach number of 0.95. 
+Tests were made through an angle-of-attack 
+range from approximately -3' to 21' at roll angles (the strain-gage balance was not 
+rolled during the test) of Oo, 22.5', 
+and 45' clockwise as viewed upstream aft of the 
+model. In order to obtain turbulent flow over the model, a 0.25-cm-wide (0.10-in.) 
+strip of No. 120 carborundum grains was affixed around the model 3.17 cm (1.25 in.) 
+aft of the nose and 1.27 cm (0.5 in.) aft of the leading edge of each fin. The stagnation 
+temperature was maintained at 322' K (120' F) at all Mach numbers during the 
+investigation. 
+Measurements 
+Aerodynamic forces and moments were measured by means of a six-component 
+electrical strain-gage balance housed within the model. The balance was rigidly fastened 
+to a 2.54-cm-diameter 
+(1-in.) sting support which extended 29.21 cm (11.5 in.) aft of the 
+model base and ended with a 19.2' half-angle flare attached to the tunnel sting. 
+Corrections 
+Angles of attack were corrected for tunnel-flow angularity and balance and sting­
+support-system deflection under aerodynamic load. Axial-force data were not corrected 
+to free-stream conditions at the model base, except for the summary data at a roll angle 
+of 0
+'
+ 
+and an angle of attack of 0
+'
+.
+ 
+Accuracy 
+The accuracy of the individual measured quantities, based on calibrations and 
+repeatability of data, is estimated to be within the following limits: 
+CA. . . . . . . . . . . . . . . .*0.004 
+C y . .  . . . . . . . . . . . . . .  *0.03 
+CI . . . . . . . . . . . . . . . .  *0.01 
+c p , b . . . . . . . . . . . . . . .  
+*os01 
+Cm. . . . . . . . . . . . . . . .  k0.05 
+q d e g  . . . . . . . . . . . . . .  *O.l 
+C n .  . . . . . . . . . . . . . . .  k0.05 
+@, deg . . . . . . . . . . . . . .  kO.5 
+M . . . . . . . . . . . . . . . .*0.003 
+C N . .  . . . . . . . . . . . . . .  k0.03 
+4  

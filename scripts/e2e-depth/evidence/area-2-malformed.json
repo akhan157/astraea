@@ -1,0 +1,25 @@
+{
+  "area": "2-csv-import",
+  "label": "malformed-csv-rejected-prior-preserved",
+  "url": "http://localhost:5190/",
+  "studio": "Recovery & flight evidence studio (shortcut 5)",
+  "banners": [
+    "parseAltimeterCsv: unrecognized header row (expected a time/t and alt/altitude/agl column)"
+  ],
+  "badges": [
+    "●Stable — 4.80 cal",
+    "▲Over-stable — weathercocking risk",
+    "●Run ready — inputs resolve",
+    "Ready — set coordinates and fetch a pressure-level profile.",
+    "Wind for MC: manual wind table (surface probe)",
+    "SAMPLES PARSED — SAMPLES @ DT — APOGEE ALTITUDE — APOGEE AT —",
+    "No committed simulation run yet — open Trajectory and run a case. Flight logs can still be ingested below.",
+    "1 item excluded from clearance — packed length missing.",
+    "Flight log archive: Flight 1 (CSV) [current] preserved after failed ingest"
+  ],
+  "consoleErrors": 0,
+  "overflow": {
+    "x": false,
+    "y": false
+  }
+}

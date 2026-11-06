@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP06",
+  "subpacket": "RMP06b prescribed-axial actual-E1 native profile bridge; parent partial",
+  "baseSha": "8a63a0147665f6f3554f6a2a8af6921d07ba8f03",
+  "sourceSha": "2997a3504238e212ebb5ea1773f1077412781332",
+  "implementationReviewedSha": "cfdded240c5dd4f3e58935b96ac9fdf251290549",
+  "owner": "coordinator/author on existing isolated execute-rmp01-package-c80e7d3 worktree",
+  "modelRouting": {
+    "model": "OpenAI gpt-6.1-sol author; independent separate Codex CLI sessions same installed model",
+    "effort": "high; no concurrent subagents",
+    "usageTelemetry": "not supplied"
+  },
+  "effectiveInputs": [
+    "Committed profile-candidate-request.json, synthetic only; complete source/profile/candidate declarations retained in report.effectiveInputs.",
+    "Existing synthetic RMP01 and legacy preservation requests only; no empirical/new holdout data."
+  ],
+  "sourceHashes": {
+    "crates/astraea-core/src/flight_provider.rs": "9d083aa60480c8c2de32ad58eae440ba833da332e43559e41ee8504be94ac812",
+    "crates/astraea-core/src/flight_provider/profile.rs": "3d3b683c9c00e7d3afe37aeccb64f75b7e287b75b62a5ebcc23a0f88d1c9c555",
+    "crates/astraea-core/src/flight_provider/profile_tests.rs": "c524c48f636a44646be47c7467f696e5e05abf2a0a84cdfbe8250c51ec565623",
+    "crates/astraea-core/src/six_dof.rs": "b6c5b04ed0c3e98e378b73991ae0ed3291de0fac74725aee83cdbf5a275a1f4c",
+    "crates/astraea-engine/src/environment_diagnostic.rs": "4c34a2e018ae685ae882ce50290ad747ffc7e6c077088b94a66df2b11993f504",
+    "crates/astraea-engine/src/native_candidate.rs": "8df78a98fdfc80f1fca6f29bcfb48665a82d4ef7083bc22f4520141d7ebf5c08",
+    "crates/astraea-engine/src/profile_candidate.rs": "b93d17bb39688d42e0a99a2e768b72c3aa5d7431776e47118eef1b8a3b490ac5",
+    "crates/astraea-engine/src/lib.rs": "3883fa1387d5b297d3e031d17ff2bbaef543965018ab9f56eab407b5198f090e",
+    "crates/astraea-engine/tests/profile_candidate.rs": "1b301a6c5da077c02b34a896f075d263327aa2a258f9d4ec8d5be860edbe15f7",
+    "crates/astraea-engine/tests/fixtures/profile-candidate-request.json": "7d6a9c96e0555f4f5641d94cc9cf506c627e6a357ab55f00c9a4a6a12b54fc7a",
+    "crates/astraea-engine/examples/profile_candidate_flight.rs": "421d94dc4840937adb9d1bed80f0cee82fa81fe553d57bab3189a0f05f040c44",
+    "scripts/diagnostics/check-profile-candidate.py": "3fd0e9d10f421271b27498559fa4479b17b5e5b3e448504d1cc8ed4e4367fb56"
+  },
+  "runtimeHashes": {
+    "profile-report.json": "9c7c494439573353728d1531977f464d8431c295206291c8d349877754c611a5",
+    "native-checks.json": "02f94e795318984ec34f683d8ebdde805caad5a2ed39147e9163302b4f815be2",
+    "core-suite.log": "4660e2e666e2a7bd6e99c91604f011fa62da22864f718e86ea3f3448d5f99a4e",
+    "engine-suite.log": "2db7dba009a26021214156b28a58cfdf26c01ee544b792c7777c22d87ae769a8",
+    "implementation-review.md": "fc2890b7d74268dba70ca955367f44edf32bee285760430abd61225f9994685b",
+    "rmp01-preserved.json": "a8b08ccb8630e0045a01eb7270f1d4830854170bb653de27c6b866d7e2bc8751",
+    "legacy-preserved.json": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249"
+  },
+  "artifactAvailability": [
+    "Fixture/checker/tests and portable review/check summary committed; large raw reports/logs/transcripts external at /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-profile-bridge"
+  ],
+  "checks": [
+    {
+      "id": "RMP06-C04",
+      "status": "pass",
+      "kind": "native-profile semantics and independent arithmetic",
+      "commandOrMechanism": "six core profile tests, three native tests and nine Python cases; actual typed E1 at all stages",
+      "expectedRule": "one wind conversion, explicit launch MSL+AGL/datum, full fractional UTC validity and coverage refusal",
+      "observed": "183 core/73 engine suites pass. Per-state P/T/mu/rho/a/q/M/Re match independently calculated profile; epochs >2^53 and i64 overflow checked, exact stop accepted, expired fraction rejected; no shortcut/fallback.",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP06-profile-bridge/native-checks.json; docs/internal/execution-runs/RMP06-profile-bridge/REVIEW.md",
+      "sha256": "02f94e795318984ec34f683d8ebdde805caad5a2ed39147e9163302b4f815be2",
+      "limitation": "Native selected E1 only, no physical weather qualification or product profile activation."
+    },
+    {
+      "id": "RMP06-C07",
+      "status": "in_progress",
+      "kind": "prescribed-source shared consumers",
+      "commandOrMechanism": "profile_shared_consumers_have_matching_effective_state_identities_and_axial_loads; native equality tests; Python reconstructed curve comparison",
+      "expectedRule": "same prepared provider/state yields equal axial and environment observations",
+      "observed": "Trajectory/query observations and loads exact; curve re-evaluation matches within explicit f64 roundoff tolerances; profile/axial source identities retained. RMP06a local axial source is NOT integrated.",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP06-profile-bridge/native-checks.json",
+      "sha256": "02f94e795318984ec34f683d8ebdde805caad5a2ed39147e9163302b4f815be2",
+      "limitation": "Parent remains partial pending local-source all-stage startup support; prescribed CA0 is not qualified total axial source."
+    },
+    {
+      "id": "RMP06-C08",
+      "status": "in_progress",
+      "kind": "native preservation",
+      "commandOrMechanism": "fresh legacy_flight_snapshot and native_candidate_flight executable probes plus full retained suites",
+      "expectedRule": "old mode not silently activated or changed",
+      "observed": "Legacy 1,969,393-byte response and RMP01 report remain byte-identical; no app dispatch/default/project/WASM change.",
+      "exitCode": 0,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-profile-bridge/legacy-preserved.json; /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-profile-bridge/rmp01-preserved.json",
+      "sha256": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249",
+      "limitation": "No product reopen/migration/browser/WASM test newly run; RMP07 still pending."
+    },
+    {
+      "id": "RMP06-C05",
+      "status": "not_run",
+      "kind": "cache policy",
+      "commandOrMechanism": "direct profile/source evaluation only",
+      "expectedRule": "budget any cache/interpolation before use",
+      "observed": "No axial cache introduced; no cache comparison or trajectory budget claimed.",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP06-profile-bridge/RESULT.md",
+      "sha256": null,
+      "limitation": "Cache-specific scope absent; parent remains unrun."
+    }
+  ],
+  "commands": [
+    "CARGO_BUILD_JOBS=2 cargo test --offline --manifest-path crates/astraea-core/Cargo.toml -- --test-threads=2",
+    "CARGO_BUILD_JOBS=2 cargo test --offline --locked --manifest-path crates/astraea-engine/Cargo.toml --all-targets -- --test-threads=2",
+    "CARGO_BUILD_JOBS=2 cargo build --offline --locked --manifest-path crates/astraea-engine/Cargo.toml --example profile_candidate_flight --example native_candidate_flight --example legacy_flight_snapshot",
+    "python3 scripts/diagnostics/check-profile-candidate.py \"$CARGO_TARGET_DIR/debug/examples/profile_candidate_flight\" crates/astraea-engine/tests/fixtures/profile-candidate-request.json",
+    "git diff --check"
+  ],
+  "review": {
+    "reviewer": "independent Codex/OpenAI gpt-6.1-sol/high read-only sessions",
+    "independentOfAuthor": true,
+    "disposition": "accepted bounded native prescribed-source bridge",
+    "findings": [
+      "Preimplementation contract ACCEPT; implementation ACCEPT, no required changes. No reviewer builds/tests/data/network."
+    ]
+  },
+  "qualification": {
+    "computational": "native profile bridge reviewed/evidenced; parent partial",
+    "physical": "unqualified",
+    "dynamic": "unknown"
+  },
+  "failedAttempts": [
+    "First core tests attempted PartialEq on existing non-PartialEq types; changed tests only to meaningful comparison.",
+    "Initial vertical-wind synthetic scenario touched exact5deg support boundary and speculative stage refused it. Refusal retained; explicitly along-rail supported scenario used, no threshold relaxed."
+  ],
+  "remainingScope": [
+    "RMP06a local axial startup source/support composition remains unintegrated, RMP02/RMP08 physical/source qualification open.",
+    "C05 numerical/cache budgets and C08 product preservation/migration remain incomplete; no RMP07 default/exposure implied."
+  ],
+  "nextActions": [
+    "Continue unblocked RMP02 retained-source eligibility and actual availability; park missing local-source support without fabricated physics.",
+    "Respect user authorization to continue roadmap without routine permission pauses; no push/release/outcome expansion."
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

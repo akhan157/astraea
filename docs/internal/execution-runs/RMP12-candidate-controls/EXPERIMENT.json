@@ -1,0 +1,177 @@
+{
+  "schema": "rmp12-candidate-controls-experiment/1.0.0",
+  "planningBaseSha": "803b76b5d16922bd862beea2eabdf771e04e23ef",
+  "status": "pre-run contract; implementation and source/binary seal required; zero new experiment calls",
+  "question": "2x2 candidate-only absolute-tolerance/knot partition intervention, plus explicit-default equivalence and two support refusals; no root-width/default/model changes",
+  "baseInput": "BASE-INPUT.json",
+  "baseInputSha256": "f790a2472543771d7fbd7efe5503dca9add94153988a6b60c9f19078c4a37bb2",
+  "sourceFixture": "crates/astraea-engine/tests/fixtures/profile-candidate-request.json",
+  "sourceFixtureSha256": "7d6a9c96e0555f4f5641d94cc9cf506c627e6a357ab55f00c9a4a6a12b54fc7a",
+  "oldPlan": "../RMP12-native-reference/EXPERIMENT.json",
+  "oldPlanSha256": "6d37ff09f7823f3b6d8639ad48a3381fb4fe46ee4cd94bcb267170fddf5e2e52",
+  "retainedBaselineStdoutSha256": "d1b55a501b798cadf141732e1134e7baf73c0b453ffaa12d0bdff0d3120d6b9a",
+  "retainedBaselineAvailability": "external-local-only evidence-rmp12-native-reference/run-1/h2-dt020.stdout; required before execution, never regenerated silently",
+  "prefix": {
+    "horizonS": 2,
+    "macroStepS": 0.02,
+    "railElevationDeg": 90
+  },
+  "numericalControls": {
+    "schemaId": "candidate-native-diagnostic-controls/1.0.0",
+    "policyId": "candidate-native-diagnostic-numerics/1.0.0",
+    "nonePolicyId": "inherited-candidate-driver-numerics/1.0.0",
+    "inherited": {
+      "r": 0.001,
+      "v": 0.01,
+      "q": 0.00001,
+      "w": 0.001
+    },
+    "hundredth": {
+      "r": 0.00001,
+      "v": 0.0001,
+      "q": 1e-7,
+      "w": 0.00001
+    },
+    "initialStepMaxS": 0.005,
+    "maxAdaptiveStepS": 0.05,
+    "eventRootWidthS": 0.00001,
+    "maxAdaptiveTrialsPerCall": 5000,
+    "maxConsecutiveRejections": 500,
+    "knotPolicy": "sorted unique exact f64 values; strictly future actual motor thrust times and burnout only; burnout-coincident knot clips to one exact double; clip before every adaptive trial; exact represented endpoints; preserve within-call adaptation and all stage support checks"
+  },
+  "cases": [
+    {
+      "id": "A-inherited-absent",
+      "diagnosticNumerics": null,
+      "expected": "prefix-success; default physical report equals retained old h2-dt020 projection"
+    },
+    {
+      "id": "B-inherited-explicit",
+      "diagnosticNumerics": {
+        "schemaId": "candidate-native-diagnostic-controls/1.0.0",
+        "absoluteTolerancePolicy": "inherited",
+        "splitAtThrustKnots": false
+      },
+      "expected": "prefix-success; physical result bitwise-equal to A, diagnostic declaration/identity differ"
+    },
+    {
+      "id": "C-knots-only",
+      "diagnosticNumerics": {
+        "schemaId": "candidate-native-diagnostic-controls/1.0.0",
+        "absoluteTolerancePolicy": "inherited",
+        "splitAtThrustKnots": true
+      },
+      "expected": "prefix-success; reserve outcome observed, not promised"
+    },
+    {
+      "id": "D-tolerance-only",
+      "diagnosticNumerics": {
+        "schemaId": "candidate-native-diagnostic-controls/1.0.0",
+        "absoluteTolerancePolicy": "hundredth",
+        "splitAtThrustKnots": false
+      },
+      "expected": "prefix-success; reserve outcome observed, not promised"
+    },
+    {
+      "id": "E-knots-and-tolerance",
+      "diagnosticNumerics": {
+        "schemaId": "candidate-native-diagnostic-controls/1.0.0",
+        "absoluteTolerancePolicy": "hundredth",
+        "splitAtThrustKnots": true
+      },
+      "expected": "prefix-success; reserve outcome observed, not promised"
+    },
+    {
+      "id": "F-fractional-expiry",
+      "diagnosticNumerics": {
+        "schemaId": "candidate-native-diagnostic-controls/1.0.0",
+        "absoluteTolerancePolicy": "hundredth",
+        "splitAtThrustKnots": true
+      },
+      "horizonS": 2.003,
+      "mutation": "environmentSelection.profile.validity.untilUtcUnixS=launchTimeUtcUnixS+2",
+      "expected": "refusal; actual unsupported fractional stage time>2, phase recorded, speculative=true"
+    },
+    {
+      "id": "G-speculative-altitude",
+      "diagnosticNumerics": {
+        "schemaId": "candidate-native-diagnostic-controls/1.0.0",
+        "absoluteTolerancePolicy": "hundredth",
+        "splitAtThrustKnots": true
+      },
+      "mutation": "environmentSelection.profile.knots[-1].altitudeM=100",
+      "expected": "refusal; actual stage altitude outside coverage, phase/time recorded, speculative=true"
+    }
+  ],
+  "caseMutationPolicy": "A diagnosticNumerics:null is a plan sentinel: omit the field entirely from actual request. B-G set the strict object. No null diagnostic field is sent.",
+  "nativeProfileProcessBudget": 7,
+  "legacyProcessBudget": 1,
+  "totalProcessBudget": 8,
+  "perProcessTimeoutS": 30,
+  "retries": 0,
+  "legacy": {
+    "input": "LEGACY-INPUT.json",
+    "inputSha256": "1a58a570d423ae49adf8e459815ce12e599eed0f188a8a5ee15ef67a29235fbd",
+    "expectedStdoutSha256": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249",
+    "purpose": "one unchanged ordinary legacy call; exact bytes required"
+  },
+  "regressionPolicy": "Inventoried manufactured/unit/affected Rust regression computations separate from eight experimental CLI attempts; no additional CLI smoke/replay/probes or hidden tuning sweep",
+  "reference": {
+    "vehicleDryMassKg": 0.1804161663683629,
+    "areaM2": 0.007853981633974483,
+    "gMps2": 9.80665,
+    "airGasConstantJkgK": 287.05287,
+    "maxStepsS": [
+      0.0002,
+      0.0001
+    ],
+    "description": "Independent vertical RK4 on declared continuous axial-drag ODE, exact piecewise-linear thrust/impulse mass, contact/liftoff and E1 dry log-pressure/isothermal density; no CG/geometry-rollup/rates/canopy/physical validation.",
+    "railRoot": "within positive-velocity crossing, fixed left-grid state plus RK4 to each time-bisection trial; keep bracket/states; numerical root only",
+    "railBracketMaxS": 1e-8,
+    "railBisectionMaxIterations": 80,
+    "source": "existing independent VerticalReference/rk4 equations, no modification of old checker or old run",
+    "controls": "closed-form manufactured crossing;200us/100us refinement; old reserves unchanged; unresolved if controls fail, no third grid"
+  },
+  "reserves": {
+    "classification": "provisional-software-diagnostic-not-owner-decision-budget",
+    "positionM": 0.01,
+    "velocityMps": 0.02,
+    "railTimeS": 0.0001,
+    "transversePositionM": 1e-9,
+    "transverseVelocityMps": 1e-9,
+    "rateRadps": 1e-9,
+    "quaternionChord": 1e-10,
+    "referencePositionM": 1e-7,
+    "referenceVelocityMps": 1e-7,
+    "referenceRailTimeS": 1e-7
+  },
+  "comparisons": [
+    "Every committed sample/final/rail/burnout time and state, max absolute position and speed errors, rail-time error",
+    "All transverse position/velocity/rates/quaternion symmetry and both reference-grid discrepancies",
+    "All available native sample times around .20/.22/.24s and complete pairwise2x2 effects",
+    "A vs retained old report: strip only contentIdentity/activePolicies (recursive binary64-bit comparison: signed zero, integers exact, not Python ==); effectiveInputs compared WITH only diagnosticNumerics leaf removed, never stripped wholesale; report modelMismatchFloorMps2 beside every residual error",
+    "A vs B only: strip contentIdentity/activePolicies/diagnosticNumerics; compare effectiveInputs recursively with only the diagnosticNumerics leaf removed (rest bit-exact). C-G: effectiveInputs must differ from A by exactly their caseDeltaSets entry with the diagnosticNumerics leaf removed (rest bit-exact). Every case: per-attempt request bytes/hash differ from A by exactly the full caseDeltaSets entry (anything undocumented is a retained failed attempt); all remaining fields exact; B identity != A identity AND B applied values equal inherited literals exactly",
+    "All attempts/default failures retained; integrity status separate from per-configuration reserve status"
+  ],
+  "caseDeltaSets": {"A": [], "B": ["diagnosticNumerics"], "C": ["diagnosticNumerics"], "D": ["diagnosticNumerics"], "E": ["diagnosticNumerics"], "F": ["diagnosticNumerics", "candidate.horizonSeconds", "environmentSelection.profile.validity.untilUtcUnixS"], "G": ["diagnosticNumerics", "environmentSelection.profile.knots[-1].altitudeM"]},
+  "mutationNameEquivalence": {"lastProfileKnotAltitude=100": "environmentSelection.profile.knots[-1].altitudeM=100", "validUntil=launchTime+2": "environmentSelection.profile.validity.untilUtcUnixS=launchTimeUtcUnixS+2", "horizonS": "candidate.horizonSeconds"},
+  "residualReportingRule": "report modelMismatchFloorMps2 beside every residual error in every case",
+  "deltaSetLedgerRule": "per-attempt ledger records the enumerated delta set, request bytes hash and observed disposition",
+  "effectiveControlsReport": "per-case effective tolerances/limits/exact knot list emitted in experiment result/ledger OUTSIDE the compared candidate report",
+  "mechanismEvidence": "per case, zero extra attempts: count+time locations of straddling trials (A/B/D; B mirrors A's counts verbatim) and clipped trials (C/E), dt/step sequence in [.18,.25]s; required for interpretability; delta set/request-hash/difference rule per comparisons; emitted in result/ledger or per-attempt sidecar OUTSIDE the compared candidate report; F/G record N/A with refusal reason",
+  "modelMismatchFloorMps2": 9.80665e-6,
+  "negativeCaseRule": "refusal reason/phase differing from frozen expected is a retained failed attempt blocking acceptance; G uses retained RMP12a lastProfileKnotAltitude=100 mutation shape; stop and review if validation would refuse earlier",
+  "referenceManufacturedRule": "closed-form crossing exercises the same bisection-from-left-state routine as the rail root",
+  "sealPolicy": "RUN-SEAL.json created only after accepted contract, implementation review, required unit/reference/identity/regression checks and final source commit; binds plan, input, source file, checker, actual binary/toolchain hashes and review; also binds the checker equation-block identity gate (RK4/thrust/impulse/density blocks textually and semantically identical to check-candidate-numerics.py). No null placeholder, stale file, reused output or run before seal.",
+  "failurePolicy": "durable pre-spawn reservation and atomic/fsynced ledger; all stdout/stderr/exit/timeout/input hashes retained; kill/wait after30s, no retry; partial execution remains partial; no outcome-based plan/reserve/source change",
+  "nonClaims": [
+    "production default selection",
+    "closed RMP12-C02 or numerical/mission budget",
+    "full6D/adaptive convergence/continuous peaks",
+    "exact/global error bound from reference refinement",
+    "physical/source/empirical accuracy",
+    "native-WASM or installed-platform qualification",
+    "new team data or real scoring",
+    "aerospace safety/flight authorization"
+  ]
+}

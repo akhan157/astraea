@@ -1,0 +1,25 @@
+{
+  "apogeeM": 533.0760350112048,
+  "appVersion": "0.9.0",
+  "elapsedMs": 862,
+  "engine": {
+    "kind": "wasm-worker",
+    "poolStarted": true
+  },
+  "failures": [],
+  "flightDurationS": 67.85318210601588,
+  "maxMach": 0.29117949481819017,
+  "ok": true,
+  "pageErrors": [],
+  "railExitSpeedMps": 18.89868968377279,
+  "railExitTimeS": 0.4841355514526369,
+  "terminationReason": "touchdown",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+  "validity": "PASS",
+  "webgl": {
+    "available": true,
+    "renderer": "ANGLE (Microsoft, Microsoft Basic Render Driver (0x0000008C) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "vendor": "Google Inc. (Microsoft)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  }
+}

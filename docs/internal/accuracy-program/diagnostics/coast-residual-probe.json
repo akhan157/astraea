@@ -1,0 +1,95 @@
+{
+  "source": "Same 385 extracted observed coast points as original fit; in-sample diagnostic only. Equivalent-coefficient predictions use measured v and density; no state restart or new simulation.",
+  "wholeWindow": {
+    "n": 385,
+    "minMs": 5.00498152300031,
+    "maxMs": 72.78705205504107,
+    "baselineCoastCd": {
+      "cd": 0.5559795576922907,
+      "rmseN": 0.13063522304184574,
+      "meanResidualN": 0.050639075044637286
+    },
+    "scaledBaselineCd": {
+      "cd": 0.49102301182108626,
+      "rmseN": 0.12475131827782485,
+      "meanResidualN": 0.022873627052702027
+    },
+    "remeasuredCalibratedCd": {
+      "cd": 0.48825843176149547,
+      "rmseN": 0.12476222720419869,
+      "meanResidualN": 0.021691916990465854
+    }
+  },
+  "speedBands": [
+    {
+      "loMs": 5,
+      "hiMs": 25,
+      "n": 153,
+      "minMs": 5.00498152300031,
+      "maxMs": 24.967174156449463,
+      "baselineCoastCd": {
+        "cd": 0.5559795576922907,
+        "rmseN": 0.07757445432428385,
+        "meanResidualN": 0.01211805530874683
+      },
+      "scaledBaselineCd": {
+        "cd": 0.49102301182108626,
+        "rmseN": 0.07676775432520869,
+        "meanResidualN": 0.00718652297387261
+      },
+      "remeasuredCalibratedCd": {
+        "cd": 0.48825843176149547,
+        "rmseN": 0.07674352524599776,
+        "meanResidualN": 0.006976634720527779
+      }
+    },
+    {
+      "loMs": 25,
+      "hiMs": 50,
+      "n": 153,
+      "minMs": 25.1111692558788,
+      "maxMs": 49.825315980126746,
+      "baselineCoastCd": {
+        "cd": 0.5559795576922907,
+        "rmseN": 0.1356327200038486,
+        "meanResidualN": 0.0978572729525384
+      },
+      "scaledBaselineCd": {
+        "cd": 0.49102301182108626,
+        "rmseN": 0.11625849470093427,
+        "meanResidualN": 0.07066316167057983
+      },
+      "remeasuredCalibratedCd": {
+        "cd": 0.48825843176149547,
+        "rmseN": 0.11552533677968621,
+        "meanResidualN": 0.06950576795790518
+      }
+    },
+    {
+      "loMs": 50,
+      "hiMs": 75,
+      "n": 79,
+      "minMs": 50.0292742590519,
+      "maxMs": 72.78705205504107,
+      "baselineCoastCd": {
+        "cd": 0.5559795576922907,
+        "rmseN": 0.1894326800094097,
+        "meanResidualN": 0.03379517301529992
+      },
+      "scaledBaselineCd": {
+        "cd": 0.49102301182108626,
+        "rmseN": 0.1955869570092535,
+        "meanResidualN": -0.03929943462418908
+      },
+      "remeasuredCalibratedCd": {
+        "cd": 0.48825843176149547,
+        "rmseN": 0.19647859749531574,
+        "meanResidualN": -0.0424103742844416
+      }
+    }
+  ],
+  "fitted": {
+    "cdCalibrated": 0.49102301182108626,
+    "rmse": 0.12475131827782485
+  }
+}

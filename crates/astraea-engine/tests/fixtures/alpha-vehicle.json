@@ -1,0 +1,15 @@
+{
+  "components": [
+    {"id":"alpha-nc","name":"Ogive Nosecone","type":"nosecone","materialId":"pla_3dprint",
+     "shape":"ogive","length":0.165,"baseDiameter":0.0248,"wallThickness":0.0015,"isHollow":true},
+    {"id":"alpha-bt","name":"Main Body Tube (BT-50)","type":"bodytube",
+     "length":0.311,"outerDiameter":0.0248,"innerDiameter":0.0241,
+     "isMotorMount":true,"materialId":"cardboard"},
+    {"id":"alpha-fins","name":"Stabilizer Fins (3-Fin)","type":"trapezoidfinset",
+     "finCount":3.0,"rootChord":0.070,"tipChord":0.028,"span":0.051,
+     "sweepLength":0.038,"thickness":0.002,"crossSection":"rounded",
+     "axialOffset":0.241,"materialId":"pla_3dprint"},
+    {"id":"alpha-chute","name":"12in Parachute","type":"parachute",
+     "mass":0.008,"diameter":0.305,"cd":0.8,"axialOffset":0.05,"materialId":"cardboard"}
+  ]
+}

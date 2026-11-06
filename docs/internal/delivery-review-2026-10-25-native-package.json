@@ -1,0 +1,85 @@
+{
+  "recordedUtc": "2026-10-25T22:43:29.291959+00:00",
+  "applicationSourceCommit": "761d6c3fd80ba7188e00603dee741719ef1a41c5",
+  "packagingWorktreeHead": "dda929e80a645ca74141b374d91aaa726666269c",
+  "worktreeAdditionalCommit": "dda929e is documentation only; no application rebuild",
+  "tauriCliVersion": "tauri-cli 2.12.3",
+  "tauriSourceCommit": "59b63ab500da9859f12d8888c3298bc29bba0b92",
+  "parentImageId": "sha256:dd164847fef80a117724f17125d06a39ed778cd2c99d53e02eeed68b1236fb03",
+  "derivativeImageId": "sha256:9c6c230e1d815013fa34fcb6b9174d9a6f9e2a9ec68920b93f345e547c723174",
+  "runtimeDelivery": "verified evidence/tools/runtime-x86_64 passed with supported LDAI_RUNTIME_FILE",
+  "package": {
+    "path": "/workspace/.toolchains/desktop-target/debug/bundle/appimage/Astraea Workstation_0.9.0_amd64.AppImage",
+    "bytes": 164760056,
+    "sha256": "e5d921c11872273d882023fd41d126294193dd0f70cfb8e403aa548720350ade",
+    "kind": "unsigned debug AppImage",
+    "productionOrInstallerAcceptance": false
+  },
+  "originalExecutable": {
+    "sha256": "d5938bc6a5ee9201695cd67f5f3702b28eccf9641d6eef51d463b5f08873ccfd",
+    "unchangedByPackaging": true
+  },
+  "extractedPayload": {
+    "path": "/workspace/astraea-plan/evidence/background-release-20261025/packaging-preflight/bg2/extracted/squashfs-root/usr/bin/astraea-workstation",
+    "bytes": 261303185,
+    "sha256": "c675f3c273fb4c6488b9ace1ca19b84281c72b89429249854af1f0e627f1c904",
+    "matchesDeployedAppDir": true,
+    "transformation": "linuxdeploy patches deployed copy ELF paths; original executable preserved"
+  },
+  "extractedAppRunSha256": "eb0b254ac0dae6543e6dd7cd02e1baf40a060de95b927313122d6b46323c00aa",
+  "bundleExit": 0,
+  "extractionAndRuntimeExit": 0,
+  "checkerExit": 0,
+  "smoke": {
+    "apogeeM": 533.0761710052045,
+    "appVersion": "0.9.0",
+    "elapsedMs": 3578,
+    "engine": {
+      "kind": "wasm-worker",
+      "poolStarted": true
+    },
+    "failures": [],
+    "flightDurationS": 67.8531835937478,
+    "maxMach": 0.2911794800316027,
+    "ok": true,
+    "pageErrors": [],
+    "railExitSpeedMps": 18.89893729197692,
+    "railExitTimeS": 0.4841406250000002,
+    "terminationReason": "touchdown",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/60.5 Safari/605.1.15",
+    "validity": "PASS",
+    "webgl": {
+      "available": true,
+      "renderer": "Apple GPU",
+      "vendor": "Apple Inc.",
+      "version": "WebGL 2.0"
+    }
+  },
+  "networkDuringBundleAndRuntime": "none",
+  "cpus": 1,
+  "memory": "4g",
+  "homeOverridden": false,
+  "signingAndUpdaterArtifacts": false,
+  "artifactLocks": {
+    "tool-source-lock.json": "a7b6bc5a047ed9770b26779004a483a1618b0c44f91580eae9210fb5ba26f567",
+    "debian-source-lock.json": "8ccdd1646c20938b8b4ce55f4ae5ab6e975342c843564f930612421e58a1606a",
+    "runtime-source-lock.json": "e75530244717e3e7a27ba7707267fd54aaa558889743fb2868eb0be4093e11a8",
+    "acquired-manifest.json": "725973f751d678d117b4cbcb5167fb4a796bb557d0c8c0c53a6989d877b74802",
+    "runtime-acquired.json": "d5f9a3417bfad5a6d9a683aef268221755b0192209a0c42e253ccf339db14b39",
+    "Dockerfile": "612b35222e2fe0cc66b7b13c5f443d8b2c6f9ccdc9e439651f98ee3bc1f3b0da",
+    "bundle.sh": "648865bb0d7612053484d7eb65d23a8baaaa83ac619b6d9821bda2007bbcb7f6",
+    "extracted-smoke.sh": "d86dc197d41b21cf7e18e42f1444462f0008494eb2a983c864b8d2bd884e1746"
+  },
+  "failuresPreserved": [
+    "acquire-initial-permission.log",
+    "bundle-initial.log",
+    "bundle-missing-runtime.log"
+  ],
+  "boundaries": [
+    "own AppImage extracted payload only; no FUSE",
+    "software rendering under Xvfb",
+    "no install/native dialog/accessibility/hardware GPU acceptance",
+    "no Windows/macOS execution",
+    "not independent flight validation"
+  ]
+}

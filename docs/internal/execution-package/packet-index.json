@@ -1,0 +1,784 @@
+{
+  "schemaVersion": "astraea-execution-package/1.0",
+  "engineeringBase": "5ea3141",
+  "initialMigrationBase": "9594c7d69673f028e851e5a23c8bb5b2b6108578",
+  "dispatchBasePolicy": "Pin the actual current completed branch HEAD at dispatch, not the historical source SHA.",
+  "authority": "Owner authorizes all remaining local goal engineering and coordinator task allocation (2026-10-28), beyond the historical increment cap. All subagents use OMP direct deepseek/deepseek-flash, catalog DeepSeek V4.1 Flash 1017, max effort; verify alias on each dispatch, never silently fall back. This overrides historical packet authorModel recommendations. Native interactive OpenAI goal session exclusively owns independent review and integration; former Paseo chat is reporting-only. No push/mainmerge/release/deploy/new-service spend/outreach/holdout exposure implied.",
+  "firstPacket": "RMP01",
+  "oldAutomation": "disabled; do not re-enable automatically",
+  "packets": [
+    {
+      "id": "RMP01",
+      "title": "A1d-2 native candidate and shared queries",
+      "brief": "packets/RMP01.md",
+      "closureDependencies": [],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "ready_native_implementation",
+      "repositoryFilesToInspect": [
+        "crates/astraea-core/src/six_dof.rs",
+        "crates/astraea-core/src/aero_coefficients.rs",
+        "crates/astraea-engine/src/sb1_geometry.rs"
+      ],
+      "sharedFileLeasesToResolve": [
+        "crates/astraea-core/src/six_dof.rs",
+        "crates/astraea-core/src/lib.rs",
+        "crates/astraea-engine/src/lib.rs"
+      ],
+      "externalClosureDependencies": [],
+      "owner": "coordinator/author session (Sol-class, high effort); independent Codex/GPT-6 read-only review",
+      "pinnedDispatchBase": "c80e7d356fe0a777bd793c56815388960ea597c7",
+      "acceptanceIds": [
+        "RMP01-C01",
+        "RMP01-C02",
+        "RMP01-C03",
+        "RMP01-C04",
+        "RMP01-C05",
+        "RMP01-C06",
+        "RMP01-C07",
+        "RMP01-C08",
+        "RMP01-C09",
+        "RMP01-C10",
+        "RMP01-C11",
+        "RMP01-C12",
+        "RMP01-C13",
+        "RMP01-C14"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "accepted for the bounded native scope after independent read-only review; two rework rounds, all findings resolved (see docs/internal/execution-runs/RMP01-20261026)",
+      "scopeState": "completed_bounded_native_increment; physical/empirical qualification, GUI/project exposure, migration and WASM remain open",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP02",
+      "title": "D1 matched coefficient-source qualification",
+      "brief": "packets/RMP02.md",
+      "closureDependencies": [],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "in_progress_source_eligibility_accepted",
+      "repositoryFilesToInspect": [
+        "docs/internal/accuracy-program/diagnostics/A1b-reference-eligibility-2026-10-26.md",
+        "docs/internal/accuracy-program/execution-2026-10-25/data-path-transonic.md"
+      ],
+      "sharedFileLeasesToResolve": [],
+      "externalClosureDependencies": [
+        "Unresolved source geometry/conditions may require additional eligible records"
+      ],
+      "owner": "coordinator; RMP02a lease released",
+      "pinnedDispatchBase": "46bb995a4d83790f06d75e47f79e0211105f8f20",
+      "acceptanceIds": [
+        "RMP02-C01",
+        "RMP02-C02",
+        "RMP02-C03",
+        "RMP02-C04",
+        "RMP02-C05"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "RMP02a exclusions/custody and later conventions/near-zero bounded computational worksheet independently accepted; parent partial, zero qualified source cases",
+      "scopeState": "partial:64 retained entries; explicit exclusions and reference/datum/near-zero algebra accepted at 06fb047; source axis/sign/roll/base uncertainty and unavailable native-density original extraction remain unresolved",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP03",
+      "title": "T1b real source/vendor and sparse-quantity import",
+      "brief": "packets/RMP03.md",
+      "closureDependencies": [],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "blocked_actual_export_for_adapter",
+      "repositoryFilesToInspect": [
+        "crates/astraea-engine/src/supplied_aero.rs",
+        "docs/internal/accuracy-program/execution-2026-10-25/alternative-paths.md"
+      ],
+      "sharedFileLeasesToResolve": [
+        "crates/astraea-engine/src/lib.rs",
+        "crates/astraea-engine/src/commands.rs"
+      ],
+      "externalClosureDependencies": [
+        "Actual source exports/runtime/rights for a particular vendor adapter"
+      ],
+      "owner": "coordinator; prerequisite lease released",
+      "pinnedDispatchBase": "8b935f20e0cefabba3b09ece103a0c86c0ce5541",
+      "acceptanceIds": [
+        "RMP03-C01",
+        "RMP03-C02",
+        "RMP03-C03",
+        "RMP03-C04",
+        "RMP03-C05"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "prerequisite/plan review accepted; no executed acceptance checks or installer recipe",
+      "scopeState": "source profiles retained; actual vendor export unavailable; no guessed schema/parser",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP04",
+      "title": "UP1d actual update apply/relaunch/channel policy",
+      "brief": "packets/RMP04.md",
+      "closureDependencies": [],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "blocked_desktop_build_prerequisites",
+      "repositoryFilesToInspect": [
+        "src-tauri/src/lib.rs",
+        "src-tauri/Cargo.toml",
+        "src/desktop/updates.ts",
+        "src/desktop/UpdateBanner.tsx",
+        "scripts/updater-fixture/runtime.py"
+      ],
+      "sharedFileLeasesToResolve": [
+        "src-tauri/src/lib.rs",
+        "src-tauri/Cargo.toml",
+        "src/desktop/updates.ts",
+        "src/desktop/UpdateBanner.tsx"
+      ],
+      "externalClosureDependencies": [],
+      "owner": "coordinator; prerequisite lease released",
+      "pinnedDispatchBase": "8b935f20e0cefabba3b09ece103a0c86c0ce5541",
+      "acceptanceIds": [
+        "RMP04-C01",
+        "RMP04-C02",
+        "RMP04-C03",
+        "RMP04-C04",
+        "RMP04-C05"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "prerequisite/plan review accepted; no executed acceptance checks or installer recipe",
+      "scopeState": "exact proposal/guard/evidence constraints reviewed; Docker images empty and inspected desktop dependencies/cache absent; no builds/keys/apply",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP05",
+      "title": "Q0 as-flown eligibility and decision budgets",
+      "brief": "packets/RMP05.md",
+      "closureDependencies": [],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "blocked_actual_input_rights_custody_owner_budgets",
+      "repositoryFilesToInspect": [
+        "docs/internal/accuracy-program/comparison-input-contract-v0.1.md",
+        "docs/internal/accuracy-program/collegiate-mission-and-decision-matrix.md"
+      ],
+      "sharedFileLeasesToResolve": [],
+      "externalClosureDependencies": [
+        "As-flown records and rights",
+        "Team/custodian",
+        "Output-specific decision reserves and observation quality"
+      ],
+      "owner": "coordinator; preparation lease released; responsible decision owner/custodian unassigned",
+      "pinnedDispatchBase": "bdcea0bf57be5407f6b61f4655f6ee59775c99b5",
+      "acceptanceIds": [
+        "RMP05-C01",
+        "RMP05-C02",
+        "RMP05-C03",
+        "RMP05-C04",
+        "RMP05-C05"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "incomplete input-only form checked;no scientific acceptance/independent case review",
+      "scopeState": "10 unselected decision records/7 missing input groups;all numeric budgets/signoffs NULL;0 eligible cases;responsible owner/custodian input required",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP06",
+      "title": "E1c complete axial/environment consumption",
+      "brief": "packets/RMP06.md",
+      "closureDependencies": [
+        "RMP01"
+      ],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "in_progress_native_subpacket_accepted",
+      "repositoryFilesToInspect": [
+        "crates/astraea-core/src/aero.rs",
+        "crates/astraea-core/src/environment.rs",
+        "crates/astraea-core/src/skin_friction.rs",
+        "crates/astraea-core/src/axial.rs",
+        "crates/astraea-core/src/flight_provider.rs",
+        "crates/astraea-engine/src/environment_diagnostic.rs",
+        "crates/astraea-engine/src/axial_diagnostic.rs",
+        "crates/astraea-engine/src/native_candidate.rs"
+      ],
+      "sharedFileLeasesToResolve": [
+        "crates/astraea-core/src/aero.rs",
+        "crates/astraea-core/src/six_dof.rs",
+        "crates/astraea-core/src/lib.rs",
+        "crates/astraea-engine/src/lib.rs"
+      ],
+      "externalClosureDependencies": [],
+      "owner": "coordinator/author OpenAI gpt-6.1-sol; RMP06a/b leases released",
+      "pinnedDispatchBase": "8a63a0147665f6f3554f6a2a8af6921d07ba8f03",
+      "acceptanceIds": [
+        "RMP06-C01",
+        "RMP06-C02",
+        "RMP06-C03",
+        "RMP06-C04",
+        "RMP06-C05",
+        "RMP06-C06",
+        "RMP06-C07",
+        "RMP06-C08"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "RMP06a direct axial at 15be61b and RMP06b prescribed-source E1 bridge at cfdded2 independently accepted; parent partial, see execution-runs/RMP06-profile-bridge",
+      "scopeState": "partial: actual E1 profile through native trajectory/query/curves accepted; prescribed-CA0 explicit simulate_candidate native/WASM runtime accepted at 066960f; profile runtime queued, local inherited axial startup source/support unresolved, product and physical qualification open",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP07",
+      "title": "Provider identity/migration and experimental app exposure",
+      "brief": "packets/RMP07.md",
+      "closureDependencies": [
+        "RMP01",
+        "RMP03",
+        "RMP06"
+      ],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "explicit_candidate_native_wasm_runtime_accepted; candidate_app_implementation_active_under_reviewed_gate; legacy_defaults_preserved",
+      "repositoryFilesToInspect": [
+        "src/application/runInputs.ts",
+        "src/application/runCases.ts",
+        "src/application/caseResolver.ts",
+        "src/formats/projectJson.ts",
+        "src/formats/projectStorage.ts",
+        "src/application/dragCalibration.ts"
+      ],
+      "sharedFileLeasesToResolve": [
+        "crates/astraea-engine/src/models.rs",
+        "crates/astraea-engine/src/commands.rs",
+        "crates/astraea-engine/src/lib.rs",
+        "src/formats/projectJson.ts",
+        "src/application/runInputs.ts"
+      ],
+      "externalClosureDependencies": [],
+      "owner": "coordinator/author Sol/high; serial independent reviewer; lease released",
+      "pinnedDispatchBase": "a22df9d253445fb145868038aed816da70235b4b",
+      "acceptanceIds": [
+        "RMP07-C01",
+        "RMP07-C02",
+        "RMP07-C03",
+        "RMP07-C04",
+        "RMP07-C05",
+        "RMP07-C06",
+        "RMP07-C07",
+        "RMP07-C08"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "RMP07a/b/c/d ACCEPT chains; lease released",
+      "scopeState": "partial: RMP07a/b/c/d accepted; C02 pass; C03 mechanism done; remaining candidate consumer/status/scientific gates open",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise.",
+      "evidencePaths": [
+        "../execution-runs/RMP07-content-identity/RESULT.md",
+        "../execution-runs/RMP07-content-identity/EVIDENCE.json",
+        "../execution-runs/RMP07-project-identity/RESULT.md",
+        "../execution-runs/RMP07-project-identity/EVIDENCE.json",
+        "../execution-runs/RMP07-run-comparison/RESULT.md",
+        "../execution-runs/RMP07-run-comparison/EVIDENCE.json",
+        "../execution-runs/RMP07-calibration-binding/RESULT.md",
+        "../execution-runs/RMP07-calibration-binding/EVIDENCE.json",
+        "../execution-runs/RMP07-model-status/RESULT.md",
+        "../execution-runs/RMP07-model-status/EVIDENCE.json",
+        "../execution-runs/RMP07-consumer-calibration-guard/RESULT.md",
+        "../execution-runs/RMP07-consumer-calibration-guard/EVIDENCE.json"
+      ]
+    },
+    {
+      "id": "RMP08",
+      "title": "Required geometry/Mach/incidence/rate coverage",
+      "brief": "packets/RMP08.md",
+      "closureDependencies": [
+        "RMP01",
+        "RMP02"
+      ],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "bounded_equation_rate_geometry_refusal_reviews_accepted; matched_source_and_broader_physical_qualification_pending",
+      "repositoryFilesToInspect": [
+        "crates/astraea-core/src/aero_coefficients.rs",
+        "crates/astraea-core/src/aero_profiles.rs",
+        "crates/astraea-engine/src/supplied_aero.rs"
+      ],
+      "sharedFileLeasesToResolve": [
+        "crates/astraea-core/src/aero.rs",
+        "crates/astraea-core/src/lib.rs"
+      ],
+      "externalClosureDependencies": [
+        "Eligible physical coefficient/rate evidence for claimed regimes"
+      ],
+      "owner": null,
+      "pinnedDispatchBase": null,
+      "acceptanceIds": [
+        "RMP08-C01",
+        "RMP08-C02",
+        "RMP08-C03",
+        "RMP08-C04",
+        "RMP08-C05",
+        "RMP08-C06",
+        "RMP08-C07",
+        "RMP08-C08"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "Independent coordinator accepted 39d944c equation/rate/geometry scope and 80efb98 no-candidate-blend audit; no measured physical qualification",
+      "scopeState": "partial: C02/C05/C06 pass in reviewed computational scope; C04/C07 partial; C01/C03/C08 require matched source/development evidence and applicable scientific acceptance",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP09",
+      "title": "Mass/propulsion/guide/recovery contracts and qualification",
+      "brief": "packets/RMP09.md",
+      "closureDependencies": [
+        "RMP01",
+        "RMP05"
+      ],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "bounded_mechanics_domain_legacy_and_recovery_fsm_reviews_accepted; measured_configuration_and_observations_pending",
+      "repositoryFilesToInspect": [
+        "crates/astraea-core/src/mass.rs",
+        "crates/astraea-core/src/six_dof.rs",
+        "crates/astraea-engine/src/models.rs"
+      ],
+      "sharedFileLeasesToResolve": [
+        "crates/astraea-core/src/six_dof.rs",
+        "crates/astraea-engine/src/models.rs"
+      ],
+      "externalClosureDependencies": [
+        "Measured mechanics/guide/propulsion/recovery inputs and observations"
+      ],
+      "owner": null,
+      "pinnedDispatchBase": null,
+      "acceptanceIds": [
+        "RMP09-C01",
+        "RMP09-C02",
+        "RMP09-C03",
+        "RMP09-C04",
+        "RMP09-C05",
+        "RMP09-C06",
+        "RMP09-C07",
+        "RMP09-C08"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "Independent coordinator accepted cc79b11 domain/legacy and 80efb98 recovery FSM/provenance increments; retained synthetic thrust-curve certification comment defect queued for engine owner",
+      "scopeState": "partial: C01/C06/C08 pass; C02/C04 in progress; guide/section/measurement C03/C05/C07 require actual configuration/rules/input/observation evidence; no measured recovery qualification",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP10",
+      "title": "Powered stability/peak/decision-output contracts",
+      "brief": "packets/RMP10.md",
+      "closureDependencies": [
+        "RMP01",
+        "RMP09"
+      ],
+      "earlyWork": "Accepted bounded legacy observer under prospectively reviewed current-source contract; no guessed unified provider, changed law/default or decision qualification.",
+      "readiness": "legacy_sampled_history_and_recorded_recovery_readouts_accepted; provider_peak_event_structural_and_scientific_closure_pending",
+      "repositoryFilesToInspect": [
+        "crates/astraea-core/src/telemetry.rs",
+        "src/aero/stabilityBreakdown.ts",
+        "src/aero/finFlutter.ts",
+        "src/aero/finStructure.ts"
+      ],
+      "sharedFileLeasesToResolve": [
+        "crates/astraea-core/src/six_dof.rs",
+        "crates/astraea-core/src/telemetry.rs"
+      ],
+      "externalClosureDependencies": [
+        "Measurement/material/joint evidence for optional structural claims"
+      ],
+      "owner": "coordinator/author; serial independent reviews completed; RMP10a/b source/compute leases released",
+      "pinnedDispatchBase": "59700ee85c4c832784b37f6e8ddca4a351390584",
+      "acceptanceIds": [
+        "RMP10-C01",
+        "RMP10-C02",
+        "RMP10-C03",
+        "RMP10-C04",
+        "RMP10-C05",
+        "RMP10-C06",
+        "RMP10-C07"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "Independent bounded history/recovery/CP/peak/dictionary/telemetry and f082b67 archive consumer corrections accepted; current candidate app extends affected consumers, no source qualification inferred",
+      "scopeState": "partial: C01/C02/C03/C04/C06/C07 in progress; C05 not_run on material/joint/comparison evidence; wider provider/continuous-peak/measurement/rule qualifications remain open",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise.",
+      "latestSourceSha": "add2c706ba8a09f0db613f38dd79d26069ea5af2",
+      "evidencePaths": [
+        "../execution-runs/RMP10-flight-model-history/RESULT.md",
+        "../execution-runs/RMP10-flight-model-history/EVIDENCE.json",
+        "../execution-runs/RMP10-recovery-readouts/RESULT.md",
+        "../execution-runs/RMP10-recovery-readouts/EVIDENCE.json"
+      ]
+    },
+    {
+      "id": "RMP11",
+      "title": "Matched-input comparator adapters",
+      "brief": "packets/RMP11.md",
+      "closureDependencies": [
+        "RMP01",
+        "RMP03",
+        "RMP06"
+      ],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "dependent_scope_pending",
+      "repositoryFilesToInspect": [
+        "docs/internal/accuracy-program/comparison-input-contract-v0.1.md",
+        "docs/internal/accuracy-program/execution-2026-10-25/alternative-paths.md"
+      ],
+      "sharedFileLeasesToResolve": [],
+      "externalClosureDependencies": [
+        "Lawful pinned comparator executable/API and required platform access"
+      ],
+      "owner": null,
+      "pinnedDispatchBase": null,
+      "acceptanceIds": [
+        "RMP11-C01",
+        "RMP11-C02",
+        "RMP11-C03",
+        "RMP11-C04",
+        "RMP11-C05"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "pending",
+      "scopeState": "not_started; historical unrelated completed packets retained",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP12",
+      "title": "Changed-model native and production-WASM numerical qualification",
+      "brief": "packets/RMP12.md",
+      "closureDependencies": [
+        "RMP01",
+        "RMP06",
+        "RMP08",
+        "RMP09",
+        "RMP10"
+      ],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "owner_approved_C1_C3_knot_root_policy_accepted; measured_fixture_failure_resolved; broader_state_attitude_budgets_and_runtime_qualification_open",
+      "repositoryFilesToInspect": [
+        "crates/astraea-core/src/six_dof.rs",
+        "scripts/build-engine.mjs",
+        "src/application/runInputs.ts"
+      ],
+      "sharedFileLeasesToResolve": [
+        "crates/astraea-core/src/six_dof.rs",
+        "scripts/build-engine.mjs"
+      ],
+      "externalClosureDependencies": [],
+      "owner": "coordinator; RMP12c source/compute lease released",
+      "pinnedDispatchBase": "05121c59dda3b437f19367cdedce037d193dc11c",
+      "acceptanceIds": [
+        "RMP12-C01",
+        "RMP12-C02",
+        "RMP12-C03",
+        "RMP12-C04",
+        "RMP12-C05",
+        "RMP12-C06",
+        "RMP12-C07"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "Independent coordinator accepted 4907071 owner-approved knot/root policy and dd6053d artifact diagnosis; historical failures retained; same-root stable, root-dependent actual-byte identities, no production reproducibility flag change",
+      "scopeState": "partial: C01/C05/C07 pass; C02 current fixture clears provisional reserve under C1+C3, broader budgets open; C03/C04 partial including retained wind3 Euler display failures; C06 blocked on approved decision budgets",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise.",
+      "evidence": [
+        "../execution-runs/RMP12-candidate-controls/RESULT.md",
+        "../execution-runs/RMP12-candidate-controls/EVIDENCE.json",
+        "../execution-runs/RMP12c-regime-expansion/RESULT.md",
+        "../execution-runs/RMP12c-regime-expansion/EVIDENCE.json"
+      ]
+    },
+    {
+      "id": "RMP13",
+      "title": "Grounded uncertainty and scoped calibration",
+      "brief": "packets/RMP13.md",
+      "closureDependencies": [
+        "RMP02",
+        "RMP05",
+        "RMP08",
+        "RMP09",
+        "RMP12"
+      ],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "bounded_calibration_binding_and_classified_outcome_ledger_accepted; scenario_provenance_correction_queued; physical_distributions_budgets_freeze_pending",
+      "repositoryFilesToInspect": [
+        "src/evidence/calibrationEligibility.ts",
+        "src/evidence/calibration.ts",
+        "src/application/dragCalibration.ts",
+        "src/application/runInputs.ts"
+      ],
+      "sharedFileLeasesToResolve": [
+        "src/application/runInputs.ts",
+        "src/application/dragCalibration.ts"
+      ],
+      "externalClosureDependencies": [
+        "Independent input ranges and relevant development discrepancy evidence"
+      ],
+      "owner": null,
+      "pinnedDispatchBase": null,
+      "acceptanceIds": [
+        "RMP13-C01",
+        "RMP13-C02",
+        "RMP13-C03",
+        "RMP13-C04",
+        "RMP13-C05",
+        "RMP13-C06",
+        "RMP13-C07"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "Independent coordinator accepted 632bd41 calibration applicability and 37c334c classified ledger repairs, no empirical probability/coverage claim",
+      "scopeState": "partial: C03/C05/C06 in progress; local scenario-provenance claim cleanup queued; missing independent distributions/correlations, identifiable physical observations, splits/budgets/final freeze remain open",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP14",
+      "title": "Q1 frozen prospective validation",
+      "brief": "packets/RMP14.md",
+      "closureDependencies": [
+        "RMP05",
+        "RMP07",
+        "RMP12",
+        "RMP13"
+      ],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "dependent_scope_pending",
+      "repositoryFilesToInspect": [
+        "docs/internal/accuracy-program/execution-2026-10-25/pilot-freeze-template.json",
+        "docs/internal/accuracy-program/collegiate-accuracy-spec-proposed.md"
+      ],
+      "sharedFileLeasesToResolve": [],
+      "externalClosureDependencies": [
+        "Separately authorized unseen outcome release",
+        "Independent scoring/custody"
+      ],
+      "owner": null,
+      "pinnedDispatchBase": null,
+      "acceptanceIds": [
+        "RMP14-C01",
+        "RMP14-C02",
+        "RMP14-C03",
+        "RMP14-C04",
+        "RMP14-C05"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "pending",
+      "scopeState": "not_started; historical unrelated completed packets retained",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP15",
+      "title": "Product journeys/preservation/interoperability",
+      "brief": "packets/RMP15.md",
+      "closureDependencies": [
+        "RMP03",
+        "RMP07",
+        "RMP10"
+      ],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "legacy_preservation_lifecycle_and_qualified_archive_reviews_accepted; candidate_app_journey_active; profile_and_final_product_proof_pending",
+      "repositoryFilesToInspect": [
+        "src/application/runInputs.ts",
+        "src/state/projectIo.ts",
+        "src/console/store.ts",
+        "scripts/browser-smoke.mjs"
+      ],
+      "sharedFileLeasesToResolve": [
+        "src/formats/projectJson.ts",
+        "src/state/projectIo.ts",
+        "src/application/runInputs.ts"
+      ],
+      "externalClosureDependencies": [
+        "Permitted representative real vendor/telemetry cases where needed"
+      ],
+      "owner": null,
+      "pinnedDispatchBase": null,
+      "acceptanceIds": [
+        "RMP15-C01",
+        "RMP15-C02",
+        "RMP15-C03",
+        "RMP15-C04",
+        "RMP15-C05"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "Independent legacy failure/lifecycle and f082b67 qualified archive corrections accepted; actual production-CSP file roundtrip/ZIP proof retained; changed-provider journey under implementation gate",
+      "scopeState": "partial: C02/C03 pass for legacy paths and must re-show on changed paths; C01/C05 in progress; C04 actual representative interoperability evidence open; candidate/profile and final usability proof remain",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP16",
+      "title": "Installed supported-platform acceptance",
+      "brief": "packets/RMP16.md",
+      "closureDependencies": [
+        "RMP04",
+        "RMP07",
+        "RMP15"
+      ],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "dependent_scope_pending",
+      "repositoryFilesToInspect": [
+        "src-tauri/src/lib.rs",
+        "src-tauri/tauri.conf.json",
+        "scripts/startup-trace.node.mjs"
+      ],
+      "sharedFileLeasesToResolve": [
+        "src-tauri/src/lib.rs",
+        "src-tauri/tauri.conf.json"
+      ],
+      "externalClosureDependencies": [
+        "Actual Windows/macOS/Linux sessions/hardware",
+        "Applicable signing/notarization credentials and authorization"
+      ],
+      "owner": null,
+      "pinnedDispatchBase": null,
+      "acceptanceIds": [
+        "RMP16-C01",
+        "RMP16-C02",
+        "RMP16-C03",
+        "RMP16-C04",
+        "RMP16-C05"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "pending",
+      "scopeState": "not_started; historical unrelated completed packets retained",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP17",
+      "title": "Independent team and second-member reproduction",
+      "brief": "packets/RMP17.md",
+      "closureDependencies": [
+        "RMP05",
+        "RMP14",
+        "RMP15"
+      ],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "dependent_scope_pending",
+      "repositoryFilesToInspect": [
+        "docs/internal/accuracy-program/collegiate-mission-and-decision-matrix.md",
+        "docs/internal/roadmap-to-collegiate-1.0-2026-10-26.md"
+      ],
+      "sharedFileLeasesToResolve": [],
+      "externalClosureDependencies": [
+        "Authorized collegiate team participation"
+      ],
+      "owner": null,
+      "pinnedDispatchBase": null,
+      "acceptanceIds": [
+        "RMP17-C01",
+        "RMP17-C02",
+        "RMP17-C03",
+        "RMP17-C04",
+        "RMP17-C05"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "pending",
+      "scopeState": "not_started; historical unrelated completed packets retained",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP18",
+      "title": "Release-candidate/claim reconciliation and owner decision",
+      "brief": "packets/RMP18.md",
+      "closureDependencies": [
+        "RMP14",
+        "RMP15",
+        "RMP16",
+        "RMP17"
+      ],
+      "earlyWork": "Read/design/fixtures only where brief permits before closure dependencies; no fabricated data or future interface.",
+      "readiness": "dependent_scope_pending",
+      "repositoryFilesToInspect": [
+        "package.json",
+        ".github/workflows/release.yml",
+        ".github/workflows/website.yml",
+        "docs/internal/preview-readiness.md"
+      ],
+      "sharedFileLeasesToResolve": [],
+      "externalClosureDependencies": [
+        "Owner authorization for push/merge/publication/deployment/production operations"
+      ],
+      "owner": null,
+      "pinnedDispatchBase": null,
+      "acceptanceIds": [
+        "RMP18-C01",
+        "RMP18-C02",
+        "RMP18-C03",
+        "RMP18-C04",
+        "RMP18-C05"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "pending",
+      "scopeState": "not_started; historical unrelated completed packets retained",
+      "authorModel": "gpt-6.1-sol/high for substantial numeric/cross-file work; medium for bounded ordinary work; availability/model policy applies",
+      "reviewPolicy": "Independent scientific/convention/statistical review for material claims; ordinary coordinator review otherwise."
+    },
+    {
+      "id": "RMP19",
+      "title": "Built-up aerodynamic model port (panels + beta, flight path staged)",
+      "brief": "packets/RMP19.md",
+      "closureDependencies": [
+        "RMP06"
+      ],
+      "earlyWork": "Provider and fixtures may proceed behind a beta flag; no flight-coefficient change before 1c.",
+      "readiness": "beta_merged_1b; native corpus re-run, provenance page and 1c pending",
+      "repositoryFilesToInspect": [
+        "crates/astraea-core/src/calibrated/README.md",
+        "crates/astraea-engine/src/aero_provider.rs",
+        "src/console/stages/AeroControls.tsx",
+        "src/application/aeroModel.ts",
+        "docs/internal/execution-runs/RMP19-aero-model-port/EVIDENCE.json"
+      ],
+      "sharedFileLeasesToResolve": [],
+      "externalClosureDependencies": [
+        "Owner promotion decision",
+        "Held-out real flights for the transonic override"
+      ],
+      "owner": null,
+      "pinnedDispatchBase": "d76c300",
+      "acceptanceIds": [
+        "RMP19-C01",
+        "RMP19-C02",
+        "RMP19-C03",
+        "RMP19-C04",
+        "RMP19-C05",
+        "RMP19-C06",
+        "RMP19-C07",
+        "RMP19-C08",
+        "RMP19-C09",
+        "RMP19-C10",
+        "RMP19-C11"
+      ],
+      "evidenceTemplate": "templates/EVIDENCE.json",
+      "resultTemplate": "templates/RESULT.md",
+      "reviewDisposition": "1b accepted; see execution-runs/RMP19-aero-model-port/REVIEW.md",
+      "scopeState": "1b merged 1246fda; beta off by default; 1c/corpus/provenance pending",
+      "authorModel": "research session (separate agent)",
+      "reviewPolicy": "Independent coordinator review; scientific/native review for corpus parity and promotion."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "status": "pass",
+  "scope": "synthetic legacy model/archive compatibility in actual built Chromium/CSP; no physical/numerical/team/native-platform qualification",
+  "browser": "156.0.8078.4",
+  "schemaVersion": "1.7.0",
+  "wasmSha256": "b971b222d7e3df8c10ff268a3a540effc847adc209b6e52b8d5a0b2b08898337",
+  "fetchedWasmSha256": [
+    "b971b222d7e3df8c10ff268a3a540effc847adc209b6e52b8d5a0b2b08898337",
+    "b971b222d7e3df8c10ff268a3a540effc847adc209b6e52b8d5a0b2b08898337"
+  ],
+  "cases": [
+    "new explicit model capture",
+    "Save/reload/Open/rerun",
+    "unsupported envelope and bare-file refusals preserve project",
+    "1.6/version1 migration",
+    "load saved inputs retains old case",
+    "fresh run creates version2 without rewriting version1",
+    "read-only archived assumptions and model-declaration difference view"
+  ],
+  "runtimeErrors": [],
+  "externalRequests": []
+}

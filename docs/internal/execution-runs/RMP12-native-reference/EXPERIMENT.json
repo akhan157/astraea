@@ -1,0 +1,43 @@
+{
+  "schema": "rmp12-native-vertical-reference/1.0.0",
+  "baseSha": "d77c0557ed60c4de4f6652b6e7676f4b9e3f2b6e",
+  "fixture": "crates/astraea-engine/tests/fixtures/profile-candidate-request.json",
+  "fixtureSha256": "7d6a9c96e0555f4f5641d94cc9cf506c627e6a357ab55f00c9a4a6a12b54fc7a",
+  "binarySha256": "fefe4b8cbc62371fe99317050d13d90145844a7f5b906f020e3ae9ed4a9429a2",
+  "sourceChangePolicy": "no core/engine/default/tolerance/WASM changes; source snapshot at base; native example freshly cargo-build-verified before experiments",
+  "reference": {
+    "vehicleDryMassKg": 0.1804161663683629,
+    "areaM2": 0.007853981633974483,
+    "gMps2": 9.80665,
+    "airGasConstantJkgK": 287.05287,
+    "maxStepsS": [0.0002, 0.0001],
+    "description": "Independent vertical RK4 on declared continuous axial-drag ODE, exact piecewise-linear thrust/impulse mass, contact/liftoff and E1 dry log-pressure/isothermal density; no CG/geometry-rollup/rates/canopy/physical validation."
+  },
+  "cases": [
+    {"id": "h2-dt020", "horizonS": 2.0, "macroStepS": 0.02, "expected": "success"},
+    {"id": "h2-dt010", "horizonS": 2.0, "macroStepS": 0.01, "expected": "success"},
+    {"id": "h2-dt005", "horizonS": 2.0, "macroStepS": 0.005, "expected": "success"},
+    {"id": "h2003-dt020", "horizonS": 2.003, "macroStepS": 0.02, "expected": "success"},
+    {"id": "h2003-dt010", "horizonS": 2.003, "macroStepS": 0.01, "expected": "success"},
+    {"id": "h2003-dt005", "horizonS": 2.003, "macroStepS": 0.005, "expected": "success"},
+    {"id": "h2003-dt010-repeat", "horizonS": 2.003, "macroStepS": 0.01, "expected": "byte-identical-to-h2003-dt010"},
+    {"id": "fractional-expiry", "horizonS": 2.003, "macroStepS": 0.01, "expected": "fractional stage time", "mutation": "validUntil=launchTime+2"},
+    {"id": "speculative-altitude-exit", "horizonS": 2.0, "macroStepS": 0.01, "expected": "outside tabulated coverage", "mutation": "lastProfileKnotAltitude=100"}
+  ],
+  "reserves": {
+    "classification": "provisional-software-diagnostic-not-owner-decision-budget",
+    "positionM": 0.01,
+    "velocityMps": 0.02,
+    "railTimeS": 0.0001,
+    "transversePositionM": 1e-9,
+    "transverseVelocityMps": 1e-9,
+    "rateRadps": 1e-9,
+    "quaternionChord": 1e-10,
+    "referencePositionM": 1e-7,
+    "referenceVelocityMps": 1e-7,
+    "referenceRailTimeS": 1e-7
+  },
+  "nativeCallBudget": 9,
+  "failurePolicy": "save every result; no retry or threshold change; failed diagnostics remain failures until reviewed bounded correction/new experiment",
+  "nonClaims": ["adaptive tolerance convergence", "full six-dimensional validation", "continuous peaks", "native/WASM parity", "physical or as-flown accuracy", "qualified total-axial source", "owner decision budget closure"]
+}

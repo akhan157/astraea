@@ -1,0 +1,16 @@
+{
+  "status": "pass",
+  "count": 9,
+  "checks": [
+    "all 201 committed states independently match supplied P/T/wind, q/M/mu/Re and axial force",
+    "trajectory/query/curve dimensional and environment equality",
+    "changed same-label profile changes real trajectory; no stale cache",
+    "refuses environmentSelection/verticalDatumIdentity",
+    "refuses candidate/environment/windSpeedSurfaceMps",
+    "refuses candidate/environmentSourceId",
+    "refuses environmentSelection/profile/units/pressure",
+    "refuses environmentSelection/profile/knots",
+    "inclusive stop and fractional expiration refusal"
+  ],
+  "scope": "synthetic native prescribed-CA0 profile bridge; no measured accuracy or local axial integration"
+}

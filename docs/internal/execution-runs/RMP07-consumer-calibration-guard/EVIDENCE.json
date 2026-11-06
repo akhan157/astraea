@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP07",
+  "subpacket": "RMP07f shared adapter calibration-binding guard",
+  "status": "accepted bounded software seam; parent C03/C04 remain in_progress",
+  "baseSha": "b3a4aef50d18d3124070ed1b6b8e9a6d8ab78f51",
+  "sourceSha": "a22df9d253445fb145868038aed816da70235b4b",
+  "lease": "released after ACCEPT/final checks; no task-owned processes remain",
+  "routing": {
+    "author": "current environment openai/gpt-6.1-sol/high",
+    "reviewer": "explicit opencode-go/mimo-v2.6-pro, fresh read-only/no-history, requested thinking=medium",
+    "nonClaims": "effort routing is not measured cost/model-quality comparison or scientific qualification"
+  },
+  "mechanism": "existing shared assertScaleMatchesCalibration additionally refuses incompatible binding against only executable legacy contract before flight or any ensemble chunks",
+  "preservation": "no-artifact, old unbound provenance absent/present, exact legacy binding, compatible scale mismatch semantics and artifacts preserved; foreign+scale mismatch now reports binding error first",
+  "artifactAvailability": {
+    "portable": "docs/internal/execution-runs/RMP07-consumer-calibration-guard (summary/review/evidence); code/tests in repository",
+    "externalLocalOnly": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-consumer-calibration-guard/ (raw test/build/review logs, not in Git)"
+  },
+  "artifactHashes": {
+    "source": {
+      "src/console/data/adapter.ts": "26b2c377e2e3f4f1820297af74eba2b0b2ff852f4a9ee19e6a369c58a9ae4509",
+      "src/console/data/calibrationBinding.test.ts": "bc04845cef21bf1372bd18fbdda687abea5f44d5a3da25af45dfb0e4557047d5"
+    },
+    "portable": {
+      "ASSIGNMENT.md": "b2967e765c50ccc290956691f62d9a25e9c5f56a9811184f9f5190381e298ba3",
+      "RESULT.md": "bb7cb091aa1e120c1332eda43859a5508bca59e22d33b7cfa9dce08ae82bd18c",
+      "REVIEW.md": "b67708edfdb09a9f4b6a10be43e95f07cae1b60ab6567d4cfea5566e52ffff12"
+    },
+    "external": {
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-consumer-calibration-guard/affected-1.log": "9665cdc03dfd4fbe8a78dcc8214e54c116b43d1d9981f7dec848daa54f6bacb3",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-consumer-calibration-guard/affected-final.log": "7555f10df58b6a7ab45604d17c77df189a4b9cb3b9dda76a99e95bbd54831514",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-consumer-calibration-guard/before-guard.log": "a55d7950a0243035994da39927202dc65108c59cbf5a2ada8840e57e6bbe0f61",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-consumer-calibration-guard/build-1.log": "cf5154e5f433e126a4e7647250ea04111aacc040bca2e56fc2b88ee58da2cd90",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-consumer-calibration-guard/focused-1.log": "e787f8955d5eefb7350b3b38b554bdb1f7b57059d98026190b1de32b78012f1a",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-consumer-calibration-guard/review-prompt.md": "b4374ef3cb92b3c4dc986b6e18e70a2461bf51b72d5a8bf53f4b27dedc4892f4",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-consumer-calibration-guard/review.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-consumer-calibration-guard/review.md": "80995d8d4e45488abb02830a411ab1e7f8ee2eb6e5495d6ba99291b2adf37ed8",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-consumer-calibration-guard/tsc-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-consumer-calibration-guard/tsc-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "checks": [
+    {
+      "id": "RMP07-C03",
+      "status": "in_progress",
+      "observed": "direct adapter foreign-binding/scale non-leak guard accepted; five declaration keys through flight+ensemble; console prior filtering unchanged",
+      "remaining": "full model/source/condition eligibility and migration reporting"
+    },
+    {
+      "id": "RMP07-C04",
+      "status": "in_progress",
+      "observed": "shared flight/ensemble guard and captured options agree in mocked software tests",
+      "remaining": "candidate command/query/plot/ensemble consistency and actual invoked runtime checks"
+    }
+  ],
+  "verification": {
+    "regression": "before-guard.log: five direct flight cases resolved instead of rejecting; MC assertions not reached before fix",
+    "final": "244 tests/15 files incl10 new guard tests; TypeScript clean",
+    "build": "Vite production build passes on same production source before final test-only strengthenings",
+    "runtime": "existing WASM unchanged b971b222d7e3df8c10ff268a3a540effc847adc209b6e52b8d5a0b2b08898337; no new browser/invoked-buffer/platform claim",
+    "review": "ACCEPT; no material findings; reviewer did not run/hash; two optional test assertions adopted and final checks rerun"
+  },
+  "nonClaims": [
+    "complete C03/C04 or parent RMP07",
+    "candidate activation/provider routing",
+    "stored-fit/physical eligibility from partial binding fixtures",
+    "new physics/default/schema/key or WASM build",
+    "numerical/empirical/scientific/customer/platform/release qualification"
+  ],
+  "next": "continue remaining RMP07 consumer/migration integration against actual reviewed interfaces; no candidate/default activation without applicable prerequisites"
+}

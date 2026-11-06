@@ -1,0 +1,149 @@
+{
+  "assumptionIds": [
+    "independently-supplied-pressure-temperature-no-hydrostatic-consistency-claim",
+    "wind-toward-ENU",
+    "geometric-MSL-altitude-no-datum-conversion",
+    "single-location-time-constant-within-declared-validity",
+    "dry-ideal-air-constant-R-gamma",
+    "Sutherland-viscosity-positive-temperature-computational-domain-only"
+  ],
+  "closure": {
+    "equations": [
+      "rho=P/(R*T)",
+      "a=sqrt(gamma*R*T)",
+      "mu=1.458e-6*T^1.5/(T+110.4)"
+    ],
+    "gasConstantJPerKgK": 287.05287,
+    "heatCapacityRatio": 1.4,
+    "id": "dry-ideal-air-sutherland/1.0.0",
+    "qualification": "assumed-unqualified",
+    "sutherlandCoefficient": 1.458e-06,
+    "sutherlandTemperatureK": 110.4,
+    "thermodynamicSourceIdentity": "astraea-core:six_dof.rs:atmosphere_at@f387132",
+    "viscositySourceIdentity": "astraea-core:aero.rs:compute_compressible_skin_friction@f387132"
+  },
+  "computationalStatus": "supported",
+  "diagnosticId": "explicit-tabulated-environment/1.0.0",
+  "empiricalQualification": "unqualified",
+  "environmentIdentity": "e1a-synthetic-table-v1",
+  "flow": {
+    "airRelativeVelocityEnuMps": {
+      "east": 30.0,
+      "north": 40.0,
+      "up": 0.0
+    },
+    "airspeedMps": 50.0,
+    "dynamicPressurePa": 870.9197020047216,
+    "mach": 0.15774479407345826,
+    "reynoldsPerM": 2178488.9026040975
+  },
+  "input": {
+    "inputIdentity": "e1a-synthetic-interpolation-request-v1",
+    "profile": {
+      "altitudeDatum": "geometricMsl",
+      "closureId": "dry-ideal-air-sutherland/1.0.0",
+      "extrapolationPolicy": "reject",
+      "interpolationPolicy": "logPressureLinearTemperatureWind",
+      "issueTimeUtcUnixS": 1792965600,
+      "knots": [
+        {
+          "altitudeM": 0.0,
+          "pressurePa": 100000.0,
+          "temperatureK": 300.0,
+          "windTowardEnuMps": {
+            "east": 2.0,
+            "north": -4.0,
+            "up": 1.0
+          }
+        },
+        {
+          "altitudeM": 1000.0,
+          "pressurePa": 25000.0,
+          "temperatureK": 200.0,
+          "windTowardEnuMps": {
+            "east": 6.0,
+            "north": 8.0,
+            "up": -3.0
+          }
+        }
+      ],
+      "location": {
+        "horizontalDatumIdentity": "synthetic-coordinates-no-geodetic-survey",
+        "identity": "synthetic-coordinate-origin",
+        "latitudeDeg": 0.0,
+        "longitudeDeg": 0.0
+      },
+      "source": {
+        "description": "Arbitrary implementation fixture, not weather or a launch profile; pressure and temperature are supplied independently.",
+        "evidenceClass": "synthetic",
+        "identity": "e1a-synthetic-table-v1"
+      },
+      "units": {
+        "altitude": "m",
+        "pressure": "Pa",
+        "temperature": "K",
+        "time": "UTC Unix seconds",
+        "wind": "m/s"
+      },
+      "validity": {
+        "fromUtcUnixS": 1792965600,
+        "untilUtcUnixS": 1792969200
+      },
+      "verticalDatumIdentity": "synthetic-MSL-no-geoid-model"
+    },
+    "query": {
+      "altitudeDatum": "geometricMsl",
+      "altitudeM": 500.0,
+      "groundVelocityEnuMps": {
+        "east": 34.0,
+        "north": 42.0,
+        "up": -1.0
+      },
+      "timeUtcUnixS": 1792967400
+    },
+    "schemaVersion": "e1a-environment-diagnostic/1.0.0",
+    "surfaces": [
+      {
+        "identity": "synthetic-body",
+        "lengthM": 2.0,
+        "roughnessM": 5e-06
+      },
+      {
+        "identity": "synthetic-fin",
+        "lengthM": 0.25,
+        "roughnessM": 1e-06
+      }
+    ]
+  },
+  "inputIdentity": "e1a-synthetic-interpolation-request-v1",
+  "qualificationNote": "Caller evidence class and validity metadata are declarations; source quality, launch applicability and closure accuracy are not assessed.",
+  "sample": {
+    "densityKgM3": 0.6967357616037771,
+    "dynamicViscosityPaS": 1.599126258506346e-05,
+    "pressurePa": 50000.00000000001,
+    "soundSpeedMps": 316.96767106441627,
+    "temperatureK": 250.0,
+    "windTowardEnuMps": {
+      "east": 4.0,
+      "north": 2.0,
+      "up": -1.0
+    }
+  },
+  "schemaVersion": "e1a-environment-diagnostic/1.0.0",
+  "surfaces": [
+    {
+      "identity": "synthetic-body",
+      "lengthM": 2.0,
+      "reynolds": 4356977.805208195,
+      "roughnessM": 5e-06,
+      "roughnessOverLength": 2.5e-06
+    },
+    {
+      "identity": "synthetic-fin",
+      "lengthM": 0.25,
+      "reynolds": 544622.2256510244,
+      "roughnessM": 1e-06,
+      "roughnessOverLength": 4e-06
+    }
+  ]
+}

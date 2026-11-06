@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP07",
+  "subpacket": "RMP07g exact built runtime receipt",
+  "baseSha": "e7e3bf67880b225ceedf2a23d4c0d3645336df4d",
+  "sourceSha": "e7e3bf67880b225ceedf2a23d4c0d3645336df4d",
+  "status": "accepted; RMP07-C08 pass (browser build)",
+  "review": {
+    "initial": "ACCEPT; C08 MET",
+    "boundary": "no-tools supplied text"
+  },
+  "routing": {
+    "author": "anthropic/claude-opus-5-5 (omp)",
+    "reviewer": "opencode-go/mimo-v2.6-pro medium no-tools"
+  },
+  "checks": [
+    {
+      "id": "RMP07-C08",
+      "status": "pass",
+      "scope": "browser build b32e7b7c\u2026; desktop/Tauri in RMP16; new asset needs new receipt"
+    }
+  ],
+  "nonClaims": [
+    "desktop/native runtime",
+    "other browsers",
+    "RMP07 parent closure"
+  ],
+  "artifactHashes": {
+    "portable": {
+      "ASSIGNMENT.md": "4a6e3a9466ba9d15b376196fcb9ca703d45f4b0a8b733aa1a9e0b060a9cdfdf7",
+      "RESULT.md": "7ac4552224bd8aa85e3a753ad5739a782a48ebc2e5bb946286ce3e27f76a4f57",
+      "REVIEW.md": "900c6bb87b15e75259710dccab56f7843da4fd0917efa7e5c33f30d474601e7a",
+      "RAW-ARTIFACTS.json": "c9d35b112128aeb14f8a3a592fb892e6712864b70c30e389d8b545377966b34e"
+    }
+  }
+}

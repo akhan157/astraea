@@ -1,0 +1,192 @@
+{
+  "lane": "fin-aft-anchor",
+  "status": "implementation-complete-pending-review",
+  "branch": "fin-aft-anchor",
+  "base": "10f0cf691f612cade167291efc3e2817aba05550",
+  "assignmentCommit": "3ac97a2bc141fb490600382e70d8376fa4a32a4e",
+  "commits": {
+    "production": "a14348e4bd725aceb9d934504e3f800cc0d7c2e7",
+    "tests": "70a70ed2ca933187437c0a2273ba125dca10f555",
+    "reviewFixProduction": "c60d5d830ca96cda5b57e285666964b8c80907bb",
+    "reviewFixTests": "65481e0c59970f1b1f388faf4d17fca634762ae8",
+    "report": null
+  },
+  "reviewFix": "tubeLengthPatches no longer short-circuits on delta == 0; every live fin is re-derived from the anchor offset plus delta, skipping only an exact current-offset match.",
+  "files": {
+    "production": [
+      "src/console/shell/partBounds.ts",
+      "src/console/kit/Fields.tsx",
+      "src/console/shell/Inspector.tsx",
+      "src/state/project.ts"
+    ],
+    "tests": [
+      "src/console/shell/inspector.test.tsx",
+      "src/state/stores.test.ts"
+    ],
+    "docs": [
+      "docs/internal/execution-runs/fin-aft-anchor/RESULT.md",
+      "docs/internal/execution-runs/fin-aft-anchor/EVIDENCE.json"
+    ]
+  },
+  "evidenceDir": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor",
+  "checks": [
+    {
+      "command": "npx tsc --noEmit",
+      "exit": 0,
+      "diagnostics": 0,
+      "log": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/tsc.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console",
+      "files": 44,
+      "filesPassed": 44,
+      "tests": 381,
+      "testsPassed": 381,
+      "testsFailed": 0,
+      "log": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/console-tests.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console/shell/inspector.test.tsx src/state/stores.test.ts",
+      "tests": 43,
+      "testsPassed": 43,
+      "testsFailed": 0,
+      "log": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/focused-tests.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console/shell/inspector.test.tsx -t 'returns the fins to the anchor offset' at 70a70ed",
+      "tests": 1,
+      "testsFailed": 1,
+      "observation": "expected 0.6500000000000001 to be close to 1.1",
+      "log": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/review-return-anchor-70a70ed.log"
+    },
+    {
+      "command": "PATH=$HOME/.cargo/bin:$PATH CARGO_BUILD_JOBS=2 pnpm --config.verify-deps-before-run=false build",
+      "exit": 0,
+      "buildSeconds": 1.1,
+      "log": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/build.log"
+    }
+  ],
+  "baseFailure": {
+    "commit": "10f0cf691f612cade167291efc3e2817aba05550",
+    "method": "detached git worktree, new test files copied, node_modules symlinked, same vitest command",
+    "tests": 43,
+    "failed": 12,
+    "passed": 31,
+    "log": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/base-tests.log",
+    "failedTests": [
+      {
+        "name": "stages a multi-component patch atomically and rejects the whole set when one entry is invalid",
+        "observed": "useProjectStore.getState(...).stageComponentPatches is not a function"
+      },
+      {
+        "name": "keeps the pre-press window when the track is pressed away from the thumb",
+        "observed": "min '1420', expected '900'"
+      },
+      {
+        "name": "floors a tube length at its front-anchored children; attached fins move with the aft end",
+        "observed": "min 1420, expected 900"
+      },
+      {
+        "name": "moves NSL fins with the tube aft end when the length is typed",
+        "observed": "length 1.4200000000000002, expected 1.0 (typed value clamped by the fin-cap floor)"
+      },
+      {
+        "name": "anchors scrubbed length steps to the gesture-start length",
+        "observed": "length 1.4200000000000002, expected 1.35"
+      },
+      {
+        "name": "keeps the fin offset anchored across a whole slider drag and ends without drift",
+        "observed": "min 1420, expected 900"
+      },
+      {
+        "name": "returns the fins to the anchor offset when a drag comes back to the start length",
+        "observed": "fin offset 1.1, expected 0.65 after the first stage"
+      },
+      {
+        "name": "slides the fins when the length is nudged with the arrow keys",
+        "observed": "length 1.4200000000000002, expected 1.4 (nudge floor stopped the drag)"
+      },
+      {
+        "name": "restores the fins when the length is reverted or discarded",
+        "observed": "fin offset 1.1, expected 0.65"
+      },
+      {
+        "name": "moves every fin set on the tube, including freeform, and leaves front-anchored children alone",
+        "observed": "min 1420, expected 1050"
+      },
+      {
+        "name": "floors a fin-only tube at the root chord and keeps a flush fin flush",
+        "observed": "no stage (draft length undefined), expected 0.32"
+      },
+      {
+        "name": "floors the tube at its current length when a fin sits at the tube front",
+        "observed": "window min 500, expected 1000"
+      }
+    ]
+  },
+  "probe": {
+    "script": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/slider-probe.mjs",
+    "log": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/probe-run.log",
+    "data": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/probe.json",
+    "browser": "Chromium, SwiftShader, 1600x1000, production CSP from dist/_headers",
+    "before": {
+      "layoutLengthM": 2.97,
+      "tubeLengthMm": 1450,
+      "finOffsetMm": 1100,
+      "slider": { "value": 1450, "min": "900", "max": "2900" }
+    },
+    "roundTrip": {
+      "gesture": "one pointerdown/pointerup; drag 1450 -> 1011 -> back to the press pixel, then one ArrowUp to the exact anchor while still down",
+      "pressValueMm": 1450,
+      "returnedValueMm": 1449,
+      "nudges": 1,
+      "lowestMm": 1011,
+      "samples": 26,
+      "finalLengthMm": 1450,
+      "finalFinOffsetMm": 1100,
+      "aftMarginMm": 30,
+      "layoutLengthM": 2.97,
+      "frozenWindow": { "min": "900", "max": "2900" }
+    },
+    "drag1": {
+      "start": "track at the thumb (27.5%)",
+      "samples": 24,
+      "finalLengthMm": 1011,
+      "finalFinOffsetMm": 661,
+      "layoutLengthM": 2.531,
+      "frozenWindow": { "min": "900", "max": "2900" },
+      "expectedOffsetMm": 661
+    },
+    "drag2": {
+      "start": "track at 80%, away from the thumb (thumb ~10%)",
+      "samples": 26,
+      "pressValueMm": 1817,
+      "finalLengthMm": 962,
+      "finalFinOffsetMm": 612,
+      "layoutLengthM": 2.482,
+      "frozenWindow": { "min": "900", "max": "2022" },
+      "expectedOffsetMm": 612,
+      "aftMarginMm": 30
+    },
+    "consoleErrors": 0,
+    "pageErrors": 0
+  },
+  "screenshots": [
+    "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/probe-before.png",
+    "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/probe-before-fins.png",
+    "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/probe-round-trip-mid.png",
+    "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/probe-round-trip.png",
+    "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/probe-drag1-mid.png",
+    "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/probe-after-fins.png",
+    "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/probe-drag2-mid.png",
+    "/home/ak/.paseo/worktrees/3s8t98rp/evidence-fin-aft-anchor/probe-after2-fins.png"
+  ],
+  "notDone": [
+    "no engine, WASM, schema, file-format, preset-value, gate, tolerance or physics change",
+    "no fin shift for direct stageComponents calls, preset loads or project replacement",
+    "no fin shift on root-chord edits, reordering, transitions or nose cones",
+    "no new warning/cap for legacy invalid fin offsets",
+    "no attribution of fin changed-dots to the tube gesture; the fin revert stays independent",
+    "no push, merge, release or register/manifest/TASKS/handoff edits"
+  ]
+}

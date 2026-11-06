@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP07",
+  "subpacket": "RMP07b legacy project selection/versioned run archives",
+  "baseSha": "acd5b97569db7ca01a91c01b80796c2bac0654e5",
+  "sourceSha": "db169e1f6d3e2d3eca9f1c3f26904a1ff746cc3c",
+  "owner": "coordinator/author; existing intended branch/worktree; exclusive lease released",
+  "modelRouting": {
+    "model": "installed OpenAI gpt-6.1-sol",
+    "effort": "high",
+    "reviewer": "separate serial read-only Codex sessions, same installed model/high",
+    "usageTelemetry": "cumulative goal snapshots supplied; provider cost/quota/reset not supplied"
+  },
+  "effectiveInputs": [
+    "Shipped synthetic preset in fresh isolated local browser context",
+    "Versioned synthetic old-format archive and parser fixtures only; no empirical calibration/flight outcome files",
+    "Current existing legacy model selection only; exact executed-buffer SHA separate from descriptor"
+  ],
+  "sourceHashes": {
+    "src/application/flightModel.ts": "54ff7e2cc1d1e341df1bec32d1a652fcc2b436897553b734b7bfee29cbb7eb1c",
+    "src/application/flightModel.test.ts": "919b5a43f1f43da7f3a264d07378e22c1f348dba438317e5e6da232278926f4c",
+    "src/application/runInputs.ts": "4d81436369b395ec679a245501f8c386a85b50b069f68960a079270c9a6b59b8",
+    "src/application/runInputs.test.ts": "30f3f99afc7cb73d2529c0321e422e750522166ba37276d4058193422730c2eb",
+    "src/formats/projectJson.ts": "459c569a7d00ac60deb4f541657f4e7aa68ed9e3da301877a0bd1525c0e3ed13",
+    "src/state/project.ts": "0f99ec0456c741961f7fd937ec3078fa37f7f9544149f6d44329f3f7bdcb7c0f",
+    "src/state/projectIo.test.ts": "8fc9edba3ba129cc201fc13811148c5d504d0a2b059509d51c1b6300590a8495",
+    "scripts/check-project-model-browser.mjs": "67bbf747820d970b1b3c4933097ad3ea4385c136c3ced67ac0eba93f09c3cf5c",
+    "scripts/preview-journeys.mjs": "820744b6c04d794d5f2099cf27455e9e78e2dda6d319c16aa26f6894192cecef",
+    "pnpm-lock.yaml": "8098fac5500fa1b8cce4e8566423f7369764347aeca908f8257ceeb1ae84ed41",
+    "crates/astraea-engine/Cargo.lock": "17a528102d3624f15b870969a180863e90d144e2177f8626b44d7982a8a4fc06"
+  },
+  "runtimeHashes": {
+    "src/engine/astraea_engine.wasm": "b971b222d7e3df8c10ff268a3a540effc847adc209b6e52b8d5a0b2b08898337",
+    "dist/app/index.html": "968e2ef6bac6fc453cd5daa9bdd7690c0bcc770028de940462c0497f3816a70d",
+    "dist/_headers": "f3b60d83b88ef73e438b0802b55923c8538525e70e7e6680971b6020c7312963",
+    "dist/assets/app-Ck71ppyy.js": "7edb29e7caf0c1a06f9bfb6b9a09bd4888d7a74b114790c914fb3053a554e28c",
+    "dist/assets/worker-DpjNkr35.js": "f4aace0904d3aa6e8b5f4e3fcda59dde0c40b4f7377786bbff52c11758907de3",
+    "dist/assets/astraea_engine-CpFHqCb8.wasm": "b971b222d7e3df8c10ff268a3a540effc847adc209b6e52b8d5a0b2b08898337"
+  },
+  "logHashes": {
+    "affected-final.log": "2e9d372e3e3b4fb3f685d633b0f6c95bd4defbb2e9a95a83348a0051b934616a",
+    "tsc-rework.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "site-final.log": "077493fbb160c4439d3ca2c52d703d82e8178b2a13868698b1de0a17c20d5f06",
+    "browser-final.log": "e6dd06b6e2c7fd8cee456673a33e2b9f0b538713e0e53a01ef134ebb0257d12f",
+    "browser-first.log": "fbe4636332c1690e333c7c04e65d61c00600d0c18ee6cb79c451408420c99027",
+    "dependency-install.log": "c05b912ec2303e82234ea614cf95d5a4036eab6cfe45f701dcd45d9d45d9dd85",
+    "wasm-build.log": "e19081ff3950fa468609dedd8a574a80f552d697be468be950b2f2364724f72f",
+    "browser-install.log": "0a4375506789d146ccff939e185538bd6842d041ba62bff4b3bdd27d6c144ab8"
+  },
+  "artifactAvailability": [
+    {
+      "kind": "portable",
+      "location": "this run directory; source/tests/checker and existing synthetic fixtures"
+    },
+    {
+      "kind": "external-local-only",
+      "location": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-project-identity",
+      "contents": "full synthetic saved project snapshots, raw logs, reviewer prompts/transcripts"
+    },
+    {
+      "kind": "generated-local-only",
+      "location": "src/engine/astraea_engine.wasm and dist/",
+      "contents": "intentionally rebuilt legacy engine and exact site assets; hashes recorded; not published/deployed"
+    },
+    {
+      "kind": "local-tools",
+      "location": "node_modules and /home/ak/.cache/ms-playwright",
+      "contents": "offline dependency reuse; downloaded isolated Chromium headless shell/FFmpeg; no running user profile"
+    }
+  ],
+  "checks": [
+    {
+      "id": "RMP07-C02",
+      "status": "pass",
+      "kind": "legacy project/archive preservation",
+      "commandOrMechanism": "236-test affected suite in15 files plus exact built Chromium/CSP synthetic journey",
+      "expectedRule": "old/no-provider remains legacy, history preserved through migration/save/open/reopen, no reconstructed old inputs/hashes",
+      "observed": "old version1 archives retained; fresh captures version2; unknown envelope/bare/nested selections refuse; current file/storage unchanged",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP07-project-identity/browser-checks.json",
+      "limitation": "legacy compatibility only; no candidate activation"
+    },
+    {
+      "id": "RMP07-C03",
+      "status": "in_progress",
+      "kind": "bounded existing-legacy product/runtime boundary",
+      "observed": "unsupported selection cannot dispatch legacy calibration, storage/undo/async/unknown/missing model guards and actual built-byte provenance exercised",
+      "limitation": "complete candidate/source/environment and product journeys remain open"
+    },
+    {
+      "id": "RMP07-C05",
+      "status": "in_progress",
+      "kind": "bounded existing-legacy product/runtime boundary",
+      "observed": "unsupported selection cannot dispatch legacy calibration, storage/undo/async/unknown/missing model guards and actual built-byte provenance exercised",
+      "limitation": "complete candidate/source/environment and product journeys remain open"
+    },
+    {
+      "id": "RMP07-C06",
+      "status": "in_progress",
+      "kind": "bounded existing-legacy product/runtime boundary",
+      "observed": "unsupported selection cannot dispatch legacy calibration, storage/undo/async/unknown/missing model guards and actual built-byte provenance exercised",
+      "limitation": "complete candidate/source/environment and product journeys remain open"
+    },
+    {
+      "id": "RMP07-C08",
+      "status": "in_progress",
+      "kind": "bounded existing-legacy product/runtime boundary",
+      "observed": "unsupported selection cannot dispatch legacy calibration, storage/undo/async/unknown/missing model guards and actual built-byte provenance exercised",
+      "limitation": "complete candidate/source/environment and product journeys remain open"
+    },
+    {
+      "id": "RMP07-C01",
+      "status": "in_progress",
+      "kind": "content identity",
+      "observed": "prior native RMP07a evidence retained, new legacy descriptor is not a content digest; no full app/provider key claim"
+    },
+    {
+      "id": "RMP07-C04",
+      "status": "not_run",
+      "kind": "new candidate consumer/status exposure",
+      "observed": "not activated or established by legacy-only increment"
+    },
+    {
+      "id": "RMP07-C07",
+      "status": "not_run",
+      "kind": "new candidate consumer/status exposure",
+      "observed": "not activated or established by legacy-only increment"
+    }
+  ],
+  "commands": [
+    "pnpm install --offline --frozen-lockfile --ignore-scripts --child-concurrency=2 --network-concurrency=2 (task-created executable-manager lock metadata precisely removed)",
+    "PATH=/home/ak/.cargo/bin:$PATH CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/home/ak/.paseo/worktrees/3s8t98rp/target-rmp01 node scripts/build-engine.mjs (intentional legacy WASM build)",
+    "node node_modules/vitest/vitest.mjs run <15 explicitly inventoried affected test files> --maxWorkers=2",
+    "GOMAXPROCS=2 node node_modules/typescript/bin/tsc --noEmit",
+    "RAYON_NUM_THREADS=2 UV_THREADPOOL_SIZE=2 node node_modules/vite/bin/vite.js build",
+    "RAYON_NUM_THREADS=2 UV_THREADPOOL_SIZE=2 node scripts/check-project-model-browser.mjs <fresh external evidence directory>"
+  ],
+  "testFiles": [
+    "src/application/flightModel.test.ts",
+    "src/application/runInputs.test.ts",
+    "src/application/runCases.test.ts",
+    "src/application/caseResolver.test.ts",
+    "src/application/dragCalibration.test.ts",
+    "src/formats/projectJson.test.ts",
+    "src/formats/projectStorage.test.ts",
+    "src/state/projectIo.test.ts",
+    "src/state/projectBoundary.test.ts",
+    "src/state/openRunIdentity.test.ts",
+    "src/console/store.test.tsx",
+    "src/console/projectJobs.test.ts",
+    "src/console/stages/SavedRuns.test.tsx",
+    "src/engine/identity.test.ts",
+    "src/engine/engine.test.ts"
+  ],
+  "review": {
+    "reviewer": "independent source-only Codex installed gpt-6.1-sol/high",
+    "independentOfAuthor": true,
+    "disposition": "approved after bare-import correction",
+    "findings": [
+      "Initial REQUEST_CHANGES: bare vehicle model selection was dropped before root validation",
+      "Shared vehicle guard now refuses selection on bare/nested/archive vehicles; compatibility/refusal tests added",
+      "Final ACCEPT, no remaining material defects; optional direct archive-vehicle test follow-up"
+    ]
+  },
+  "qualification": {
+    "computational": "bounded legacy compatibility/runtime checks pass",
+    "physical": "unqualified",
+    "dynamic": "unknown",
+    "numerical": "no new qualification; retained RMP12 failure remains"
+  },
+  "failedAttempts": [
+    "First browser attempt selected a status row hidden in a closed menu; checker corrected to await visible import disclosure; second run passed",
+    "Initial review found material bare-import bypass; fixed, final236-test suite/site/browser rerun pass and independent rereview ACCEPT",
+    "pnpm altered executable-manager metadata despite frozen installation; only task-generated changes precisely removed, lock unchanged"
+  ],
+  "remainingScope": [
+    "Full RMP07 candidate identity/source/environment/worker/query/plot/ensemble contract",
+    "Incompatible candidate calibration retained historical/inactive with explicit difference report",
+    "Visible computational/domain/quantity/qualification statuses and full final artifact journeys",
+    "Scientific/mission/team/installed-platform/release gates, including retained numerical failure"
+  ],
+  "nextActions": [
+    "Continue RMP07 calibration/provenance compatibility and visible selection status, preserve legacy semantics and artifacts",
+    "Do not invent vendor exports or low-Re startup source, activate candidate by accident, or substitute software tests for real accuracy"
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

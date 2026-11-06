@@ -1,0 +1,168 @@
+{
+  "status": "FOCUSED_FIRST_TRANSCRIPTION_UNREVIEWED_NOT_A_REPRESENTABILITY_CERTIFICATE",
+  "prior_ledger": "/workspace/astraea/docs/internal/accuracy-program/first-batch-2026-10-26/D1/frozen-subset.json geometry_and_references.sources.19670020050; expanded only for D4013 short model",
+  "source_drawing": {
+    "report": "NASA TN D-4013",
+    "figure": "1(a),(b)",
+    "pdf_pages_1based": [
+      11,
+      12
+    ],
+    "printed_pages": [
+      9,
+      10
+    ],
+    "units": "centerbody diameter d, source5.72cm(2.25in); dimensionless drawing is primary, decimal metric/inch conversion rounded differently",
+    "images": [
+      "19670020050-pdf-p11.png",
+      "19670020050-pdf-p12.png"
+    ],
+    "interpretation": "Only dimensions and feature identities supported by the source are transcribed. Derived relationships are labelled. Raster appearance is not a missing dimension."
+  },
+  "body": {
+    "length_over_d": 18.2,
+    "nose_length_over_d": 4.71,
+    "nose_type_source_text": "ogive, finite rounded tip; ordinate-defined profile is source contract, no tangent/secant-ogive formula specified",
+    "nose_ordinates": {
+      "x_from_nose_over_d": [
+        1.06,
+        1.5,
+        1.94,
+        2.39,
+        2.83,
+        3.28,
+        3.72,
+        4.71
+      ],
+      "diameter_over_d": [
+        0.38,
+        0.49,
+        0.61,
+        0.71,
+        0.81,
+        0.88,
+        0.94,
+        1.0
+      ],
+      "classification": "direct drawing dimensions; final x from Fig1(a); interpolation between finite ordinate constraints is not specified in report and requires explicit representability decision"
+    },
+    "tip_callout": {
+      "value_over_d": 0.03,
+      "classification": "leader points to rounded nose tip; radius interpretation plausible but radius symbol not explicit in this D4013 scan; do not silently promote to exact tip radius. Independent drawing review required; D4014 values not substituted."
+    },
+    "cylinder": {
+      "diameter_over_d": 1.0,
+      "starts_x_over_d": 4.71,
+      "ends_x_over_d": null,
+      "classification": "cylindrical centerbody stated in text; precise start of actual conical taper is not independently closed from this transcription"
+    },
+    "tail": {
+      "assembly_axial_envelope_over_d": 1.78,
+      "base_diameter_over_d": 0.65,
+      "angle_callout_deg": 15,
+      "classification": "Fig1(b)1.78d spans the illustrated tail assembly, not safely equated to taper length. Drawing shows cylinder-to-boattail junction and reflex lip. 15deg callout belongs to tail detail; confirm whether taper half-angle and lip attachment before reconstruction.",
+      "reflex_lip": {
+        "presence": "explicit source text and drawn at terminal edge",
+        "thickness_over_d": null,
+        "axial_extent_over_d": null,
+        "radius_over_d": null,
+        "classification": "present but not completely dimensioned in selected drawing; cannot be erased or replaced by plain cone without documented mismatch"
+      },
+      "derived_assembly_start_x_over_d": 16.42,
+      "derived_rule": "18.20-1.78, assembly envelope only; NOT asserted cylinder/taper junction"
+    }
+  },
+  "fins": {
+    "count": 4,
+    "spacing_deg": 90,
+    "cant_deg_selected": 0,
+    "roll_deg_selected": 0,
+    "planform_source_text": "trapezoidal",
+    "section_source_text": "double wedge",
+    "tip_to_tip_span_over_d": 2.91,
+    "drawing_axial_dimensions_over_d": {
+      "tail_assembly": 1.78,
+      "root_leading_edge_to_tip_trailing_edge_line": 1.46,
+      "tip_chord": 0.93,
+      "tip_trailing_edge_line_to_base": 0.16,
+      "internal_section_line_to_tip_trailing_edge_line": 0.8
+    },
+    "attachment_review": "1.46,.93,.80,.16 labels are legible but exact extension-line attachment needs independent audit. Fin root follows body/boattail surface; do not use a four-vertex flat trapezoid as an exact geometry certificate from these labels alone.",
+    "derived_root_le_to_tip_le_sweep_over_d": 0.53,
+    "derived_sweep_rule": "1.46-.93 conditional on extension-line mapping; provisional",
+    "section_closure": {
+      "ridge_location": "internal break line shown; .80d attachment provisional",
+      "leading_edge_wedge_angle_deg": null,
+      "trailing_edge_wedge_angle_deg": null,
+      "thickness_distribution": "double wedge required; constant flat plate excluded as exact reproduction",
+      "classification": "section source type known; complete spanwise/chordwise section closure pending"
+    },
+    "anchors": {
+      "presence": "four compound raised fin anchors; source explicitly notes anchors not flush on short model",
+      "legible_drawing_dimensions_over_d": [
+        0.96,
+        0.15,
+        0.22,
+        0.16,
+        0.13,
+        0.12
+      ],
+      "endview_anchor_width_over_d": 0.22,
+      "classification": "compound plan/profile shape and fastener-like protrusion drawn; individual dimension attachments not all independently resolved. Retain source detail; do not replace with generic flush roots."
+    },
+    "endview_0p04d_callout": {
+      "value_over_d": 0.04,
+      "classification": "Legible label, but its leader attachment is not independently resolved. Do not assert this is fin maximum thickness, body skin or lip thickness until reviewed."
+    }
+  },
+  "references": {
+    "area": "S=max body cross-sectional area; S=pi*d^2/4 derived from circular cylinder",
+    "force_normalization": "qS",
+    "moment_normalization": "qSd",
+    "moment_station_from_nose_over_d_drawing": 12.75,
+    "moment_fraction_length_text": 0.7,
+    "rounding": "0.70*18.20=12.74; retain drawing12.75 rather than overwrite",
+    "axes": "body axes; normal force and pitching moment signs as plotted; source-to-simulator sign transformation independent review pending",
+    "roll": "positive clockwise viewed upstream aft of model; balance not rolled",
+    "alpha": "angle model center line, corrected for tunnel-flow angularity and balance/sting deflection"
+  },
+  "test_conventions": {
+    "unit_Re_per_ft": 3000000,
+    "unit_Re_per_m_report": 9800000,
+    "stagnation_temperature_K": 322,
+    "forced_transition": {
+      "grit": "No120 carborundum",
+      "strip_width_in": 0.1,
+      "strip_width_cm_report": 0.25,
+      "nose_strip_distance_aft_nose_in": 1.25,
+      "nose_strip_distance_aft_nose_cm_report": 3.17,
+      "fin_strip_distance_aft_each_LE_in": 0.5,
+      "fin_strip_distance_aft_each_LE_cm_report": 1.27
+    },
+    "support": {
+      "sting_diameter_in": 1.0,
+      "sting_exposed_length_aft_base_in": 11.5,
+      "flare_half_angle_deg": 19.2,
+      "source": "PDF6 printed4"
+    },
+    "base_correction": "Raw axial data uncorrected except identified summary alpha0/roll0; CN/Cm subset has no axial correction",
+    "accuracy_source": "PDF6 printed4; CN\u00b1.03,Cm\u00b1.05,alpha\u00b1.1deg,Mach\u00b1.003,roll\u00b1.5deg calibration/repeatability limits; not stated probability intervals"
+  },
+  "representability": {
+    "exact_supported": "finite nose ordinates, gross length/diameter, four-fin count and orientation, reported double-wedge/trapezoid feature types, reference station and normalization, transition/support conditions",
+    "unclosed": [
+      "nose interpolation and finite-tip radius convention",
+      "exact cylinder/taper junction and terminal reflex lip dimensions",
+      "complete fin root/section/anchor geometry dimension attachment",
+      "source-to-native coefficient sign and roll mapping",
+      "current native geometry support not inspected in this source-only task"
+    ],
+    "prohibited_shortcuts": [
+      "generic tangent ogive substitution",
+      "plain cone tail that silently drops reflex lip",
+      "flat trapezoid fins with flush roots presented as exact",
+      "D4014 dimensions substituted for D4013 without review"
+    ],
+    "release": "geometry closure is a qualification blocker; source candidate only"
+  }
+}

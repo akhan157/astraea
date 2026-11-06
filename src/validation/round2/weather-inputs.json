@@ -1,0 +1,191 @@
+{
+ "andromeda": {
+  "file": "euroc_2022_all_windows.nc",
+  "utc": "2022-10-14T13:00",
+  "lat": 39.388692,
+  "lon": -8.287814,
+  "elevationM": 160.0,
+  "padPressureHPa": 1002.525,
+  "padTemperatureC": 25.89,
+  "u10": 1.194,
+  "v10": -0.985,
+  "windSpeed10m": 1.548,
+  "windFromDeg": 309.5,
+  "windBelowLowestLevel": true,
+  "timeIndex": [
+   11,
+   11
+  ],
+  "timeWeight": 0.0,
+  "lowestLevelHeightM": 182.1,
+  "highestLevelHeightM": 47798.1
+ },
+ "astra": {
+  "file": "euroc_2022_all_windows.nc",
+  "utc": "2022-10-13T15:00",
+  "lat": 39.3897,
+  "lon": -8.2889639,
+  "elevationM": 160.0,
+  "padPressureHPa": 1004.186,
+  "padTemperatureC": 26.04,
+  "u10": 2.376,
+  "v10": -2.468,
+  "windSpeed10m": 3.426,
+  "windFromDeg": 316.1,
+  "windBelowLowestLevel": true,
+  "timeIndex": [
+   5,
+   5
+  ],
+  "timeWeight": 0.0,
+  "lowestLevelHeightM": 196.6,
+  "highestLevelHeightM": 47755.6
+ },
+ "bella_lui": {
+  "file": "bella_lui_weather_data_ERA5.nc",
+  "utc": "2020-02-22T13:00",
+  "lat": 47.213476,
+  "lon": 9.003336,
+  "elevationM": 407.0,
+  "padPressureHPa": 980.376,
+  "padTemperatureC": 13.48,
+  "u10": 0.69,
+  "v10": 1.053,
+  "windSpeed10m": 1.259,
+  "windFromDeg": 213.3,
+  "windBelowLowestLevel": false,
+  "timeIndex": [
+   3,
+   3
+  ],
+  "timeWeight": 0.0,
+  "lowestLevelHeightM": 240.5,
+  "highestLevelHeightM": 4375.2
+ },
+ "cavour": {
+  "file": "euroc_2023_all_windows.nc",
+  "utc": "2023-10-13T12:00",
+  "lat": 39.388692,
+  "lon": -8.287814,
+  "elevationM": 150.0,
+  "padPressureHPa": 1001.975,
+  "padTemperatureC": 23.04,
+  "u10": -0.593,
+  "v10": 3.001,
+  "windSpeed10m": 3.059,
+  "windFromDeg": 168.8,
+  "windBelowLowestLevel": true,
+  "timeIndex": [
+   15,
+   15
+  ],
+  "timeWeight": 0.0,
+  "lowestLevelHeightM": 167.1,
+  "highestLevelHeightM": 47472.2
+ },
+ "erebus11": {
+  "file": "euroc_2022_all_windows.nc",
+  "utc": "2022-10-15T15:00",
+  "lat": 39.3897,
+  "lon": -8.2889639,
+  "elevationM": 160.0,
+  "padPressureHPa": 995.648,
+  "padTemperatureC": 22.97,
+  "u10": 3.478,
+  "v10": -0.406,
+  "windSpeed10m": 3.502,
+  "windFromDeg": 276.7,
+  "windBelowLowestLevel": false,
+  "timeIndex": [
+   21,
+   21
+  ],
+  "timeWeight": 0.0,
+  "lowestLevelHeightM": 122.1,
+  "highestLevelHeightM": 47869.4
+ },
+ "genesis": {
+  "file": "euroc_2023_all_windows.nc",
+  "utc": "2023-10-12T13:00",
+  "lat": 39.38895,
+  "lon": -8.28837,
+  "elevationM": 160.0,
+  "padPressureHPa": 999.67,
+  "padTemperatureC": 29.93,
+  "u10": 0.688,
+  "v10": 2.902,
+  "windSpeed10m": 2.982,
+  "windFromDeg": 193.3,
+  "windBelowLowestLevel": false,
+  "timeIndex": [
+   5,
+   5
+  ],
+  "timeWeight": 0.0,
+  "lowestLevelHeightM": 157.1,
+  "highestLevelHeightM": 47501.2
+ },
+ "juno3": {
+  "file": "spaceport_america_pressure_levels_2023_hourly.nc",
+  "utc": "2023-06-23T23:00",
+  "lat": 32.939377,
+  "lon": -106.911986,
+  "elevationM": 1480.0,
+  "padPressureHPa": 849.885,
+  "padTemperatureC": 33.8,
+  "u10": 9.798,
+  "v10": 4.736,
+  "windSpeed10m": 10.882,
+  "windFromDeg": 244.2,
+  "windBelowLowestLevel": false,
+  "timeIndex": [
+   119,
+   119
+  ],
+  "timeWeight": 0.0,
+  "lowestLevelHeightM": 57.8,
+  "highestLevelHeightM": 48530.9
+ },
+ "lince": {
+  "file": "euroc_2023_all_windows.nc",
+  "utc": "2023-10-12T10:00",
+  "lat": 39.3897,
+  "lon": -8.288964,
+  "elevationM": 158.0,
+  "padPressureHPa": 1001.506,
+  "padTemperatureC": 23.71,
+  "u10": -0.783,
+  "v10": 0.922,
+  "windSpeed10m": 1.21,
+  "windFromDeg": 139.6,
+  "windBelowLowestLevel": true,
+  "timeIndex": [
+   2,
+   2
+  ],
+  "timeWeight": 0.0,
+  "lowestLevelHeightM": 171.1,
+  "highestLevelHeightM": 47349.9
+ },
+ "prometheus": {
+  "file": "spaceport_america_pressure_levels_2023_hourly.nc",
+  "utc": "2023-06-24T15:00",
+  "lat": 32.939377,
+  "lon": -106.911986,
+  "elevationM": 1401.0,
+  "padPressureHPa": 861.827,
+  "padTemperatureC": 26.81,
+  "u10": 0.174,
+  "v10": -0.108,
+  "windSpeed10m": 0.205,
+  "windFromDeg": 301.7,
+  "windBelowLowestLevel": false,
+  "timeIndex": [
+   135,
+   135
+  ],
+  "timeWeight": 0.0,
+  "lowestLevelHeightM": 116.7,
+  "highestLevelHeightM": 48169.6
+ }
+}

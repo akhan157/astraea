@@ -1,0 +1,368 @@
+[
+  {
+    "point_id": "d4013-cn-m1p20-alpha-2",
+    "series_id": "d4013-cn-m1p20",
+    "source_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+    "pdf_page_1based": 24,
+    "figure": "7b",
+    "quantity": "CN",
+    "conditions": {
+      "mach": 1.2,
+      "mach_source_bound": 0.003,
+      "reynolds_definition": "3e6/ft, not length-based Re; source trip details in frozen-subset.json",
+      "configuration": "short ARCAS, four fins on, zero cant",
+      "fin_cant_deg": 0,
+      "roll_definition": "0deg per source square-symbol legend; positive clockwise viewed upstream",
+      "alpha_definition": "measured plot alpha with \u00b1.1deg report bound, not forced nominal target",
+      "alpha_read_deg": -2.136986301369863,
+      "nominal_target_deg": -2
+    },
+    "reference": {
+      "axes": "report body axes; CN positive normal and Cm sign to original source definitions",
+      "area": "maximum body section S",
+      "moment_length": "body diameter d",
+      "moment_origin": "70percent body L text;12.75d dimensioned short drawing,18.20d length; rounding retained",
+      "base_convention": "not applicable to CN/Cm; no CA correction applied"
+    },
+    "reading": {
+      "image_sha256": "32f9367ec39a45dbbc8cfdc845797d81eeb590d80b1c604562f1fac4ad6c0f24",
+      "crop_box_pixels": [
+        300,
+        930,
+        850,
+        1190
+      ],
+      "calibration_id": "independent-root-pass.json/d4013-M1p2-CN-crop.png",
+      "pixel_x": 57,
+      "pixel_y": 170,
+      "value": -0.5,
+      "reading_kind": "marker_center"
+    },
+    "uncertainty": {
+      "digitization_bound": 0.05555555555555555,
+      "digitization_alpha_bound_deg": 0.1095890410958904,
+      "source_bound": 0.03,
+      "source_alpha_bound_deg": 0.1,
+      "confidence_interpretation": "reading bounds and report accuracy limits, not confidence intervals; no probability assigned",
+      "correlations": "source measurement, rendered/cropped image and calibration shared across points; two readers do not create independent physical measurements",
+      "unresolved_terms": [
+        "local scan skew and anchor calibration bound in second pass",
+        "exact square-marker overlap at nearzero",
+        "full geometry/reference transcription review"
+      ],
+      "first_reader_envelope_available": "comparison.json retains original first-reader bounds; do not average down uncertainty"
+    },
+    "review": {
+      "reader_id": "coordinator/root",
+      "status": "second_reader_independent",
+      "independent_reader_id": "accuracy_data_path",
+      "reconciliation": "coordinate agreement within stated bounds; full packet unqualified",
+      "first_reader_zero_excluded": false
+    }
+  },
+  {
+    "point_id": "d4013-cn-m1p20-alpha0",
+    "series_id": "d4013-cn-m1p20",
+    "source_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+    "pdf_page_1based": 24,
+    "figure": "7b",
+    "quantity": "CN",
+    "conditions": {
+      "mach": 1.2,
+      "mach_source_bound": 0.003,
+      "reynolds_definition": "3e6/ft, not length-based Re; source trip details in frozen-subset.json",
+      "configuration": "short ARCAS, four fins on, zero cant",
+      "fin_cant_deg": 0,
+      "roll_definition": "0deg per source square-symbol legend; positive clockwise viewed upstream",
+      "alpha_definition": "measured plot alpha with \u00b1.1deg report bound, not forced nominal target",
+      "alpha_read_deg": -0.0547945205479452,
+      "nominal_target_deg": 0
+    },
+    "reference": {
+      "axes": "report body axes; CN positive normal and Cm sign to original source definitions",
+      "area": "maximum body section S",
+      "moment_length": "body diameter d",
+      "moment_origin": "70percent body L text;12.75d dimensioned short drawing,18.20d length; rounding retained",
+      "base_convention": "not applicable to CN/Cm; no CA correction applied"
+    },
+    "reading": {
+      "image_sha256": "32f9367ec39a45dbbc8cfdc845797d81eeb590d80b1c604562f1fac4ad6c0f24",
+      "crop_box_pixels": [
+        300,
+        930,
+        850,
+        1190
+      ],
+      "calibration_id": "independent-root-pass.json/d4013-M1p2-CN-crop.png",
+      "pixel_x": 95,
+      "pixel_y": 151,
+      "value": 0.027777777777777776,
+      "reading_kind": "marker_center"
+    },
+    "uncertainty": {
+      "digitization_bound": 0.05555555555555555,
+      "digitization_alpha_bound_deg": 0.1095890410958904,
+      "source_bound": 0.03,
+      "source_alpha_bound_deg": 0.1,
+      "confidence_interpretation": "reading bounds and report accuracy limits, not confidence intervals; no probability assigned",
+      "correlations": "source measurement, rendered/cropped image and calibration shared across points; two readers do not create independent physical measurements",
+      "unresolved_terms": [
+        "local scan skew and anchor calibration bound in second pass",
+        "exact square-marker overlap at nearzero",
+        "full geometry/reference transcription review"
+      ],
+      "first_reader_envelope_available": "comparison.json retains original first-reader bounds; do not average down uncertainty"
+    },
+    "review": {
+      "reader_id": "coordinator/root",
+      "status": "second_reader_independent",
+      "independent_reader_id": "accuracy_data_path",
+      "reconciliation": "coordinate agreement within stated bounds; full packet unqualified",
+      "first_reader_zero_excluded": true
+    }
+  },
+  {
+    "point_id": "d4013-cn-m1p20-alpha2",
+    "series_id": "d4013-cn-m1p20",
+    "source_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+    "pdf_page_1based": 24,
+    "figure": "7b",
+    "quantity": "CN",
+    "conditions": {
+      "mach": 1.2,
+      "mach_source_bound": 0.003,
+      "reynolds_definition": "3e6/ft, not length-based Re; source trip details in frozen-subset.json",
+      "configuration": "short ARCAS, four fins on, zero cant",
+      "fin_cant_deg": 0,
+      "roll_definition": "0deg per source square-symbol legend; positive clockwise viewed upstream",
+      "alpha_definition": "measured plot alpha with \u00b1.1deg report bound, not forced nominal target",
+      "alpha_read_deg": 1.9726027397260273,
+      "nominal_target_deg": 2
+    },
+    "reference": {
+      "axes": "report body axes; CN positive normal and Cm sign to original source definitions",
+      "area": "maximum body section S",
+      "moment_length": "body diameter d",
+      "moment_origin": "70percent body L text;12.75d dimensioned short drawing,18.20d length; rounding retained",
+      "base_convention": "not applicable to CN/Cm; no CA correction applied"
+    },
+    "reading": {
+      "image_sha256": "32f9367ec39a45dbbc8cfdc845797d81eeb590d80b1c604562f1fac4ad6c0f24",
+      "crop_box_pixels": [
+        300,
+        930,
+        850,
+        1190
+      ],
+      "calibration_id": "independent-root-pass.json/d4013-M1p2-CN-crop.png",
+      "pixel_x": 132,
+      "pixel_y": 130,
+      "value": 0.6111111111111112,
+      "reading_kind": "marker_center"
+    },
+    "uncertainty": {
+      "digitization_bound": 0.05555555555555555,
+      "digitization_alpha_bound_deg": 0.1095890410958904,
+      "source_bound": 0.03,
+      "source_alpha_bound_deg": 0.1,
+      "confidence_interpretation": "reading bounds and report accuracy limits, not confidence intervals; no probability assigned",
+      "correlations": "source measurement, rendered/cropped image and calibration shared across points; two readers do not create independent physical measurements",
+      "unresolved_terms": [
+        "local scan skew and anchor calibration bound in second pass",
+        "exact square-marker overlap at nearzero",
+        "full geometry/reference transcription review"
+      ],
+      "first_reader_envelope_available": "comparison.json retains original first-reader bounds; do not average down uncertainty"
+    },
+    "review": {
+      "reader_id": "coordinator/root",
+      "status": "second_reader_independent",
+      "independent_reader_id": "accuracy_data_path",
+      "reconciliation": "coordinate agreement within stated bounds; full packet unqualified",
+      "first_reader_zero_excluded": false
+    }
+  },
+  {
+    "point_id": "d4013-cm-m1p20-alpha-2",
+    "series_id": "d4013-cm-m1p20",
+    "source_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+    "pdf_page_1based": 27,
+    "figure": "7c",
+    "quantity": "Cm",
+    "conditions": {
+      "mach": 1.2,
+      "mach_source_bound": 0.003,
+      "reynolds_definition": "3e6/ft, not length-based Re; source trip details in frozen-subset.json",
+      "configuration": "short ARCAS, four fins on, zero cant",
+      "fin_cant_deg": 0,
+      "roll_definition": "0deg per source square-symbol legend; positive clockwise viewed upstream",
+      "alpha_definition": "measured plot alpha with \u00b1.1deg report bound, not forced nominal target",
+      "alpha_read_deg": -2.028169014084507,
+      "nominal_target_deg": -2
+    },
+    "reference": {
+      "axes": "report body axes; CN positive normal and Cm sign to original source definitions",
+      "area": "maximum body section S",
+      "moment_length": "body diameter d",
+      "moment_origin": "70percent body L text;12.75d dimensioned short drawing,18.20d length; rounding retained",
+      "base_convention": "not applicable to CN/Cm; no CA correction applied"
+    },
+    "reading": {
+      "image_sha256": "e81991b65b1a85ace011e94f0f2aff0e54e7aa85e5368531f8356d41dec71906",
+      "crop_box_pixels": [
+        310,
+        780,
+        825,
+        1180
+      ],
+      "calibration_id": "independent-root-pass.json/d4013-M1p2-Cm-crop.png",
+      "pixel_x": 53,
+      "pixel_y": 164,
+      "value": 1.2058823529411764,
+      "reading_kind": "marker_center"
+    },
+    "uncertainty": {
+      "digitization_bound": 0.058823529411764705,
+      "digitization_alpha_bound_deg": 0.11267605633802817,
+      "source_bound": 0.05,
+      "source_alpha_bound_deg": 0.1,
+      "confidence_interpretation": "reading bounds and report accuracy limits, not confidence intervals; no probability assigned",
+      "correlations": "source measurement, rendered/cropped image and calibration shared across points; two readers do not create independent physical measurements",
+      "unresolved_terms": [
+        "local scan skew and anchor calibration bound in second pass",
+        "exact square-marker overlap at nearzero",
+        "full geometry/reference transcription review"
+      ],
+      "first_reader_envelope_available": "comparison.json retains original first-reader bounds; do not average down uncertainty"
+    },
+    "review": {
+      "reader_id": "coordinator/root",
+      "status": "second_reader_independent",
+      "independent_reader_id": "accuracy_data_path",
+      "reconciliation": "coordinate agreement within stated bounds; full packet unqualified",
+      "first_reader_zero_excluded": false
+    }
+  },
+  {
+    "point_id": "d4013-cm-m1p20-alpha0",
+    "series_id": "d4013-cm-m1p20",
+    "source_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+    "pdf_page_1based": 27,
+    "figure": "7c",
+    "quantity": "Cm",
+    "conditions": {
+      "mach": 1.2,
+      "mach_source_bound": 0.003,
+      "reynolds_definition": "3e6/ft, not length-based Re; source trip details in frozen-subset.json",
+      "configuration": "short ARCAS, four fins on, zero cant",
+      "fin_cant_deg": 0,
+      "roll_definition": "0deg per source square-symbol legend; positive clockwise viewed upstream",
+      "alpha_definition": "measured plot alpha with \u00b1.1deg report bound, not forced nominal target",
+      "alpha_read_deg": -0.11267605633802817,
+      "nominal_target_deg": 0
+    },
+    "reference": {
+      "axes": "report body axes; CN positive normal and Cm sign to original source definitions",
+      "area": "maximum body section S",
+      "moment_length": "body diameter d",
+      "moment_origin": "70percent body L text;12.75d dimensioned short drawing,18.20d length; rounding retained",
+      "base_convention": "not applicable to CN/Cm; no CA correction applied"
+    },
+    "reading": {
+      "image_sha256": "e81991b65b1a85ace011e94f0f2aff0e54e7aa85e5368531f8356d41dec71906",
+      "crop_box_pixels": [
+        310,
+        780,
+        825,
+        1180
+      ],
+      "calibration_id": "independent-root-pass.json/d4013-M1p2-Cm-crop.png",
+      "pixel_x": 87,
+      "pixel_y": 202,
+      "value": 0.08823529411764706,
+      "reading_kind": "marker_center"
+    },
+    "uncertainty": {
+      "digitization_bound": 0.058823529411764705,
+      "digitization_alpha_bound_deg": 0.11267605633802817,
+      "source_bound": 0.05,
+      "source_alpha_bound_deg": 0.1,
+      "confidence_interpretation": "reading bounds and report accuracy limits, not confidence intervals; no probability assigned",
+      "correlations": "source measurement, rendered/cropped image and calibration shared across points; two readers do not create independent physical measurements",
+      "unresolved_terms": [
+        "local scan skew and anchor calibration bound in second pass",
+        "exact square-marker overlap at nearzero",
+        "full geometry/reference transcription review"
+      ],
+      "first_reader_envelope_available": "comparison.json retains original first-reader bounds; do not average down uncertainty"
+    },
+    "review": {
+      "reader_id": "coordinator/root",
+      "status": "second_reader_independent",
+      "independent_reader_id": "accuracy_data_path",
+      "reconciliation": "coordinate agreement within stated bounds; full packet unqualified",
+      "first_reader_zero_excluded": true
+    }
+  },
+  {
+    "point_id": "d4013-cm-m1p20-alpha2",
+    "series_id": "d4013-cm-m1p20",
+    "source_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+    "pdf_page_1based": 27,
+    "figure": "7c",
+    "quantity": "Cm",
+    "conditions": {
+      "mach": 1.2,
+      "mach_source_bound": 0.003,
+      "reynolds_definition": "3e6/ft, not length-based Re; source trip details in frozen-subset.json",
+      "configuration": "short ARCAS, four fins on, zero cant",
+      "fin_cant_deg": 0,
+      "roll_definition": "0deg per source square-symbol legend; positive clockwise viewed upstream",
+      "alpha_definition": "measured plot alpha with \u00b1.1deg report bound, not forced nominal target",
+      "alpha_read_deg": 1.971830985915493,
+      "nominal_target_deg": 2
+    },
+    "reference": {
+      "axes": "report body axes; CN positive normal and Cm sign to original source definitions",
+      "area": "maximum body section S",
+      "moment_length": "body diameter d",
+      "moment_origin": "70percent body L text;12.75d dimensioned short drawing,18.20d length; rounding retained",
+      "base_convention": "not applicable to CN/Cm; no CA correction applied"
+    },
+    "reading": {
+      "image_sha256": "e81991b65b1a85ace011e94f0f2aff0e54e7aa85e5368531f8356d41dec71906",
+      "crop_box_pixels": [
+        310,
+        780,
+        825,
+        1180
+      ],
+      "calibration_id": "independent-root-pass.json/d4013-M1p2-Cm-crop.png",
+      "pixel_x": 124,
+      "pixel_y": 241,
+      "value": -1.0588235294117647,
+      "reading_kind": "marker_center"
+    },
+    "uncertainty": {
+      "digitization_bound": 0.058823529411764705,
+      "digitization_alpha_bound_deg": 0.11267605633802817,
+      "source_bound": 0.05,
+      "source_alpha_bound_deg": 0.1,
+      "confidence_interpretation": "reading bounds and report accuracy limits, not confidence intervals; no probability assigned",
+      "correlations": "source measurement, rendered/cropped image and calibration shared across points; two readers do not create independent physical measurements",
+      "unresolved_terms": [
+        "local scan skew and anchor calibration bound in second pass",
+        "exact square-marker overlap at nearzero",
+        "full geometry/reference transcription review"
+      ],
+      "first_reader_envelope_available": "comparison.json retains original first-reader bounds; do not average down uncertainty"
+    },
+    "review": {
+      "reader_id": "coordinator/root",
+      "status": "second_reader_independent",
+      "independent_reader_id": "accuracy_data_path",
+      "reconciliation": "coordinate agreement within stated bounds; full packet unqualified",
+      "first_reader_zero_excluded": false
+    }
+  }
+]

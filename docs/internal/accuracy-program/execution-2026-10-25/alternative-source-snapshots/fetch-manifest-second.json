@@ -1,0 +1,44 @@
+[
+  {
+    "name": "openrocket-24.12-LICENSE.TXT",
+    "url": "https://raw.githubusercontent.com/openrocket/openrocket/release-24.12/LICENSE.TXT",
+    "bytes": 35983,
+    "sha256": "dcd376d0782e500de0f5b9d3479de910e5112268b399b72f273f33dc5d40fd71"
+  },
+  {
+    "name": "openrocket-24.12-AerodynamicCalculator.java",
+    "url": "https://raw.githubusercontent.com/openrocket/openrocket/release-24.12/core/src/main/java/info/openrocket/core/aerodynamics/AerodynamicCalculator.java",
+    "bytes": 3497,
+    "sha256": "afad3e78ce04ed6b0d7a575b7f1e06593f4a8837878d764db76d039836cb3222"
+  },
+  {
+    "name": "openrocket-24.12-AerodynamicForces.java",
+    "url": "https://raw.githubusercontent.com/openrocket/openrocket/release-24.12/core/src/main/java/info/openrocket/core/aerodynamics/AerodynamicForces.java",
+    "bytes": 10773,
+    "sha256": "58d13ea28197d6835f774ece9dc2884a03add48b1d5f97d5e0ee3001e8c322e0"
+  },
+  {
+    "name": "openrocket-24.12-FlightConditions.java",
+    "url": "https://raw.githubusercontent.com/openrocket/openrocket/release-24.12/core/src/main/java/info/openrocket/core/aerodynamics/FlightConditions.java",
+    "bytes": 12007,
+    "sha256": "c0d88ecb2c0b3f97d574ad93f544afb406a507572fa92b4ab210c38ca3c3fca1"
+  },
+  {
+    "name": "openrocket-24.12-BarrowmanCalculator.java",
+    "url": "https://raw.githubusercontent.com/openrocket/openrocket/release-24.12/core/src/main/java/info/openrocket/core/aerodynamics/BarrowmanCalculator.java",
+    "bytes": 35101,
+    "sha256": "914f02e0269fdd0e0c6cf10f100544ba42adcbdffde8613d75cda063c12da838"
+  },
+  {
+    "name": "openrocket-24.12-tree.json",
+    "url": "https://api.github.com/repos/openrocket/openrocket/git/trees/release-24.12?recursive=1",
+    "bytes": 761088,
+    "sha256": "be1a37c5d66bd73e5bcca98e2bf3b86ab8bfb160bed6cd19284f80abe531f03f"
+  },
+  {
+    "name": "rocketpy-generic-1.13.0.py",
+    "url": "https://raw.githubusercontent.com/RocketPy-Team/RocketPy/v1.13.0/rocketpy/rocket/aero_surface/generic_surface.py",
+    "bytes": 16734,
+    "sha256": "e8a296b2cea9fe44e5a7961810c305245bc2591731f087ba4eefa4a0a0296e40"
+  }
+]

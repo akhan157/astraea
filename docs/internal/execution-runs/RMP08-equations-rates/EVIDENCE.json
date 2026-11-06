@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP08",
+  "subpacket": "C02 equation verification, C05 rates, C06 geometry refusal, bounded C07 dispositions",
+  "baseSha": "82c595df544dcdb883ca2fe81274bff7c4664a50",
+  "sourceSha": "39d944c6d07c828ffbbb7276d969513d58f7120f",
+  "owner": "sole author in isolated worktree rmp08-c02-c05-c06-equations",
+  "modelRouting": {
+    "provider": "openrouter",
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "effort": "high",
+    "usageTelemetry": "not supplied"
+  },
+  "effectiveInputs": [
+    {"kind": "packet", "path": "docs/internal/execution-package/packets/RMP08.md"},
+    {"kind": "control-loop", "path": "docs/internal/execution-package/CONTROL-LOOP.md"},
+    {"kind": "decisions", "path": "docs/internal/execution-package/DECISIONS.md"},
+    {"kind": "interfaces", "path": "docs/internal/execution-package/INTERFACES.md"},
+    {"kind": "p0-contract", "path": "docs/internal/accuracy-program/first-batch-2026-10-26/P0-contract.md", "sha256": "4121764cdacc33a9491dda86f67e01d0032aff33a069f4349a9d3744e3b506b5"},
+    {"kind": "p0-review", "path": "docs/internal/accuracy-program/first-batch-2026-10-26/P0-independent-review.md"},
+    {"kind": "diagnostic", "path": "docs/internal/accuracy-program/diagnostics/A1a-static-provider-2026-10-26.md"},
+    {"kind": "foundation", "path": "docs/internal/accuracy-program/sb1-foundation-2026-10-26/README.md"},
+    {"kind": "public-source", "path": "https://openrocket.sourceforge.net/techdoc.pdf", "sha256": "cc6fd3291ade76ee044ffd40ff285cf814c7496b97d1ff7b35222d8f2d23cf8c", "note": "downloaded and inspected; printed p29 rendered for (3.39)/(3.40); not committed"}
+  ],
+  "sourceHashes": {
+    "crates/astraea-core/src/aero_coefficients.rs": "73da11e497e2d234012f5903579ef74b407db2d87feead55bda1b6e68b19403c",
+    "crates/astraea-core/src/aero_profiles.rs": "56db9ad8b62a194f4c54cf396e800bd4d7acc0b873c0175f6b996ac8fbb71c53",
+    "crates/astraea-core/src/flight_provider.rs": "68a68dcc039c636c55301400fad3805eb63a1786f5437a40482395d550673809",
+    "crates/astraea-engine/src/sb1_geometry.rs": "b1d792a61ed83219fa0a15ac3bdba003207c42a54e2875f15bd35bf4dbc7918b",
+    "crates/astraea-engine/src/supplied_aero.rs": "7ef68a3c121ec4d0cf961460c8122626fbbea35ef02848a8fe0611ba5debd0ce"
+  },
+  "runtimeHashes": {
+    "note": "No WASM rebuilt and no production binary change; checks are native debug tests in the isolated target directory."
+  },
+  "artifactAvailability": [
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/techdoc.pdf", "inGit": false, "sha256": "cc6fd3291ade76ee044ffd40ff285cf814c7496b97d1ff7b35222d8f2d23cf8c"},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/techdoc.txt", "inGit": false, "sha256": "4d91420ea2a41498179397ad1ece235b7acf3cdf87384c04be4da2c1dff04a70"},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/independent_check.py", "inGit": false, "sha256": "676cd0e3e43d64dc1bab7cbb28b5958bfe9041954064f897c881f67575ab3b1d"},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/independent-check.log", "inGit": false, "sha256": "94645d527faf1a6d374066171147b3413b5bd847b8b4eb2736b53fada6d5f1b4"},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/core-aero-coefficients.log", "inGit": false, "sha256": "dd829d68f673e805e5c325d83cb5e1636014451b6a33a82cbb6afb80681127e8"},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/core-rate-composition.log", "inGit": false, "sha256": "58e23946485cb61707cacdec7673867076220482d527d138372757b60f8e3ee6"},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/engine-sb1-geometry.log", "inGit": false, "sha256": "ba6da1224a8b8513644ba2e0a7fef1a34db2b1158df8a3bd218ca00669e0d914"},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/core-lib-full.log", "inGit": false, "sha256": "60f245b6d3d326ca91c9b34bc4fa803188b56870511016bf8589b4069ac042ff"},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/engine-lib-full.log", "inGit": false, "sha256": "fc63b45da2f38bd76532ea1857d8ad767bd176d876b4e534432018731962b1ad"},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/native-smoke.log", "inGit": false, "sha256": "fdc421a3d27415bbed0be066e1eaf5375354409d0d1069578abfd62cd96d497a"}
+  ],
+  "checks": [
+    {"id": "C02-core-module", "status": "pass", "kind": "native_computational", "commandOrMechanism": "cargo test --offline -j2 --manifest-path crates/astraea-core/Cargo.toml --lib aero_coefficients::tests -- --test-threads=2", "expectedRule": "all coefficient, transform, cancellation, partition, sweep and reduced-rate fixtures pass", "observed": "17 passed; 184 filtered out", "exitCode": 0, "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/core-aero-coefficients.log", "sha256": "dd829d68f673e805e5c325d83cb5e1636014451b6a33a82cbb6afb80681127e8", "limitation": "algebra fixtures only; not empirical"},
+    {"id": "C05-rate-composition", "status": "pass", "kind": "native_computational", "commandOrMechanism": "cargo test ... --lib flight_provider::tests::signed_rate_couple ...", "expectedRule": "dimensional couple signs, force-free pure couple, static invariance, and additive composed moment", "observed": "1 passed", "exitCode": 0, "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/core-rate-composition.log", "sha256": "58e23946485cb61707cacdec7673867076220482d527d138372757b60f8e3ee6", "limitation": "inherited couple remains empirically unqualified and is not a normalized derivative matrix"},
+    {"id": "C02/C05-core-full", "status": "pass", "kind": "native_regression", "commandOrMechanism": "cargo test ... --lib (astraea-core)", "expectedRule": "no pre-existing core test regressed", "observed": "201 passed; 0 failed", "exitCode": 0, "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/core-lib-full.log", "sha256": "60f245b6d3d326ca91c9b34bc4fa803188b56870511016bf8589b4069ac042ff", "limitation": "unit/integration harness, not a flight or empirical run"},
+    {"id": "C06-adapter", "status": "pass", "kind": "native_computational", "commandOrMechanism": "cargo test ... --manifest-path crates/astraea-engine/Cargo.toml --lib sb1_geometry::tests ...", "expectedRule": "unsupported/multiple fins, unknown profiles/attachments and non-converged quadrature reject, localize the component, and leave serialized input identical", "observed": "7 passed; 35 filtered out", "exitCode": 0, "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/engine-sb1-geometry.log", "sha256": "ba6da1224a8b8513644ba2e0a7fef1a34db2b1158df8a3bd218ca00669e0d914", "limitation": "typed DTO boundary; raw JSON already deserialized may have lost unknown fields"},
+    {"id": "C06-engine-full", "status": "pass", "kind": "native_regression", "commandOrMechanism": "cargo test ... --lib (astraea-engine)", "expectedRule": "no pre-existing engine unit test regressed", "observed": "42 passed; 0 failed", "exitCode": 0, "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/engine-lib-full.log", "sha256": "fc63b45da2f38bd76532ea1857d8ad767bd176d876b4e534432018731962b1ad", "limitation": "native lib tests only; no WASM or frontend"},
+    {"id": "C02/C05/C06-native-smoke", "status": "pass", "kind": "throwaway_native_smoke", "commandOrMechanism": "cargo run --offline --example rmp08_equations_smoke (scaffold deleted after run)", "expectedRule": "actual adapter and static evaluator produce finite signed wrenches satisfying power, translation, reduced-rate and refusal invariants", "observed": "SMOKE PASS; CD=0.302598773, CL=0.146265548, omegaHat=(0.00005,-0.0001,0.00015), rejected second-fins, input_unchanged=true", "exitCode": 0, "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/native-smoke.log", "sha256": "fdc421a3d27415bbed0be066e1eaf5375354409d0d1069578abfd62cd96d497a", "limitation": "synthetic fixture and prescribed CA0; no measured or flight claim"},
+    {"id": "C02/C05-independent-algebra", "status": "pass", "kind": "independent_python", "commandOrMechanism": "python3 independent_check.py (stdlib Decimal/Fraction, no Rust import)", "expectedRule": "source equations (3.18),(3.24),(3.30)-(3.34),(3.37)-(3.40) and P0 transforms/reference scaling reproduce independently", "observed": "INDEPENDENT CHECKS PASS: 191", "exitCode": 0, "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates/independent-check.log", "sha256": "94645d527faf1a6d374066171147b3413b5bd847b8b4eb2736b53fada6d5f1b4", "limitation": "algebra/numeric only; ambiguity in extracted (3.39) resolved by rendered page, not by a second source"}
+  ],
+  "review": {
+    "reviewer": "openai-codex/gpt-6.1-sol; coordinating session",
+    "independentOfAuthor": true,
+    "disposition": "ACCEPT bounded C02/C05/C06 computational scope; C07 partial, no empirical/dynamic qualification",
+    "sourceCommitReviewed": "075af43bc7a7f9f1eb403f8d89c71ed86cff76f8",
+    "independentBoundary": "Exact Fraction cone split: front (8/9,16/27), rear (64/9,416/27), sum (8,16)",
+    "coordinatorSmoke": "Existing native smoke executable run: SMOKE PASS, CD=0.302598773, CL=0.146265548; actual adapter/evaluator and second-fins refusal",
+    "mimo": "Unavailable after recorded 402 funds failure; no MiMo verdict claimed",
+    "findings": [
+      "Corrected worksheet intermediate cone fractions; implementation/author checker already correct",
+      "Corrected linear-area-ramp fixture label and midchord-versus-MAC explanation",
+      "Removed unsupported measured-discrepancy wording; no new measured validation",
+      "Integration must rereview RMP02 native-source pins for test/comment-only file changes; preserve frozen source artifacts/exclusions"
+    ]
+  },
+  "coordinatorIntegration": {
+    "reviewedSourceSha": "39d944c6d07c828ffbbb7276d969513d58f7120f",
+    "nativeBoundaryRereview": "Only native_source byte/hash pins updated after reviewed test/comment additions; no runtime equations or adapter branches changed, frozen source/artifact manifests and all exclusions unchanged",
+    "oldNativePins": {
+      "crates/astraea-engine/src/sb1_geometry.rs": "518155a14c415528f928c7af4c978148910930a765b6e0c368fe6b07a0ff9d24",
+      "crates/astraea-core/src/aero_coefficients.rs": "6c4c5715daecd0395232fed5f3cb825b97a92cc44437e9f47c96ad780be78e7c"
+    },
+    "currentNativePins": {
+      "crates/astraea-engine/src/sb1_geometry.rs": "b1d792a61ed83219fa0a15ac3bdba003207c42a54e2875f15bd35bf4dbc7918b",
+      "crates/astraea-core/src/aero_coefficients.rs": "73da11e497e2d234012f5903579ef74b407db2d87feead55bda1b6e68b19403c"
+    },
+    "custodyBeforeRereviewExit": 1,
+    "custodyAfterRereviewExit": 0,
+    "retainedArtifactsVerified": 64,
+    "qualifiedCases": 0,
+    "conventionsCheckerExit": 0,
+    "diagnosticsTests": 57,
+    "evidenceDirectory": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-equations-rates",
+    "artifacts": [
+      {"name": "coordinator-partition-check.json", "bytes": 564, "sha256": "6dc1bd8a7b102a331371d4c151a5d50cd27a4a6909c89dca3479ffdd25a6936e"},
+      {"name": "native-pin-before-rereview.log", "bytes": 154, "sha256": "3bf6088e6b98d9a38d8859d0ba536d4eef08d94b9b1080b11215e5ec4b3f66d8"},
+      {"name": "native-pin-after-rereview.log", "bytes": 4851, "sha256": "a5467b8e24a192988bda3e98ce2b7f28d0c1620a6bc649a5d6cdaf039d11eb02"},
+      {"name": "integrated-conventions-check.log", "bytes": 34355, "sha256": "e11a470d86fda0578d4391d3abbac63bd50976eb89c2197718f7796925eb21dc"},
+      {"name": "integrated-diagnostics-tests.log", "bytes": 7663, "sha256": "df39b9b0852e458445377cc7c367e52db0b2c54d4e146a799f98ec8a4d352af8"}
+    ]
+  },
+  "qualification": {
+    "computational": "bounded_equation_verification_pass_no_production_integration",
+    "physical": "unqualified",
+    "dynamic": "unknown"
+  },
+  "failedAttempts": [
+    {"attempt": "first focused test compile", "observed": "ambiguous float type for alpha/beta trig literals", "disposition": "typed as f64; no behavioral assertion changed"},
+    {"attempt": "independent checker drafting", "observed": "author transcription errors: (3.39) denominator misread from extracted text, a bulge derivative factor, and wind projection sign", "disposition": "resolved by inspecting rendered p29 and re-deriving; final 191 checks pass; no implementation failure observed"},
+    {"attempt": "red-first", "observed": "none", "disposition": "new tests assert already-implemented signed behavior; no genuine pre-existing failure was observed and none was manufactured"}
+  ],
+  "remainingScope": [
+    "C07 development comparisons and numerical budgets remain partial; review accepted only existing bounded computational C02/C05/C06",
+    "empirical validation of SB1/rate composition against matched measurements",
+    "source-normalized derivative matrix and its reference renormalization (not represented in code)",
+    "finite-angle sine-law, body-lift, roll and viscous-crossflow effects",
+    "Mach-dependent fin CP above approximately 0.5 and any transonic support",
+    "real profile quadrature/geometry evidence beyond caller declarations",
+    "RMP08 C03/C04/C08 are not claimed by this lane"
+  ],
+  "nextActions": [
+    "integrate reviewed source/docs into continue-task",
+    "refresh only reviewed current-native RMP02 pins after test/comment-only changes and exercise custody/checker",
+    "record scoped C02/C05/C06 acceptance; keep empirical, dynamic and broader RMP08 qualification open"
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

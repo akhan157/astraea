@@ -1,0 +1,46 @@
+name: Bug report
+description: Something in Astraea does not work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not post security vulnerabilities here; follow [SECURITY.md](https://github.com/akhan157/astraea/security/policy).
+        Only attach files you intend to share. Projects and flight bundles can contain launch coordinates and identifying information.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what you saw instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Load the NASA Student Launch preset\n2. ..."
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where are you running Astraea?
+      options:
+        - Website (browser)
+        - Desktop app — Windows
+        - Desktop app — macOS
+        - Desktop app — Linux
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version or source commit, OS, and browser
+      placeholder: "0.10.0 / commit SHA, Windows 11, Firefox 140 (if browser)"
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: Project file or logs
+      description: Attach a minimal project or log only if you intend to share it. Remove private coordinates and identifiers first.

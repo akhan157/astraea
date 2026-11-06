@@ -1,0 +1,8 @@
+{
+  "target": "/workspace/.toolchains/desktop-target/debug/astraea-workstation",
+  "beforeSha256": "7351a37bdefa74cdcadf3bef85bd4193c7c1894bde17c08a9da80b8a091cb391",
+  "afterSha256": "d5938bc6a5ee9201695cd67f5f3702b28eccf9641d6eef51d463b5f08873ccfd",
+  "fixtureCopyRetained": "bridge204-debug",
+  "method": "copy verified immutable original to new inode then atomic replace, preserving fixture artifacts",
+  "cargoCacheNote": "Config/fingerprint cache was not edited; subsequent native build must run Tauri with intended config rather than assume target identity"
+}

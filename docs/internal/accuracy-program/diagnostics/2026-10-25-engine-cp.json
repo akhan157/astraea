@@ -1,0 +1,1893 @@
+{
+  "schema": "astraea-engine-diagnostic-v1",
+  "sourceCommit": "d3afdf1e06d7f51f1d1fd33c74652fca4ff9564f",
+  "wasm": {
+    "path": "/workspace/astraea/src/engine/astraea_engine.wasm",
+    "sha256": "e4ab1b9d207f791734108c6a85e480da3660603a66fdb97101f9ff033efe0985"
+  },
+  "sources": {
+    "crates/astraea-core/src/aero.rs": "59139c6ea16ab28e4bddc21585674c5622743522f4c63609be68249973f460f5",
+    "crates/astraea-core/src/six_dof.rs": "4cbf79676df166150206b9de33d1ff35d6f4a15be153a72899386ede8d4ef83f",
+    "crates/astraea-engine/src/models.rs": "1460cf99a142716ac5359edccbda6ff3a16677bee8b2a74ba56bb54ffebb67af",
+    "src/dynamics/loads.ts": "a3d97bca1dec34da985c3134fd58595ee2feb873ca3aad131ad215f9002a2388",
+    "src/state/presets.ts": "425a88dfd9b93dea67e7f1d543e7488b8cfc6def3b8d71e5b65661f7bf9af2c4",
+    "src/validation/development/benchmark.ts": "2db913943e01dab1a51f981e43f69e1a0ba8a31afd4377a7e99e398a920fc36e",
+    "src/evidence/cosmicCargoFixture.ts": "6b36d28117ed16e81e8ffb9e9f50a5e0fb3df9a4c97dc30726f24635ec68dc86",
+    "src/validation/miniDx3/miniDx3-vehicle.ts": "4be5b278e3424332cbee808fe364035586bb2c501ba4d6d095e72d7a76859256",
+    "src/validation/miniDx3/motors.ts": "0a989c70768901e0aa2039752945c34df8bf41cc0619da70c8033a04c19c8d69",
+    "pnpm-lock.yaml": "8098fac5500fa1b8cce4e8566423f7369764347aeca908f8257ceeb1ae84ed41"
+  },
+  "method": "Production-WASM stability/curve outputs; exact extracted Rust normal_slope_at_mach over reconstructed positive-only flight-preparation inputs; separate TS load oracle at matched states.",
+  "extractedFunction": {
+    "sha256": "0d6c6c7329dac76664542375a561070e39f9b933cf41ed07361afc35adb837bc",
+    "text": "fn normal_slope_at_mach(mach: f64, vehicle: &Vehicle) -> (f64, f64) {\n    if !mach.is_finite() || mach <= 1.0 {\n        let total = vehicle.cna_body + vehicle.cna_fins;\n        let cp = if total > 0.0 {\n            (vehicle.cna_body * vehicle.cp_body + vehicle.cna_fins * vehicle.cp_fins) / total\n        } else {\n            vehicle.cp_body\n        };\n        return (total, cp);\n    }\n    let degrade = 1.0f64.min(1.0 / (mach * mach - 1.0).sqrt());\n    let fin_cna = vehicle.cna_fins * degrade;\n    let total = vehicle.cna_body + fin_cna;\n    let cp = if total > 0.0 {\n        (vehicle.cna_body * vehicle.cp_body + fin_cna * vehicle.cp_fins) / total\n    } else {\n        vehicle.cp_body\n    };\n    (total, cp)\n}"
+  },
+  "conventions": {
+    "cpDatum": "meters aft of nose",
+    "atmosphere": "ISA sea level",
+    "recovery": false,
+    "railBound": false,
+    "motorTimeS": 3.82,
+    "attitude": "identity, body +Y longitudinal",
+    "angularRatesRadS": [
+      0,
+      0,
+      0
+    ],
+    "motorId": "aerotech_k550w",
+    "note": "Mach/AoA states are controlled local conditions, not a simulated attainable trajectory; curves expose no AoA argument. CP-only moment substitution holds flight slope/drag/CG fixed and is not a replacement model."
+  },
+  "checks": {
+    "maxOracleCpDifferenceM": 4.440892098500626e-16,
+    "maxOracleCnaDifference": 7.105427357601002e-15,
+    "maxMomentIdentityResidualNm": 2.0463630789890885e-12
+  },
+  "vehicles": [
+    {
+      "id": "preset-nasa-sl",
+      "vehicle": {
+        "id": "preset-nasa-sl",
+        "name": "NASA Student Launch Target Vehicle",
+        "version": "1.0",
+        "author": "University Rocketry Team",
+        "notes": "High-power collegiate competition rocket (6-inch airframe, dual-deployment).",
+        "components": [
+          {
+            "id": "nsl-nc",
+            "name": "Von Kármán Nosecone",
+            "type": "nosecone",
+            "shape": "vonkarman",
+            "length": 0.65,
+            "baseDiameter": 0.152,
+            "wallThickness": 0.0035,
+            "isHollow": true,
+            "materialId": "fiberglass",
+            "color": "#06b6d4"
+          },
+          {
+            "id": "nsl-bt1",
+            "name": "Payload & Avionics Bay",
+            "type": "bodytube",
+            "length": 0.75,
+            "outerDiameter": 0.152,
+            "innerDiameter": 0.145,
+            "materialId": "fiberglass",
+            "color": "#18181b"
+          },
+          {
+            "id": "nsl-trans",
+            "name": "Airframe Transition",
+            "type": "transition",
+            "length": 0.12,
+            "foreDiameter": 0.152,
+            "aftDiameter": 0.152,
+            "wallThickness": 0.003,
+            "isHollow": true,
+            "materialId": "aluminum",
+            "color": "#71717a"
+          },
+          {
+            "id": "nsl-bt2",
+            "name": "Booster & Motor Section",
+            "type": "bodytube",
+            "length": 1.45,
+            "outerDiameter": 0.152,
+            "innerDiameter": 0.145,
+            "isMotorMount": true,
+            "materialId": "fiberglass",
+            "color": "#18181b"
+          },
+          {
+            "id": "nsl-fins",
+            "name": "High-Power Clipped Delta Fins",
+            "type": "trapezoidfinset",
+            "finCount": 4,
+            "rootChord": 0.32,
+            "tipChord": 0.12,
+            "span": 0.18,
+            "sweepLength": 0.18,
+            "thickness": 0.0048,
+            "crossSection": "airfoil",
+            "axialOffset": 1.1,
+            "materialId": "carbonfiber",
+            "color": "#06b6d4"
+          },
+          {
+            "id": "nsl-drogue",
+            "name": "Drogue Parachute (Apogee)",
+            "type": "parachute",
+            "diameter": 0.6,
+            "cd": 1.2,
+            "mass": 0.18,
+            "axialOffset": 0.2,
+            "materialId": "cardboard"
+          },
+          {
+            "id": "nsl-main",
+            "name": "Main Parachute (700ft AGL)",
+            "type": "parachute",
+            "diameter": 2.4,
+            "cd": 1.5,
+            "mass": 0.75,
+            "axialOffset": 0.85,
+            "materialId": "cardboard"
+          }
+        ]
+      },
+      "dryStability": {
+        "cg": 1.7972237541913614,
+        "contributions": [
+          {
+            "axialEnd": 0.65,
+            "axialStart": 0,
+            "cg": 0.30830652440896567,
+            "cna": 2,
+            "cp": 0.325,
+            "id": "nsl-nc",
+            "mass": 1.1387283031266355,
+            "name": "Von Kármán Nosecone",
+            "type": "nosecone"
+          },
+          {
+            "axialEnd": 1.4,
+            "axialStart": 0.65,
+            "cg": 1.025,
+            "cna": null,
+            "cp": null,
+            "id": "nsl-bt1",
+            "mass": 2.265569359613323,
+            "name": "Payload & Avionics Bay",
+            "type": "bodytube"
+          },
+          {
+            "axialEnd": 1.52,
+            "axialStart": 1.4,
+            "cg": 1.46,
+            "cna": 0,
+            "cp": 1.46,
+            "id": "nsl-trans",
+            "mass": 0.4549905808341027,
+            "name": "Airframe Transition",
+            "type": "transition"
+          },
+          {
+            "axialEnd": 2.9699999999999998,
+            "axialStart": 1.52,
+            "cg": 2.245,
+            "cna": null,
+            "cp": null,
+            "id": "nsl-bt2",
+            "mass": 4.380100761919091,
+            "name": "Booster & Motor Section",
+            "type": "bodytube"
+          },
+          {
+            "axialEnd": 2.94,
+            "axialStart": 2.62,
+            "cg": 2.813939393939394,
+            "cna": 11.990945166157932,
+            "cp": 2.7567997623291745,
+            "id": "nsl-fins",
+            "mass": 1.1784959999999998,
+            "name": "High-Power Clipped Delta Fins",
+            "type": "trapezoidfinset"
+          },
+          {
+            "axialEnd": 1.77,
+            "axialStart": 1.72,
+            "cg": 1.7449999999999999,
+            "cna": null,
+            "cp": null,
+            "id": "nsl-drogue",
+            "mass": 0.18,
+            "name": "Drogue Parachute (Apogee)",
+            "type": "parachute"
+          },
+          {
+            "axialEnd": 2.42,
+            "axialStart": 2.37,
+            "cg": 2.395,
+            "cna": null,
+            "cp": null,
+            "id": "nsl-main",
+            "mass": 0.75,
+            "name": "Main Parachute (700ft AGL)",
+            "type": "parachute"
+          }
+        ],
+        "cp": 2.409174961652899,
+        "isOverStable": true,
+        "isStable": true,
+        "maxDiameter": 0.152,
+        "referenceDiameter": 0.152,
+        "staticMarginCalibers": 4.025994785931167,
+        "totalCNa": 13.990945166157932,
+        "totalLength": 2.9699999999999998,
+        "totalMass": 10.34788500549315
+      },
+      "flightPreparation": {
+        "body": {
+          "cna": 2,
+          "cp": 0.325
+        },
+        "fins": {
+          "cna": 11.990945166157932,
+          "cp": 2.7567997623291745
+        },
+        "excludedNonpositiveContributions": [
+          {
+            "axialEnd": 1.52,
+            "axialStart": 1.4,
+            "cg": 1.46,
+            "cna": 0,
+            "cp": 1.46,
+            "id": "nsl-trans",
+            "mass": 0.4549905808341027,
+            "name": "Airframe Transition",
+            "type": "transition"
+          }
+        ]
+      },
+      "rows": [
+        {
+          "mach": 0,
+          "curveCpM": 2.409174961652899,
+          "flightCpM": 2.409174961652899,
+          "curveMinusFlightM": 0,
+          "curveMinusFlightCal": 0,
+          "flightCna": 13.990945166157932,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 0,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 0,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 0,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 0,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 0,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 0.3,
+          "curveCpM": 2.4122307186580096,
+          "flightCpM": 2.409174961652899,
+          "curveMinusFlightM": 0.0030557570051108485,
+          "curveMinusFlightCal": 0.020103664507308213,
+          "flightCna": 13.990945166157932,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 0.3,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 0.3,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 28.283724091388688,
+              "lateralDragN": 0.8834363690847282,
+              "sourceMomentNm": 16.005022947840256,
+              "tsOracleMomentNm": 16.005022947840256,
+              "cpOnlySubstitutionMomentNm": 16.094150702736542,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 0.3,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 141.24636563520855,
+              "lateralDragN": 4.411801501103384,
+              "sourceMomentNm": 79.92764022114154,
+              "tsOracleMomentNm": 79.92764022114154,
+              "cpOnlySubstitutionMomentNm": 80.37273618571993,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 0.3,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 281.41776114104573,
+              "lateralDragN": 8.790026528864791,
+              "sourceMomentNm": 159.2469828385715,
+              "tsOracleMomentNm": 159.2469828385715,
+              "cpOnlySubstitutionMomentNm": 160.13378731868156,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 0.3,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 419.4473975599095,
+              "lateralDragN": 13.101354147178405,
+              "sourceMomentNm": 237.35435976064272,
+              "tsOracleMomentNm": 237.35435976064272,
+              "cpOnlySubstitutionMomentNm": 238.6761236387236,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 0.8,
+          "curveCpM": 2.4329561917793407,
+          "flightCpM": 2.409174961652899,
+          "curveMinusFlightM": 0.023781230126441955,
+          "curveMinusFlightCal": 0.15645546135817076,
+          "flightCna": 13.990945166157932,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 0.8000000000000002,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 0.8000000000000002,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 201.1287046498752,
+              "lateralDragN": 7.430810665057358,
+              "sourceMomentNm": 114.4437708679084,
+              "tsOracleMomentNm": 114.44377086790841,
+              "cpOnlySubstitutionMomentNm": 119.403572696672,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 0.8000000000000002,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 1004.4186000725945,
+              "lateralDragN": 37.10879786450237,
+              "sourceMomentNm": 571.52186368563,
+              "tsOracleMomentNm": 571.52186368563,
+              "cpOnlySubstitutionMomentNm": 596.2906664189665,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 0.8000000000000002,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 2001.192968114104,
+              "lateralDragN": 73.93517537035109,
+              "sourceMomentNm": 1138.694100894276,
+              "tsOracleMomentNm": 1138.694100894276,
+              "cpOnlySubstitutionMomentNm": 1188.0432008163361,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 0.8000000000000002,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 2982.7370493149133,
+              "lateralDragN": 110.19886154835197,
+              "sourceMomentNm": 1697.2001884328197,
+              "tsOracleMomentNm": 1697.2001884328197,
+              "cpOnlySubstitutionMomentNm": 1770.7540090953953,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 1,
+          "curveCpM": 2.4491970337355444,
+          "flightCpM": 2.409174961652899,
+          "curveMinusFlightM": 0.04002207208264563,
+          "curveMinusFlightCal": 0.26330310580687916,
+          "flightCna": 13.990945166157932,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 1,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 1,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 314.26360101542986,
+              "lateralDragN": 16.37499182133286,
+              "sourceMomentNm": 181.4327545859466,
+              "tsOracleMomentNm": 181.4327545859466,
+              "cpOnlySubstitutionMomentNm": 194.66559618176404,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 1,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 1569.4040626134283,
+              "lateralDragN": 81.77523138735901,
+              "sourceMomentNm": 906.0588029230576,
+              "tsOracleMomentNm": 906.0588029230574,
+              "cpOnlySubstitutionMomentNm": 972.1424196489289,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 1,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 3126.864012678286,
+              "lateralDragN": 162.92810388662548,
+              "sourceMomentNm": 1805.2219512626073,
+              "tsOracleMomentNm": 1805.221951262607,
+              "cpOnlySubstitutionMomentNm": 1936.8862484886874,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 1,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 4660.5266395545505,
+              "lateralDragN": 242.84099513663583,
+              "sourceMomentNm": 2690.646270530232,
+              "tsOracleMomentNm": 2690.646270530232,
+              "cpOnlySubstitutionMomentNm": 2886.8892034535543,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 1.1,
+          "curveCpM": 2.453984332288807,
+          "flightCpM": 2.409174961652899,
+          "curveMinusFlightM": 0.04480937063590806,
+          "curveMinusFlightCal": 0.29479849102571093,
+          "flightCna": 13.990945166157932,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 1.1,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 1.1,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 380.2589572286702,
+              "lateralDragN": 19.520110042232506,
+              "sourceMomentNm": 219.37250814689412,
+              "tsOracleMomentNm": 219.37250814689412,
+              "cpOnlySubstitutionMomentNm": 237.2863565447136,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 1.0999999999999999,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 1898.9789157622477,
+              "lateralDragN": 97.48166794994734,
+              "sourceMomentNm": 1095.5265083165932,
+              "tsOracleMomentNm": 1095.5265083165932,
+              "cpOnlySubstitutionMomentNm": 1184.9866505721343,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 1.1,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 3783.5054553407267,
+              "lateralDragN": 194.2214415457552,
+              "sourceMomentNm": 2182.7153984079064,
+              "tsOracleMomentNm": 2182.7153984079064,
+              "cpOnlySubstitutionMomentNm": 2360.954837218913,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 1.1,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 5639.237233861007,
+              "lateralDragN": 289.483072697287,
+              "sourceMomentNm": 3253.2925063577427,
+              "tsOracleMomentNm": 3253.2925063577422,
+              "cpOnlySubstitutionMomentNm": 3518.9547319709477,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 1.2,
+          "curveCpM": 2.4628732270697182,
+          "flightCpM": 2.409174961652899,
+          "curveMinusFlightM": 0.053698265416819435,
+          "curveMinusFlightCal": 0.35327806195275946,
+          "flightCna": 13.990945166157932,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 1.2,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 1.2,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 452.539585462219,
+              "lateralDragN": 22.61876796510371,
+              "sourceMomentNm": 260.73571202682837,
+              "tsOracleMomentNm": 260.73571202682837,
+              "cpOnlySubstitutionMomentNm": 286.25089140418766,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 1.2,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 2259.9418501633368,
+              "lateralDragN": 112.9560859770118,
+              "sourceMomentNm": 1302.0906156523622,
+              "tsOracleMomentNm": 1302.0906156523622,
+              "cpOnlySubstitutionMomentNm": 1429.5111188342496,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 1.2,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 4502.684178256732,
+              "lateralDragN": 225.05250793498905,
+              "sourceMomentNm": 2594.2715354958,
+              "tsOracleMomentNm": 2594.2715354958,
+              "cpOnlySubstitutionMomentNm": 2848.142794891757,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 1.2,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 6711.158360958552,
+              "lateralDragN": 335.43614441716136,
+              "sourceMomentNm": 3866.7084824901326,
+              "tsOracleMomentNm": 3866.7084824901326,
+              "cpOnlySubstitutionMomentNm": 4245.098384524499,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 1.4,
+          "curveCpM": 2.5114703524942286,
+          "flightCpM": 2.409174961652899,
+          "curveMinusFlightM": 0.10229539084132977,
+          "curveMinusFlightCal": 0.6729959923771696,
+          "flightCna": 13.990945166157932,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 1.4,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 1.4000000000000001,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 615.9566579902427,
+              "lateralDragN": 27.946564725579822,
+              "sourceMomentNm": 353.3318188351257,
+              "tsOracleMomentNm": 353.33181883512566,
+              "cpOnlySubstitutionMomentNm": 419.2001506668326,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 1.4,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 3076.0319627223193,
+              "lateralDragN": 139.5626221894551,
+              "sourceMomentNm": 1764.5072166763973,
+              "tsOracleMomentNm": 1764.5072166763973,
+              "cpOnlySubstitutionMomentNm": 2093.447721527211,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 1.4,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 6128.653464849441,
+              "lateralDragN": 278.06308855383315,
+              "sourceMomentNm": 3515.5854679953,
+              "tsOracleMomentNm": 3515.5854679953004,
+              "cpOnlySubstitutionMomentNm": 4170.963041835305,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 1.3999999999999997,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 9134.632213526917,
+              "lateralDragN": 414.4473269152331,
+              "sourceMomentNm": 5239.907991134213,
+              "tsOracleMomentNm": 5239.907991134214,
+              "cpOnlySubstitutionMomentNm": 6216.7348148986885,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 1.5,
+          "curveCpM": 2.4477427974290715,
+          "flightCpM": 2.3745923712676196,
+          "curveMinusFlightM": 0.07315042616145195,
+          "curveMinusFlightCal": 0.4812528036937629,
+          "flightCna": 12.725027402400658,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 1.5,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 1.5000000000000002,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 643.1144569407537,
+              "lateralDragN": 30.742428440512008,
+              "sourceMomentNm": 346.4647059167423,
+              "tsOracleMomentNm": 346.4647059167421,
+              "cpOnlySubstitutionMomentNm": 395.75762425421055,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 1.5000000000000002,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 3211.655559813598,
+              "lateralDragN": 153.5249132678693,
+              "sourceMomentNm": 1730.2134744876325,
+              "tsOracleMomentNm": 1730.2134744876319,
+              "cpOnlySubstitutionMomentNm": 1976.3778602037385,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 1.5,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 6398.868481566364,
+              "lateralDragN": 305.8814092448928,
+              "sourceMomentNm": 3447.258979702953,
+              "tsOracleMomentNm": 3447.2589797029527,
+              "cpOnlySubstitutionMomentNm": 3937.714291521745,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 1.5,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 9537.382150431982,
+              "lateralDragN": 455.90996300131803,
+              "sourceMomentNm": 5138.068762570852,
+              "tsOracleMomentNm": 5138.068762570852,
+              "cpOnlySubstitutionMomentNm": 5869.082339424375,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 2,
+          "curveCpM": 2.374974961652899,
+          "flightCpM": 2.2117349945815175,
+          "curveMinusFlightM": 0.16323996707138155,
+          "curveMinusFlightCal": 1.073947151785405,
+          "flightCna": 8.922975419519325,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 2,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 2,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 801.7089206791208,
+              "lateralDragN": 46.894439056307846,
+              "sourceMomentNm": 298.1095968452014,
+              "tsOracleMomentNm": 298.10959684520134,
+              "cpOnlySubstitutionMomentNm": 436.6355813450765,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 2,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 4003.661999295499,
+              "lateralDragN": 234.1865966378139,
+              "sourceMomentNm": 1488.7324236125562,
+              "tsOracleMomentNm": 1488.732423612556,
+              "cpOnlySubstitutionMomentNm": 2180.5186888662106,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 2,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 7976.853713299147,
+              "lateralDragN": 466.59089186948074,
+              "sourceMomentNm": 2966.134694560206,
+              "tsOracleMomentNm": 2966.1346945602054,
+              "cpOnlySubstitutionMomentNm": 4344.442313876967,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 2,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 11889.336753988628,
+              "lateralDragN": 695.4441486787375,
+              "sourceMomentNm": 4420.962889481157,
+              "tsOracleMomentNm": 4420.962889481157,
+              "cpOnlySubstitutionMomentNm": 6475.302109633129,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 3,
+          "curveCpM": 2.363574961652899,
+          "flightCpM": 1.977306722123434,
+          "curveMinusFlightM": 0.386268239529465,
+          "curveMinusFlightCal": 2.5412384179570067,
+          "flightCna": 6.239439319913163,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 3,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 3.0000000000000004,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 1261.348523016531,
+              "lateralDragN": 86.72650808734733,
+              "sourceMomentNm": 157.54429064787212,
+              "tsOracleMomentNm": 157.5442906478721,
+              "cpOnlySubstitutionMomentNm": 678.262859665996,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 3.0000000000000004,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 6299.060692989378,
+              "lateralDragN": 433.1043547161432,
+              "sourceMomentNm": 786.761969841304,
+              "tsOracleMomentNm": 786.7619698413039,
+              "cpOnlySubstitutionMomentNm": 3387.1835110403126,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 3,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 12550.181730628268,
+              "lateralDragN": 862.9125237773369,
+              "sourceMomentNm": 1567.5362060322493,
+              "tsOracleMomentNm": 1567.536206032249,
+              "cpOnlySubstitutionMomentNm": 6748.5885103242845,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 3,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 18705.78830729016,
+              "lateralDragN": 1286.1534074917574,
+              "sourceMomentNm": 2336.3805451910503,
+              "tsOracleMomentNm": 2336.3805451910503,
+              "cpOnlySubstitutionMomentNm": 10058.632676135536,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 4,
+          "curveCpM": 2.357874961652899,
+          "flightCpM": 1.8024133772350766,
+          "curveMinusFlightM": 0.5554615844178223,
+          "curveMinusFlightCal": 3.654352529064621,
+          "flightCna": 5.096048728921066,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 4,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 4,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 1831.4732627209676,
+              "lateralDragN": 135.19278756883432,
+              "sourceMomentNm": -114.12018442268656,
+              "tsOracleMomentNm": -114.12018442268656,
+              "cpOnlySubstitutionMomentNm": 978.2872558920275,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 4,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 9146.212191914114,
+              "lateralDragN": 675.1405805858675,
+              "sourceMomentNm": -569.905902180394,
+              "tsOracleMomentNm": -569.9059021803939,
+              "cpOnlySubstitutionMomentNm": 4885.478269958818,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 4,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 18222.816186413842,
+              "lateralDragN": 1345.1429336924482,
+              "sourceMomentNm": -1135.4744763266028,
+              "tsOracleMomentNm": -1135.4744763266026,
+              "cpOnlySubstitutionMomentNm": 9733.775100350815,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 4,
+              "combinedCgM": 1.8604406078398201,
+              "normalN": 27160.73354649771,
+              "lateralDragN": 2004.907936854119,
+              "sourceMomentNm": -1692.4014040897323,
+              "tsOracleMomentNm": -1692.4014040897323,
+              "cpOnlySubstitutionMomentNm": 14507.992024815043,
+              "validity": "VALID"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "diagnostic-nsl-boattail",
+      "vehicle": {
+        "id": "diagnostic-nsl-boattail",
+        "name": "NASA Student Launch Target Vehicle",
+        "version": "1.0",
+        "author": "University Rocketry Team",
+        "notes": "High-power collegiate competition rocket (6-inch airframe, dual-deployment).",
+        "components": [
+          {
+            "id": "nsl-nc",
+            "name": "Von Kármán Nosecone",
+            "type": "nosecone",
+            "shape": "vonkarman",
+            "length": 0.65,
+            "baseDiameter": 0.152,
+            "wallThickness": 0.0035,
+            "isHollow": true,
+            "materialId": "fiberglass",
+            "color": "#06b6d4"
+          },
+          {
+            "id": "nsl-bt1",
+            "name": "Payload & Avionics Bay",
+            "type": "bodytube",
+            "length": 0.75,
+            "outerDiameter": 0.152,
+            "innerDiameter": 0.145,
+            "materialId": "fiberglass",
+            "color": "#18181b"
+          },
+          {
+            "id": "nsl-trans",
+            "name": "Airframe Transition",
+            "type": "transition",
+            "length": 0.12,
+            "foreDiameter": 0.152,
+            "aftDiameter": 0.12,
+            "wallThickness": 0.003,
+            "isHollow": true,
+            "materialId": "aluminum",
+            "color": "#71717a"
+          },
+          {
+            "id": "nsl-bt2",
+            "name": "Booster & Motor Section",
+            "type": "bodytube",
+            "length": 1.45,
+            "outerDiameter": 0.12,
+            "innerDiameter": 0.113,
+            "isMotorMount": true,
+            "materialId": "fiberglass",
+            "color": "#18181b"
+          },
+          {
+            "id": "nsl-fins",
+            "name": "High-Power Clipped Delta Fins",
+            "type": "trapezoidfinset",
+            "finCount": 4,
+            "rootChord": 0.32,
+            "tipChord": 0.12,
+            "span": 0.18,
+            "sweepLength": 0.18,
+            "thickness": 0.0048,
+            "crossSection": "airfoil",
+            "axialOffset": 1.1,
+            "materialId": "carbonfiber",
+            "color": "#06b6d4"
+          },
+          {
+            "id": "nsl-drogue",
+            "name": "Drogue Parachute (Apogee)",
+            "type": "parachute",
+            "diameter": 0.6,
+            "cd": 1.2,
+            "mass": 0.18,
+            "axialOffset": 0.2,
+            "materialId": "cardboard"
+          },
+          {
+            "id": "nsl-main",
+            "name": "Main Parachute (700ft AGL)",
+            "type": "parachute",
+            "diameter": 2.4,
+            "cd": 1.5,
+            "mass": 0.75,
+            "axialOffset": 0.85,
+            "materialId": "cardboard"
+          }
+        ]
+      },
+      "dryStability": {
+        "cg": 1.7537035045657199,
+        "contributions": [
+          {
+            "axialEnd": 0.65,
+            "axialStart": 0,
+            "cg": 0.30830652440896567,
+            "cna": 3.2088888888888887,
+            "cp": 0.325,
+            "id": "nsl-nc",
+            "mass": 1.1387283031266355,
+            "name": "Von Kármán Nosecone",
+            "type": "nosecone"
+          },
+          {
+            "axialEnd": 1.4,
+            "axialStart": 0.65,
+            "cg": 1.025,
+            "cna": null,
+            "cp": null,
+            "id": "nsl-bt1",
+            "mass": 2.265569359613323,
+            "name": "Payload & Avionics Bay",
+            "type": "bodytube"
+          },
+          {
+            "axialEnd": 1.52,
+            "axialStart": 1.4,
+            "cg": 1.4575939849624058,
+            "cna": -1.2088888888888887,
+            "cp": 1.4576470588235293,
+            "id": "nsl-trans",
+            "mass": 0.4061325318854757,
+            "name": "Airframe Transition",
+            "type": "transition"
+          },
+          {
+            "axialEnd": 2.9699999999999998,
+            "axialStart": 1.52,
+            "cg": 2.245,
+            "cna": null,
+            "cp": null,
+            "id": "nsl-bt2",
+            "mass": 3.4362406650745685,
+            "name": "Booster & Motor Section",
+            "type": "bodytube"
+          },
+          {
+            "axialEnd": 2.94,
+            "axialStart": 2.62,
+            "cg": 2.813939393939394,
+            "cna": 18.10711092280476,
+            "cp": 2.756626262626263,
+            "id": "nsl-fins",
+            "mass": 1.1784959999999998,
+            "name": "High-Power Clipped Delta Fins",
+            "type": "trapezoidfinset"
+          },
+          {
+            "axialEnd": 1.77,
+            "axialStart": 1.72,
+            "cg": 1.7449999999999999,
+            "cna": null,
+            "cp": null,
+            "id": "nsl-drogue",
+            "mass": 0.18,
+            "name": "Drogue Parachute (Apogee)",
+            "type": "parachute"
+          },
+          {
+            "axialEnd": 2.42,
+            "axialStart": 2.37,
+            "cg": 2.395,
+            "cna": null,
+            "cp": null,
+            "id": "nsl-main",
+            "mass": 0.75,
+            "name": "Main Parachute (700ft AGL)",
+            "type": "parachute"
+          }
+        ],
+        "cp": 2.4466614450239343,
+        "isOverStable": true,
+        "isStable": true,
+        "maxDiameter": 0.152,
+        "referenceDiameter": 0.12,
+        "staticMarginCalibers": 5.774649503818454,
+        "totalCNa": 20.10711092280476,
+        "totalLength": 2.9699999999999998,
+        "totalMass": 9.355166859700002
+      },
+      "flightPreparation": {
+        "body": {
+          "cna": 3.2088888888888887,
+          "cp": 0.32499999999999996
+        },
+        "fins": {
+          "cna": 18.10711092280476,
+          "cp": 2.756626262626263
+        },
+        "excludedNonpositiveContributions": [
+          {
+            "axialEnd": 1.52,
+            "axialStart": 1.4,
+            "cg": 1.4575939849624058,
+            "cna": -1.2088888888888887,
+            "cp": 1.4576470588235293,
+            "id": "nsl-trans",
+            "mass": 0.4061325318854757,
+            "name": "Airframe Transition",
+            "type": "transition"
+          }
+        ]
+      },
+      "rows": [
+        {
+          "mach": 0,
+          "curveCpM": 2.4466614450239343,
+          "flightCpM": 2.390571723078401,
+          "curveMinusFlightM": 0.05608972194553319,
+          "curveMinusFlightCal": 0.46741434954610994,
+          "flightCna": 21.31599981169365,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 0,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 0,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 0,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 0,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 0,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 0.3,
+          "curveCpM": 2.449523117643992,
+          "flightCpM": 2.390571723078401,
+          "curveMinusFlightM": 0.05895139456559084,
+          "curveMinusFlightCal": 0.4912616213799237,
+          "flightCna": 21.31599981169365,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 0.3,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 0.3,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 26.857807792765804,
+              "lateralDragN": 0.6876595209062508,
+              "sourceMomentNm": 15.539600714791789,
+              "tsOracleMomentNm": 15.539600714791789,
+              "cpOnlySubstitutionMomentNm": 17.163444426893655,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 0.3,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 134.12546832233272,
+              "lateralDragN": 3.4341095892682967,
+              "sourceMomentNm": 77.6033635915327,
+              "tsOracleMomentNm": 77.6033635915327,
+              "cpOnlySubstitutionMomentNm": 85.71269254527563,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 0.3,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 267.23016084356044,
+              "lateralDragN": 6.842083530990198,
+              "sourceMomentNm": 154.61611872794174,
+              "tsOracleMomentNm": 154.6161187279417,
+              "cpOnlySubstitutionMomentNm": 170.7730597455429,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 0.3,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 398.30107048278586,
+              "lateralDragN": 10.197985085678273,
+              "sourceMomentNm": 230.45215184106613,
+              "tsOracleMomentNm": 230.45215184106613,
+              "cpOnlySubstitutionMomentNm": 254.53374084555387,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 0.8,
+          "curveCpM": 2.4688650938975654,
+          "flightCpM": 2.390571723078401,
+          "curveMinusFlightM": 0.07829337081916421,
+          "curveMinusFlightCal": 0.6524447568263685,
+          "flightCna": 21.31599981169365,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 0.8000000000000002,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 0.8000000000000002,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 190.98885541522358,
+              "lateralDragN": 5.723449857131603,
+              "sourceMomentNm": 110.97399963519184,
+              "tsOracleMomentNm": 110.97399963519186,
+              "cpOnlySubstitutionMomentNm": 126.37526909657298,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 0.8000000000000002,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 953.781108069922,
+              "lateralDragN": 28.582392071252183,
+              "sourceMomentNm": 554.1941392804827,
+              "tsOracleMomentNm": 554.1941392804827,
+              "cpOnlySubstitutionMomentNm": 631.1066890762477,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 0.8000000000000002,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 1900.3033659986527,
+              "lateralDragN": 56.94725488032194,
+              "sourceMomentNm": 1104.1705265294702,
+              "tsOracleMomentNm": 1104.1705265294702,
+              "cpOnlySubstitutionMomentNm": 1257.4102751759872,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 0.8000000000000002,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 2832.3631678775896,
+              "lateralDragN": 84.87871469405981,
+              "sourceMomentNm": 1645.7435093551762,
+              "tsOracleMomentNm": 1645.7435093551765,
+              "cpOnlySubstitutionMomentNm": 1874.144209836555,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 1,
+          "curveCpM": 2.483940506110189,
+          "flightCpM": 2.390571723078401,
+          "curveMinusFlightM": 0.09336878303178775,
+          "curveMinusFlightCal": 0.7780731919315647,
+          "flightCna": 21.31599981169365,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 1,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 1,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 298.42008658628674,
+              "lateralDragN": 13.614326086465736,
+              "sourceMomentNm": 176.0322352491881,
+              "tsOracleMomentNm": 176.0322352491881,
+              "cpOnlySubstitutionMomentNm": 205.16650862448162,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 1,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 1490.2829813592525,
+              "lateralDragN": 67.9887158449325,
+              "sourceMomentNm": 879.0890967275409,
+              "tsOracleMomentNm": 879.0890967275407,
+              "cpOnlySubstitutionMomentNm": 1024.583028728374,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 1,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 2969.2240093728938,
+              "lateralDragN": 135.45999650957603,
+              "sourceMomentNm": 1751.4877946204754,
+              "tsOracleMomentNm": 1751.4877946204751,
+              "cpOnlySubstitutionMomentNm": 2041.3683619479773,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 1,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 4425.567449808732,
+              "lateralDragN": 201.90034480779948,
+              "sourceMomentNm": 2610.5566128191026,
+              "tsOracleMomentNm": 2610.5566128191026,
+              "cpOnlySubstitutionMomentNm": 3042.617649321239,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 1.1,
+          "curveCpM": 2.4892068283688227,
+          "flightCpM": 2.390571723078401,
+          "curveMinusFlightM": 0.09863510529042152,
+          "curveMinusFlightCal": 0.8219592107535127,
+          "flightCna": 21.31599981169365,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 1.1,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 1.1,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 361.08830476940705,
+              "lateralDragN": 15.865218913235777,
+              "sourceMomentNm": 212.6559400629459,
+              "tsOracleMomentNm": 212.65594006294586,
+              "cpOnlySubstitutionMomentNm": 249.83679056097876,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 1.0999999999999999,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 1803.2424074446953,
+              "lateralDragN": 79.22947148900366,
+              "sourceMomentNm": 1061.9845734450123,
+              "tsOracleMomentNm": 1061.9845734450123,
+              "cpOnlySubstitutionMomentNm": 1247.6623854298955,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 1.1,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 3592.761051341203,
+              "lateralDragN": 157.85595885991316,
+              "sourceMomentNm": 2115.8868030422914,
+              "tsOracleMomentNm": 2115.8868030422914,
+              "cpOnlySubstitutionMomentNm": 2485.8293067475247,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 1.1,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 5354.936614268568,
+              "lateralDragN": 235.2810670678647,
+              "sourceMomentNm": 3153.6858564610357,
+              "tsOracleMomentNm": 3153.6858564610347,
+              "cpOnlySubstitutionMomentNm": 3705.0775660560307,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 1.2,
+          "curveCpM": 2.4980782118885294,
+          "flightCpM": 2.390571723078401,
+          "curveMinusFlightM": 0.10750648881012825,
+          "curveMinusFlightCal": 0.8958874067510688,
+          "flightCna": 21.31599981169365,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 1.2,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 1.2,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 429.72492468425287,
+              "lateralDragN": 18.08740047961036,
+              "sourceMomentNm": 252.63048359157676,
+              "tsOracleMomentNm": 252.63048359157676,
+              "cpOnlySubstitutionMomentNm": 300.7732143158431,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 1.2,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 2146.0074931573236,
+              "lateralDragN": 90.32684568972033,
+              "sourceMomentNm": 1261.6138363066395,
+              "tsOracleMomentNm": 1261.6138363066395,
+              "cpOnlySubstitutionMomentNm": 1502.0342888816049,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 1.2,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 4275.682573496967,
+              "lateralDragN": 179.96624954290127,
+              "sourceMomentNm": 2513.626029535723,
+              "tsOracleMomentNm": 2513.6260295357224,
+              "cpOnlySubstitutionMomentNm": 2992.63718987172,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 1.2,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 6372.817127724574,
+              "lateralDragN": 268.2360015704682,
+              "sourceMomentNm": 3746.508010911146,
+              "tsOracleMomentNm": 3746.508010911146,
+              "cpOnlySubstitutionMomentNm": 4460.4643148431705,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 1.4,
+          "curveCpM": 2.5433891757310163,
+          "flightCpM": 2.390571723078401,
+          "curveMinusFlightM": 0.15281745265261515,
+          "curveMinusFlightCal": 1.2734787721051264,
+          "flightCna": 21.31599981169365,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 1.4,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 1.4000000000000001,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 584.9033697091222,
+              "lateralDragN": 22.348882778065082,
+              "sourceMomentNm": 342.5775075569359,
+              "tsOracleMomentNm": 342.5775075569359,
+              "cpOnlySubstitutionMomentNm": 435.37624989959056,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 1.4,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 2920.954643464135,
+              "lateralDragN": 111.60830370884892,
+              "sourceMomentNm": 1710.8011566806938,
+              "tsOracleMomentNm": 1710.801156680694,
+              "cpOnlySubstitutionMomentNm": 2174.2297012763765,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 1.4,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 5819.679058370873,
+              "lateralDragN": 222.36720083553718,
+              "sourceMomentNm": 3408.5820835490654,
+              "tsOracleMomentNm": 3408.5820835490654,
+              "cpOnlySubstitutionMomentNm": 4331.912201690251,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 1.3999999999999997,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 8674.112201625114,
+              "lateralDragN": 331.43374929488004,
+              "sourceMomentNm": 5080.421642603494,
+              "tsOracleMomentNm": 5080.421642603495,
+              "cpOnlySubstitutionMomentNm": 6456.62623456916,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 1.5,
+          "curveCpM": 2.485646787026123,
+          "flightCpM": 2.354509936624074,
+          "curveMinusFlightM": 0.13113685040204892,
+          "curveMinusFlightCal": 1.0928070866837412,
+          "flightCna": 19.404381248697046,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 1.5,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 1.5000000000000002,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 611.2299992012971,
+              "lateralDragN": 24.6627552053562,
+              "sourceMomentNm": 335.8034363835301,
+              "tsOracleMomentNm": 335.80343638352963,
+              "cpOnlySubstitutionMomentNm": 419.19240938990225,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 1.5000000000000002,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 3052.427455289738,
+              "lateralDragN": 123.16357379430046,
+              "sourceMomentNm": 1676.972056569754,
+              "tsOracleMomentNm": 1676.9720565697519,
+              "cpOnlySubstitutionMomentNm": 2093.409062288836,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 1.5,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 6081.62409453863,
+              "lateralDragN": 245.38979842382702,
+              "sourceMomentNm": 3341.1813432055983,
+              "tsOracleMomentNm": 3341.1813432055974,
+              "cpOnlySubstitutionMomentNm": 4170.886017578701,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 1.5,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 9064.535902243053,
+              "lateralDragN": 365.74845851693686,
+              "sourceMomentNm": 4979.962222359193,
+              "tsOracleMomentNm": 4979.962222359193,
+              "cpOnlySubstitutionMomentNm": 6216.620011824957,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 2,
+          "curveCpM": 2.419661445023934,
+          "flightCpM": 2.185536536085503,
+          "curveMinusFlightM": 0.2341249089384312,
+          "curveMinusFlightCal": 1.95104090782026,
+          "flightCna": 13.663034254416633,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 2,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 2,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 765.1198913968187,
+              "lateralDragN": 38.282918733036524,
+              "sourceMomentNm": 288.50875542337656,
+              "tsOracleMomentNm": 288.50875542337656,
+              "cpOnlySubstitutionMomentNm": 476.6053651859086,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 2,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 3820.939689052808,
+              "lateralDragN": 191.18144129385615,
+              "sourceMomentNm": 1440.7866879841424,
+              "tsOracleMomentNm": 1440.786687984142,
+              "cpOnlySubstitutionMomentNm": 2380.1241822765105,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 2,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 7612.7997199254605,
+              "lateralDragN": 380.9078763809556,
+              "sourceMomentNm": 2870.6081193019377,
+              "tsOracleMomentNm": 2870.6081193019368,
+              "cpOnlySubstitutionMomentNm": 4742.134182367623,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 2,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 11346.72174819533,
+              "lateralDragN": 567.7353725303318,
+              "sourceMomentNm": 4278.582489511272,
+              "tsOracleMomentNm": 4278.582489511272,
+              "cpOnlySubstitutionMomentNm": 7068.05367795201,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 3,
+          "curveCpM": 2.4106614450239343,
+          "flightCpM": 1.9447392214671826,
+          "curveMinusFlightM": 0.4659222235567517,
+          "curveMinusFlightCal": 3.8826851963062645,
+          "flightCna": 9.610719349495014,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 3,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 3.0000000000000004,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 1210.9347688084981,
+              "lateralDragN": 72.55017606788735,
+              "sourceMomentNm": 151.85058911400708,
+              "tsOracleMomentNm": 151.85058911400708,
+              "cpOnlySubstitutionMomentNm": 749.8547485324275,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 3.0000000000000004,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 6047.298954086002,
+              "lateralDragN": 362.3090319603114,
+              "sourceMomentNm": 758.3281382117946,
+              "tsOracleMomentNm": 758.3281382117943,
+              "cpOnlySubstitutionMomentNm": 3744.706943197606,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 3,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 12048.57431167246,
+              "lateralDragN": 721.8606734192297,
+              "sourceMomentNm": 1510.8849414007475,
+              "tsOracleMomentNm": 1510.8849414007475,
+              "cpOnlySubstitutionMomentNm": 7460.914405441601,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 3,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 17958.15274361902,
+              "lateralDragN": 1075.918519282036,
+              "sourceMomentNm": 2251.942997888371,
+              "tsOracleMomentNm": 2251.942997888371,
+              "cpOnlySubstitutionMomentNm": 11120.339804036901,
+              "validity": "VALID"
+            }
+          ]
+        },
+        {
+          "mach": 4,
+          "curveCpM": 2.406161445023934,
+          "flightCpM": 1.7669389265441469,
+          "curveMinusFlightM": 0.6392225184797873,
+          "curveMinusFlightCal": 5.326854320664895,
+          "flightCna": 7.884124825685771,
+          "cases": [
+            {
+              "alphaDeg": 0,
+              "actualMach": 4,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 0,
+              "lateralDragN": 0,
+              "sourceMomentNm": 0,
+              "tsOracleMomentNm": 0,
+              "cpOnlySubstitutionMomentNm": 0,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 1,
+              "actualMach": 4,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 1766.020817356201,
+              "lateralDragN": 114.8398926021791,
+              "sourceMomentNm": -111.89078175848094,
+              "tsOracleMomentNm": -111.89078175848093,
+              "cpOnlySubstitutionMomentNm": 1090.3977381707955,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 5,
+              "actualMach": 4,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 8819.348586547341,
+              "lateralDragN": 573.500059878397,
+              "sourceMomentNm": -558.7724664687804,
+              "tsOracleMomentNm": -558.7724664687803,
+              "cpOnlySubstitutionMomentNm": 5445.347900998941,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 10,
+              "actualMach": 4,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 17571.576605082784,
+              "lateralDragN": 1142.6354380123153,
+              "sourceMomentNm": -1113.2923370716933,
+              "tsOracleMomentNm": -1113.2923370716933,
+              "cpOnlySubstitutionMomentNm": 10849.253416480322,
+              "validity": "VALID"
+            },
+            {
+              "alphaDeg": 15,
+              "actualMach": 4,
+              "combinedCgM": 1.8264280642384298,
+              "normalN": 26190.074315645503,
+              "lateralDragN": 1703.0746705208187,
+              "sourceMomentNm": -1659.3393807651983,
+              "tsOracleMomentNm": -1659.3393807651985,
+              "cpOnlySubstitutionMomentNm": 16170.589562503963,
+              "validity": "VALID"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

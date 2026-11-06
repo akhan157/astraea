@@ -1,0 +1,12 @@
+{
+    "os":  "Microsoft Windows 11 Enterprise Evaluation 10.0.26100 build 26100",
+    "arch":  "AMD64",
+    "webview2":  "156.0.4314.50",
+    "rustc":  "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo":  "cargo 1.99.1 (5f94df478 2026-08-27)",
+    "node":  "v22.20.0",
+    "pnpm":  "12.14.0",
+    "vs":  "17.14.37827.9",
+    "ram_gb":  3.9,
+    "vcpu":  2
+}

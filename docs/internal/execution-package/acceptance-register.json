@@ -1,0 +1,1287 @@
+{
+  "schemaVersion": "astraea-acceptance-register/1.0",
+  "scope": "Required remaining checks. RMP01 bounded native increment accepted; RMP06a direct native C01/C02/C03/C06 and RMP06b native profile semantics C04 pass after independent review; parent C05/C07/C08 remain unclosed. Physical/empirical, GUI/project and release gates remain open. No CI jobs or scientific gate are implemented by a plan. RMP02a C01/C05 pass for reviewed explicit exclusions/paired-evidence guard only;0 qualified cases and parent partial. RMP12a C01/C07 pass only complete reporting/unchanged source; C02 provisional coarse-rail diagnostic failure retained, parent partial. RMP07a native input/model/policy identity and lossless replay independently accepted; C01 in_progress only; C02-C08 were unestablished at that checkpoint. RMP07b legacy project/archive compatibility C02 pass; C03/C05/C06/C08 in_progress for existing-legacy scopes only; no candidate exposure or full RMP07 closure. RMP07c archived assumption/input-difference reporting accepted; C07 in_progress legacy-only, C08 fresh built frontend evidence with unchanged measured legacy WASM. No additional full-check PASS or scientific qualification. RMP12b candidate-only controls experiment executed once (8 attempts, zero retries): knot-split intervention removes the provisional rail/position/velocity failures (C/E pass), 100x tighter tolerances alone do not (D fail); default failure retained bit-for-bit, C02 still fail, no default change or qualification. RMP07d calibration/model binding accepted: incompatible fits retained as history but never dispatched/joined to input keys; fit-time binding pinned. C03 mechanism done, full check open. RMP07e model & evidence status panel accepted (pinned beta claim, honest engine attribution, binding states); C07 remains in_progress for candidate statuses. RMP12c paired20/10/5ms experiment accepted:7 attempts once; default rail failure retained; all statuses unchanged.",
+  "checks": [
+    {
+      "id": "RMP01-C01",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C02",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C03",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C04",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C05",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C06",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C07",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C08",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C09",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C10",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C11",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C12",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C13",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP01-C14",
+      "packet": "RMP01",
+      "status": "pass",
+      "sourceSha": "f69a3111afb6d556d318554bb316dcd20ea64117",
+      "evidencePath": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json."
+    },
+    {
+      "id": "RMP02-C01",
+      "packet": "RMP02",
+      "status": "pass",
+      "sourceSha": "44d74d79222392da10bc245f274250667df20eb2",
+      "evidencePath": "docs/internal/execution-runs/RMP02-source-eligibility/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP02-source-eligibility/EVIDENCE.json."
+    },
+    {
+      "id": "RMP02-C02",
+      "packet": "RMP02",
+      "status": "blocked",
+      "sourceSha": "06fb0470a3518729077022b386df08ad0f77f611",
+      "evidencePath": "docs/internal/execution-runs/RMP02-conventions-nearzero/EVIDENCE.json",
+      "reviewDisposition": "Partial: retained-record reference/datum algebra and near-zero worksheet accepted for computational integration after author-independent coordinator review. C02 remains blocked on source axis/sign/roll and base-correction relation/uncertainty; no qualified cases. MiMo review failed 402 with no verdict; prior explicit-exclusion evidence retained at RMP02-source-eligibility. | blocked on external prerequisite",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: native-density source pages and the source axis/sign/roll convention plus the base-correction relation with its uncertainty. Responsible: owner/source custodian and the scientific extraction reviewer. Reopen when those artifacts exist for a frozen finite subset. Local part: retained-record reference/datum algebra and the near-zero worksheet are accepted; zero qualified cases."
+    },
+    {
+      "id": "RMP02-C03",
+      "packet": "RMP02",
+      "status": "blocked",
+      "sourceSha": "44d74d79222392da10bc245f274250667df20eb2",
+      "evidencePath": "docs/internal/execution-runs/RMP02-source-eligibility/EVIDENCE.json",
+      "reviewDisposition": "partial; explicit exclusions approved; conventions/native-density/physical closure open | external prerequisite: native-density source pages/crops with their calibration, plus an independent source-resolution check. Responsible: owner/source custodian and the scientific extraction reviewer. Reopen when those artifacts exist and are signed for a frozen finite subset. Local part: explicit exclusions and the retained-record convention worksheet are accepted.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: native-density source pages/crops with their calibration, plus an independent source-resolution check. Responsible: owner/source custodian and the scientific extraction reviewer. Reopen when those artifacts exist and are signed for a frozen finite subset. Local part: explicit exclusions and the retained-record convention worksheet are accepted."
+    },
+    {
+      "id": "RMP02-C04",
+      "packet": "RMP02",
+      "status": "blocked",
+      "sourceSha": "06fb0470a3518729077022b386df08ad0f77f611",
+      "evidencePath": "docs/internal/execution-runs/RMP02-conventions-nearzero/EVIDENCE.json",
+      "reviewDisposition": "Partial: absolute uncertainty envelopes and zero-enclosing ratio/relative-residual refusal exercised on every retained record; computational worksheet independently reviewed. Native-density symbol/calibration audit and source uncertainty closure remain open; not a PASS, zero qualified cases. MiMo unavailable (402), no verdict. | external prerequisite: native-density symbol/calibration audit and the source absolute-uncertainty envelopes. Responsible: owner/source custodian and scientific reviewer. Reopen when the source density and uncertainty records exist. Local part: absolute-uncertainty envelopes and zero-enclosing ratio refusals are exercised on every retained record.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: native-density symbol/calibration audit and the source absolute-uncertainty envelopes. Responsible: owner/source custodian and scientific reviewer. Reopen when the source density and uncertainty records exist. Local part: absolute-uncertainty envelopes and zero-enclosing ratio refusals are exercised on every retained record."
+    },
+    {
+      "id": "RMP02-C05",
+      "packet": "RMP02",
+      "status": "pass",
+      "sourceSha": "44d74d79222392da10bc245f274250667df20eb2",
+      "evidencePath": "docs/internal/execution-runs/RMP02-source-eligibility/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP02-source-eligibility/EVIDENCE.json."
+    },
+    {
+      "id": "RMP03-C01",
+      "packet": "RMP03",
+      "status": "blocked",
+      "sourceSha": "689c1114a334ce52154dd87e28b0bb464f277135",
+      "evidencePath": "docs/internal/execution-runs/RMP03-RMP04-prerequisites/EVIDENCE.json",
+      "reviewDisposition": "prerequisite review only; no acceptance execution/pass | blocked on external prerequisite",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: a preserved actual vendor export with its documentation (headers, units, basis, datum) and the right to use it. Responsible: owner/vendor-data custodian. Reopen on that exact export; no schema or fixture may be invented to stand in for it."
+    },
+    {
+      "id": "RMP03-C02",
+      "packet": "RMP03",
+      "status": "blocked",
+      "sourceSha": "689c1114a334ce52154dd87e28b0bb464f277135",
+      "evidencePath": "docs/internal/execution-runs/RMP03-RMP04-prerequisites/EVIDENCE.json",
+      "reviewDisposition": "prerequisite review only; no acceptance execution/pass | external prerequisite: actual permitted vendor export bytes plus producer version, fields, units, basis, datum, power and geometry. Responsible: owner/vendor-data custodian. Reopen on a real export; no availability fixtures can be invented without it.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: actual permitted vendor export bytes plus producer version, fields, units, basis, datum, power and geometry. Responsible: owner/vendor-data custodian. Reopen on a real export; no availability fixtures can be invented without it."
+    },
+    {
+      "id": "RMP03-C03",
+      "packet": "RMP03",
+      "status": "blocked",
+      "sourceSha": "689c1114a334ce52154dd87e28b0bb464f277135",
+      "evidencePath": "docs/internal/execution-runs/RMP03-RMP04-prerequisites/EVIDENCE.json",
+      "reviewDisposition": "prerequisite review only; no acceptance execution/pass | external prerequisite: the actual vendor export to transform (basis/S/L/datum). Responsible: owner/vendor-data custodian. Reopen on real export bytes; the algebra is ready but there is no source datum to transform.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: the actual vendor export to transform (basis/S/L/datum). Responsible: owner/vendor-data custodian. Reopen on real export bytes; the algebra is ready but there is no source datum to transform."
+    },
+    {
+      "id": "RMP03-C04",
+      "packet": "RMP03",
+      "status": "blocked",
+      "sourceSha": "689c1114a334ce52154dd87e28b0bb464f277135",
+      "evidencePath": "docs/internal/execution-runs/RMP03-RMP04-prerequisites/EVIDENCE.json",
+      "reviewDisposition": "prerequisite review only; no acceptance execution/pass | external prerequisite: a real vendor export containing grids/domains to exercise. Responsible: owner/vendor-data custodian. Reopen on real export bytes.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: a real vendor export containing grids/domains to exercise. Responsible: owner/vendor-data custodian. Reopen on real export bytes."
+    },
+    {
+      "id": "RMP03-C05",
+      "packet": "RMP03",
+      "status": "blocked",
+      "sourceSha": "689c1114a334ce52154dd87e28b0bb464f277135",
+      "evidencePath": "docs/internal/execution-runs/RMP03-RMP04-prerequisites/EVIDENCE.json",
+      "reviewDisposition": "prerequisite review only; no acceptance execution/pass | external prerequisite: a real vendor export with geometry/power/Re/condition identity. Responsible: owner/vendor-data custodian. Reopen on real export bytes.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: a real vendor export with geometry/power/Re/condition identity. Responsible: owner/vendor-data custodian. Reopen on real export bytes."
+    },
+    {
+      "id": "RMP04-C01",
+      "packet": "RMP04",
+      "status": "blocked",
+      "sourceSha": "689c1114a334ce52154dd87e28b0bb464f277135",
+      "evidencePath": "docs/internal/execution-runs/RMP03-RMP04-prerequisites/EVIDENCE.json",
+      "reviewDisposition": "pending | external prerequisite: the reviewed RMP04 updater fixture and an approved disposable A/B environment, plus the guard implementation; the guard matrix and the release build-config review showing ordinary/release fixture wiring absent are unexecuted. Responsible: owner/environment maintainer and coordinator. Reopen when the guard exists and the approved fixture is available. RMP16's Windows MSI/NSIS build does not satisfy this: it exercised no updater guard/apply path and its fixture signing key is outside the reviewed RMP04 fixture.",
+      "notApplicableReason": null,
+      "reviewDetail": "Blocked. The RMP03/RMP04 evidence records a technical plan only (no guard/consent/authenticity/recovery execution), and the packet requires the guard matrix (allowed/forbidden identity/version/path/key/config combinations) plus a release build-config review. The RMP16 Windows build does not satisfy it: no updater guard/apply path was exercised and its updater artifacts were signed with an ephemeral fixture key outside the reviewed RMP04 fixture."
+    },
+    {
+      "id": "RMP04-C02",
+      "packet": "RMP04",
+      "status": "blocked",
+      "sourceSha": "689c1114a334ce52154dd87e28b0bb464f277135",
+      "evidencePath": "docs/internal/execution-runs/RMP03-RMP04-prerequisites/EVIDENCE.json",
+      "reviewDisposition": "prerequisite review only; no acceptance execution/pass | external prerequisite: a real signed B artifact and an actual desktop runtime to observe Later. Responsible: owner/platform maintainer. Reopen on real A/B artifacts.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: a real signed B artifact and an actual desktop runtime to observe Later. Responsible: owner/platform maintainer. Reopen on real A/B artifacts."
+    },
+    {
+      "id": "RMP04-C03",
+      "packet": "RMP04",
+      "status": "blocked",
+      "sourceSha": "689c1114a334ce52154dd87e28b0bb464f277135",
+      "evidencePath": "docs/internal/execution-runs/RMP03-RMP04-prerequisites/EVIDENCE.json",
+      "reviewDisposition": "prerequisite review only; no acceptance execution/pass | blocked on external prerequisite",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: real signed A and B packages, an authorized signing key and an installed desktop runtime to apply them. Responsible: owner (authority and key) and platform maintainer (runtime). Reopen when those artifacts exist and a disposable local target is authorized."
+    },
+    {
+      "id": "RMP04-C04",
+      "packet": "RMP04",
+      "status": "blocked",
+      "sourceSha": "689c1114a334ce52154dd87e28b0bb464f277135",
+      "evidencePath": "docs/internal/execution-runs/RMP03-RMP04-prerequisites/EVIDENCE.json",
+      "reviewDisposition": "prerequisite review only; no acceptance execution/pass | external prerequisite: real signed A/B packages and a signing key under owner authority. Responsible: owner. Reopen on authorized signed artifacts; production keys/feeds stay untouched.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: real signed A/B packages and a signing key under owner authority. Responsible: owner. Reopen on authorized signed artifacts; production keys/feeds stay untouched."
+    },
+    {
+      "id": "RMP04-C05",
+      "packet": "RMP04",
+      "status": "blocked",
+      "sourceSha": "689c1114a334ce52154dd87e28b0bb464f277135",
+      "evidencePath": "docs/internal/execution-runs/RMP03-RMP04-prerequisites/EVIDENCE.json",
+      "reviewDisposition": "prerequisite review only; no acceptance execution/pass | external prerequisite: an installed desktop runtime where a failed write/interruption can be injected safely. Responsible: owner/platform maintainer. Reopen on that environment.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: an installed desktop runtime where a failed write/interruption can be injected safely. Responsible: owner/platform maintainer. Reopen on that environment."
+    },
+    {
+      "id": "RMP05-C01",
+      "packet": "RMP05",
+      "status": "blocked",
+      "sourceSha": "507dabf72b73a38a873d6aea3bc49449a82202bf",
+      "evidencePath": "docs/internal/execution-runs/RMP05-input-only/EVIDENCE.json",
+      "reviewDisposition": "coordinator form structure checked;independent actual-case/rights/owner decision pending | external prerequisite: the actual as-flown configuration, mechanics, motor, guide, weather, recovery and sensor inputs with rights and methods. Responsible: owner designates the case owner and custodian. Reopen on attributable completed records.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: the actual as-flown configuration, mechanics, motor, guide, weather, recovery and sensor inputs with rights and methods. Responsible: owner designates the case owner and custodian. Reopen on attributable completed records."
+    },
+    {
+      "id": "RMP05-C02",
+      "packet": "RMP05",
+      "status": "blocked",
+      "sourceSha": "507dabf72b73a38a873d6aea3bc49449a82202bf",
+      "evidencePath": "docs/internal/execution-runs/RMP05-input-only/EVIDENCE.json",
+      "reviewDisposition": "coordinator form structure checked;independent actual-case/rights/owner decision pending | blocked on external prerequisite",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: an independent permission/access review for the actual mission inputs and outcomes, with a custodian declaration. Responsible: owner designates the custodian; the reviewer signs the scope. Reopen when that declaration exists; outcomes stay sealed meanwhile."
+    },
+    {
+      "id": "RMP05-C03",
+      "packet": "RMP05",
+      "status": "blocked",
+      "sourceSha": "507dabf72b73a38a873d6aea3bc49449a82202bf",
+      "evidencePath": "docs/internal/execution-runs/RMP05-input-only/EVIDENCE.json",
+      "reviewDisposition": "coordinator form structure checked;independent actual-case/rights/owner decision pending | blocked on external prerequisite",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: dated, responsible-owner decision records with numeric thresholds and rationale for each selected output. Responsible: owner/team decision owner. Reopen on those signed records; blanks are not eligible thresholds."
+    },
+    {
+      "id": "RMP05-C04",
+      "packet": "RMP05",
+      "status": "blocked",
+      "sourceSha": "507dabf72b73a38a873d6aea3bc49449a82202bf",
+      "evidencePath": "docs/internal/execution-runs/RMP05-input-only/EVIDENCE.json",
+      "reviewDisposition": "coordinator form structure checked;independent actual-case/rights/owner decision pending | external prerequisite: an actual case set whose vehicle/source/sensor/exposure graph can be audited. Responsible: owner and independent custodian. Reopen when the case set exists.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: an actual case set whose vehicle/source/sensor/exposure graph can be audited. Responsible: owner and independent custodian. Reopen when the case set exists."
+    },
+    {
+      "id": "RMP05-C05",
+      "packet": "RMP05",
+      "status": "blocked",
+      "sourceSha": "507dabf72b73a38a873d6aea3bc49449a82202bf",
+      "evidencePath": "docs/internal/execution-runs/RMP05-input-only/EVIDENCE.json",
+      "reviewDisposition": "coordinator form structure checked;independent actual-case/rights/owner decision pending | blocked on external prerequisite",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: the completed freeze/readiness template with reviewed eligible inputs and agreed budgets, checked without outcome access. Responsible: owner/team and custodian. Reopen when the template is complete and signed."
+    },
+    {
+      "id": "RMP06-C01",
+      "packet": "RMP06",
+      "status": "pass",
+      "sourceSha": "15be61bbd7598f6a6b485bd3f9ebe9b217071312",
+      "evidencePath": "docs/internal/execution-runs/RMP06-local-axial/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP06-local-axial/EVIDENCE.json."
+    },
+    {
+      "id": "RMP06-C02",
+      "packet": "RMP06",
+      "status": "pass",
+      "sourceSha": "15be61bbd7598f6a6b485bd3f9ebe9b217071312",
+      "evidencePath": "docs/internal/execution-runs/RMP06-local-axial/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP06-local-axial/EVIDENCE.json."
+    },
+    {
+      "id": "RMP06-C03",
+      "packet": "RMP06",
+      "status": "pass",
+      "sourceSha": "15be61bbd7598f6a6b485bd3f9ebe9b217071312",
+      "evidencePath": "docs/internal/execution-runs/RMP06-local-axial/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP06-local-axial/EVIDENCE.json."
+    },
+    {
+      "id": "RMP06-C04",
+      "packet": "RMP06",
+      "status": "pass",
+      "sourceSha": "2997a3504238e212ebb5ea1773f1077412781332",
+      "evidencePath": "docs/internal/execution-runs/RMP06-profile-bridge/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP06-profile-bridge/EVIDENCE.json."
+    },
+    {
+      "id": "RMP06-C05",
+      "packet": "RMP06",
+      "status": "not_applicable",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP06-runtime-profile/RESULT.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": "No cache exists on the delivered candidate or axial path: axial total force is evaluated directly from the typed E1 local state every call, and the environment table uses one declared interpolation policy (log-pressure/linear-temperature/wind) that refuses extrapolation rather than serving stale data. A cache-key/consistency check therefore has no delivered artifact to exercise; if a cache is added, this check reopens.",
+      "reviewDetail": "Reviewed not applicable"
+    },
+    {
+      "id": "RMP06-C06",
+      "packet": "RMP06",
+      "status": "pass",
+      "sourceSha": "15be61bbd7598f6a6b485bd3f9ebe9b217071312",
+      "evidencePath": "docs/internal/execution-runs/RMP06-local-axial/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP06-local-axial/EVIDENCE.json."
+    },
+    {
+      "id": "RMP06-C07",
+      "packet": "RMP06",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP06-runtime-profile/RESULT.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Independent coordinator ACCEPT at merge 0910a31 on the integrated engine bytes (WASM 1ccea7327029c4458d828e775d193cd9ac56a90ab1c5f7009e1e5e5f2eae53fb, 1,876,918 B). One prepared candidate object supplies the bounded trajectory, the same-state query and the static curves on native and wasm32; the reference-Mach curve point is now bit-identical to the query sample (zero differing bits) instead of differing by 1 ULP, every other point is byte-identical to the previous build, and the profile envelope runs through the same path with its own observation and identities. Matched native/WASM receipt: 115,039 numeric fields per case within the standing 1e-9 scaled precision (max 2.6e-16 wind0, 1.4e-14 wind3), 15,000 Euler fields agree. Scope: prescribed-CA0 and E1-profile sources; the local all-stage axial source remains unsupported by design (RMP06-C05/source item)."
+    },
+    {
+      "id": "RMP06-C08",
+      "packet": "RMP06",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP06-runtime-profile/RESULT.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Independent coordinator ACCEPT at merge 0910a31. The merged engine keeps legacy behaviour: on the same `simulate_flight` fixtures every non-Euler number is bit-identical to the retained pre-change receipts (115,039 fields per case, max scaled difference 0), and the integrated production-CSP browser smoke passes the full legacy journey (299/533/5130 m presets, imports/exports, 1000-run ensemble, calibration save/reopen, share bundle, cross-tab stale-save refusal). The only intentional legacy output change is the declared Euler presentation migration, documented in the engineering changelog with old archives preserved and `engineIdentity` as the boundary."
+    },
+    {
+      "id": "RMP07-C01",
+      "packet": "RMP07",
+      "status": "pass",
+      "sourceSha": "6043a15",
+      "evidencePath": "docs/internal/execution-runs/RMP07-candidate-app/ACCEPTANCE.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Independent coordinator ACCEPT after integration merge 6043a15. Candidate identity is one canonical invocation over flightModel descriptor (incl. axial CA0/provider/input identity, declarations, declaration SHA, quadrature, horizon, step, curve grid), full vehicle DTO (incl. launchSite), motor DTO and launch/environment (rail, wind, altitude); display key derived from the same text. Exercise: 13/13 effective-input variants change the canonical or are refused at the exact-ID boundary; an equivalent copy is identical; a forced FNV collision still reads stale. Engine content identity is recorded separately from the app key and is never presented as a cryptographic file digest. No qualification/default claim."
+    },
+    {
+      "id": "RMP07-C02",
+      "packet": "RMP07",
+      "status": "pass",
+      "sourceSha": "db169e1f6d3e2d3eca9f1c3f26904a1ff746cc3c",
+      "evidencePath": "docs/internal/execution-runs/RMP07-project-identity/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP07-project-identity/EVIDENCE.json."
+    },
+    {
+      "id": "RMP07-C03",
+      "packet": "RMP07",
+      "status": "pass",
+      "sourceSha": "6043a15",
+      "evidencePath": "docs/internal/execution-runs/RMP07-candidate-app/ACCEPTANCE.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Independent coordinator ACCEPT for the leakage/retention predicate, structural evidence: candidate capture and archive (v3) have no calibration field and declare exactly their keys; the candidate dispatch branch explicitly passes no calibration; request.launch.dragCdScale must be null and the core refuses any transferable scale; the UI states the retained fit is inactive and refuses candidate fit/apply. Legacy fit staleness/refusal remains the separately accepted calibrationApplicability work. Physical calibration qualification and uncertainty remain open elsewhere; this is not a physics PASS."
+    },
+    {
+      "id": "RMP07-C04",
+      "packet": "RMP07",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP07-candidate-app/ACCEPTANCE.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Independent coordinator ACCEPT for every provider the app offers. The candidate command, its same-state query and its static curves are produced from one prepared object and the executed WASM identity recorded on the result equals the served asset (production-CSP journey: executed = dist = 1ccea732..., identical input/model digest e88e2c05... across the report bump). Preview, Barrowman stability, Monte Carlo, copilot flight checks, calibration and KML either use the same resolved provider or refuse explicitly; the palette ensemble action dispatches no legacy ensemble. Legacy command/plot/ensemble identity is unchanged and covered by the standing smoke. The E1 profile envelope is now offered by the app: the Console imports a prepared environment selection, dispatches the envelope through the same command, and records the profile provenance; a profile run's result is presented from the same canonical projection and the same executed bytes (production-CSP journey: executed = served = 1ccea732..., profile source shown in the result). Refusals cover retained surface wind, altitude mismatch, malformed selection and report-kind mixing."
+    },
+    {
+      "id": "RMP07-C05",
+      "packet": "RMP07",
+      "status": "pass",
+      "sourceSha": "6043a15",
+      "evidencePath": "docs/internal/execution-runs/RMP07-candidate-app/ACCEPTANCE.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Independent coordinator ACCEPT: actual production-CSP journeys exercised undo/redo of the selection with the committed candidate archive retained, browser-slot save/reopen, load-saved-inputs then explicit rerun, a malformed import refused with the open document unchanged, cancellation during mass preparation leaving no result and no appended case, and the standing cross-tab stale-save refusal. Motor identity participates in the canonical identity, so a motor edit marks the result stale rather than silently reusing it."
+    },
+    {
+      "id": "RMP07-C06",
+      "packet": "RMP07",
+      "status": "pass",
+      "sourceSha": "6043a15",
+      "evidencePath": "docs/internal/execution-runs/RMP07-candidate-app/ACCEPTANCE.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Independent coordinator ACCEPT: ten-probe archive matrix (legitimate original accepted; future/negative event times, out-of-domain curve Mach, foreign environment identity/status/policy, widened support bound, wrong query time, contradictory completed horizon, retained-final-sample and retained-count contradictions refused) plus unknown-schema/exact-key refusals and an actual malformed file import that preserves the open project; recovery by reopening the saved slot succeeded. No historical document is rewritten or reconstructed."
+    },
+    {
+      "id": "RMP07-C07",
+      "packet": "RMP07",
+      "status": "pass",
+      "sourceSha": "6043a15",
+      "evidencePath": "docs/internal/execution-runs/RMP07-candidate-app/ACCEPTANCE.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Independent coordinator ACCEPT for the offered surfaces: the candidate panel reports experimental/unqualified, computational completion, dynamic qualification UNKNOWN, absent landing/apogee with reasons, observed-prefix values labelled observed, nullable query/curve quantities and the engine's own curve-equality result (false) without promotion to PASS or zero. Legacy statuses are unchanged. No empirical or numerical qualification is claimed."
+    },
+    {
+      "id": "RMP07-C08",
+      "packet": "RMP07",
+      "status": "pass",
+      "sourceSha": "6043a15",
+      "evidencePath": "docs/internal/execution-runs/RMP07-candidate-app/ACCEPTANCE.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "New receipt for this build: src/engine asset, served dist asset and the identity recorded on the real candidate result are all 13da44d5a70af2bd4e8feee082f49277a4ce92e07fed97743d4d3aedf0022328 (1,827,128 bytes) with site asset ba7be64f49f1212b6d7dc48ffbef8140ebb74a611a0fb808aebd7d285f55acee; production-CSP Chromium ran the candidate request under that asset with no page/runtime/CSP errors. The author worktree's different root-dependent bytes (da38461e..., 1,827,192) are retained as that worktree's history and are preserved verbatim on imported historical cases, never relabelled."
+    },
+    {
+      "id": "RMP08-C01",
+      "packet": "RMP08",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: matched development source data with original geometry, features, axes, references, Re, roll, power and base conventions. Responsible: owner/source custodian and scientific reviewer. Reopen on actual source evidence; no substitution without disclosure.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: matched development source data with original geometry, features, axes, references, Re, roll, power and base conventions. Responsible: owner/source custodian and scientific reviewer. Reopen on actual source evidence; no substitution without disclosure."
+    },
+    {
+      "id": "RMP08-C02",
+      "packet": "RMP08",
+      "status": "pass",
+      "sourceSha": "39d944c6d07c828ffbbb7276d969513d58f7120f",
+      "evidencePath": "docs/internal/execution-runs/RMP08-equations-rates/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP08-equations-rates/EVIDENCE.json."
+    },
+    {
+      "id": "RMP08-C03",
+      "packet": "RMP08",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: paired force and independent moment/rate source data over the intended conditions with uncertainty. Responsible: owner/source custodian and scientific reviewer. Reopen on that evidence; CP-only agreement cannot close it.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: paired force and independent moment/rate source data over the intended conditions with uncertainty. Responsible: owner/source custodian and scientific reviewer. Reopen on that evidence; CP-only agreement cannot close it."
+    },
+    {
+      "id": "RMP08-C04",
+      "packet": "RMP08",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP08-equations-rates/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted for the delivered candidate composition: it performs no regime blending at all - Mach >= 0.8, incidence > 5 deg and reverse flow refuse, and no transonic/CP blend is imported. The static-curve applicability contract adds an explicit not-applicable outcome with a reason instead of smoothing or substituting a state. The legacy transonic/CP blends remain disclosed, unvalidated legacy fits that this packet neither tunes nor qualifies; unsupported gaps stay unsupported, which is what the check requires."
+    },
+    {
+      "id": "RMP08-C05",
+      "packet": "RMP08",
+      "status": "pass",
+      "sourceSha": "39d944c6d07c828ffbbb7276d969513d58f7120f",
+      "evidencePath": "docs/internal/execution-runs/RMP08-equations-rates/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP08-equations-rates/EVIDENCE.json."
+    },
+    {
+      "id": "RMP08-C06",
+      "packet": "RMP08",
+      "status": "pass",
+      "sourceSha": "39d944c6d07c828ffbbb7276d969513d58f7120f",
+      "evidencePath": "docs/internal/execution-runs/RMP08-equations-rates/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP08-equations-rates/EVIDENCE.json."
+    },
+    {
+      "id": "RMP08-C07",
+      "packet": "RMP08",
+      "status": "blocked",
+      "sourceSha": "39d944c6d07c828ffbbb7276d969513d58f7120f",
+      "evidencePath": "docs/internal/execution-runs/RMP08-equations-rates/EVIDENCE.json",
+      "reviewDisposition": "Partial: equation/source simplifications, exclusions, numerical conditioning and failed attempts recorded; no holdout access, tuning or apogee correction. Development comparisons and numerical budgets remain open under RMP12/RMP13; no C07 PASS or physical claim. | external prerequisite: approved decision/development numerical budgets and the associated development comparison set. Responsible: owner/team. Reopen when budgets and eligible comparisons exist; the local failed/excluded points and simplifications are already recorded.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: approved decision/development numerical budgets and the associated development comparison set. Responsible: owner/team. Reopen when budgets and eligible comparisons exist; the local failed/excluded points and simplifications are already recorded."
+    },
+    {
+      "id": "RMP08-C08",
+      "packet": "RMP08",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: an independent scientific reviewer accepting the selected material scope. Responsible: owner arranges the review. Reopen on that review; no default or primary claim is made meanwhile.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: an independent scientific reviewer accepting the selected material scope. Responsible: owner arranges the review. Reopen on that review; no default or primary claim is made meanwhile."
+    },
+    {
+      "id": "RMP09-C01",
+      "packet": "RMP09",
+      "status": "pass",
+      "sourceSha": "a47bcb51d9225651782a6dc35e3953335b99c8df",
+      "evidencePath": "docs/internal/execution-runs/RMP09-mechanics-invariants/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP09-mechanics-invariants/EVIDENCE.json."
+    },
+    {
+      "id": "RMP09-C02",
+      "packet": "RMP09",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP08-RMP09-remainder/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted with the provenance misstatement corrected in this delivery (2bc65ec): the candidate test fixture is now documented as a synthetic 22-point Estes-C6-like curve, explicitly NOT the certified 25-point record (8.8172 N*s against a declared 8.8). The actual certified curve provenance, mount anchors, ignition/burnout clocks and the absence of ambient-pressure thrust correction were recorded and independently reviewed earlier; this change only makes the code stop claiming otherwise. No numeric fixture, clock or alignment was changed."
+    },
+    {
+      "id": "RMP09-C03",
+      "packet": "RMP09",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: actual guide/button geometry and the first-rotational-freedom observation rule. Responsible: owner/mechanics custodian. Reopen when the configuration is known; no invented button travel.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: actual guide/button geometry and the first-rotational-freedom observation rule. Responsible: owner/mechanics custodian. Reopen when the configuration is known; no invented button travel."
+    },
+    {
+      "id": "RMP09-C04",
+      "packet": "RMP09",
+      "status": "blocked",
+      "sourceSha": "80efb9854ed33cfbc91cc329dcc203658ff6d86c",
+      "evidencePath": "docs/internal/execution-runs/RMP08-RMP09-remainder/EVIDENCE.json",
+      "reviewDisposition": "Bounded single-body increment accepted by independent coordinator: 209 test-only lines verify drogue-before-main ordering, duplicate MainDeploy suppression, main-at-apogee, delayed/low crossing, failed-trigger forced main at touchdown and honoured is_main_deployed/is_apogee_reached seeds; merged-tree 7/7 focused and full core lib 219/219. Three guard removals were proven to fail the tests and were reverted. Independent/suspended sections and trigger latency are not modelled, so the check remains in_progress, not a PASS. | external prerequisite: actual trigger configuration/latency and suspended-section data. Responsible: owner/mechanics custodian. Reopen when known; single-body sequence behaviour is already tested and accepted.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: actual trigger configuration/latency and suspended-section data. Responsible: owner/mechanics custodian. Reopen when known; single-body sequence behaviour is already tested and accepted."
+    },
+    {
+      "id": "RMP09-C05",
+      "packet": "RMP09",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: per-section masses, suspension and measured landing energy. Responsible: owner/mechanics custodian. Reopen when measured; whole-vehicle energy stays labelled whole-vehicle.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: per-section masses, suspension and measured landing energy. Responsible: owner/mechanics custodian. Reopen when measured; whole-vehicle energy stays labelled whole-vehicle."
+    },
+    {
+      "id": "RMP09-C06",
+      "packet": "RMP09",
+      "status": "pass",
+      "sourceSha": "cc79b111da41a64b7022664803933e280590a036",
+      "evidencePath": "docs/internal/execution-runs/RMP09-domain-legacy/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP09-domain-legacy/EVIDENCE.json."
+    },
+    {
+      "id": "RMP09-C07",
+      "packet": "RMP09",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: eligible measured mass/CG, guide speed/timing and recovery observations with uncertainty and approved budgets. Responsible: owner/measurement custodian. Reopen on that evidence.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: eligible measured mass/CG, guide speed/timing and recovery observations with uncertainty and approved budgets. Responsible: owner/measurement custodian. Reopen on that evidence."
+    },
+    {
+      "id": "RMP09-C08",
+      "packet": "RMP09",
+      "status": "pass",
+      "sourceSha": "cc79b111da41a64b7022664803933e280590a036",
+      "evidencePath": "docs/internal/execution-runs/RMP09-domain-legacy/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP09-domain-legacy/EVIDENCE.json."
+    },
+    {
+      "id": "RMP10-C01",
+      "packet": "RMP10",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP10-display-measurement/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted on the delivered surfaces: no readout promotes a sampled value or an exact timestamp to an independently observed burnout, candidate samples carry CG and coefficients from their own committed state/time/model, and moment-arm history stays labelled sampled-only. The candidate result panel reports observed-prefix values as observed and refuses to present a predicted apogee. Through-burnout continuity claims and mechanics-decision qualification are not made."
+    },
+    {
+      "id": "RMP10-C02",
+      "packet": "RMP10",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP10-geometry-cp-support/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted: an unavailable or ill-conditioned CP retains force, moment, C/rad and J with its reason and never becomes a stable verdict - the candidate archive preserves nullable CP/flow/coefficients with their unavailable reasons while keeping the dimensional wrench and the separately modelled rate couple, and the legacy geometry path withholds CP/margin instead of using a stand-in. Exercised by the candidate archive probes and the accepted geometry-CP work."
+    },
+    {
+      "id": "RMP10-C03",
+      "packet": "RMP10",
+      "status": "blocked",
+      "sourceSha": "82804cb17332bbe7f2dc9423c104dc9cca00ac02",
+      "evidencePath": "docs/internal/execution-runs/RMP10-peak-evidence/EVIDENCE.json",
+      "reviewDisposition": "Progress: independent analytic/refinement evidence established for the bounded display-sample max-Q claim (exact-hit, 53 Pa off-grid undershoot, unbounded narrow-peak miss across 1e3/1e6/1e9 Pa amplitudes, 0.4 Pa rounding overshoot, forced-peak retention through the 5000 cap); adapter/contract/manifest now deny continuous-bound interpretation. MiMo no-tools review ACCEPT; F1/F2 native rounding citations (telemetry.rs:63-70,153-156) and F3 float-precision tightening applied post-review at 5afa043. NOT a pass: continuous-time peak magnitude/timing, numeric resolution budget and structural qualification remain unqualified; fixtures are synthetic and do not execute native code | external prerequisite: approved continuous-peak numerical resolution budget and independent refinement/reference data. Responsible: owner/team with scientific reviewer. Reopen on a signed budget; the sampled-peak scope is already honestly bounded and must not be promoted without it.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: approved continuous-peak numerical resolution budget and independent refinement/reference data. Responsible: owner/team with scientific reviewer. Reopen on a signed budget; the sampled-peak scope is already honestly bounded and must not be promoted without it."
+    },
+    {
+      "id": "RMP10-C04",
+      "packet": "RMP10",
+      "status": "blocked",
+      "sourceSha": "9fb47e484750a2133b0b2f71a8e0bb4cac89f9a9",
+      "evidencePath": "docs/internal/execution-runs/RMP10-display-measurement/EVIDENCE.json",
+      "reviewDisposition": "Bounded consumer sweep accepted by independent coordinator: landing energy now discloses one lumped whole-vehicle mass, uncomputed per-section/suspended energy and the engine's internal 20 J screen with an unestablished basis; the failing rail screen carries the same no-first-rotational-freedom/no-competition scope as the passing branch; flat z=0 contact, single trigger model and absent lug/button geometry are disclosed and asserted. Remaining scope is external (measured guide/button geometry and positions, first-rotational-freedom observation, altimeter trigger configs, measured mass/CG/inertia, per-section recovery energy, terrain/datum, limit basis). Not a PASS. | external prerequisite: measured guide/button geometry, altimeter trigger configuration, mass/CG/inertia and terrain/datum data. Responsible: owner/measurement custodian. Reopen when available; current readouts disclose the single-trigger and whole-vehicle scope.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: measured guide/button geometry, altimeter trigger configuration, mass/CG/inertia and terrain/datum data. Responsible: owner/measurement custodian. Reopen when available; current readouts disclose the single-trigger and whole-vehicle scope."
+    },
+    {
+      "id": "RMP10-C05",
+      "packet": "RMP10",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: applicable material/joint/attachment structural evidence and guided-recovery/rule definitions. Responsible: owner/structural custodian. Reopen on that evidence; unsupported transient/shock scope stays unavailable.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: applicable material/joint/attachment structural evidence and guided-recovery/rule definitions. Responsible: owner/structural custodian. Reopen on that evidence; unsupported transient/shock scope stays unavailable."
+    },
+    {
+      "id": "RMP10-C06",
+      "packet": "RMP10",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP10-qualified-output-archive/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted for the delivered surfaces: one model-aware projection feeds live Flight, Saved Runs and the Build/export trace, so the same run reports the same value, unit, qualification and availability everywhere; candidate results add an experimental/unqualified status instead of a legacy PASS, and the export round trip preserves the recorded engine identity without relabelling. Continuous-peak, structural and measurement qualification are not claimed and remain outside this consistency check."
+    },
+    {
+      "id": "RMP10-C07",
+      "packet": "RMP10",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP10-display-measurement/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted: decimation, cancellation and stale-result handling no longer lose mandatory context or resurrect old results. The engine now applies the declared display-sample policy itself and the app validates the declared counts, first/final samples, observed-prefix peaks and final state; a cancelled candidate preparation appends no case and leaves no partial cloud, and stale results are marked stale rather than presented as current. Exercised in the production-CSP journeys and archive probes."
+    },
+    {
+      "id": "RMP11-C01",
+      "packet": "RMP11",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: a lawful pinned comparator executable/API and its quantity dictionary. Responsible: owner/environment or vendor custodian. Reopen on authorized access; no external API is guessed.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: a lawful pinned comparator executable/API and its quantity dictionary. Responsible: owner/environment or vendor custodian. Reopen on authorized access; no external API is guessed."
+    },
+    {
+      "id": "RMP11-C02",
+      "packet": "RMP11",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: the comparator to map wrenches against. Responsible: owner/vendor custodian. Reopen with the comparator.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: the comparator to map wrenches against. Responsible: owner/vendor custodian. Reopen with the comparator."
+    },
+    {
+      "id": "RMP11-C03",
+      "packet": "RMP11",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: comparator runtime on a permitted synthetic trajectory. Responsible: owner/environment custodian. Reopen with the comparator.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: comparator runtime on a permitted synthetic trajectory. Responsible: owner/environment custodian. Reopen with the comparator."
+    },
+    {
+      "id": "RMP11-C04",
+      "packet": "RMP11",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: the comparator plus its permitted case to attribute results. Responsible: owner/vendor custodian. Reopen with the comparator.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: the comparator plus its permitted case to attribute results. Responsible: owner/vendor custodian. Reopen with the comparator."
+    },
+    {
+      "id": "RMP11-C05",
+      "packet": "RMP11",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: comparator clocks/peaks/failure records. Responsible: owner/vendor custodian. Reopen with the comparator.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: comparator clocks/peaks/failure records. Responsible: owner/vendor custodian. Reopen with the comparator."
+    },
+    {
+      "id": "RMP12-C01",
+      "packet": "RMP12",
+      "status": "pass",
+      "sourceSha": "51611d1c662823cea3cbb9bfba65cf4de379aed6",
+      "evidencePath": "docs/internal/execution-runs/RMP12c-regime-expansion/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP12c-regime-expansion/EVIDENCE.json."
+    },
+    {
+      "id": "RMP12-C02",
+      "packet": "RMP12",
+      "status": "blocked",
+      "sourceSha": "49070710b6c5fb5070b3b42da0ed9bc9cec4a9b7",
+      "evidencePath": "docs/internal/execution-runs/RMP12-knot-split/COORDINATOR-EVIDENCE.json",
+      "reviewDisposition": "Owner-approved C1+C3 default-policy change independently accepted (RMP12-knot-split/REVIEW.md), merged c5ac1a1. Coordinator reproduced all six diagnostic stdout hashes: new default A20 rail error 3.2806396485us versus provisional 100us reserve, max position 0.150254mm and max velocity 9.256e-5m/s; split-off 113.6749267578us, old binary 105.0140380858us byte-exact. Historical failures retained; current measured-fixture failure resolved, not a budget waiver or full C02 PASS. Approved budgets (C06), full state/attitude/regime coverage and physical qualification remain open. Merged verification: 223 core, 100 engine, 115 TS tests; typecheck/build and production-CSP real flight pass. Actual invoked WASM cf57158b84bdc92861fc56530c2fedb2e13d290e2d1212d90015fbce5746f508 differs from author build; no cross-build reproducibility claim. | external prerequisite: owner/team-approved output numerical allocations and independent reference/refinement data for the intended regime and state/attitude breadth. Responsible: owner/team with scientific reviewer. Reopen on signed budgets; the approved integrator policy and the attitude defect fix are already in the delivered source.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: owner/team-approved output numerical allocations and independent reference/refinement data for the intended regime and state/attitude breadth. Responsible: owner/team with scientific reviewer. Reopen on signed budgets; the approved integrator policy and the attitude defect fix are already in the delivered source."
+    },
+    {
+      "id": "RMP12-C03",
+      "packet": "RMP12",
+      "status": "blocked",
+      "sourceSha": "51611d1c662823cea3cbb9bfba65cf4de379aed6",
+      "evidencePath": "docs/internal/execution-runs/RMP12c-regime-expansion/EVIDENCE.json",
+      "reviewDisposition": "three macro steps/six synthetic configurations report sample/event context; 5ms near-horizon sample disclosed; interpolation/continuous-peak separation and other regimes untested | external prerequisite: approved interpolation/peak resolution budgets and the additional regime configurations those budgets define. Responsible: owner/team. Reopen on a signed budget; sample/event context separation and the bounded display-peak evidence are already accepted.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: approved interpolation/peak resolution budgets and the additional regime configurations those budgets define. Responsible: owner/team. Reopen on a signed budget; sample/event context separation and the bounded display-peak evidence are already accepted."
+    },
+    {
+      "id": "RMP12-C04",
+      "packet": "RMP12",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP12-attitude-display/EVIDENCE.json",
+      "buildReproducibilityDisposition": "2026-10-28 independent diagnosis accepted in docs/internal/execution-runs/RMP12-runtime-artifacts/REVIEW.md (experiment source 9443d91, records dd6053d). All 535 retained index entries verified. Same-root clean-target bytes equal; two-root remapped data equal but code/element bytes differ. Keep actual-byte identities and distinct runtime receipts; no cross-root/toolchain/host byte-reproducibility promise. No production flag/staging/cache changes or historical identity rewrite; broader C04 numeric/qualification obligations remain open.",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted on the delivered bytes after the attitude correction. Native example bfab6d8c... and WASM 1ccea732... (1,876,918 B) were run on the identical simulate_flight fixtures: schema and non-numeric fields match, 115,039 numeric fields per case satisfy the standing 1e-9 scaled precision (max 2.6e-16 wind0, 1.4e-14 wind3), and all 15,000 Euler fields agree with zero gimbal-lock exemptions required. The previously retained strict wind3 Euler disagreement is resolved by the corrected Z-X-Y extraction, not by a tolerance; historical receipts stay valid for their own engine bytes."
+    },
+    {
+      "id": "RMP12-C05",
+      "packet": "RMP12",
+      "status": "pass",
+      "sourceSha": "0263c20f6c1a131af050446caa29129e144b92ca",
+      "evidencePath": "docs/internal/execution-runs/RMP12-ensemble-determinism/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP12-ensemble-determinism/EVIDENCE.json."
+    },
+    {
+      "id": "RMP12-C06",
+      "packet": "RMP12",
+      "status": "blocked",
+      "sourceSha": "51611d1c662823cea3cbb9bfba65cf4de379aed6",
+      "evidencePath": "docs/internal/execution-runs/RMP12c-regime-expansion/EVIDENCE.json",
+      "reviewDisposition": "provisional software reserves only; approved decision budgets missing; no default recommendation; bounded effects available to RMP13 | blocked on external prerequisite",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: owner/team-approved output numerical allocations tied to decision reserves and physical-input uncertainty. Responsible: owner/team with the scientific reviewer. Reopen on a signed allocation; the numerical contributions already measured are recorded, but no budget conclusion is possible without it."
+    },
+    {
+      "id": "RMP12-C07",
+      "packet": "RMP12",
+      "status": "pass",
+      "sourceSha": "51611d1c662823cea3cbb9bfba65cf4de379aed6",
+      "evidencePath": "docs/internal/execution-runs/RMP12c-regime-expansion/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP12c-regime-expansion/EVIDENCE.json."
+    },
+    {
+      "id": "RMP13-C01",
+      "packet": "RMP13",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP13-scenario-provenance/RESULT.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted: the unsupported per-class motor-impulse certification table was deleted rather than relabelled, and the sampler contract now states that the impulse sigma is a declared scenario scale drawn independently of wind direction and rail elevation. The three assigned perturbations are the persisted workspace sigmas with an identified seed; every other input is fixed and stated. No measured distribution, correlation or certification tolerance is claimed anywhere in live source, API or UI."
+    },
+    {
+      "id": "RMP13-C02",
+      "packet": "RMP13",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: identifiable development observations supporting every parameter/correction. Responsible: owner/data custodian and statistical reviewer. Reopen with that evidence; confounded fits are not accepted here.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: identifiable development observations supporting every parameter/correction. Responsible: owner/data custodian and statistical reviewer. Reopen with that evidence; confounded fits are not accepted here."
+    },
+    {
+      "id": "RMP13-C03",
+      "packet": "RMP13",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP13-calibration-applicability/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted: a calibration artifact is bound to the model, design, motor, site and recorded engine that produced it; incompatible changes mark it inactive/historical with a stated reason and it cannot leak into a run, and the candidate model refuses any historical scale transfer. The earlier bounded repair (shared model binding, exact recorded uncalibrated context, distinct different/unknown-engine refusals, no arbitrary truncation) plus the candidate refusal path cover this predicate. Physical eligibility and uncertainty remain outside it."
+    },
+    {
+      "id": "RMP13-C04",
+      "packet": "RMP13",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: a defined development/scoring split with custody and an exposure ledger. Responsible: owner and independent custodian. Reopen when the split exists; no holdout or scoring data was accessed by this work.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: a defined development/scoring split with custody and an exposure ledger. Responsible: owner and independent custodian. Reopen when the split exists; no holdout or scoring data was accessed by this work."
+    },
+    {
+      "id": "RMP13-C05",
+      "packet": "RMP13",
+      "status": "blocked",
+      "sourceSha": "37c334c07f5500566242e2baffb1a85c6425733f",
+      "evidencePath": "docs/internal/execution-runs/RMP13-ensemble-outcome-ledger/EVIDENCE.json",
+      "reviewDisposition": "Bounded source/consumer repair accepted by independent coordinator (REVIEW.md in docs/internal/execution-runs/RMP13-ensemble-outcome-ledger): every requested absolute run index carries an explicit class plus unchanged native validity/termination/envelope flags; exactly-once [0,nRuns) coverage enforced in Rust and TS; the qualified footprint is supported-nominal-terminal only (no off-nominal excursion); all five counts always emitted; zero eligible yields statisticsAvailable=false with null statistics, never zero-filled; legacy run_ensemble contract and archive meaning unchanged (schema 1.11.0, no migration); legacy historical flights keep their recorded engine SHA. Integrated as acfb002 (author 4d7e377, excursion rework 37c334c); rebuilt shipped WASM 9adeaf2c\u2026; tsc clean, 132/132 focused tests, real production-CSP browser counts/no-footprint/save-reopen proof, old-SHA calibration refused without rewrite. NOT a full PASS: RMP13-C05 probability/coverage and empirical footprint remain open and scenario-only; no physical qualification or product completion claimed. | external prerequisite: independently supported input ranges/correlations and eligible physical observations with approved budgets. Responsible: owner/data custodian and statistical reviewer. Reopen on that evidence; the delivered ensemble is scenario-only with sampled-vs-fixed inputs stated.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: independently supported input ranges/correlations and eligible physical observations with approved budgets. Responsible: owner/data custodian and statistical reviewer. Reopen on that evidence; the delivered ensemble is scenario-only with sampled-vs-fixed inputs stated."
+    },
+    {
+      "id": "RMP13-C06",
+      "packet": "RMP13",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP13-ensemble-outcome-ledger/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted: unsupported, non-nominal, time-limit and computational-failure runs stay visible in the outcome ledger, zero eligible yields unavailable statistics rather than zero-filled numbers, and cancellation discards the partial cloud and records a failed attempt instead of returning partial results. The footprint remains supported-nominal-terminal only and is labelled scenario-only. Verified in the accepted ledger work and re-stated in the scenario copy proof."
+    },
+    {
+      "id": "RMP13-C07",
+      "packet": "RMP13",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: the final freeze artifact (budgets, model, discrepancy, sampling, metrics) agreed before unseen outcomes. Responsible: owner/team and custodian. Reopen on the signed freeze.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: the final freeze artifact (budgets, model, discrepancy, sampling, metrics) agreed before unseen outcomes. Responsible: owner/team and custodian. Reopen on the signed freeze."
+    },
+    {
+      "id": "RMP14-C01",
+      "packet": "RMP14",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: eligible independently held unseen outcomes and a signed freeze checklist. Responsible: owner authorizes; custodian supplies. Reopen only after the final freeze.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: eligible independently held unseen outcomes and a signed freeze checklist. Responsible: owner authorizes; custodian supplies. Reopen only after the final freeze."
+    },
+    {
+      "id": "RMP14-C02",
+      "packet": "RMP14",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: an actual custody chronology and authorized access record. Responsible: owner/custodian. Reopen after authorized outcome release.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: an actual custody chronology and authorized access record. Responsible: owner/custodian. Reopen after authorized outcome release."
+    },
+    {
+      "id": "RMP14-C03",
+      "packet": "RMP14",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: authorized outcomes plus the frozen scorer and boundary/failure cases. Responsible: owner/custodian. Reopen after release; no scoring data was accessed.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: authorized outcomes plus the frozen scorer and boundary/failure cases. Responsible: owner/custodian. Reopen after release; no scoring data was accessed."
+    },
+    {
+      "id": "RMP14-C04",
+      "packet": "RMP14",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: the actual scored ledger with dependency and coverage information. Responsible: owner/custodian. Reopen after scoring.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: the actual scored ledger with dependency and coverage information. Responsible: owner/custodian. Reopen after scoring."
+    },
+    {
+      "id": "RMP14-C05",
+      "packet": "RMP14",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: the frozen identities plus a later scored comparison. Responsible: owner/custodian. Reopen after scoring.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: the frozen identities plus a later scored comparison. Responsible: owner/custodian. Reopen after scoring."
+    },
+    {
+      "id": "RMP15-C01",
+      "packet": "RMP15",
+      "status": "pass",
+      "sourceSha": "HEAD",
+      "evidencePath": "docs/internal/execution-runs/RMP07-candidate-app/ACCEPTANCE.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Independent coordinator ACCEPT for changed-provider and changed-environment archives. A real profile run (synthetic E1 selection, zero wind at the pad, cross wind aloft) dispatches the documented native-E1-profile-candidate-request/1.0.0 envelope through the production WebAssembly worker under CSP: executed WASM equals the served asset, the archived candidate inputs keep the envelope verbatim, the result records the profile provenance (source identity, model id, datum, launch epoch/altitude, query-exact and curve-shared flags), and the project saves, reopens and reloads its inputs with the selection restored. A legacy 1.0.0 archive still re-saves byte-identically (273,549 B, dd9b7330...). Source binding is structural, not cryptographic authenticity; no empirical qualification. Unsupported combinations are refused, not silently dropped: retained surface wind, altitude mismatch, malformed selection, non-reject extrapolation, empty knots and untagged/profile report mixing."
+    },
+    {
+      "id": "RMP15-C02",
+      "packet": "RMP15",
+      "status": "pass",
+      "sourceSha": "75c9ea4cf3b0e1267e44657ec97306b7a1c4c2c2",
+      "evidencePath": "docs/internal/execution-runs/RMP15-failure-recovery/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP15-failure-recovery/EVIDENCE.json."
+    },
+    {
+      "id": "RMP15-C03",
+      "packet": "RMP15",
+      "status": "pass",
+      "sourceSha": "fd15420aefd72512e58c2880df231640ede7e16a",
+      "evidencePath": "docs/internal/execution-runs/RMP15-lifecycle/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an earlier independent review recorded with this check; evidence: docs/internal/execution-runs/RMP15-lifecycle/EVIDENCE.json."
+    },
+    {
+      "id": "RMP15-C04",
+      "packet": "RMP15",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: representative permitted real vendor/telemetry files with rights, units, time base, datum and configuration provenance. Responsible: owner/customer/file custodian (same input as RMP03). Reopen on actual files; synthetic in-repo round trips and precise refusals are already covered by the standing smoke.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: representative permitted real vendor/telemetry files with rights, units, time base, datum and configuration provenance. Responsible: owner/customer/file custodian (same input as RMP03). Reopen on actual files; synthetic in-repo round trips and precise refusals are already covered by the standing smoke."
+    },
+    {
+      "id": "RMP15-C05",
+      "packet": "RMP15",
+      "status": "pass",
+      "sourceSha": "bc24da7",
+      "evidencePath": "docs/internal/execution-runs/RMP15-usability/ACCEPTANCE.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Independent coordinator journeys on the exact built site under production CSP: 1280x800/1024x768/800x600 layouts (all eight stages reachable, primary Run fully visible and hit-testable, no header overflow), keyboard ? / 5 / [ / Ctrl+K / Ctrl+Z, a real run with the network offline, a refused malformed import that preserves the open document, and the visible beta/experimental limits. Found and fixed a genuine defect: at the documented 800px minimum the primary Run control was 0% visible (top bar needed 1046px). Wide-only chrome now collapses below xl without removing any action. tsc, 71 affected tests, 134/1739 full suite, rebuild, and the candidate journey re-bound to the new asset. Participant comprehension remains RMP17, not claimed here."
+    },
+    {
+      "id": "RMP16-C01",
+      "packet": "RMP16",
+      "status": "pass",
+      "sourceSha": "0b5828b14dd9990543736fbd103a02d8d30695d0",
+      "evidencePath": "docs/internal/execution-runs/RMP16-platform-acceptance/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an independent reviewer (REVIEW.md) for the tested NSIS x64 package only: the guest working tree reconciles to 0b5828b1 file by file (1181 tracked paths; 1180 byte-identical; only the generated src-tauri/gen/schemas/windows-schema.json differs because the build refreshes it), the NSIS setup sha256 8829782960d8f0c1489afc2935f7efce34cb803edd213bd92e75f95fe0f4a4f0 matches the build hashes, and the install record shows silent install exit 0 with installed exe sha256 356948cb3ab56de5a2fd28068aa5b1aa66404a2952a14b4c6d264593e505d20d (16,525,312 bytes), uninstaller sha256 89f7424aae1a39c000d323d1bfaa9debbf2e926e47ce6a3f302a813af38b2208 and registry 0.9.0 on AMD64. The MSI is built and separately installed/uninstalled but is outside this pass. The installed exe differs from the build-tree exe in exactly three bytes: the NSIS bundler rewrites its own __TAURI_BUNDLE_TYPE_VAR_UNK marker to ..._NSS. The package is unsigned and its updater artifacts use an ephemeral fixture key; this is not a release artifact."
+    },
+    {
+      "id": "RMP16-C02",
+      "packet": "RMP16",
+      "status": "pass",
+      "sourceSha": "0b5828b14dd9990543736fbd103a02d8d30695d0",
+      "evidencePath": "docs/internal/execution-runs/RMP16-platform-acceptance/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an independent reviewer (REVIEW.md) on the packet's retained-gap limb only: 'cause supported or exact external gap retained; no guessed fix'. The instrumented Windows launch correlates every startup stage (window built 421 ms, page load finished 702 ms, document_init 861 ms, DOMContentLoaded 1043 ms, load 1495 ms, root_present_5s 5552 ms) and the smoke is ok:true / validity PASS with zero page errors; no CSP event was recorded by the instrumentation. The historical 2f28c65 blank-WebView was NOT reproduced \u2014 that package and the machine where it was observed are unavailable \u2014 and that exact external gap is retained. No source change was made on a guess. A separate session observation: launching the same installed binary from the non-interactive SSH session panics with WebView2 HRESULT 0x80070578 (Invalid window handle); it starts cleanly on the interactive desktop, so that is a harness limitation, not a product defect. This is a diagnosis-gap pass, not startup closure."
+    },
+    {
+      "id": "RMP16-C03",
+      "packet": "RMP16",
+      "status": "blocked",
+      "sourceSha": "0b5828b14dd9990543736fbd103a02d8d30695d0",
+      "evidencePath": "docs/internal/execution-runs/RMP16-platform-acceptance/EVIDENCE.json",
+      "reviewDisposition": "pending | external prerequisite: an owner-authorized signed B artifact, the production feed/key and the reviewed RMP04 fixture; all local offered workflows are receipted (NSIS and MSI install/uninstall, offline relaunch with an active outbound block rule, native save/open, browser-slot save, a real simulation run). Responsible: owner (signing/feed authority) with the RMP04 fixture owner. Reopen when that authority and the fixture exist. The fixture-key bundles in the RMP16 run do not satisfy the signed upgrade.",
+      "notApplicableReason": null,
+      "reviewDetail": "Blocked only on the signed upgrade/recovery workflow. Receipted locally: NSIS install exit 0 + uninstall exit 0 with directory/registry removal; MSI install exit 0 + uninstall exit 0 (product code {E52C63AF-3564-4985-AF7D-B26CA43F2329}); offline relaunch exit 0 with identical numbers while an enabled outbound block rule was active; native Save As wrote C:\\smoke\\win-journey.astraea (4,793,827 B, sha256 2b3fc04a182214c9494c6e3f0565ef15254b178f73eb0f571fdb39bfabedb695, schema 1.12.0, 7 components, 2 motor records, one flight case with outputs and telemetry); the project reopened in a fresh session as revision 1 with its history retained; a run in the installed app produced a valid result; the browser slot stored revision 1. Not covered: the signed upgrade and the declared uninstall data-retention policy (the latter is tracked under RMP16-C05)."
+    },
+    {
+      "id": "RMP16-C04",
+      "packet": "RMP16",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: a real signed OS update with a controllable interruption. Responsible: owner (signing/feed authority) and platform maintainer. Reopen when authorized.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: a real signed OS update with a controllable interruption. Responsible: owner (signing/feed authority) and platform maintainer. Reopen when authorized."
+    },
+    {
+      "id": "RMP16-C05",
+      "packet": "RMP16",
+      "status": "pass",
+      "sourceSha": "0b5828b14dd9990543736fbd103a02d8d30695d0",
+      "evidencePath": "docs/internal/execution-runs/RMP16-platform-acceptance/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted by an independent reviewer (REVIEW.md, confirmation round) for the offered software-WebGL context-loss/fallback and uninstall-retention surface. Context loss: a test-only installed-app launch with the WebView2 remote-debugging endpoint (later removed) tunnelled over SSH; CDP WEBGL_lose_context.loseContext() in the live page produced the labeled fallback '3D viewport unavailable \u2014 editing preserved' with the parts tree and metrics still live (raw/screen-w32.jpg); clicking 'Restore viewport' made the fallback absent and the canvas present after 2 s, and raw/screen-w33.jpg shows the restored 3D view. No edit or export was performed during the fallback. Uninstall/data: DATA-POLICY.md was declared before the check; raw/retention-cycle.txt records the saved project file sha256 2b3fc04a\u2026 before uninstall, uninstall exit 0, program directory gone, registry 0, app profile directory present, and the project file present with the same sha256; after reinstall raw/screen-w35.jpg shows 'Local slot: local revision 1' and 'Opened saved project (revision 1)'. Limitations retained: the loss was forced with WEBGL_lose_context on software WebGL (Microsoft Basic Render Driver), so this does not certify hardware-GPU/driver-reset recovery; the profile path is the DATA-POLICY declaration rather than a value printed by the retention receipt; raw/webgl-loss.json is a step summary, not a raw CDP transcript; the 'no hidden copies' statements are declared policy, not a filesystem search."
+    },
+    {
+      "id": "RMP17-C01",
+      "packet": "RMP17",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: an authorized collegiate team member able to rebuild from supplied inputs. Responsible: owner arranges participation. Reopen when a named member is available.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: an authorized collegiate team member able to rebuild from supplied inputs. Responsible: owner arranges participation. Reopen when a named member is available."
+    },
+    {
+      "id": "RMP17-C02",
+      "packet": "RMP17",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: a second independent member and the declared case. Responsible: owner. Reopen with two named members.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: a second independent member and the declared case. Responsible: owner. Reopen with two named members."
+    },
+    {
+      "id": "RMP17-C03",
+      "packet": "RMP17",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: participant sessions and a rubric record. Responsible: owner/team. Reopen on those sessions.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: participant sessions and a rubric record. Responsible: owner/team. Reopen on those sessions."
+    },
+    {
+      "id": "RMP17-C04",
+      "packet": "RMP17",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: a member working through save/reopen/compare/export on a supported artifact. Responsible: owner/team. Reopen on that session.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: a member working through save/reopen/compare/export on a supported artifact. Responsible: owner/team. Reopen on that session."
+    },
+    {
+      "id": "RMP17-C05",
+      "packet": "RMP17",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: the complete observation/assistance ledger from real sessions. Responsible: owner. Reopen with the ledger.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: the complete observation/assistance ledger from real sessions. Responsible: owner. Reopen with the ledger."
+    },
+    {
+      "id": "RMP18-C01",
+      "packet": "RMP18",
+      "status": "pass",
+      "sourceSha": "b40d984",
+      "evidencePath": "docs/internal/execution-runs/RMP18-rights-security/RESULT.md",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted: every offered artifact has a recorded identity tied to the checks that exercised it. Delivered source b40d984 builds engine WASM 1ccea732... (1,876,918 B), served byte-identically from dist, with the executed identity recorded on real runs; the site bundle and the generated notices (300,284 B) are built from the same tree, and the notices generator fails when the committed file is stale. No stale WASM/site receipt is claimed: earlier root-specific identities (13da44d5..., da38461e..., be0aa364...) remain historical for their own builds."
+    },
+    {
+      "id": "RMP18-C02",
+      "packet": "RMP18",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: the owner product-promise decision that defines which claims must map to G0-G8. Responsible: owner. Reopen on a dated scoped promise; no claim is promoted meanwhile.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: the owner product-promise decision that defines which claims must map to G0-G8. Responsible: owner. Reopen on a dated scoped promise; no claim is promoted meanwhile."
+    },
+    {
+      "id": "RMP18-C03",
+      "packet": "RMP18",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: rights determinations for material whose terms are not locally evidenced - the NASA/TP-2002-211556 thermo subset compiled into the engine, the 8 shipped JS packages without an installed licence text, motor-curve provenance and the 472-crate native closure. Responsible: owner/source custodian and release authority. Reopen when each is either determined distributable or removed. Local part delivered: the private path/URL log sink is gone, notices are generated and served (300,284 B), unresolved items are named rather than asserted, and no keys or confidential data are shipped.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: rights determinations for material whose terms are not locally evidenced - the NASA/TP-2002-211556 thermo subset compiled into the engine, the shipped JavaScript packages without an installed licence text (audit: 7 of the 8 are not present in the built bundle; `@react-three/fiber` is shipped, declares MIT and names its author, and its licence text must be reproduced before distribution), motor-curve provenance and the 472-crate native closure. Responsible: owner/source custodian and release authority. Reopen when each is either determined distributable or removed. Local part delivered: the private path/URL log sink is gone, notices are generated and served (300,284 B), unresolved items are named rather than asserted, and no keys or confidential data are shipped."
+    },
+    {
+      "id": "RMP18-C04",
+      "packet": "RMP18",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: the owner promise/version decision plus a reviewed support/channel/migration draft. Responsible: owner. Reopen on that decision; no channel or support promise is made here.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: the owner promise/version decision plus a reviewed support/channel/migration draft. Responsible: owner. Reopen on that decision; no channel or support promise is made here."
+    },
+    {
+      "id": "RMP18-C05",
+      "packet": "RMP18",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": null,
+      "reviewDisposition": "pending | external prerequisite: the owner final decision authorizing release actions. Responsible: owner alone. Reopen on a dated scoped decision; no push/merge/tag/release/deploy/sign/feed action occurs before it.",
+      "notApplicableReason": null,
+      "reviewDetail": "external prerequisite: the owner final decision authorizing release actions. Responsible: owner alone. Reopen on a dated scoped decision; no push/merge/tag/release/deploy/sign/feed action occurs before it."
+    },
+    {
+      "id": "RMP19-C01",
+      "packet": "RMP19",
+      "status": "pass",
+      "sourceSha": "d76c300",
+      "evidencePath": "docs/internal/execution-runs/RMP19-aero-model-port/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted (REVIEW.md). 216-point TS-oracle vs Rust parity fixture from three self-owned synthetic designs; worst relative residual 2.2162861179974333e-16 (1 ulp) against a 1e-15 assertion; adapter and refusal-matrix tests 6/6; scope confined to the crate and tests."
+    },
+    {
+      "id": "RMP19-C02",
+      "packet": "RMP19",
+      "status": "pass",
+      "sourceSha": "885a083",
+      "evidencePath": "docs/internal/execution-runs/RMP19-aero-model-port/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted. The Aero panel presents aero-buildup 1.1.0 as a hybrid: the built-up method with Astraea's legacy drag override over Mach 0.80-1.20; the component breakdown is withheld inside the band and the stacked split hidden; units remain CNalpha per radian and CP in axial metres; the airfoil/default-template limitation is shown. Production-CSP evidence: hybrid on, model/band lines, flight refusal, persistence, legacy run."
+    },
+    {
+      "id": "RMP19-C03",
+      "packet": "RMP19",
+      "status": "pass",
+      "sourceSha": "885a083",
+      "evidencePath": "docs/internal/execution-runs/RMP19-aero-model-port/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted. Version and term are enforced as pairs: 1.0.0+buildup (method-only) and 1.1.0+legacy (hybrid) execute; 1.0.0+legacy is the defective 1b identity that loads but never executes and offers the user a current choice without silent migration; 1.1.0+buildup is undefined. The selection persists on the envelope, pins into case inputs, survives save/reopen, and absent selection leaves legacy keys byte-identical."
+    },
+    {
+      "id": "RMP19-C04",
+      "packet": "RMP19",
+      "status": "pass",
+      "sourceSha": "d76c300",
+      "evidencePath": "docs/internal/execution-runs/RMP19-aero-model-port/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted. Flight and Monte Carlo with a selection refuse before any case, archive, analysis record or simulate_flight call; the message names the model and how to proceed; verified by test and browser evidence."
+    },
+    {
+      "id": "RMP19-C05",
+      "packet": "RMP19",
+      "status": "pass",
+      "sourceSha": "d76c300",
+      "evidencePath": "docs/internal/execution-runs/RMP19-aero-model-port/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted. With no selection the bridge omits aeroModel and the new DTO fields; legacy panel values and run results are unchanged (legacy run commits in the browser evidence)."
+    },
+    {
+      "id": "RMP19-C06",
+      "packet": "RMP19",
+      "status": "pass",
+      "sourceSha": "d76c300",
+      "evidencePath": "docs/internal/execution-runs/RMP19-aero-model-port/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted. Native 1.14 us/evaluation (allocation-free); WASM aero_curves 278.7 us/call = 6.8 us/evaluation, stability 35.2 us/call; provider curves 1.55x legacy, inside the 2x budget; the +100 ms flight budget is untouched until 1c."
+    },
+    {
+      "id": "RMP19-C07",
+      "packet": "RMP19",
+      "status": "pass",
+      "sourceSha": "d76c300",
+      "evidencePath": "docs/internal/execution-runs/RMP19-aero-model-port/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted. No vendor binary/sample/motor data ships; the parity fixture is self-owned; the engine corpus exists only as a 40-design/36,936-row hash manifest plus harness commands."
+    },
+    {
+      "id": "RMP19-C08",
+      "packet": "RMP19",
+      "status": "pass",
+      "sourceSha": "f7dd01f",
+      "evidencePath": "docs/internal/execution-runs/RMP19-aero-model-port/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted. The engine-corpus gate runs against the product provider: every points.csv is verified against the committed manifest (40 designs, 36,936 rows, per-file SHA-256 and row counts) and every row is evaluated across both methods, Mach/nozzle/alpha; worst relative residual 1.5535456002007316e-6 (w20-steep-boattail, Barrowman M3, CP), exact tier (2e-6). The test skips loudly without ASTRAEA_ENGINE_CORPUS; no engine data ships. Coordinator re-ran it independently."
+    },
+    {
+      "id": "RMP19-C09",
+      "packet": "RMP19",
+      "status": "pass",
+      "sourceSha": "c53b9b0",
+      "evidencePath": "docs/internal/execution-runs/RMP19-aero-model-port/EVIDENCE.json",
+      "reviewDisposition": "approved",
+      "notApplicableReason": null,
+      "reviewDetail": "Accepted. Read-only provenance dialog opened from the Aero panel, the ModelStatusPanel row and the #aero-model-provenance hash; labelled dialog with focus trap, Escape/Close and hash cleared. Content: global no-validation disclaimer; composition wording (legacy total-drag override 0.80-1.20, build-up base/protuberance/friction replaced in band); four term classes; six legacy constants marked unvalidated; method-only C08 parity with the not-applicable-to-hybrid qualifier; limits (breakdown, airfoil/default template, beta panels-only/flight refusal/off by default/promotion, sea-level reference); plain-text citations, no links, no vendor strings. Production-CSP evidence for panel and deep-link opens."
+    },
+    {
+      "id": "RMP19-C10",
+      "packet": "RMP19",
+      "status": "not_run",
+      "sourceSha": null,
+      "evidencePath": "docs/internal/execution-runs/RMP19-aero-model-port/EVIDENCE.json",
+      "reviewDisposition": "not run",
+      "notApplicableReason": null,
+      "reviewDetail": "Not run. A candidate flight path on the lane (915392c, not merged) failed the pre-registered 0.5% gate: 24 of 27 single-stage metrics above 0.5%, worst kinsel apogee 29.29%; hybrid mean apogee 10.27% vs legacy 17.90%. The matched-state diagnostic (lane 3a44065) found the coefficient model correct but the app drops design inputs: with the engine-used inputs the method CD matches to 0.001-0.456% per-flight mean (CP per-flight mean 0-2.26%), while the hybrid stays 0.09-6.86% and the 6-DOF/Mach-only-table replay stays 0.1-7.9% on 8/9 (mass/CG/thrust not independently measured). The input-plumbing fix is implemented on branch frontend/design (unmerged): typed inputs through the project, engine DTO and calibrated adapter, editor fields, and airfoil mapping to Subsonic NACA unless overridden. It would not by itself pass the end-to-end gate. Staged dumps not applicable. No tuning and no widened gate; reopen only with an owner-level acceptance decision or further solver/table work."
+    },
+    {
+      "id": "RMP19-C11",
+      "packet": "RMP19",
+      "status": "blocked",
+      "sourceSha": null,
+      "evidencePath": "docs/internal/execution-runs/RMP19-aero-model-port/EVIDENCE.json",
+      "reviewDisposition": "pending | external prerequisite: owner promotion decision backed by held-out real flights and RMP19-C08. Responsible: owner (decision) and team (held-out flights). Reopen on a dated decision with that evidence. No default change has been made.",
+      "notApplicableReason": null,
+      "reviewDetail": "Blocked. Beta remains off by default; promotion is not authorized and no held-out evidence exists."
+    }
+  ]
+}

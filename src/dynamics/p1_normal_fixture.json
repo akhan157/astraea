@@ -1,0 +1,1788 @@
+{
+  "cases": [
+    {
+      "expected": {
+        "cna": 9.399999999999999,
+        "cp": 2.8106382978723405,
+        "moment": 26.419999999999998
+      },
+      "mach": 0.4,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 9.399999999999999,
+        "cp": 2.8106382978723405,
+        "moment": 26.419999999999998
+      },
+      "mach": 0.79,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 9.399999999999999,
+        "cp": 2.8106382978723405,
+        "moment": 26.419999999999998
+      },
+      "mach": 0.8,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 9.705923505874235,
+        "cp": 2.8204676982709427,
+        "moment": 27.375243730206943
+      },
+      "mach": 0.9000000000000001,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 10.55107460954955,
+        "cp": 2.8508184158863,
+        "moment": 30.079197804294207
+      },
+      "mach": 1.0,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 11.826524190104864,
+        "cp": 2.8993469252911095,
+        "moment": 34.289196547461465
+      },
+      "mach": 1.1,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 13.42334312661908,
+        "cp": 2.962196072158611,
+        "moment": 39.76257428490833
+      },
+      "mach": 1.2,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 9.782472397747242,
+        "cp": 2.8183182194393317,
+        "moment": 27.570120189733416
+      },
+      "mach": 1.5,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 7.609237535405428,
+        "cp": 2.670262902266696,
+        "moment": 20.31866470532838
+      },
+      "mach": 2.0,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.914858238247772,
+        "cp": 2.4820959147407136,
+        "moment": 14.68124546942525
+      },
+      "mach": 2.96,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.0077664889815985,
+        "cp": 2.3283728273382662,
+        "moment": 11.659947418599907
+      },
+      "mach": 4.0,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 9.399999999999999,
+        "cp": 2.8106382978723405,
+        "moment": 26.419999999999998
+      },
+      "mach": 0.4,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 9.399999999999999,
+        "cp": 2.8106382978723405,
+        "moment": 26.419999999999998
+      },
+      "mach": 0.79,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 9.399999999999999,
+        "cp": 2.8106382978723405,
+        "moment": 26.419999999999998
+      },
+      "mach": 0.8,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 9.580923505874235,
+        "cp": 2.8213870733477258,
+        "moment": 27.03149373020694
+      },
+      "mach": 0.9000000000000001,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 10.15107460954955,
+        "cp": 2.8547911348254926,
+        "moment": 28.979197804294206
+      },
+      "mach": 1.0,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 11.151524190104864,
+        "cp": 2.9083868711185104,
+        "moment": 32.43294654746146
+      },
+      "mach": 1.1,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 12.62334312661908,
+        "cp": 2.9756439247618505,
+        "moment": 37.56257428490833
+      },
+      "mach": 1.2,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 8.982472397747243,
+        "cp": 2.824402799845631,
+        "moment": 25.370120189733413
+      },
+      "mach": 1.5,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 6.809237535405428,
+        "cp": 2.6608947934505527,
+        "moment": 18.118664705328378
+      },
+      "mach": 2.0,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.1148582382477725,
+        "cp": 2.440193821227199,
+        "moment": 12.48124546942525
+      },
+      "mach": 2.96,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 4.207766488981599,
+        "cp": 2.248211121831879,
+        "moment": 9.459947418599908
+      },
+      "mach": 4.0,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 1.2,
+        "bodyAttachedCna": 1.2,
+        "bodyAttachedMoment": -0.6,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 1.6,
+        "finSets": [
+          {
+            "aspectRatio": 1.5,
+            "cna": 7.0,
+            "cp": 3.5,
+            "leadingEdgeCos": 0.8
+          },
+          {
+            "aspectRatio": 2.4,
+            "cna": 1.2,
+            "cp": 2.1,
+            "leadingEdgeCos": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 13.0,
+        "cp": 2.02,
+        "moment": 26.259999999999998
+      },
+      "mach": 0.4,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 13.0,
+        "cp": 2.02,
+        "moment": 26.259999999999998
+      },
+      "mach": 0.79,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 13.0,
+        "cp": 2.02,
+        "moment": 26.259999999999998
+      },
+      "mach": 0.8,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 13.353702209801883,
+        "cp": 2.0274164166003215,
+        "moment": 27.07351508254433
+      },
+      "mach": 0.9000000000000001,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 14.53939026473611,
+        "cp": 2.0496456224283026,
+        "moment": 29.80059760889305
+      },
+      "mach": 1.0,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 16.743936303095566,
+        "cp": 2.082607868657082,
+        "moment": 34.8710534971198
+      },
+      "mach": 1.1,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 20.15421246317311,
+        "cp": 2.1193925956347233,
+        "moment": 42.71468866529815
+      },
+      "mach": 1.2,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 13.00832500494506,
+        "cp": 2.0201791930462782,
+        "moment": 26.279147511373637
+      },
+      "mach": 1.5,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 9.17692436331359,
+        "cp": 1.9033529474698998,
+        "moment": 17.466926035621256
+      },
+      "mach": 2.0,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 6.6982621397102635,
+        "cp": 1.7565754632951032,
+        "moment": 11.766002921333605
+      },
+      "mach": 2.96,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.498950288025785,
+        "cp": 1.6380554816205075,
+        "moment": 9.007585662459306
+      },
+      "mach": 4.0,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 13.0,
+        "cp": 2.02,
+        "moment": 26.259999999999998
+      },
+      "mach": 0.4,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 13.0,
+        "cp": 2.02,
+        "moment": 26.259999999999998
+      },
+      "mach": 0.79,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 13.0,
+        "cp": 2.02,
+        "moment": 26.259999999999998
+      },
+      "mach": 0.8,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 13.353702209801883,
+        "cp": 2.0274164166003215,
+        "moment": 27.07351508254433
+      },
+      "mach": 0.9000000000000001,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 14.53939026473611,
+        "cp": 2.0496456224283026,
+        "moment": 29.80059760889305
+      },
+      "mach": 1.0,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 16.743936303095566,
+        "cp": 2.082607868657082,
+        "moment": 34.8710534971198
+      },
+      "mach": 1.1,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 20.15421246317311,
+        "cp": 2.1193925956347233,
+        "moment": 42.71468866529815
+      },
+      "mach": 1.2,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 13.00832500494506,
+        "cp": 2.0201791930462782,
+        "moment": 26.279147511373637
+      },
+      "mach": 1.5,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 9.17692436331359,
+        "cp": 1.9033529474698998,
+        "moment": 17.466926035621256
+      },
+      "mach": 2.0,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 6.6982621397102635,
+        "cp": 1.7565754632951032,
+        "moment": 11.766002921333605
+      },
+      "mach": 2.96,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.498950288025785,
+        "cp": 1.6380554816205075,
+        "moment": 9.007585662459306
+      },
+      "mach": 4.0,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 2.0,
+        "bodyAttachedCna": 2.0,
+        "bodyAttachedMoment": 0.96,
+        "bodyPositiveAbsCna": 2.0,
+        "bodyPositiveCna": 2.0,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 2.74,
+            "cna": 11.0,
+            "cp": 2.3,
+            "leadingEdgeCos": 0.79
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 4.9,
+        "cp": 0.7142857142857143,
+        "moment": 3.5000000000000004
+      },
+      "mach": 0.4,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 4.9,
+        "cp": 0.7142857142857143,
+        "moment": 3.5000000000000004
+      },
+      "mach": 0.79,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 4.9,
+        "cp": 0.7142857142857143,
+        "moment": 3.5000000000000004
+      },
+      "mach": 0.8,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.034241075375076,
+        "cp": 0.7584018376847649,
+        "moment": 3.817977682912584
+      },
+      "mach": 0.9000000000000001,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.33353547109984,
+        "cp": 0.8478220577536267,
+        "moment": 4.5218890182098255
+      },
+      "mach": 1.0,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.6427399415736055,
+        "cp": 0.9280423145410088,
+        "moment": 5.236701435730966
+      },
+      "mach": 1.1,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.806711241195677,
+        "cp": 0.9622283825094653,
+        "moment": 5.5873823653152455
+      },
+      "mach": 1.2,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.954295585499365,
+        "cp": 0.9656432169830034,
+        "moment": 5.749725144049302
+      },
+      "mach": 1.5,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 6.448888355202293,
+        "cp": 0.9759476120633035,
+        "moment": 6.293777190722523
+      },
+      "mach": 2.0,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.175910227217448,
+        "cp": 0.9454378138567374,
+        "moment": 4.893501249939193
+      },
+      "mach": 2.96,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 4.4183678052628865,
+        "cp": 0.918937663123679,
+        "moment": 4.060204585789175
+      },
+      "mach": 4.0,
+      "params": {
+        "boattailLift": "suppressed",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 4.9,
+        "cp": 0.7142857142857143,
+        "moment": 3.5000000000000004
+      },
+      "mach": 0.4,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 4.9,
+        "cp": 0.7142857142857143,
+        "moment": 3.5000000000000004
+      },
+      "mach": 0.79,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 4.9,
+        "cp": 0.7142857142857143,
+        "moment": 3.5000000000000004
+      },
+      "mach": 0.8,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 4.924866075375076,
+        "cp": 0.7162332191223986,
+        "moment": 3.5273526829125834
+      },
+      "mach": 0.9000000000000001,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 4.983535471099841,
+        "cp": 0.7207511693334279,
+        "moment": 3.5918890182098253
+      },
+      "mach": 1.0,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.052114941573605,
+        "cp": 0.7258992477690317,
+        "moment": 3.6673264357309656
+      },
+      "mach": 1.1,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.106711241195677,
+        "cp": 0.7298987918577754,
+        "moment": 3.7273823653152456
+      },
+      "mach": 1.2,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.254295585499365,
+        "cp": 0.7402943136248443,
+        "moment": 3.889725144049302
+      },
+      "mach": 1.5,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 5.748888355202293,
+        "cp": 0.771240788962322,
+        "moment": 4.433777190722522
+      },
+      "mach": 2.0,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 4.475910227217449,
+        "cp": 0.6777395202193407,
+        "moment": 3.033501249939194
+      },
+      "mach": 2.96,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "cna": 3.7183678052628863,
+        "cp": 0.5917124666029702,
+        "moment": 2.200204585789175
+      },
+      "mach": 4.0,
+      "params": {
+        "boattailLift": "attached",
+        "bodyAttachedAbsCna": 0.9,
+        "bodyAttachedCna": 0.9,
+        "bodyAttachedMoment": -0.9,
+        "bodyPositiveAbsCna": 1.6,
+        "bodyPositiveCna": 1.6,
+        "bodyPositiveMoment": 0.96,
+        "finSets": [
+          {
+            "aspectRatio": 0.9,
+            "cna": 4.0,
+            "cp": 1.1,
+            "leadingEdgeCos": 0.45
+          }
+        ]
+      }
+    }
+  ],
+  "law": "published-supersonic-normal-v1",
+  "note": "generated by crates/astraea-engine/tests/p1_normal_fixture.rs; TS mirror must match to 1e-12 relative"
+}

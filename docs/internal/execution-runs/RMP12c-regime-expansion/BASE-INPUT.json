@@ -1,0 +1,277 @@
+{
+  "schemaId": "native-E1-profile-candidate-request/1.0.0",
+  "candidate": {
+    "vehicle": {
+      "components": [
+        {
+          "id": "syn-nose",
+          "name": "Synthetic conical nose",
+          "type": "nosecone",
+          "materialId": "pla_3dprint",
+          "shape": "conical",
+          "length": 0.3,
+          "baseDiameter": 0.1,
+          "wallThickness": 0.001,
+          "isHollow": true
+        },
+        {
+          "id": "syn-tube",
+          "name": "Synthetic body tube and motor mount",
+          "type": "bodytube",
+          "materialId": "cardboard",
+          "length": 0.7,
+          "outerDiameter": 0.1,
+          "innerDiameter": 0.099
+        },
+        {
+          "id": "syn-fins",
+          "name": "Synthetic four-fin set",
+          "type": "trapezoidfinset",
+          "materialId": "pla_3dprint",
+          "finCount": 4,
+          "rootChord": 0.2,
+          "tipChord": 0.1,
+          "span": 0.08,
+          "sweepLength": 0.05,
+          "thickness": 0.0008,
+          "crossSection": "rounded",
+          "axialOffset": 0.4
+        },
+        {
+          "id": "syn-drogue",
+          "name": "Synthetic drogue",
+          "type": "parachute",
+          "materialId": "cardboard",
+          "diameter": 0.3,
+          "cd": 0.8,
+          "mass": 0.008,
+          "axialOffset": 0.05
+        },
+        {
+          "id": "syn-main",
+          "name": "Synthetic main",
+          "type": "parachute",
+          "materialId": "cardboard",
+          "diameter": 0.45,
+          "cd": 0.8,
+          "mass": 0.008,
+          "axialOffset": 0.08
+        }
+      ]
+    },
+    "motor": {
+      "designation": "Estes C6",
+      "diameter": 0.018,
+      "length": 0.07,
+      "burnTime": 1.86,
+      "propellantMass": 0.0108,
+      "totalMass": 0.0231,
+      "dryMass": 0.0123,
+      "maxThrust": 14.09,
+      "thrustCurve": [
+        {
+          "time": 0,
+          "thrust": 0
+        },
+        {
+          "time": 0.031,
+          "thrust": 0.946
+        },
+        {
+          "time": 0.092,
+          "thrust": 4.826
+        },
+        {
+          "time": 0.139,
+          "thrust": 7.004
+        },
+        {
+          "time": 0.192,
+          "thrust": 11.094
+        },
+        {
+          "time": 0.209,
+          "thrust": 14.09
+        },
+        {
+          "time": 0.231,
+          "thrust": 11.313
+        },
+        {
+          "time": 0.281,
+          "thrust": 9.936
+        },
+        {
+          "time": 0.331,
+          "thrust": 8.436
+        },
+        {
+          "time": 0.481,
+          "thrust": 5.582
+        },
+        {
+          "time": 0.631,
+          "thrust": 4.686
+        },
+        {
+          "time": 0.781,
+          "thrust": 4.406
+        },
+        {
+          "time": 0.931,
+          "thrust": 4.296
+        },
+        {
+          "time": 1.081,
+          "thrust": 4.212
+        },
+        {
+          "time": 1.231,
+          "thrust": 4.117
+        },
+        {
+          "time": 1.381,
+          "thrust": 4.006
+        },
+        {
+          "time": 1.531,
+          "thrust": 3.932
+        },
+        {
+          "time": 1.631,
+          "thrust": 3.673
+        },
+        {
+          "time": 1.681,
+          "thrust": 2.821
+        },
+        {
+          "time": 1.731,
+          "thrust": 0.995
+        },
+        {
+          "time": 1.781,
+          "thrust": 0.224
+        },
+        {
+          "time": 1.86,
+          "thrust": 0
+        }
+      ]
+    },
+    "adapter": {
+      "sourceIdentity": "synthetic-native-candidate-fixture-not-as-flown",
+      "declarations": {
+        "provenance": "synthetic fixture declarations for a bounded native diagnostic; not as-flown evidence",
+        "sharpPhysicalTip": true,
+        "circularAxisymmetricBody": true,
+        "smoothSlenderProfile": true,
+        "identicalEquallySpacedThinUncantedFins": true,
+        "noOtherExternalFeaturesOrUnmodeledInterferences": true,
+        "sourceRepresentsCompleteExternalGeometry": true
+      },
+      "transitionInterpretation": null,
+      "ogiveInterpretation": null,
+      "aftTermination": "flatExposedBaseAtFinalStation",
+      "internalNonGeometryIds": [
+        "syn-drogue",
+        "syn-main"
+      ],
+      "quadrature": {
+        "absoluteToleranceM3": 1e-14,
+        "relativeTolerance": 1e-10,
+        "maxPanels": 4096
+      }
+    },
+    "mechanicalSourceId": "synthetic-fixture-mass-rollup; not measured",
+    "environmentSourceId": "synthetic-profile-flight-v1",
+    "axial": {
+      "ca0": 0.35,
+      "providerId": "fixture-prescribed-CA0",
+      "inputIdentity": "constant CA0 0.35 declared by this synthetic fixture; not a source export"
+    },
+    "environment": {
+      "launchAltitudeASL": 100,
+      "windSpeedSurfaceMps": 0,
+      "windAzimuthDeg": 90
+    },
+    "motorAftStationFromNoseM": 1,
+    "launch": {
+      "railLengthM": 3,
+      "railElevationDeg": 90.0,
+      "railAzimuthDeg": 0,
+      "mainDeployAltitudeAglM": 250,
+      "timeStepS": 0.02,
+      "dragCdScale": null,
+      "finCantAngleDeg": null
+    },
+    "horizonSeconds": 2.0,
+    "curveMachs": [
+      0.02,
+      0.05,
+      0.1,
+      0.2,
+      0.4,
+      0.6,
+      0.79
+    ],
+    "query": null
+  },
+  "environmentSelection": {
+    "launchTimeUtcUnixS": 1792965600,
+    "launchAltitudeGeometricMslM": 100,
+    "verticalDatumIdentity": "synthetic-MSL-no-geoid-model",
+    "profile": {
+      "source": {
+        "identity": "synthetic-profile-flight-v1",
+        "evidenceClass": "synthetic",
+        "description": "Synthetic implementation-only isothermal supplied profile, not weather or as-flown evidence."
+      },
+      "location": {
+        "identity": "synthetic-coordinate-origin",
+        "latitudeDeg": 0,
+        "longitudeDeg": 0,
+        "horizontalDatumIdentity": "synthetic-coordinates-no-geodetic-survey"
+      },
+      "altitudeDatum": "geometricMsl",
+      "verticalDatumIdentity": "synthetic-MSL-no-geoid-model",
+      "issueTimeUtcUnixS": 1792965600,
+      "validity": {
+        "fromUtcUnixS": 1792965600,
+        "untilUtcUnixS": 1792969200
+      },
+      "units": {
+        "altitude": "m",
+        "pressure": "Pa",
+        "temperature": "K",
+        "wind": "m/s",
+        "time": "UTC Unix seconds"
+      },
+      "interpolationPolicy": "logPressureLinearTemperatureWind",
+      "extrapolationPolicy": "reject",
+      "closureId": "dry-ideal-air-sutherland/1.0.0",
+      "knots": [
+        {
+          "altitudeM": 0,
+          "pressurePa": 100000,
+          "temperatureK": 300,
+          "windTowardEnuMps": {
+            "east": 0,
+            "north": 0,
+            "up": 0
+          }
+        },
+        {
+          "altitudeM": 1000,
+          "pressurePa": 80000,
+          "temperatureK": 300,
+          "windTowardEnuMps": {
+            "east": 0,
+            "north": 0,
+            "up": 0
+          }
+        }
+      ]
+    }
+  }
+}

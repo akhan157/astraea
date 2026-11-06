@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP09",
+  "subpacket": "RMP09 C06/C08 domain/error and legacy-preservation evidence lane",
+  "baseSha": "82c595df544dcdb883ca2fe81274bff7c4664a50",
+  "sourceSha": "cc79b111da41a64b7022664803933e280590a036",
+  "originalAuthorSourceSha": "67a5f9d73f5af51c49b2c2f87a48a9b4300f544e",
+  "owner": "OMP author (openrouter/deepseek/deepseek-v4.1-flash-1017, high)",
+  "modelRouting": {"model": "openrouter/deepseek/deepseek-v4.1-flash-1017", "effort": "high",
+    "reviewer": "none in lane; coordinator owns independent review", "usageTelemetry": "not supplied"},
+  "effectiveInputs": [
+    "frozen legacy fixture estes_alpha_vehicle()/estes_c6_motor() with declared crosswinds 8 and 15 m/s (rail 1.0 m, 90 deg, main at 250 m AGL, 0 ASL)",
+    "synthetic candidate fixture: references canonical(0.1), cone/cylinder body + 4 uncanted fins, prescribed CA0 0.35, declared carrier/motor, retained ISA still air",
+    "declared policies: sb1-candidate-support/1.0.0, candidate-aero-negligibility/1.0.0, near-unit-quaternion/1.0.0, no-historical-calibration/1.0.0, declared-constant-canopy-drag/1.0.0"
+  ],
+  "sourceHashes": {
+    "crates/astraea-core/src/six_dof.rs": "3c11edf7be69f100468bf7b597364a88fd62950320b378c12967a6c565bd7dbe",
+    "crates/astraea-core/src/flight_provider.rs": "81f282ba11e0a05813ad378e9a5c441764d5a0b50c6914180f56895c1580b3db"
+  },
+  "runtimeHashes": {
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargoTargetDir": "/home/ak/.paseo/worktrees/3s8t98rp/target-rmp09 (offline, -j2, --test-threads=2)",
+    "wasmBuild": "not run (out of lane)"
+  },
+  "artifactAvailability": [
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp09-domain-legacy/core-lib-tests.txt", "class": "native test log", "sha256": "984ea2b0fcc3be46bcf254fa9dadb39bbbf2639e75045d40e5b6dfce26d34253", "inGit": false},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp09-domain-legacy/native-smoke.txt", "class": "throwaway example output (example file deleted)", "sha256": "ed609beef27e92b0b95a00e0939830af197b547abb8a5ba43fc33f45ebb494cc", "inGit": false},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp09-domain-legacy/mutation-checks.txt", "class": "sensitivity mutations (reverted)", "sha256": "6b985569e1217c1e6f61459401ec10b2170b13dd5b5d62c6ea3d8823f7fd86ee", "inGit": false}
+  ],
+  "checks": [
+    {"id": "RMP09-C06-temporal",
+     "status": "pass",
+     "kind": "unit test through the real shared driver/summary",
+     "commandOrMechanism": "cargo test --offline -j2 --manifest-path crates/astraea-core/Cargo.toml --lib airframe_ascent_domain_excursion_survives_later_canopy_deployment -- --test-threads=2",
+     "expectedRule": "a committed airframe ascent classification (Extrapolated at 8 m/s, Unsupported at 15 m/s crosswind) is retained after later valid canopy deployment: final validity UNKNOWN, off_nominal true, terminated, all nominal events; every committed canopy sample Valid",
+     "observed": "ok (1 passed). 8 m/s case has enveloped == true, so UNKNOWN comes from off_nominal, not !enveloped.",
+     "exitCode": 0,
+     "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp09-domain-legacy/core-lib-tests.txt",
+     "sha256": "984ea2b0fcc3be46bcf254fa9dadb39bbbf2639e75045d40e5b6dfce26d34253",
+     "limitation": "synthetic frozen legacy fixture with a declared crosswind; no measured flight"},
+    {"id": "RMP09-C06-committed-vs-speculative",
+     "status": "pass",
+     "kind": "private-state unit tests",
+     "commandOrMechanism": "cargo test --offline -j2 --manifest-path crates/astraea-core/Cargo.toml --lib rejected_adaptive_trial_validity_is_not_folded_into_the_committed_prefix ; --lib fold_prefix_consumes_only_steps_starting_before_the_event_time",
+     "expectedRule": "rejected adaptive trials never contribute validity to the committed prefix (positive control folds a committed Unsupported); prefix folding stops at the localized root",
+     "observed": "both ok",
+     "exitCode": 0,
+     "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp09-domain-legacy/core-lib-tests.txt",
+     "sha256": "984ea2b0fcc3be46bcf254fa9dadb39bbbf2639e75045d40e5b6dfce26d34253",
+     "limitation": "integrator/seam level, not a driver-level rejected-trial case"},
+    {"id": "RMP09-C06-canopy-mach-definition",
+     "status": "pass",
+     "kind": "candidate direct query boundary",
+     "commandOrMechanism": "cargo test --offline -j2 --manifest-path crates/astraea-core/Cargo.toml --lib canopy_mach_support_is_inclusive_exactly_at_the_declared_limit -- --test-threads=2",
+     "expectedRule": "declared canopy support is inclusive at computed Mach 1.0 and refuses the next representable speed; the airframe branch keeps its own exclusive limit on the same state",
+     "observed": "ok; canopy force present at Mach 1.0, UnsupportedDomain with 'Mach <= 1' above, airframe refuses the sonic state",
+     "exitCode": 0,
+     "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp09-domain-legacy/core-lib-tests.txt",
+     "sha256": "984ea2b0fcc3be46bcf254fa9dadb39bbbf2639e75045d40e5b6dfce26d34253",
+     "limitation": "boundary is on the computed stage Mach, not a nominal speed"},
+    {"id": "RMP09-C06-zero-speed-profile-terrain",
+     "status": "pass (existing evidence reused, not duplicated)",
+     "kind": "reference to existing tests plus smoke observation",
+     "commandOrMechanism": "zero_speed_policy_and_nonfinite_inputs_fail_closed; profile_coverage_never_gets_a_zero_speed_rail_canopy_or_negligibility_waiver; native smoke legacy/candidate labels",
+     "expectedRule": "zero speed with zero rates supported with absent flow; nonzero rate at V=0 refused; profile coverage/time validity enforced without waivers; no invented terrain/inflation/shock model",
+     "observed": "all pass in the 202-test suite; smoke shows zero-speed rest ZeroSpeedStaticLoadsOnly with absent flow and zero loads, zero-speed spin UnsupportedDomain",
+     "exitCode": 0,
+     "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp09-domain-legacy/native-smoke.txt",
+     "sha256": "ed609beef27e92b0b95a00e0939830af197b547abb8a5ba43fc33f45ebb494cc",
+     "limitation": "terrain datum/AGL-MSL remains AGL + declared altitude in both models; measured datum definitions do not exist"},
+    {"id": "RMP09-C08-legacy-preservation",
+     "status": "pass",
+     "kind": "candidate run between two native legacy runs",
+     "commandOrMechanism": "cargo test --offline -j2 --manifest-path crates/astraea-core/Cargo.toml --lib explicit_candidate_activation_leaves_the_legacy_native_run_bit_identical -- --test-threads=2",
+     "expectedRule": "legacy simulate_flight before/after an explicit candidate run is bit-identical, keeps flight-signed-normal-plus-wind-drag-v1 identity, PASS/on-nominal and the frozen apogee oracle; candidate reports its own explicit identities",
+     "observed": "Author run used whole-result Debug equality; coordinator replaced it with direct summary/event numeric bits plus text/status comparisons and verified it on the integrated 206-core-test tree; frozen apogee oracle retained.",
+     "exitCode": 0,
+     "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp09-domain-legacy/core-lib-tests.txt",
+     "sha256": "984ea2b0fcc3be46bcf254fa9dadb39bbbf2639e75045d40e5b6dfce26d34253",
+     "limitation": "current no-default state only; product migration/default activation remains unactivated and unreviewed"}
+  ],
+  "review": {
+    "reviewer": "openai-codex/gpt-6.1-sol; coordinating session",
+    "independentOfAuthor": true,
+    "disposition": "ACCEPT C06/C08 for explicit current-model domain/error and retained legacy behavior only",
+    "mimo": "Unavailable (prior 402 funds failure); no MiMo verdict claimed",
+    "findings": [
+      "Corrected negligible-force approximation precedence in domain ledger; no physical support waiver",
+      "Replaced Debug comparison with no-allocation direct f64 bit comparisons for all summary/event numbers and status/text equality",
+      "Removed existing || true tautology from referenced engine public-dispatch isolation test",
+      "Temporal, speculative-prefix and sonic-canopy boundaries agree with current source; unsupported terrain/inflation/shock/multibody physics remains unsupported"
+    ]
+  },
+  "coordinatorVerification": {
+    "coreTests": 206,
+    "engineTests": 99,
+    "engineSuites": 11,
+    "exitCode": 0,
+    "command": "cargo test --offline -j2 --manifest-path crates/astraea-core/Cargo.toml --lib -- --test-threads=2 && cargo test --offline -j2 --manifest-path crates/astraea-engine/Cargo.toml --lib --tests -- --test-threads=2",
+    "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp09-domain-legacy/integrated-native-tests.log",
+    "bytes": 27908,
+    "sha256": "130e9fb80b557d233088a193aba69c7631ffbf0261016815368b13020aaf6ecd",
+    "nativeSmoke": "Coordinator directly executed retained rmp09_domain_smoke binary: legacy zero-wind PASS, off-nominal crosswinds UNKNOWN after recovery, candidate identities, canopy Mach 1/next-ULP boundary and zero-speed rest/spin outcomes observed",
+    "integratedSourceHashes": {
+      "crates/astraea-core/src/flight_provider.rs": "72d4e541707a025dd634a55ca5b58803d440b82f0354a79e810285278325727f",
+      "crates/astraea-engine/tests/native_candidate.rs": "b2e5938b0aae375ab3edfcb48a28ecd3cb2ca45017eb287d17778b7d290888b5"
+    }
+  },
+  "qualification": {"computational": "pass within declared candidate support (tests only)",
+    "physical": "unqualified", "dynamic": "unknown"},
+  "failedAttempts": [
+    {"mutation": "clear saw_unsupported/saw_extrapolated while a canopy is live",
+     "effect": "temporal test failed with validity PASS instead of UNKNOWN",
+     "evidence": "evidence-rmp09-domain-legacy/mutation-checks.txt", "reverted": true},
+    {"mutation": "fold a rejected adaptive trial validity into committed_validity",
+     "effect": "speculative-fold test failed", "evidence": "evidence-rmp09-domain-legacy/mutation-checks.txt", "reverted": true}
+  ],
+  "remainingScope": [
+    "C06 accepted for current explicit domain/error boundaries only. Terrain datum/AGL-MSL measurement, recovery inflation/opening-shock and multibody suspension remain unsupported/absent, not evidenced as supported.",
+    "RMP09-C01/C07 measured comparison and measured mechanics remain open elsewhere.",
+    "Candidate default/migration/product activation is not authorized and not claimed."
+  ],
+  "nextActions": [
+    "Record reviewed C06/C08 dispositions and package hashes after integrated verification.",
+    "No further solver/default/model change authorized by this evidence.",
+    "Keep measured terrain/recovery data prerequisites blocked; no fabrication."
+  ],
+  "artifactHashes": {
+    "portable": {
+      "ASSIGNMENT.md": "b817cce4926f5684a91cf61d96c7129e47e9cf1264a63da9d67bb1d9e0491b08",
+      "RESULT.md": "b4cfd2d291fd1c7b9f9ab72ec1398332ca75afcf909e0027151f572a02e3e665",
+      "REVIEW.md": "c1a32a886616c0173d0ab7e202008e5c60dc794732b68dbce6b589171f60e487",
+      "SOURCE-DOMAIN-LEDGER.md": "66657e53cb2a1ec6c5fc6544516961e6f1c30549947a843d02864a3257db9715"
+    }
+  },
+  "usageLimitMessageActuallyProvided": null
+}

@@ -1,0 +1,4 @@
+C:\astraea\src-tauri\target\release\bundle\msi\Astraea Workstation_0.9.0_x64_en-US.msi	6901760	D3E4AAAB72A1E6F69712326BB60B069BF8CFD036C89ACA8C255B504B1A909C85
+C:\astraea\src-tauri\target\release\bundle\msi\Astraea Workstation_0.9.0_x64_en-US.msi.sig	452	D4F684CA96474C65284CA316055DC776950A4BFE5404A28F6EC1E89534DBE540
+C:\astraea\src-tauri\target\release\bundle\nsis\Astraea Workstation_0.9.0_x64-setup.exe	5444343	8829782960D8F0C1489AFC2935F7EFCE34CB803EDD213BD92E75F95FE0F4A4F0
+C:\astraea\src-tauri\target\release\bundle\nsis\Astraea Workstation_0.9.0_x64-setup.exe.sig	452	57B36BC7403AF9257B551189C0D3EBC447354C603B7B8D6168633CB823F8016A

@@ -1,0 +1,25 @@
+{
+  "area": "1-field-edit",
+  "label": "staged-nosecone-length-175",
+  "url": "http://localhost:5190/",
+  "studio": "Airframe CAD studio (shortcut 1)",
+  "banners": [],
+  "badges": [
+    "✎ 1 pending edit — not committed Apply ✓ Discard ✕",
+    "●Stable — 5.08 cal",
+    "▲Over-stable — weathercocking risk",
+    "●Run ready — inputs resolve",
+    "Ready — set coordinates and fetch a pressure-level profile.",
+    "Wind for MC: manual wind table (surface probe)",
+    "Samples parsed—Samples @ dt—Apogee altitude—Apogee at—",
+    "No committed simulation run yet — open Trajectory and run a case. Flight logs can still be ingested below.",
+    "Nothing layered — layer the sim or a flight log to plot.",
+    "1 item excluded from clearance — packed length missing.",
+    "Selection: Ogive Nosecone; committed tree summary: ogive · 180mm"
+  ],
+  "consoleErrors": 0,
+  "overflow": {
+    "x": false,
+    "y": false
+  }
+}

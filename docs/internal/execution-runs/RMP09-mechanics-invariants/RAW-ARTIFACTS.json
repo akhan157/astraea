@@ -1,0 +1,45 @@
+{
+  "root": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp09-mechanics-invariants",
+  "files": {
+    "core-full-1.log": {
+      "sha256": "e764f04c56e3a6c25c010928892e0d4201cbf2e914ad3290077293bec6999ae8",
+      "bytes": 15764
+    },
+    "core-full-2.log": {
+      "sha256": "5e7eb89b0bfb9b752f3e9a27dbf9fa051cde3dfde8084ee8a76e25a9a3a88264",
+      "bytes": 15859
+    },
+    "exit-status.log": {
+      "sha256": "0b4bebb3adccee112614efac0e3ca8ee9c67312a10b47412e1af3e1f2f0e0cbf",
+      "bytes": 580
+    },
+    "focused-1.log": {
+      "sha256": "e530732eaaa3e5ddc3b8561eca4dc662b367bfff2e1299a70cbbe3dc43d96b5e",
+      "bytes": 905
+    },
+    "focused-2.log": {
+      "sha256": "9229f6f1855c31e911ce49b292d4e13ca2a4e1edcefdf99452956a054a5ffa6e",
+      "bytes": 960
+    },
+    "mutation-1.log": {
+      "sha256": "124f0de3ba62de4fe05dcbc91498b485a06fdc161009cfa4cfa204da93e9954b",
+      "bytes": 1844
+    },
+    "review-input.md": {
+      "sha256": "8bff10ef31aeff6c517d9e5985d5afd05db5ca4ca48c48a0d54a99b6cd6fcfa6",
+      "bytes": 17923
+    },
+    "review.err": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "review.md": {
+      "sha256": "ba2d22ff29f03eed3b480c921450864058b6c340c14948a28f80464a4d66ef32",
+      "bytes": 5200
+    },
+    "sealed-hashes.log": {
+      "sha256": "0f5b336211f6bf8cc0a0a8c0eb75e16528c4bc381063becce2ea32f9ab326cba",
+      "bytes": 403
+    }
+  }
+}

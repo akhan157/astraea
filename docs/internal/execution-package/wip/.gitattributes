@@ -1,0 +1,3 @@
+# Preserve exact unified-diff context (blank context lines contain one space).
+# This is immutable WIP patch data, not Rust source whitespace policy.
+*.patch -whitespace

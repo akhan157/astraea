@@ -1,0 +1,74 @@
+{
+  "root": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp15-saved-run-events",
+  "scope": "external-local, author-hashed availability index",
+  "files": {
+    "affected-final.log": {
+      "sha256": "85f06fef86453aaf066eba8272ee6b912fb5634b7a070330a975236257fd1792",
+      "bytes": 1945
+    },
+    "before-fix.log": {
+      "sha256": "4e24d1866078c05218d3d4907b0e9b67e7273772fabb7a2879bb89f7845a7783",
+      "bytes": 5968
+    },
+    "browser-smoke-1.json": {
+      "sha256": "3f4aed7c4d3f4ea774dd37c89a270beb7c794a443bc36a3d689698104bc337f2",
+      "bytes": 1802
+    },
+    "build-1.log": {
+      "sha256": "306bbb71f93a47b9ebbf88abf1ec8dd402f9b6047b0bea8d6f832f2244588bf7",
+      "bytes": 5559
+    },
+    "build-2.log": {
+      "sha256": "0bfd7ac5f176ae1efed652d7b406660b9df0794d4a8445c1447d8a6e38beab3b",
+      "bytes": 5559
+    },
+    "exit-status.log": {
+      "sha256": "eeabfbc60bd59e73c142dcd753e54f69897577706cb2e2e2a2c01bb797b1360c",
+      "bytes": 910
+    },
+    "focused-1.log": {
+      "sha256": "729e8ddae9c2bfcc4dd12b7974e610583730dffb8b41c6a01972cd51baeda37d",
+      "bytes": 1733
+    },
+    "focused-2.log": {
+      "sha256": "179aa961fa7ae227c3b312e67b8001f8e61a8cf7946d18bff817a300bf787432",
+      "bytes": 410
+    },
+    "full-src-1.log": {
+      "sha256": "91d768bbbf4de2dae385ed972e47a49d9b75401f6ccf67b2af4f5070290b8d31",
+      "bytes": 3533
+    },
+    "full-src-2.log": {
+      "sha256": "ddb24a65ccc97ddad2cb7926f5e031c28d2dac46e50aa1e03f55558a377a5229",
+      "bytes": 2516
+    },
+    "review-input.md": {
+      "sha256": "b3a93041c7f613f27f2f828d79fc4e2be7548a058cdfee317d1417202d6beb1f",
+      "bytes": 50949
+    },
+    "review.err": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "review.md": {
+      "sha256": "8a6f7c8b793f8e999be751f49df364bfb36425c51e9a21c3f15bb7c323456fa5",
+      "bytes": 4308
+    },
+    "tsc-1.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "tsc-2.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "tsc-3.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-hash.log": {
+      "sha256": "31cc1993b41a95b368bc37e7499270b45fbf93113efccb4219413692d4d5257e",
+      "bytes": 204
+    }
+  }
+}

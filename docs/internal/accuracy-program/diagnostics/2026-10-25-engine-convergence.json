@@ -1,0 +1,748 @@
+{
+  "schema": "astraea-engine-diagnostic-v1",
+  "sourceCommit": "d3afdf1e06d7f51f1d1fd33c74652fca4ff9564f",
+  "wasm": {
+    "path": "/workspace/astraea/src/engine/astraea_engine.wasm",
+    "sha256": "e4ab1b9d207f791734108c6a85e480da3660603a66fdb97101f9ff033efe0985"
+  },
+  "sources": {
+    "crates/astraea-core/src/aero.rs": "59139c6ea16ab28e4bddc21585674c5622743522f4c63609be68249973f460f5",
+    "crates/astraea-core/src/six_dof.rs": "4cbf79676df166150206b9de33d1ff35d6f4a15be153a72899386ede8d4ef83f",
+    "crates/astraea-engine/src/models.rs": "1460cf99a142716ac5359edccbda6ff3a16677bee8b2a74ba56bb54ffebb67af",
+    "src/dynamics/loads.ts": "a3d97bca1dec34da985c3134fd58595ee2feb873ca3aad131ad215f9002a2388",
+    "src/state/presets.ts": "425a88dfd9b93dea67e7f1d543e7488b8cfc6def3b8d71e5b65661f7bf9af2c4",
+    "src/validation/development/benchmark.ts": "2db913943e01dab1a51f981e43f69e1a0ba8a31afd4377a7e99e398a920fc36e",
+    "src/evidence/cosmicCargoFixture.ts": "6b36d28117ed16e81e8ffb9e9f50a5e0fb3df9a4c97dc30726f24635ec68dc86",
+    "src/validation/miniDx3/miniDx3-vehicle.ts": "4be5b278e3424332cbee808fe364035586bb2c501ba4d6d095e72d7a76859256",
+    "src/validation/miniDx3/motors.ts": "0a989c70768901e0aa2039752945c34df8bf41cc0619da70c8033a04c19c8d69",
+    "pnpm-lock.yaml": "8098fac5500fa1b8cce4e8566423f7369764347aeca908f8257ceeb1ae84ed41"
+  },
+  "method": "Six sequential production-WASM full flights; only macro timeStep changes, adaptive tolerances unchanged; no coefficient/input fitting or new source outcomes.",
+  "cases": [
+    {
+      "id": "cosmic-cargo-2986",
+      "vehicle": {
+        "id": "cosmic-cargo-like",
+        "name": "Cosmic Cargo (estimated)",
+        "version": "1.0",
+        "author": "flight validation",
+        "components": [
+          {
+            "id": "cc-nc",
+            "name": "Ogive Nosecone",
+            "type": "nosecone",
+            "materialId": "pla_3dprint",
+            "color": "#14b8a6",
+            "shape": "ogive",
+            "length": 0.07,
+            "baseDiameter": 0.0254,
+            "wallThickness": 0.0015,
+            "isHollow": true
+          },
+          {
+            "id": "cc-bt",
+            "name": "Main Body Tube (BT-50)",
+            "type": "bodytube",
+            "materialId": "cardboard",
+            "color": "#ffffff",
+            "length": 0.28,
+            "outerDiameter": 0.0254,
+            "innerDiameter": 0.0241,
+            "isMotorMount": true,
+            "assignedMotorId": "estes_c6"
+          },
+          {
+            "id": "cc-fins",
+            "name": "Molded Fins (3-Fin)",
+            "type": "trapezoidfinset",
+            "materialId": "pla_3dprint",
+            "color": "#14b8a6",
+            "finCount": 3,
+            "rootChord": 0.06,
+            "tipChord": 0.024,
+            "span": 0.045,
+            "sweepLength": 0.03,
+            "thickness": 0.002,
+            "crossSection": "rounded",
+            "axialOffset": 0.24
+          },
+          {
+            "id": "cc-chute",
+            "name": "12\" Parachute",
+            "type": "parachute",
+            "materialId": "cardboard",
+            "diameter": 0.305,
+            "cd": 0.8,
+            "mass": 0.008,
+            "axialOffset": 0.05
+          }
+        ],
+        "launchSite": {
+          "altitudeM": 10
+        }
+      },
+      "motor": {
+        "id": "estes_c6",
+        "designation": "Estes C6",
+        "manufacturer": "Estes",
+        "impulseClass": "C",
+        "diameter": 0.018,
+        "length": 0.07,
+        "totalImpulse": 8.8,
+        "avgThrust": 4.74,
+        "maxThrust": 14.09,
+        "burnTime": 1.86,
+        "propellantMass": 0.0108,
+        "totalMass": 0.0231,
+        "dryMass": 0.0123,
+        "thrustCurve": [
+          {
+            "time": 0,
+            "thrust": 0
+          },
+          {
+            "time": 0.031,
+            "thrust": 0.946
+          },
+          {
+            "time": 0.092,
+            "thrust": 4.826
+          },
+          {
+            "time": 0.139,
+            "thrust": 9.936
+          },
+          {
+            "time": 0.192,
+            "thrust": 14.09
+          },
+          {
+            "time": 0.209,
+            "thrust": 11.446
+          },
+          {
+            "time": 0.231,
+            "thrust": 7.381
+          },
+          {
+            "time": 0.248,
+            "thrust": 6.151
+          },
+          {
+            "time": 0.292,
+            "thrust": 5.489
+          },
+          {
+            "time": 0.37,
+            "thrust": 4.921
+          },
+          {
+            "time": 0.475,
+            "thrust": 4.448
+          },
+          {
+            "time": 0.671,
+            "thrust": 4.258
+          },
+          {
+            "time": 0.702,
+            "thrust": 4.542
+          },
+          {
+            "time": 0.723,
+            "thrust": 4.164
+          },
+          {
+            "time": 0.85,
+            "thrust": 4.448
+          },
+          {
+            "time": 1.063,
+            "thrust": 4.353
+          },
+          {
+            "time": 1.211,
+            "thrust": 4.353
+          },
+          {
+            "time": 1.242,
+            "thrust": 4.069
+          },
+          {
+            "time": 1.303,
+            "thrust": 4.258
+          },
+          {
+            "time": 1.468,
+            "thrust": 4.353
+          },
+          {
+            "time": 1.656,
+            "thrust": 4.448
+          },
+          {
+            "time": 1.821,
+            "thrust": 4.448
+          },
+          {
+            "time": 1.834,
+            "thrust": 2.933
+          },
+          {
+            "time": 1.847,
+            "thrust": 1.325
+          },
+          {
+            "time": 1.86,
+            "thrust": 0
+          }
+        ]
+      },
+      "options": {
+        "launchAltitudeASL": 10,
+        "railElevationDeg": 88.84,
+        "railLength": 0.91,
+        "windSpeedSurface": 0,
+        "mainDeployAltitudeAGL": 150
+      },
+      "rows": [
+        {
+          "timeStepS": 0.02,
+          "elapsedMs": 286.524412,
+          "apogeeM": 371.6851779993348,
+          "apogeeS": 7.984765624999918,
+          "burnoutM": 122.7802723472003,
+          "burnoutMs": 113.42038206279668,
+          "burnoutS": 1.86,
+          "railExitMs": 17.510123294025046,
+          "maxMach": 0.33530461956148244,
+          "terminated": true,
+          "terminationReason": "touchdown",
+          "validity": "PASS",
+          "enveloped": true,
+          "offNominalExcursion": false,
+          "telemetryCount": 5000,
+          "events": [
+            {
+              "name": "Ignition & Rail Guidance",
+              "time": 0
+            },
+            {
+              "name": "Launch Rail Departure",
+              "time": 0.19123046875
+            },
+            {
+              "name": "Motor Burnout",
+              "time": 1.86
+            },
+            {
+              "name": "Apogee & Drogue Deployment",
+              "time": 7.984765624999918
+            },
+            {
+              "name": "Main Parachute Deployment",
+              "time": 67.30225585937876
+            },
+            {
+              "name": "Ground Touchdown",
+              "time": 107.61197265624571
+            }
+          ],
+          "runManifest": {
+            "atmosphere": "ISA-1976 via getAtmosphereAt; power-law surface wind shear",
+            "depletion": "impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)",
+            "frames": "ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis",
+            "ground": "flat z=0 AGL touchdown plane",
+            "railContact": "projected unilateral base contact with signed along-rail sliding; moments locked on rail",
+            "recovery": "canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent",
+            "unsupportedHandling": "continue-and-mark-UNKNOWN: out-of-domain segments continue; validity UNKNOWN; all safety outputs closed",
+            "unsupportedScope": [
+              "multi-stage separation and staging events",
+              "rail tip-off dynamics and rail friction",
+              "canopy inflation, attachment, and opening-shock loads",
+              "non-flat terrain and terrain-relative deployment",
+              "ensemble, uncertainty, and containment analysis",
+              "sensor, interoperability, and competition-rule engines"
+            ]
+          }
+        },
+        {
+          "timeStepS": 0.01,
+          "elapsedMs": 139.06178499999987,
+          "apogeeM": 371.7042160703002,
+          "apogeeS": 7.984941406249874,
+          "burnoutM": 122.78021387658326,
+          "burnoutMs": 113.42907508329628,
+          "burnoutS": 1.86,
+          "railExitMs": 17.513733343384885,
+          "maxMach": 0.33530580062642756,
+          "terminated": true,
+          "terminationReason": "touchdown",
+          "validity": "PASS",
+          "enveloped": true,
+          "offNominalExcursion": false,
+          "telemetryCount": 5000,
+          "events": [
+            {
+              "name": "Ignition & Rail Guidance",
+              "time": 0
+            },
+            {
+              "name": "Launch Rail Departure",
+              "time": 0.19124023437500004
+            },
+            {
+              "name": "Motor Burnout",
+              "time": 1.86
+            },
+            {
+              "name": "Apogee & Drogue Deployment",
+              "time": 7.984941406249874
+            },
+            {
+              "name": "Main Parachute Deployment",
+              "time": 67.30747070312253
+            },
+            {
+              "name": "Ground Touchdown",
+              "time": 107.61718750001813
+            }
+          ],
+          "runManifest": {
+            "atmosphere": "ISA-1976 via getAtmosphereAt; power-law surface wind shear",
+            "depletion": "impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)",
+            "frames": "ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis",
+            "ground": "flat z=0 AGL touchdown plane",
+            "railContact": "projected unilateral base contact with signed along-rail sliding; moments locked on rail",
+            "recovery": "canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent",
+            "unsupportedHandling": "continue-and-mark-UNKNOWN: out-of-domain segments continue; validity UNKNOWN; all safety outputs closed",
+            "unsupportedScope": [
+              "multi-stage separation and staging events",
+              "rail tip-off dynamics and rail friction",
+              "canopy inflation, attachment, and opening-shock loads",
+              "non-flat terrain and terrain-relative deployment",
+              "ensemble, uncertainty, and containment analysis",
+              "sensor, interoperability, and competition-rule engines"
+            ]
+          }
+        },
+        {
+          "timeStepS": 0.005,
+          "elapsedMs": 159.54114700000014,
+          "apogeeM": 371.7145006082945,
+          "apogeeS": 7.985029296874853,
+          "burnoutM": 122.78066138993968,
+          "burnoutMs": 113.43354917588809,
+          "burnoutS": 1.86,
+          "railExitMs": 17.513733343384892,
+          "maxMach": 0.3353063397236361,
+          "terminated": true,
+          "terminationReason": "touchdown",
+          "validity": "PASS",
+          "enveloped": true,
+          "offNominalExcursion": false,
+          "telemetryCount": 5000,
+          "events": [
+            {
+              "name": "Ignition & Rail Guidance",
+              "time": 0
+            },
+            {
+              "name": "Launch Rail Departure",
+              "time": 0.1912402343750001
+            },
+            {
+              "name": "Motor Burnout",
+              "time": 1.86
+            },
+            {
+              "name": "Apogee & Drogue Deployment",
+              "time": 7.985029296874853
+            },
+            {
+              "name": "Main Parachute Deployment",
+              "time": 67.31028320313627
+            },
+            {
+              "name": "Ground Touchdown",
+              "time": 107.61999999997461
+            }
+          ],
+          "runManifest": {
+            "atmosphere": "ISA-1976 via getAtmosphereAt; power-law surface wind shear",
+            "depletion": "impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)",
+            "frames": "ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis",
+            "ground": "flat z=0 AGL touchdown plane",
+            "railContact": "projected unilateral base contact with signed along-rail sliding; moments locked on rail",
+            "recovery": "canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent",
+            "unsupportedHandling": "continue-and-mark-UNKNOWN: out-of-domain segments continue; validity UNKNOWN; all safety outputs closed",
+            "unsupportedScope": [
+              "multi-stage separation and staging events",
+              "rail tip-off dynamics and rail friction",
+              "canopy inflation, attachment, and opening-shock loads",
+              "non-flat terrain and terrain-relative deployment",
+              "ensemble, uncertainty, and containment analysis",
+              "sensor, interoperability, and competition-rule engines"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "mini-dx3-g69n-2017-06-30",
+      "vehicle": {
+        "id": "mini-dx3",
+        "name": "Madcow Mini DX3 (DOFPro)",
+        "version": "1",
+        "author": "flight validation",
+        "components": [
+          {
+            "id": "dx3-nose",
+            "name": "Ogive nose (ORK override)",
+            "type": "nosecone",
+            "materialId": "pla_3dprint",
+            "shape": "ogive",
+            "length": 0.1651,
+            "baseDiameter": 0.040894,
+            "wallThickness": 0.00207518,
+            "isHollow": true,
+            "massOverride": 0.173641,
+            "cgOverride": 0.1778
+          },
+          {
+            "id": "dx3-body",
+            "name": "Body (two equal-radius tubes)",
+            "type": "bodytube",
+            "materialId": "cardboard",
+            "length": 0.762,
+            "outerDiameter": 0.040894,
+            "innerDiameter": 0.038608,
+            "isMotorMount": true,
+            "assignedMotorId": "g69n_validation",
+            "massOverride": 0.17106800000000003,
+            "cgOverride": 0.6780644687375781
+          },
+          {
+            "id": "dx3-fins",
+            "name": "Plywood fins (3)",
+            "type": "trapezoidfinset",
+            "materialId": "plywood",
+            "finCount": 3,
+            "rootChord": 0.137236,
+            "tipChord": 0.0382016,
+            "span": 0.0429006,
+            "sweepLength": 0.0742696,
+            "thickness": 0.0023368,
+            "crossSection": "square",
+            "axialOffset": 0.617144,
+            "massOverride": 0.000001,
+            "cgOverride": 0.068618
+          }
+        ],
+        "launchSite": {
+          "altitudeM": 845.1085083878785
+        }
+      },
+      "motor": {
+        "id": "g69n_validation",
+        "designation": "AeroTech G69N",
+        "manufacturer": "AeroTech",
+        "impulseClass": "G",
+        "diameter": 0.038,
+        "length": 0.106,
+        "totalImpulse": 136.3014,
+        "avgThrust": 68.1507,
+        "maxThrust": 86.4412,
+        "burnTime": 2,
+        "propellantMass": 0.0622,
+        "totalMass": 0.201,
+        "dryMass": 0.1388,
+        "thrustCurve": [
+          {
+            "time": 0,
+            "thrust": 0
+          },
+          {
+            "time": 0.001,
+            "thrust": 0.05
+          },
+          {
+            "time": 0.002,
+            "thrust": 1.04339
+          },
+          {
+            "time": 0.006,
+            "thrust": 1.49626
+          },
+          {
+            "time": 0.01,
+            "thrust": 3.99151
+          },
+          {
+            "time": 0.012,
+            "thrust": 7.18827
+          },
+          {
+            "time": 0.016,
+            "thrust": 31.7855
+          },
+          {
+            "time": 0.018,
+            "thrust": 38.6675
+          },
+          {
+            "time": 0.02,
+            "thrust": 43.507
+          },
+          {
+            "time": 0.028,
+            "thrust": 55.3616
+          },
+          {
+            "time": 0.034,
+            "thrust": 58.4696
+          },
+          {
+            "time": 0.04,
+            "thrust": 63.3535
+          },
+          {
+            "time": 0.042,
+            "thrust": 66.4615
+          },
+          {
+            "time": 0.054,
+            "thrust": 74.0094
+          },
+          {
+            "time": 0.066,
+            "thrust": 76.2294
+          },
+          {
+            "time": 0.124,
+            "thrust": 75.7854
+          },
+          {
+            "time": 0.17,
+            "thrust": 77.5614
+          },
+          {
+            "time": 0.668,
+            "thrust": 82.0013
+          },
+          {
+            "time": 0.72,
+            "thrust": 83.7773
+          },
+          {
+            "time": 1.1239,
+            "thrust": 86.4412
+          },
+          {
+            "time": 1.4159,
+            "thrust": 85.9972
+          },
+          {
+            "time": 1.4619,
+            "thrust": 84.2213
+          },
+          {
+            "time": 1.4959,
+            "thrust": 80.2253
+          },
+          {
+            "time": 1.5439,
+            "thrust": 71.7894
+          },
+          {
+            "time": 1.7059,
+            "thrust": 29.832
+          },
+          {
+            "time": 1.7479,
+            "thrust": 20.7301
+          },
+          {
+            "time": 1.8259,
+            "thrust": 9.23064
+          },
+          {
+            "time": 1.9019,
+            "thrust": 4.21351
+          },
+          {
+            "time": 2,
+            "thrust": 0
+          }
+        ]
+      },
+      "options": {
+        "launchAltitudeASL": 845.1085083878785,
+        "railLength": 1.83,
+        "railElevationDeg": 88,
+        "railAzimuthDeg": 0,
+        "windSpeedSurface": 0,
+        "windAzimuthDeg": 0,
+        "mainDeployAltitudeAGL": 150
+      },
+      "rows": [
+        {
+          "timeStepS": 0.02,
+          "elapsedMs": 19.883197999999993,
+          "apogeeM": 1174.011108773542,
+          "apogeeS": 13.90569335937479,
+          "burnoutM": 258.1662993525085,
+          "burnoutMs": 212.39931065885824,
+          "burnoutS": 2,
+          "railExitMs": 21.873077466634065,
+          "maxMach": 0.6542883556680956,
+          "terminated": true,
+          "terminationReason": "touchdown",
+          "validity": "UNKNOWN",
+          "enveloped": true,
+          "offNominalExcursion": true,
+          "telemetryCount": 1095,
+          "events": [
+            {
+              "name": "Ignition & Rail Guidance",
+              "time": 0
+            },
+            {
+              "name": "Launch Rail Departure",
+              "time": 0.19169921875
+            },
+            {
+              "name": "Motor Burnout",
+              "time": 2
+            },
+            {
+              "name": "Ground Touchdown",
+              "time": 32.822841796874535
+            }
+          ],
+          "runManifest": {
+            "atmosphere": "ISA-1976 via getAtmosphereAt; power-law surface wind shear",
+            "depletion": "impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)",
+            "frames": "ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis",
+            "ground": "flat z=0 AGL touchdown plane",
+            "railContact": "projected unilateral base contact with signed along-rail sliding; moments locked on rail",
+            "recovery": "canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent",
+            "unsupportedHandling": "continue-and-mark-UNKNOWN: out-of-domain segments continue; validity UNKNOWN; all safety outputs closed",
+            "unsupportedScope": [
+              "multi-stage separation and staging events",
+              "rail tip-off dynamics and rail friction",
+              "canopy inflation, attachment, and opening-shock loads",
+              "non-flat terrain and terrain-relative deployment",
+              "ensemble, uncertainty, and containment analysis",
+              "sensor, interoperability, and competition-rule engines"
+            ]
+          }
+        },
+        {
+          "timeStepS": 0.01,
+          "elapsedMs": 40.70928200000003,
+          "apogeeM": 1173.936843974693,
+          "apogeeS": 13.90552734374975,
+          "burnoutM": 258.124734201607,
+          "burnoutMs": 212.39222079907407,
+          "burnoutS": 2,
+          "railExitMs": 21.875660044574385,
+          "maxMach": 0.6542348552023158,
+          "terminated": true,
+          "terminationReason": "touchdown",
+          "validity": "UNKNOWN",
+          "enveloped": true,
+          "offNominalExcursion": true,
+          "telemetryCount": 2188,
+          "events": [
+            {
+              "name": "Ignition & Rail Guidance",
+              "time": 0
+            },
+            {
+              "name": "Launch Rail Departure",
+              "time": 0.19189453125
+            },
+            {
+              "name": "Motor Burnout",
+              "time": 2
+            },
+            {
+              "name": "Ground Touchdown",
+              "time": 32.82194335937704
+            }
+          ],
+          "runManifest": {
+            "atmosphere": "ISA-1976 via getAtmosphereAt; power-law surface wind shear",
+            "depletion": "impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)",
+            "frames": "ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis",
+            "ground": "flat z=0 AGL touchdown plane",
+            "railContact": "projected unilateral base contact with signed along-rail sliding; moments locked on rail",
+            "recovery": "canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent",
+            "unsupportedHandling": "continue-and-mark-UNKNOWN: out-of-domain segments continue; validity UNKNOWN; all safety outputs closed",
+            "unsupportedScope": [
+              "multi-stage separation and staging events",
+              "rail tip-off dynamics and rail friction",
+              "canopy inflation, attachment, and opening-shock loads",
+              "non-flat terrain and terrain-relative deployment",
+              "ensemble, uncertainty, and containment analysis",
+              "sensor, interoperability, and competition-rule engines"
+            ]
+          }
+        },
+        {
+          "timeStepS": 0.005,
+          "elapsedMs": 73.78228600000011,
+          "apogeeM": 1173.9573442000155,
+          "apogeeS": 13.905625000000775,
+          "burnoutM": 258.1247342016043,
+          "burnoutMs": 212.39694326108872,
+          "burnoutS": 2,
+          "railExitMs": 21.875660044574385,
+          "maxMach": 0.6542348552023135,
+          "terminated": true,
+          "terminationReason": "touchdown",
+          "validity": "UNKNOWN",
+          "enveloped": true,
+          "offNominalExcursion": true,
+          "telemetryCount": 4372,
+          "events": [
+            {
+              "name": "Ignition & Rail Guidance",
+              "time": 0
+            },
+            {
+              "name": "Launch Rail Departure",
+              "time": 0.19189453125000006
+            },
+            {
+              "name": "Motor Burnout",
+              "time": 2
+            },
+            {
+              "name": "Ground Touchdown",
+              "time": 32.82224609374834
+            }
+          ],
+          "runManifest": {
+            "atmosphere": "ISA-1976 via getAtmosphereAt; power-law surface wind shear",
+            "depletion": "impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)",
+            "frames": "ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis",
+            "ground": "flat z=0 AGL touchdown plane",
+            "railContact": "projected unilateral base contact with signed along-rail sliding; moments locked on rail",
+            "recovery": "canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent",
+            "unsupportedHandling": "continue-and-mark-UNKNOWN: out-of-domain segments continue; validity UNKNOWN; all safety outputs closed",
+            "unsupportedScope": [
+              "multi-stage separation and staging events",
+              "rail tip-off dynamics and rail friction",
+              "canopy inflation, attachment, and opening-shock loads",
+              "non-flat terrain and terrain-relative deployment",
+              "ensemble, uncertainty, and containment analysis",
+              "sensor, interoperability, and competition-rule engines"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

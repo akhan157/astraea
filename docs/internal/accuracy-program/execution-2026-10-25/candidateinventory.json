@@ -1,0 +1,581 @@
+{
+  "record_version": "1.0",
+  "research_date": "2026-10-25",
+  "planning_source_base": "761d6c3",
+  "purpose": "Concrete zero-cost source qualification and protected archival data acquisition plan; no accuracy certification",
+  "related_document": "data-path.md",
+  "protection": {
+    "new_raw_flight_outcomes_fetched": false,
+    "reserved_round2_opened": false,
+    "emerald_opened": false,
+    "vulcanite_opened": false,
+    "simulations_or_model_edits": false,
+    "outreach_accounts_or_spending": false
+  },
+  "exposure": [
+    {
+      "source": "NASA/NACA four reports",
+      "scope": "component coefficients and method/geometry documentation; development evidence"
+    },
+    {
+      "source": "RocketPaper",
+      "scope": "tree/root README and three case READMEs; published validation context and event-row anchors exposed; no raw channels/notebooks/graphs opened",
+      "disposition": "all referenced validation cases development-only"
+    },
+    {
+      "source": "UND-ARC 2023",
+      "scope": "root README/license/tree filenames and sizes plus IREC design LFS pointer; no telemetry or design-object body",
+      "disposition": "fresh measured values unexposed here; candidate only pending custodian assessment"
+    },
+    {
+      "source": "RocketPaper motor inputs",
+      "scope": "two ENG input bodies, not flight outcomes"
+    },
+    {
+      "source": "OpenRocket, NOAA, ThrustCurve",
+      "scope": "documentation/tree metadata; no new raw flight outcomes"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "19670020050",
+      "title": "NASA TN D-4013 ARCAS subsonic/transonic",
+      "urls": {
+        "catalog": "https://ntrs.nasa.gov/citations/19670020050",
+        "input_or_measurement_pdf": "https://ntrs.nasa.gov/api/citations/19670020050/downloads/19670020050.pdf"
+      },
+      "access": {
+        "method": "GET",
+        "status": 200,
+        "bytes": 2606973,
+        "sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+        "inspected_scope": "method, geometry, symbols and correction sections; selected report figure identifiers; no new collegiate outcomes"
+      },
+      "rights": "NASA/NACA government report; public-use catalog notice; retain source attribution",
+      "geometry": {
+        "family": "half-scale ARCAS Robin / bioscience",
+        "diameter_m": 0.0572,
+        "length_diameter": [
+          18.2,
+          23.8
+        ],
+        "details": "ogive, cylinder, reflex-lip boattail, trapezoidal double-wedge fins; fig. 1 exact reconstruction pending"
+      },
+      "regime": {
+        "mach": [
+          0.6,
+          0.8,
+          0.9,
+          1,
+          1.2
+        ],
+        "additional_short_model_mach": [
+          0.95
+        ],
+        "reynolds_per_m": 9800000.0,
+        "aoa_deg_approx": [
+          -3,
+          21
+        ],
+        "roll_deg": [
+          0,
+          22.5,
+          45
+        ],
+        "fin_cant_deg": [
+          0,
+          2
+        ],
+        "boundary_layer": "carborundum trips"
+      },
+      "coefficient_conventions": {
+        "force": "body-axis force/(q*S)",
+        "moment": "body-axis moment/(q*S*d)",
+        "S": "maximum body cross section",
+        "moment_origin_fraction_length": 0.7,
+        "cp": "percent body length",
+        "base": "most CA uncorrected; specified zero-AoA summaries base-corrected"
+      },
+      "measurements": [
+        "six-component balance force/moment curves",
+        "base-pressure coefficients",
+        "summary CP",
+        "published calibration/repeatability uncertainty"
+      ],
+      "missing_qualification_fields": [
+        "exact drawing/axis-sign transcription",
+        "digitization uncertainty",
+        "native representation of lip, anchors and fin profile",
+        "powered base drag absent"
+      ],
+      "classification": "development_component_measurement",
+      "blind_flight_eligible": false,
+      "acquisition_steps": [
+        "pin verified PDF hash",
+        "reconstruct fig. 1",
+        "select zero-cant/zero-roll series and correction convention",
+        "independently digitize curves with figure/page/condition ledger"
+      ],
+      "fallback": "Narrow the component claim to representable geometry and fully matched conventions; no full-flight claim"
+    },
+    {
+      "id": "19670020031",
+      "title": "NASA TN D-4014 ARCAS supersonic",
+      "urls": {
+        "catalog": "https://ntrs.nasa.gov/citations/19670020031",
+        "input_or_measurement_pdf": "https://ntrs.nasa.gov/api/citations/19670020031/downloads/19670020031.pdf"
+      },
+      "access": {
+        "method": "GET",
+        "status": 200,
+        "bytes": 12458544,
+        "sha256": "d698b06798ad806a4fd6463f02f4c9e2624cd944d7a7902f2c015dbb5a351064",
+        "inspected_scope": "method, geometry, symbols and correction sections; selected report figure identifiers; no new collegiate outcomes"
+      },
+      "rights": "NASA/NACA government report; public-use catalog notice; retain source attribution",
+      "geometry": {
+        "family": "half-scale short/long ARCAS",
+        "length_diameter": [
+          18.2,
+          23.77
+        ],
+        "details": "ogive, cylinder, reflex-lip boattail, double-wedge fins; separate fig. 1 audit required"
+      },
+      "regime": {
+        "mach_range": [
+          1.5,
+          4.63
+        ],
+        "reynolds_per_foot": 3000000.0,
+        "aoa_deg_approx": [
+          -4,
+          20
+        ],
+        "sideslip_deg_approx": [
+          -4,
+          8
+        ],
+        "fin_cant_deg": [
+          0,
+          2
+        ],
+        "boundary_layer": "tripped"
+      },
+      "coefficient_conventions": {
+        "force": "body-axis force/(q*A)",
+        "moment": "body-axis moment/(q*A*d)",
+        "A": "maximum body cross section",
+        "moment_origin_fraction_length": [
+          0.6337,
+          0.6636
+        ],
+        "slopes": "some per degree",
+        "base": "CA not corrected to free-stream base; chamber axial-force separately supplied"
+      },
+      "measurements": [
+        "static force/moment curves",
+        "CP",
+        "chamber axial-force",
+        "uncertainty table"
+      ],
+      "missing_qualification_fields": [
+        "exact geometry/axis signs",
+        "datum translation",
+        "per-degree conversions",
+        "chamber/base correction audit",
+        "unmeasured Mach 1.20 to 1.50 gap"
+      ],
+      "classification": "development_component_measurement",
+      "blind_flight_eligible": false,
+      "acquisition_steps": [
+        "pin primary NASA PDF",
+        "match fig. 1 configuration",
+        "translate moment origin",
+        "preserve measured CA/chamber distinction",
+        "digitize matched regimes"
+      ],
+      "fallback": "Narrow the component claim to representable geometry and fully matched conventions; no full-flight claim"
+    },
+    {
+      "id": "19930087740",
+      "title": "NACA RM A53D02 fineness-10 body",
+      "urls": {
+        "catalog": "https://ntrs.nasa.gov/citations/19930087740",
+        "input_or_measurement_pdf": "https://ntrs.nasa.gov/api/citations/19930087740/downloads/19930087740.pdf"
+      },
+      "access": {
+        "method": "GET",
+        "status": 200,
+        "bytes": 18644788,
+        "sha256": "76ded4490acbe271b94f49d7cc2e588724feb034425186f97d0f722427819247",
+        "inspected_scope": "method, geometry, symbols and correction sections; selected report figure identifiers; no new collegiate outcomes"
+      },
+      "rights": "NASA/NACA government report; public-use catalog notice; retain source attribution",
+      "geometry": {
+        "nose": "tangent ogive L/d=4",
+        "overall_length_diameter": 10,
+        "fins": "cruciform trapezoidal, basic asymmetric wedge leading edges, blunt unswept trailing edge at base",
+        "fin_thickness_local_chord": 0.04,
+        "exposed_paired_fin_aspect_ratio": 0.426
+      },
+      "regime": {
+        "mach_range": [
+          0.6,
+          10
+        ],
+        "length_reynolds_range": [
+          900000.0,
+          16000000.0
+        ],
+        "conditions": "shot-specific air-on/off Re; not a single fixed-Re curve"
+      },
+      "coefficient_conventions": {
+        "CD": "total drag/(q*body base area AB)",
+        "Re": "model length",
+        "zero_lift": "measured drag corrected for nonzero AoA with partly theoretical method"
+      },
+      "measurements": [
+        "ballistic/free-flight wind-tunnel drag",
+        "Re/Mach relation",
+        "AoA correction and uncertainty discussion"
+      ],
+      "missing_qualification_fields": [
+        "shot/curve-specific Re and fin variant",
+        "correction error/digitization",
+        "exact drawing transcription",
+        "no CP/recovery or powered collegiate validation"
+      ],
+      "classification": "development_component_measurement",
+      "blind_flight_eligible": false,
+      "acquisition_steps": [
+        "pin verified PDF",
+        "choose relevant Mach subset",
+        "transcribe geometry and air-on/off conditions",
+        "propagate AoA correction and extraction uncertainty"
+      ],
+      "fallback": "Narrow the component claim to representable geometry and fully matched conventions; no full-flight claim"
+    },
+    {
+      "id": "19630004995",
+      "title": "NASA TR R-100 zero-lift drag collection",
+      "urls": {
+        "catalog": "https://ntrs.nasa.gov/citations/19630004995",
+        "input_or_measurement_pdf": "https://ntrs.nasa.gov/api/citations/19630004995/downloads/19630004995.pdf"
+      },
+      "access": {
+        "method": "GET",
+        "status": 200,
+        "bytes": 7841499,
+        "sha256": "44c9ac6046b83db16d156cbc26a608d632fbb844854eff568d50ad6ec99be51e",
+        "inspected_scope": "method, geometry, symbols and correction sections; selected report figure identifiers; no new collegiate outcomes"
+      },
+      "rights": "NASA/NACA government report; public-use catalog notice; retain source attribution",
+      "geometry": {
+        "family": "many individual fin-stabilized bodies of revolution",
+        "selection": "select two representable standardized case sheets; exact shapes unselected"
+      },
+      "regime": {
+        "mach_range_approx": [
+          0.6,
+          2.0
+        ],
+        "Re": "length-based, per-case sheet required"
+      },
+      "coefficient_conventions": {
+        "reference": "must transcribe per selected sheet; do not assume ARCAS normalization",
+        "decomposition": "measured total drag versus supplementary estimated friction/fin/base components"
+      },
+      "measurements": [
+        "free-flight measured total drag",
+        "geometry sheets",
+        "Re data",
+        "estimated component corrections"
+      ],
+      "missing_qualification_fields": [
+        "case selection",
+        "reference-area/roughness convention",
+        "measurement versus theoretical decomposition",
+        "digitization/error audit"
+      ],
+      "classification": "development_component_measurement",
+      "blind_flight_eligible": false,
+      "acquisition_steps": [
+        "select geometry before scoring",
+        "extract sheet provenance and conventions",
+        "preserve measured versus estimated series"
+      ],
+      "fallback": "Narrow the component claim to representable geometry and fully matched conventions; no full-flight claim"
+    },
+    {
+      "id": "rocketpaper-inputs",
+      "title": "RocketPaper validation development inputs",
+      "urls": {
+        "root": "https://github.com/RocketPy-Team/RocketPaper/tree/23d9271db533f53eb91c778f67992c0ccbb0fd0f",
+        "bella_doc": "https://github.com/RocketPy-Team/RocketPaper/blob/23d9271db533f53eb91c778f67992c0ccbb0fd0f/Bella_Lui_Kaltbrunn/README.md",
+        "ndrt_doc": "https://github.com/RocketPy-Team/RocketPaper/blob/23d9271db533f53eb91c778f67992c0ccbb0fd0f/NDRT_2020_launch_vehicle/README.md",
+        "valetudo_doc": "https://github.com/RocketPy-Team/RocketPaper/blob/23d9271db533f53eb91c778f67992c0ccbb0fd0f/Valetudo_RocketPy/README.md"
+      },
+      "access": {
+        "tree_get_status": 200,
+        "tree_sha": "23d9271db533f53eb91c778f67992c0ccbb0fd0f",
+        "truncated": false,
+        "readme_get_status": 200,
+        "telemetry_or_notebooks_opened": false
+      },
+      "rights": "Repository MIT; upstream telemetry/motor/weather rights require attribution and file-specific audit",
+      "geometry": {
+        "ndrt_documented_nominal_length_in": 134,
+        "ndrt_documented_nominal_loaded_mass_oz": 798,
+        "as_flown_verified": false
+      },
+      "coefficient_conventions": {
+        "valetudo": "documented separate axial CD(M), power on/off; area/Re/AoA/fitting provenance unverified"
+      },
+      "regime": "actual flight Mach/Re unverified from inspected documentation",
+      "measurements_documented": [
+        "Bella cleaned altitude/vertical velocity/time",
+        "NDRT cropped Raven axial acceleration, ft-AGL altitude, time"
+      ],
+      "missing_qualification_fields": [
+        "raw sensor calibration/time/filter chain",
+        "as-flown geometry/mass/CG/inertia",
+        "curve provenance/calibration",
+        "preflight freeze",
+        "independent speed channel",
+        "weather object retrieval and prospective issue time"
+      ],
+      "input_metadata": {
+        "bella_environment_nc_tree_bytes": 134,
+        "bella_environment_note": "Potential LFS pointer; actual object not retrieved or verified",
+        "ndrt_environment_nc_tree_bytes": 1364444,
+        "weather": "ERA5/reanalysis documentation; prospective forecast not established",
+        "valetudo_power_off_csv_tree_bytes": 1672,
+        "valetudo_power_on_csv_tree_bytes": 1666,
+        "valetudo_software_version_documented": "0.9.6"
+      },
+      "classification": "development_only_summary_and_event_anchor_exposed",
+      "blind_flight_eligible": false,
+      "acquisition_steps": [
+        "Use input-only extractor stripping notebook outputs, telemetry and fit-dependent cells",
+        "verify weather LFS availability",
+        "resolve drag reference area and calibration history",
+        "perform supplied-CD numerical comparisons before any native-aero interpretation"
+      ],
+      "fallback": "Use only verifiable input curves or abandon ambiguous reconstruction"
+    },
+    {
+      "id": "openrocket-design-methods",
+      "title": "OpenRocket method documentation and synthetic examples",
+      "urls": {
+        "docs": "https://openrocket.info/documentation.html",
+        "example_tree": "https://github.com/openrocket/openrocket/tree/591c5e5f7b7377e48f2bd5e501cef25cdfbd61d8/core/src/main/resources/datafiles/examples"
+      },
+      "access": {
+        "docs_opened": true,
+        "tree_get_status": 200,
+        "tree_sha": "591c5e5f7b7377e48f2bd5e501cef25cdfbd61d8",
+        "branch": "unstable",
+        "raw_ork_opened": false
+      },
+      "rights": "Method documentation CC BY-SA; thesis different NC/ND terms; software GPL with file-specific attribution to audit",
+      "geometry": "example ORK geometry unextracted; synthetic examples include dual parachute deployment and two-stage high-power",
+      "coefficient_conventions": "historical 13.05 documentation; current implementation/release must be separately pinned",
+      "regime": "per selected design, not an empirical supported envelope",
+      "measurements": [
+        "historical method-documentation comparisons only; example flight outputs are simulated"
+      ],
+      "missing_qualification_fields": [
+        "measured as-built vehicle",
+        "raw empirical observations",
+        "stable release-matched input pin"
+      ],
+      "classification": "design_and_comparator_development",
+      "blind_flight_eligible": false,
+      "acquisition_steps": [
+        "Select stable release",
+        "extract geometry/settings only from matching examples",
+        "retain original NASA evidence for measured aero"
+      ],
+      "fallback": "Use current design examples only as parser/event fixtures"
+    },
+    {
+      "id": "und-arc-2023",
+      "title": "UND Advanced Rocketry Club 2023 design archive and sealed telemetry candidate",
+      "urls": {
+        "root": "https://github.com/UND-ARC/RocketModels-2023",
+        "pinned_tree": "https://github.com/UND-ARC/RocketModels-2023/tree/922c084fbb21583d8e84417a35de42a03bdbea58",
+        "license": "https://raw.githubusercontent.com/UND-ARC/RocketModels-2023/922c084fbb21583d8e84417a35de42a03bdbea58/LICENSE",
+        "design_pointer": "https://raw.githubusercontent.com/UND-ARC/RocketModels-2023/922c084fbb21583d8e84417a35de42a03bdbea58/IREC/Openrocket/IREK%203.ork",
+        "design_object": "https://media.githubusercontent.com/media/UND-ARC/RocketModels-2023/922c084fbb21583d8e84417a35de42a03bdbea58/IREC/Openrocket/IREK%203.ork"
+      },
+      "access": {
+        "tree_get_status": 200,
+        "tree_sha": "922c084fbb21583d8e84417a35de42a03bdbea58",
+        "truncated": false,
+        "root_doc_opened": true,
+        "license_get_status": 200,
+        "license_sha256": "02b292072efe87e9dd484b372bd126ec2bd3bf0ebdc061c2533eaee047795669",
+        "design_pointer_get_status": 200,
+        "design_pointer_bytes": 131,
+        "design_object_head_status": 200,
+        "design_object_expected_bytes": 528825,
+        "design_object_expected_sha256": "15b791ec6e6862feaf943322e57f36aee2a05a3ffb2110bc4db77e7b2236d521",
+        "design_object_body_fetched": false,
+        "telemetry_body_fetched": false
+      },
+      "rights": "MIT license copyright 2022 University of North Dakota Advanced Rocketry Club; third-party material caveats remain",
+      "geometry": "IREC IREK 2/3 ORKs and NASA FRR/versioned L1420 ORKs/CAD listed; actual geometry and as-flown linkage unverified",
+      "coefficient_conventions": "unverified; no source-native coefficient curves established",
+      "regime": "unverified flight Mach/Re/AoA; cannot infer from competition or motor designation",
+      "measurements_metadata_only": [
+        {
+          "folder": "NASA/Flight Data/Full Scale/2023_3_5_FRR",
+          "files": [
+            "Primary.csv",
+            "Primary.pf2",
+            "Secondary.csv",
+            "Secondary.pf2"
+          ],
+          "primary_csv_tree_bytes": 74095
+        },
+        {
+          "folder": "NASA/Flight Data/Full Scale 2; 4-2-2023",
+          "files": [
+            "Primary.csv",
+            "Primary.pf2",
+            "Secondary.csv",
+            "Secondary.pf2"
+          ],
+          "primary_csv_tree_bytes": 170913
+        },
+        {
+          "folder": "NASA/Flight Data/Full Scale/NSLI Launch",
+          "files": [
+            "NASAFLIGHT_Primary.csv",
+            "NASAFLIGHT_Primary.pf2",
+            "NASAFLIGHT_Secondary.csv",
+            "NASAFLIGHT_Secondary.pf2"
+          ],
+          "primary_csv_tree_bytes": 59329
+        }
+      ],
+      "missing_qualification_fields": [
+        "which NASA design revision corresponds to each flight",
+        "measured loaded/dry mass, CG and inertia",
+        "motor actually flown and nominal curve provenance",
+        "weather and station-pressure datum",
+        "rail guided travel/angle",
+        "instrument/channel/schema/calibration/timebase/filter/datum",
+        "complete inclusion/failure and exposure ledger",
+        "independent source/vehicle breadth"
+      ],
+      "classification": "design_input_available_candidate_archival_holdout_pending_custodian",
+      "blind_flight_eligible": null,
+      "blind_status": "No measured values opened here; independent custodian qualification required before eligibility can be asserted",
+      "acquisition_steps": [
+        "Custodian checks NASA telemetry schemas/quality privately",
+        "Keep NASA flights separate from IREC designs",
+        "Retrieve only allowlisted relevant NASA design LFS objects and verify object hashes",
+        "Export design inputs without stored simulation/outcome results",
+        "Resolve as-flown linkage and missing launch/instrument fields",
+        "Freeze eligibility and predictions before outcome release"
+      ],
+      "fallback": "Use geometry as design-only development archive; request team as-flown/instrument package if archival linkage fails"
+    },
+    {
+      "id": "motor-input-path",
+      "title": "ThrustCurve documentation plus verified RocketPaper motor inputs",
+      "urls": {
+        "api": "https://www.thrustcurve.org/info/api.html",
+        "format": "https://www.thrustcurve.org/info/raspformat.html",
+        "rights_guidance": "https://www.thrustcurve.org/info/contribute.html",
+        "ndrt_eng": "https://raw.githubusercontent.com/RocketPy-Team/RocketPaper/23d9271db533f53eb91c778f67992c0ccbb0fd0f/NDRT_2020_launch_vehicle/Cesaroni_4895L1395-P.eng",
+        "bella_eng": "https://raw.githubusercontent.com/RocketPy-Team/RocketPaper/23d9271db533f53eb91c778f67992c0ccbb0fd0f/Bella_Lui_Kaltbrunn/AeroTech_K828FJ.eng"
+      },
+      "access": {
+        "api_head_status": 200,
+        "api_web_open": "timeout",
+        "ndrt_eng": {
+          "get_status": 200,
+          "bytes": 161,
+          "sha256": "d60b9e6f8d4bb4621a58e98873f69bfa8ef49efe4b0f78fdf345aa52c50b47ce"
+        },
+        "bella_eng": {
+          "get_status": 200,
+          "bytes": 622,
+          "sha256": "c18fb7917302e365868368c3960aea08c75e2b85ceba4c7e0bb27c513703f7ac"
+        }
+      },
+      "rights": "Per-file source/license; hosting repository license does not by itself settle upstream motor test rights",
+      "geometry": "RASP motor diameter/length mm; propellant/loaded mass kg; no nozzle/CG/inertia history",
+      "coefficient_conventions": "time seconds/thrust N; test pressure/time-zero and altitude correction must be resolved",
+      "regime": "sampled nominal motor thrust input, not flown-unit firing",
+      "measurements": [
+        "sampled contributed/certification-derived nominal thrust curve; specific provenance unverified"
+      ],
+      "missing_qualification_fields": [
+        "filename L1395-P versus header L1395-BS mismatch",
+        "flown case/lot/temperature",
+        "ambient pressure and test uncertainty",
+        "nozzle exit area",
+        "adequate measured ignition-rise timing"
+      ],
+      "classification": "nominal_input_and_development",
+      "blind_flight_eligible": false,
+      "acquisition_steps": [
+        "Identify flown unit",
+        "lookup exact motor/test/file/license metadata",
+        "download single matched curve",
+        "cross-check certification sheet/impulse/masses",
+        "preserve ignition and ambient convention"
+      ],
+      "fallback": "Bound nominal input uncertainty and withhold rail-speed qualification when early-thrust uncertainty is too large"
+    },
+    {
+      "id": "noaa-igra-input",
+      "title": "NOAA IGRA 2.2 atmospheric input documentation",
+      "urls": {
+        "product": "https://www.ncei.noaa.gov/products/weather-balloon/integrated-global-radiosonde-archive",
+        "readme": "https://www.ncei.noaa.gov/pub/data/igra/igra2-readme.txt"
+      },
+      "access": {
+        "product_opened": true,
+        "readme_get_status": 200,
+        "readme_bytes": 13734,
+        "readme_sha256": "cce34dc7dba4b80a2f301ae7a7d9cb2a1da5a0f69b430297cf8687b3a1977775",
+        "case_specific_sounding_fetched": false
+      },
+      "rights": "Public NOAA access; retain dataset citation and applicable use conditions",
+      "geometry": "not applicable",
+      "coefficient_conventions": "not aero coefficients; station pressure/height/wind units and direction conventions from format docs",
+      "regime": "station/time/profile dependent; geopotential heights and launch elevation require consistent conversion",
+      "measurements": [
+        "radiosonde/pilot-balloon pressure, temperature, humidity and wind profiles",
+        "station/history/QC metadata"
+      ],
+      "missing_qualification_fields": [
+        "case station/time match",
+        "low-level resolution/coverage",
+        "site surface readings",
+        "drift/representativeness uncertainty",
+        "preflight availability/forecast issue time"
+      ],
+      "classification": "environment_input_only",
+      "blind_flight_eligible": false,
+      "acquisition_steps": [
+        "Select station and observation time before outcomes",
+        "use readme station inventory to choose ID and data-por file",
+        "retain format/QC/history",
+        "pair with launch-site measured P/T/wind"
+      ],
+      "fallback": "Archived forecast plus measured surface values with uncertainty; standard atmosphere declared if necessary, no measured-wind claim"
+    }
+  ],
+  "conclusion": {
+    "zero_cost_public_development_sufficient": true,
+    "qualified_blind_collegiate_cohort_currently_established": false,
+    "public_sources_proven_sufficient_for_broad_target": false,
+    "minimal_next_packet": "One complete as-flown vehicle input/observation package is an ingestion pilot; acquire independent vehicle/source breadth before broad claim. Historical six-vehicle/two-source proposal remains unapproved and not automatically adequate for tail coverage.",
+    "archival_blind_possible": "Retrospectively blinded external validation under independent custody, exposure attestation, as-flown linkage, frozen eligibility/model/settings/uncertainty/scores and committed predictions before outcome release; cannot recreate a historical prospective preflight prediction."
+  }
+}

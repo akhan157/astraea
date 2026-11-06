@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP15",
+  "subpacket": "RMP15-C01 saved bounded display telemetry (project 1.10.0)",
+  "baseSha": "d278d49421cdd6ecd3e390c8ce3fdd4524e4f692",
+  "sourceSha": "db71c89a0b1b8ebe85ece6a401a39059845d670b",
+  "sourceReference": "branch rmp15-c01-saved-telemetry local HEAD; exact commit returned in the author report",
+  "status": "accepted after independent review (5 minor findings, none blocking); parent RMP15-C01 in_progress",
+  "review": "ACCEPT — opencode-go/mimo-v2.6-pro medium no-tools, supplied source/evidence only; author opencode-go/kimi-k3.1-pro",
+  "contract": {
+    "source": "FlightRun.telemetry, the actual bounded native display samples",
+    "retention": "strict exact copy on prospective flight cases with matching archived inputKey and engineIdentity",
+    "minimumSamples": 0,
+    "maximumSamples": 5000,
+    "overflowPolicy": "refuse; never truncate",
+    "oldCases": "identity-only migration leaves telemetry absent; unavailable and never reconstructed"
+  },
+  "verification": {
+    "beforeFix": "red-focused.log: 4 failed files, 6 failed tests/53 passed; parser and UI suites import-blocked",
+    "focusedFinal": "4 files/84 tests passed",
+    "affectedFinal": "5 files/151 tests passed",
+    "combinedFinal": "9 files/235 tests passed",
+    "typeScript": "tsc --noEmit clean",
+    "build": "Vite-only build passed; no Cargo/engine rebuild",
+    "uiBaseControl": "later explicit base-UI control failed (no plot); restored implementation passed the same test",
+    "wasmSha256": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+    "packageValidation": "see package-validation.json"
+  },
+  "commands": [
+    {
+      "command": "node node_modules/vitest/vitest.mjs run src/application/savedTelemetry.test.ts src/application/runCases.test.ts src/formats/projectJson.test.ts src/console/stages/SavedRuns.test.tsx --maxWorkers=1",
+      "redLog": "red-focused.log",
+      "finalLog": "focused.log",
+      "finalExit": 0
+    },
+    {
+      "command": "node node_modules/vitest/vitest.mjs run src/application/runInputs.test.ts src/formats/projectStorage.test.ts src/state/projectIo.test.ts src/application/flightEvents.test.ts src/application/momentArmHistory.test.ts --maxWorkers=1",
+      "redLog": "affected-attempt-1-failed.log",
+      "finalLog": "affected.log",
+      "finalExit": 0
+    },
+    {
+      "command": "pnpm exec tsc --noEmit",
+      "log": "tsc-attempt-1.log",
+      "exit": 0
+    },
+    {
+      "command": "pnpm exec vite build",
+      "log": "vite-build.log",
+      "exit": 0
+    }
+  ],
+  "artifactAvailability": {
+    "portable": "ASSIGNMENT.md, RESULT.md, REVIEW.md, EVIDENCE.json, package-validation.json, source and tests",
+    "externalLocalOnly": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp15-saved-telemetry/"
+  },
+  "checks": [
+    {
+      "id": "RMP15-C01",
+      "status": "in_progress",
+      "observed": "new source-bound flight cases retain exact bounded telemetry with byte-identical save-open-save; old cases stay absent/unavailable; strict parser and historical UI tested",
+      "remaining": "changed-provider/import/environment retention, export-trace and interoperability journeys; independent review"
+    }
+  ],
+  "nonClaims": [
+    "acceptance-register PASS",
+    "real-WASM flight or browser/native journey",
+    "measurement, physical accuracy or qualification",
+    "provider/import/export-trace completion",
+    "engine/WASM/physics/default/threshold change"
+  ]
+}

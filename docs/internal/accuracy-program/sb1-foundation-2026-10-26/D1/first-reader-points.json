@@ -1,0 +1,386 @@
+[
+  {
+    "point_id": "d4013-cn-m0p60-target-2",
+    "series_id": "d4013-cn-m0p60",
+    "source_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+    "pdf_page_1based": 24,
+    "figure": "7(b)",
+    "quantity": "CN",
+    "conditions": {
+      "mach": 0.6,
+      "reynolds_definition": "unit Reynolds number 3e6/ft = reported 9.8e6/m; not body-length Reynolds",
+      "configuration": "short ARCAS L/d18.20, four fins on, square symbols",
+      "fin_cant_deg": 0,
+      "roll_definition": "0deg per source Fig7 legend; positive roll clockwise viewed upstream from aft; numeric simulator mapping unaudited",
+      "alpha_definition": "source corrected angle of model centerline, degrees; actual marker x retained",
+      "alpha_target_deg": -2,
+      "alpha_read_deg": -2.024161073825503
+    },
+    "reference": {
+      "axes": "source body axes; coefficient signs retained as plotted; exact simulator sign transform pending",
+      "area": "maximum body cross section S=pi*d^2/4, d reported5.72cm(2.25in); preserve rounding",
+      "moment_length": "body diameter d",
+      "moment_origin": "short-model station12.75d from nose in Fig1(a); text70%L with L18.20d, rounding retained",
+      "base_convention": "CN/Cm raw balance-derived; no axial/base correction applied"
+    },
+    "reading": {
+      "image_sha256": "61c9263de8930d26938a79d22d092e39f16e7523cfa85d7e980f44e130569e2d",
+      "crop_box_pixels": [
+        310,
+        260,
+        560,
+        445
+      ],
+      "calibration_id": "d4013-cn-m0p60",
+      "pixel_x": 53.80000000000001,
+      "pixel_y": 113.0,
+      "value": -0.30428769017980634,
+      "reading_kind": "marker_center",
+      "marker": "square; neighboring roll symbols overlap",
+      "observation_status": "marker center manually read, provisional overlap identity",
+      "null_rule": "null means withheld, never zero or grid-intersection observation"
+    },
+    "uncertainty": {
+      "digitization_bound": 0.1383125864453665,
+      "alpha_digitization_bound_deg": 0.2684563758389262,
+      "source_bound": 0.03,
+      "source_alpha_bound_deg": 0.1,
+      "source_Mach_bound": 0.003,
+      "source_roll_bound_deg": 0.5,
+      "confidence_interpretation": "bounded reading/estimated calibration-repeatability limits, not probability intervals; source and extraction bounds separate",
+      "correlations": "shared source balance/calibration and scan/crop/axis anchors across points; reader agreement does not reduce common terms",
+      "unresolved_terms": [
+        "nearzero square-symbol overlap",
+        "local skew audit",
+        "first-pass marker identity audit",
+        "geometry/sign conventions independent review"
+      ]
+    },
+    "review": {
+      "reader_id": "D1-subsonic-first-reader",
+      "status": "first_reader_provisional",
+      "independent_reader_id": null,
+      "disposition": "pending independent extraction; no fitting/scoring permitted"
+    }
+  },
+  {
+    "point_id": "d4013-cn-m0p60-target+0",
+    "series_id": "d4013-cn-m0p60",
+    "source_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+    "pdf_page_1based": 24,
+    "figure": "7(b)",
+    "quantity": "CN",
+    "conditions": {
+      "mach": 0.6,
+      "reynolds_definition": "unit Reynolds number 3e6/ft = reported 9.8e6/m; not body-length Reynolds",
+      "configuration": "short ARCAS L/d18.20, four fins on, square symbols",
+      "fin_cant_deg": 0,
+      "roll_definition": "0deg per source Fig7 legend; positive roll clockwise viewed upstream from aft; numeric simulator mapping unaudited",
+      "alpha_definition": "source corrected angle of model centerline, degrees; actual marker x retained",
+      "alpha_target_deg": 0,
+      "alpha_read_deg": null
+    },
+    "reference": {
+      "axes": "source body axes; coefficient signs retained as plotted; exact simulator sign transform pending",
+      "area": "maximum body cross section S=pi*d^2/4, d reported5.72cm(2.25in); preserve rounding",
+      "moment_length": "body diameter d",
+      "moment_origin": "short-model station12.75d from nose in Fig1(a); text70%L with L18.20d, rounding retained",
+      "base_convention": "CN/Cm raw balance-derived; no axial/base correction applied"
+    },
+    "reading": {
+      "image_sha256": "61c9263de8930d26938a79d22d092e39f16e7523cfa85d7e980f44e130569e2d",
+      "crop_box_pixels": [
+        310,
+        260,
+        560,
+        445
+      ],
+      "calibration_id": "d4013-cn-m0p60",
+      "pixel_x": null,
+      "pixel_y": null,
+      "value": null,
+      "reading_kind": "marker_center",
+      "marker": "square; neighboring roll symbols overlap",
+      "observation_status": "UNREADABLE: square center not distinguishable from overprinted symbols/axis ink; no measured center asserted",
+      "null_rule": "null means withheld, never zero or grid-intersection observation"
+    },
+    "uncertainty": {
+      "digitization_bound": 0.1383125864453665,
+      "alpha_digitization_bound_deg": 0.2684563758389262,
+      "source_bound": 0.03,
+      "source_alpha_bound_deg": 0.1,
+      "source_Mach_bound": 0.003,
+      "source_roll_bound_deg": 0.5,
+      "confidence_interpretation": "bounded reading/estimated calibration-repeatability limits, not probability intervals; source and extraction bounds separate",
+      "correlations": "shared source balance/calibration and scan/crop/axis anchors across points; reader agreement does not reduce common terms",
+      "unresolved_terms": [
+        "nearzero square-symbol overlap",
+        "local skew audit",
+        "first-pass marker identity audit",
+        "geometry/sign conventions independent review"
+      ]
+    },
+    "review": {
+      "reader_id": "D1-subsonic-first-reader",
+      "status": "excluded",
+      "independent_reader_id": null,
+      "disposition": "pending separate reader resolution; frozen target retained but no coefficient reading"
+    }
+  },
+  {
+    "point_id": "d4013-cn-m0p60-target+2",
+    "series_id": "d4013-cn-m0p60",
+    "source_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+    "pdf_page_1based": 24,
+    "figure": "7(b)",
+    "quantity": "CN",
+    "conditions": {
+      "mach": 0.6,
+      "reynolds_definition": "unit Reynolds number 3e6/ft = reported 9.8e6/m; not body-length Reynolds",
+      "configuration": "short ARCAS L/d18.20, four fins on, square symbols",
+      "fin_cant_deg": 0,
+      "roll_definition": "0deg per source Fig7 legend; positive roll clockwise viewed upstream from aft; numeric simulator mapping unaudited",
+      "alpha_definition": "source corrected angle of model centerline, degrees; actual marker x retained",
+      "alpha_target_deg": 2,
+      "alpha_read_deg": 1.9865771812080537
+    },
+    "reference": {
+      "axes": "source body axes; coefficient signs retained as plotted; exact simulator sign transform pending",
+      "area": "maximum body cross section S=pi*d^2/4, d reported5.72cm(2.25in); preserve rounding",
+      "moment_length": "body diameter d",
+      "moment_origin": "short-model station12.75d from nose in Fig1(a); text70%L with L18.20d, rounding retained",
+      "base_convention": "CN/Cm raw balance-derived; no axial/base correction applied"
+    },
+    "reading": {
+      "image_sha256": "61c9263de8930d26938a79d22d092e39f16e7523cfa85d7e980f44e130569e2d",
+      "crop_box_pixels": [
+        310,
+        260,
+        560,
+        445
+      ],
+      "calibration_id": "d4013-cn-m0p60",
+      "pixel_x": 128.5,
+      "pixel_y": 86.69999999999999,
+      "value": 0.4232365145228218,
+      "reading_kind": "marker_center",
+      "marker": "square; neighboring roll symbols overlap",
+      "observation_status": "marker center manually read, provisional overlap identity",
+      "null_rule": "null means withheld, never zero or grid-intersection observation"
+    },
+    "uncertainty": {
+      "digitization_bound": 0.1383125864453665,
+      "alpha_digitization_bound_deg": 0.2684563758389262,
+      "source_bound": 0.03,
+      "source_alpha_bound_deg": 0.1,
+      "source_Mach_bound": 0.003,
+      "source_roll_bound_deg": 0.5,
+      "confidence_interpretation": "bounded reading/estimated calibration-repeatability limits, not probability intervals; source and extraction bounds separate",
+      "correlations": "shared source balance/calibration and scan/crop/axis anchors across points; reader agreement does not reduce common terms",
+      "unresolved_terms": [
+        "nearzero square-symbol overlap",
+        "local skew audit",
+        "first-pass marker identity audit",
+        "geometry/sign conventions independent review"
+      ]
+    },
+    "review": {
+      "reader_id": "D1-subsonic-first-reader",
+      "status": "first_reader_provisional",
+      "independent_reader_id": null,
+      "disposition": "pending independent extraction; no fitting/scoring permitted"
+    }
+  },
+  {
+    "point_id": "d4013-cm-m0p60-target-2",
+    "series_id": "d4013-cm-m0p60",
+    "source_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+    "pdf_page_1based": 25,
+    "figure": "7(c)",
+    "quantity": "Cm",
+    "conditions": {
+      "mach": 0.6,
+      "reynolds_definition": "unit Reynolds number 3e6/ft = reported 9.8e6/m; not body-length Reynolds",
+      "configuration": "short ARCAS L/d18.20, four fins on, square symbols",
+      "fin_cant_deg": 0,
+      "roll_definition": "0deg per source Fig7 legend; positive roll clockwise viewed upstream from aft; numeric simulator mapping unaudited",
+      "alpha_definition": "source corrected angle of model centerline, degrees; actual marker x retained",
+      "alpha_target_deg": -2,
+      "alpha_read_deg": -1.9767441860465114
+    },
+    "reference": {
+      "axes": "source body axes; coefficient signs retained as plotted; exact simulator sign transform pending",
+      "area": "maximum body cross section S=pi*d^2/4, d reported5.72cm(2.25in); preserve rounding",
+      "moment_length": "body diameter d",
+      "moment_origin": "short-model station12.75d from nose in Fig1(a); text70%L with L18.20d, rounding retained",
+      "base_convention": "CN/Cm raw balance-derived; no axial/base correction applied"
+    },
+    "reading": {
+      "image_sha256": "d0ea8b855b8cbe541639368190e8819461005aab8aa8f39989d6f98ef4505b10",
+      "crop_box_pixels": [
+        325,
+        465,
+        550,
+        615
+      ],
+      "calibration_id": "d4013-cm-m0p60",
+      "pixel_x": 46.5,
+      "pixel_y": 63.200000000000045,
+      "value": 0.47204968944099185,
+      "reading_kind": "marker_center",
+      "marker": "square; neighboring roll symbols overlap",
+      "observation_status": "marker center manually read, provisional overlap identity",
+      "null_rule": "null means withheld, never zero or grid-intersection observation"
+    },
+    "uncertainty": {
+      "digitization_bound": 0.1552795031055901,
+      "alpha_digitization_bound_deg": 0.2906976744186046,
+      "source_bound": 0.05,
+      "source_alpha_bound_deg": 0.1,
+      "source_Mach_bound": 0.003,
+      "source_roll_bound_deg": 0.5,
+      "confidence_interpretation": "bounded reading/estimated calibration-repeatability limits, not probability intervals; source and extraction bounds separate",
+      "correlations": "shared source balance/calibration and scan/crop/axis anchors across points; reader agreement does not reduce common terms",
+      "unresolved_terms": [
+        "nearzero square-symbol overlap",
+        "local skew audit",
+        "first-pass marker identity audit",
+        "geometry/sign conventions independent review"
+      ]
+    },
+    "review": {
+      "reader_id": "D1-subsonic-first-reader",
+      "status": "first_reader_provisional",
+      "independent_reader_id": null,
+      "disposition": "pending independent extraction; no fitting/scoring permitted"
+    }
+  },
+  {
+    "point_id": "d4013-cm-m0p60-target+0",
+    "series_id": "d4013-cm-m0p60",
+    "source_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+    "pdf_page_1based": 25,
+    "figure": "7(c)",
+    "quantity": "Cm",
+    "conditions": {
+      "mach": 0.6,
+      "reynolds_definition": "unit Reynolds number 3e6/ft = reported 9.8e6/m; not body-length Reynolds",
+      "configuration": "short ARCAS L/d18.20, four fins on, square symbols",
+      "fin_cant_deg": 0,
+      "roll_definition": "0deg per source Fig7 legend; positive roll clockwise viewed upstream from aft; numeric simulator mapping unaudited",
+      "alpha_definition": "source corrected angle of model centerline, degrees; actual marker x retained",
+      "alpha_target_deg": 0,
+      "alpha_read_deg": null
+    },
+    "reference": {
+      "axes": "source body axes; coefficient signs retained as plotted; exact simulator sign transform pending",
+      "area": "maximum body cross section S=pi*d^2/4, d reported5.72cm(2.25in); preserve rounding",
+      "moment_length": "body diameter d",
+      "moment_origin": "short-model station12.75d from nose in Fig1(a); text70%L with L18.20d, rounding retained",
+      "base_convention": "CN/Cm raw balance-derived; no axial/base correction applied"
+    },
+    "reading": {
+      "image_sha256": "d0ea8b855b8cbe541639368190e8819461005aab8aa8f39989d6f98ef4505b10",
+      "crop_box_pixels": [
+        325,
+        465,
+        550,
+        615
+      ],
+      "calibration_id": "d4013-cm-m0p60",
+      "pixel_x": null,
+      "pixel_y": null,
+      "value": null,
+      "reading_kind": "marker_center",
+      "marker": "square; neighboring roll symbols overlap",
+      "observation_status": "UNREADABLE: square center not distinguishable from overprinted symbols/axis ink; no measured center asserted",
+      "null_rule": "null means withheld, never zero or grid-intersection observation"
+    },
+    "uncertainty": {
+      "digitization_bound": 0.1552795031055901,
+      "alpha_digitization_bound_deg": 0.2906976744186046,
+      "source_bound": 0.05,
+      "source_alpha_bound_deg": 0.1,
+      "source_Mach_bound": 0.003,
+      "source_roll_bound_deg": 0.5,
+      "confidence_interpretation": "bounded reading/estimated calibration-repeatability limits, not probability intervals; source and extraction bounds separate",
+      "correlations": "shared source balance/calibration and scan/crop/axis anchors across points; reader agreement does not reduce common terms",
+      "unresolved_terms": [
+        "nearzero square-symbol overlap",
+        "local skew audit",
+        "first-pass marker identity audit",
+        "geometry/sign conventions independent review"
+      ]
+    },
+    "review": {
+      "reader_id": "D1-subsonic-first-reader",
+      "status": "excluded",
+      "independent_reader_id": null,
+      "disposition": "pending separate reader resolution; frozen target retained but no coefficient reading"
+    }
+  },
+  {
+    "point_id": "d4013-cm-m0p60-target+2",
+    "series_id": "d4013-cm-m0p60",
+    "source_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+    "pdf_page_1based": 25,
+    "figure": "7(c)",
+    "quantity": "Cm",
+    "conditions": {
+      "mach": 0.6,
+      "reynolds_definition": "unit Reynolds number 3e6/ft = reported 9.8e6/m; not body-length Reynolds",
+      "configuration": "short ARCAS L/d18.20, four fins on, square symbols",
+      "fin_cant_deg": 0,
+      "roll_definition": "0deg per source Fig7 legend; positive roll clockwise viewed upstream from aft; numeric simulator mapping unaudited",
+      "alpha_definition": "source corrected angle of model centerline, degrees; actual marker x retained",
+      "alpha_target_deg": 2,
+      "alpha_read_deg": 2.0058139534883717
+    },
+    "reference": {
+      "axes": "source body axes; coefficient signs retained as plotted; exact simulator sign transform pending",
+      "area": "maximum body cross section S=pi*d^2/4, d reported5.72cm(2.25in); preserve rounding",
+      "moment_length": "body diameter d",
+      "moment_origin": "short-model station12.75d from nose in Fig1(a); text70%L with L18.20d, rounding retained",
+      "base_convention": "CN/Cm raw balance-derived; no axial/base correction applied"
+    },
+    "reading": {
+      "image_sha256": "d0ea8b855b8cbe541639368190e8819461005aab8aa8f39989d6f98ef4505b10",
+      "crop_box_pixels": [
+        325,
+        465,
+        550,
+        615
+      ],
+      "calibration_id": "d4013-cm-m0p60",
+      "pixel_x": 115.0,
+      "pixel_y": 85.79999999999995,
+      "value": -0.22981366459627267,
+      "reading_kind": "marker_center",
+      "marker": "square; neighboring roll symbols overlap",
+      "observation_status": "marker center manually read, provisional overlap identity",
+      "null_rule": "null means withheld, never zero or grid-intersection observation"
+    },
+    "uncertainty": {
+      "digitization_bound": 0.1552795031055901,
+      "alpha_digitization_bound_deg": 0.2906976744186046,
+      "source_bound": 0.05,
+      "source_alpha_bound_deg": 0.1,
+      "source_Mach_bound": 0.003,
+      "source_roll_bound_deg": 0.5,
+      "confidence_interpretation": "bounded reading/estimated calibration-repeatability limits, not probability intervals; source and extraction bounds separate",
+      "correlations": "shared source balance/calibration and scan/crop/axis anchors across points; reader agreement does not reduce common terms",
+      "unresolved_terms": [
+        "nearzero square-symbol overlap",
+        "local skew audit",
+        "first-pass marker identity audit",
+        "geometry/sign conventions independent review"
+      ]
+    },
+    "review": {
+      "reader_id": "D1-subsonic-first-reader",
+      "status": "first_reader_provisional",
+      "independent_reader_id": null,
+      "disposition": "pending independent extraction; no fitting/scoring permitted"
+    }
+  }
+]

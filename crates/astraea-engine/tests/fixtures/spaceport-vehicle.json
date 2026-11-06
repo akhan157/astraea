@@ -1,0 +1,69 @@
+{
+  "components": [
+    {
+      "id": "sac-nc",
+      "name": "Aluminum-Tip Von Karman Nosecone",
+      "type": "nosecone",
+      "materialId": "carbonfiber",
+      "shape": "vonkarman",
+      "length": 0.70,
+      "baseDiameter": 0.102,
+      "wallThickness": 0.003,
+      "isHollow": true
+    },
+    {
+      "id": "sac-bt1",
+      "name": "Carbon Fiber Filament Wound Fuselage",
+      "type": "bodytube",
+      "materialId": "carbonfiber",
+      "length": 2.10,
+      "outerDiameter": 0.102,
+      "innerDiameter": 0.096
+    },
+    {
+      "id": "sac-boattail",
+      "name": "Aft Boattail Conical Transition",
+      "type": "transition",
+      "materialId": "aluminum",
+      "length": 0.15,
+      "foreDiameter": 0.102,
+      "aftDiameter": 0.088,
+      "wallThickness": 0.003,
+      "isHollow": true
+    },
+    {
+      "id": "sac-fins",
+      "name": "Supersonic Double-Wedge Fins",
+      "type": "trapezoidfinset",
+      "materialId": "aluminum",
+      "finCount": 3,
+      "rootChord": 0.28,
+      "tipChord": 0.08,
+      "span": 0.14,
+      "sweepLength": 0.18,
+      "thickness": 0.004,
+      "crossSection": "double_wedge",
+      "axialOffset": 1.80
+    },
+    {
+      "id": "sac-drogue",
+      "name": "Drogue Parachute (Apogee)",
+      "type": "parachute",
+      "materialId": "cardboard",
+      "diameter": 0.46,
+      "cd": 1.2,
+      "mass": 0.12,
+      "axialOffset": 0.20
+    },
+    {
+      "id": "sac-main",
+      "name": "Main Parachute (60 in)",
+      "type": "parachute",
+      "materialId": "cardboard",
+      "diameter": 1.524,
+      "cd": 1.5,
+      "mass": 0.55,
+      "axialOffset": 0.85
+    }
+  ]
+}

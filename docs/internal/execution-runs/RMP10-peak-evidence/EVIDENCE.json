@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP10",
+  "subpacket": "RMP10-C03 peak evidence",
+  "baseSha": "d278d49421cdd6ecd3e390c8ce3fdd4524e4f692",
+  "sourceSha": "external:source-commit.txt (written after the sole local commit; self-hash is not embeddable)",
+  "owner": "Pi coding agent",
+  "modelRouting": {
+    "model": "Pi coding agent; exact provider model not supplied in assignment",
+    "effort": "bounded single-agent engineering lane",
+    "usageTelemetry": "not supplied"
+  },
+  "effectiveInputs": [
+    "Closed-form parabolas and Gaussian dynamic-pressure histories; synthetic only",
+    "Native display recorder and bounded-retention rules inspected read-only in telemetry.rs, six_dof.rs and models.rs",
+    "Existing console flight fixtures for adapter DTO shape",
+    "Sealed prebuilt WASM copied only for affected real-WASM tests and Vite asset resolution; never rebuilt"
+  ],
+  "sourceHashes": {
+    "src/console/data/adapter.ts": "70e9adf11bf451c9ec0de297009cf63f85a8c14a26eff0e0734c5c2a5ee81ab8",
+    "src/console/data/contract.ts": "4b24b6462437ecc5b0708f1ceaad035958790d9868cccfdaadc62fba274eef4c",
+    "src/console/data/peakEvidence.test.ts": "ac2ca254346d4bc151b08ecf389dfd17fccf81281104fd9ed527de54b0290f18",
+    "crates/astraea-core/src/telemetry.rs": "a4d077a57a34bf67ace306b700cc03102b6f77a90484b73ad4d4227987179463",
+    "crates/astraea-core/src/six_dof.rs": "b7f4379b47109ff29fa09d3c82a8fb3f6a5884619acef552117a40ffcc335e46",
+    "crates/astraea-engine/src/models.rs": "1af9dd36709531cb377f05e7c58e224d90b5b6b896c09ba4ab0b770779732df6"
+  },
+  "runtimeHashes": {
+    "src/engine/astraea_engine.wasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+    "dist/assets/astraea_engine-DXTV52_r.wasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+    "byteCount": 1546041,
+    "rebuilt": false
+  },
+  "artifactAvailability": [
+    {
+      "kind": "tracked",
+      "path": "docs/internal/execution-runs/RMP10-peak-evidence/",
+      "contents": "assignment, result, pending review, structured evidence, package receipt"
+    },
+    {
+      "kind": "external-local-only",
+      "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-peak-evidence/",
+      "contents": "raw setup/red/green/affected/typecheck/build/audit/diff/validator logs, hashes and post-commit source SHA; not committed"
+    }
+  ],
+  "checks": [
+    {
+      "id": "RMP10-C03",
+      "status": "in_progress",
+      "kind": "author synthetic analytic/refinement evidence and static claim audit",
+      "commandOrMechanism": "node node_modules/vitest/vitest.mjs run src/console/data/peakEvidence.test.ts --maxWorkers=1 plus read-only consumer rg audit",
+      "expectedRule": "Sample retention supports only the recorded/display peak claim; no continuous maximum/bound or invented numeric resolution; invalid samples never fabricate max-Q",
+      "observed": "13/13 focused tests pass after the claim correction; exact-hit, 53 Pa undershoot, unbounded narrow-peak family, 0.4 Pa rounding overshoot, 5000-point retention and bookkeeping demonstrated; consumer strings remain explicitly sampled/not continuous",
+      "exitCode": 0,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-peak-evidence/vitest-peak-green.log",
+      "sha256": "7fd504101dd7050b49b73af9c0b55ac2efea22eeed0fb82cefe551485aa5898f",
+      "limitation": "Pending independent review; synthetic display evidence is not continuous-time, empirical, physical or structural qualification"
+    },
+    {
+      "id": "affected-vitest",
+      "status": "pass",
+      "kind": "existing and new adapter/console tests",
+      "commandOrMechanism": "node node_modules/vitest/vitest.mjs run src/console/data src/console/stages/siteAndTelemetry.test.tsx --maxWorkers=1",
+      "expectedRule": "Existing output contracts and affected real-WASM/data/UI tests remain green with sealed bytes",
+      "observed": "8 files, 61/61 tests passed",
+      "exitCode": 0,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-peak-evidence/vitest-affected-with-wasm.log",
+      "sha256": "be40ab3ad78010f3a7a758d32fa79779ebe6b3b3c6c5a2f9961a968ea8dae26f",
+      "limitation": "Affected suite only; not a full-repository or browser run"
+    },
+    {
+      "id": "typescript",
+      "status": "pass",
+      "kind": "static typecheck",
+      "commandOrMechanism": "pnpm exec tsc --noEmit",
+      "expectedRule": "No TypeScript diagnostics",
+      "observed": "exit 0; empty log",
+      "exitCode": 0,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-peak-evidence/tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "limitation": null
+    },
+    {
+      "id": "vite-build",
+      "status": "pass",
+      "kind": "production frontend build without engine rebuild",
+      "commandOrMechanism": "pnpm exec vite build",
+      "expectedRule": "Vite builds against the sealed WASM asset",
+      "observed": "exit 0; 3112 modules; emitted WASM SHA-256 matches sealed bytes",
+      "exitCode": 0,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-peak-evidence/vite-build.log",
+      "sha256": "d40db5fe7989acd18ad93f5e566029c380087bcae36b6295d5ad5e4f0c1a29ba",
+      "limitation": "Build only; no browser/runtime or new engine behavior claim"
+    },
+    {
+      "id": "consumer-claim-audit",
+      "status": "pass",
+      "kind": "read-only static source/documentation audit",
+      "commandOrMechanism": "rg over src, RMP10 packet/output audit and this run for max-Q and continuous maximum/bound wording",
+      "expectedRule": "No consumer calls the bounded display peak a continuous maximum or bound",
+      "observed": "Labels and comments consistently identify bounded/sampled output; occurrences of continuous maximum/bound are negations or test requirements",
+      "exitCode": 0,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-peak-evidence/consumer-claim-audit.log",
+      "sha256": "c36fb3f2ce97301c46bde8c5de736697810fcbf6a81ffe099c81d885ed7fa7c0",
+      "limitation": "Static wording audit, not a UI journey or physical qualification"
+    }
+  ],
+  "review": {
+    "reviewer": null,
+    "independentOfAuthor": null,
+    "disposition": "pending independent review",
+    "findings": []
+  },
+  "qualification": {
+    "computational": "bounded synthetic display-sample behavior only",
+    "physical": "unqualified",
+    "dynamic": "unknown"
+  },
+  "failedAttempts": [
+    {
+      "log": "vitest-peak-red.log",
+      "sha256": "df9504745aea1fd34029eb7eab3fdf057a80514115f63e4e47aba19cf3de93f2",
+      "observed": "5 failed / 8 passed",
+      "disposition": "Four fixture/expectation corrections (rounded tie, displayed 53 Pa arithmetic, first-tie time, on-stride counterfactual); intended adapter-claim failure retained. No assertion weakened to hide a production defect."
+    },
+    {
+      "log": "vitest-peak-red-2.log",
+      "sha256": "01a86a6c1808d6f3db1d5291d691eb62b9ffa38ea6218735fce62e9f9c685d58",
+      "observed": "1 failed / 12 passed",
+      "disposition": "Sole intended red: existing reason omitted the demonstrated unbounded missed-peak statement; adapter/manifest/docs then clarified."
+    },
+    {
+      "log": "vitest-affected.log",
+      "sha256": "bcc2241ffe2eeb836aa229afde85253e71ddbee025500058a07d888603bebe98",
+      "observed": "3 suites failed to load absent WASM; other suites 46 passed / 3 skipped",
+      "disposition": "Setup failure retained; authorized sealed WASM copied and hash verified, then affected suite rerun green. No rebuild."
+    }
+  ],
+  "remainingScope": [
+    "Independent coordinator review and RMP10-C03 acceptance disposition",
+    "Continuous-time peak magnitude/timing and numeric resolution/error budgets remain unqualified",
+    "No native continuous-peak extractor, decision-relevant structural qualification or production-WASM peak study was implemented",
+    "No empirical flight, instrumentation-bandwidth, physical/model or arbitrary-real-history validation",
+    "No built-browser readout/export journey; no consumer behavior changed in this lane"
+  ],
+  "nextActions": [
+    "Coordinator reviews this bounded author increment and integrates only if accepted",
+    "If continuous peak decisions are required, assign a separate justified native peak-method/numerical-budget lane"
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

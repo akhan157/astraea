@@ -1,0 +1,611 @@
+{
+  "schema": "rmp12-native-reference-result/1.0.0",
+  "status": "fail",
+  "nativeAttempts": 9,
+  "nativeCallBudget": 9,
+  "experimentSha256": "6d37ff09f7823f3b6d8639ad48a3381fb4fe46ee4cd94bcb267170fddf5e2e52",
+  "fixtureSha256": "7d6a9c96e0555f4f5641d94cc9cf506c627e6a357ab55f00c9a4a6a12b54fc7a",
+  "binarySha256": "fefe4b8cbc62371fe99317050d13d90145844a7f5b906f020e3ae9ed4a9429a2",
+  "harnessSha256": "2a6921e9f20a4b454dca38dd5145e1012716cf7c04f383d8a24229fe6a80a7b8",
+  "pointwiseNegligibleAeroAccelerationBoundMps2": 9.806649999999999e-06,
+  "scope": "provisional synthetic vertical native reference only; no adaptive-tolerance/global-error/physical/native-WASM qualification",
+  "cases": [
+    {
+      "id": "h2-dt020",
+      "expected": "success",
+      "inputSha256": "f790a2472543771d7fbd7efe5503dca9add94153988a6b60c9f19078c4a37bb2",
+      "pass": false,
+      "exitCode": 0,
+      "stdoutSha256": "d1b55a501b798cadf141732e1134e7baf73c0b453ffaa12d0bdff0d3120d6b9a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metrics": {
+        "referencePositionDeltaM": 3.375077994860476e-13,
+        "referenceVelocityDeltaMps": 2.2026824808563106e-13,
+        "referenceRailDeltaS": 5.865240848557107e-09,
+        "referenceRail": {
+          "estimateS": 0.5058667354803978,
+          "bracketS": [
+            0.5058617187500001,
+            0.5059617187500001
+          ],
+          "bracketWidthS": 9.999999999998899e-05
+        },
+        "liftoffReferenceS": 0.0474973515488093,
+        "maxPositionErrorM": 0.0073667897951992245,
+        "maxVelocityErrorMps": 0.005020062311348106,
+        "maxTransversePositionM": 6.752710138201557e-15,
+        "maxTransverseVelocityMps": 5.6735755912268895e-15,
+        "maxRateRadps": 1.447815178983979e-16,
+        "maxQuaternionChord": 1.1102230246251565e-16,
+        "maxMassErrorKg": 2.7755575615628914e-17,
+        "committedSamplesCompared": 101,
+        "railTimeErrorS": 0.00010501673039775561,
+        "checks": {
+          "referencePositionDeltaM": {
+            "observed": 3.375077994860476e-13,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "referenceVelocityDeltaMps": {
+            "observed": 2.2026824808563106e-13,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "referenceRailDeltaS": {
+            "observed": 5.865240848557107e-09,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "maxPositionErrorM": {
+            "observed": 0.0073667897951992245,
+            "reserve": 0.01,
+            "pass": true
+          },
+          "maxVelocityErrorMps": {
+            "observed": 0.005020062311348106,
+            "reserve": 0.02,
+            "pass": true
+          },
+          "railTimeErrorS": {
+            "observed": 0.00010501673039775561,
+            "reserve": 0.0001,
+            "pass": false
+          },
+          "maxTransversePositionM": {
+            "observed": 6.752710138201557e-15,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxTransverseVelocityMps": {
+            "observed": 5.6735755912268895e-15,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxRateRadps": {
+            "observed": 1.447815178983979e-16,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxQuaternionChord": {
+            "observed": 1.1102230246251565e-16,
+            "reserve": 1e-10,
+            "pass": true
+          },
+          "maxMassErrorKg": {
+            "observed": 2.7755575615628914e-17,
+            "reserve": 1e-14,
+            "pass": true
+          }
+        },
+        "diagnosticPass": false,
+        "finalReference": {
+          "zM": 32.4694727695631,
+          "vzMps": 19.784635604442627
+        }
+      }
+    },
+    {
+      "id": "h2-dt010",
+      "expected": "success",
+      "inputSha256": "75ee455e087de0146394257bf44f4219203d607da965489aa89b127ef86cadc9",
+      "pass": true,
+      "exitCode": 0,
+      "stdoutSha256": "4908b5df4152d7c976e6fd23d9fead3b5e477d312d2346ec58e5a9e596c960c4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metrics": {
+        "referencePositionDeltaM": 3.090860900556436e-13,
+        "referenceVelocityDeltaMps": 2.1316282072803006e-13,
+        "referenceRailDeltaS": 1.057203546928065e-09,
+        "referenceRail": {
+          "estimateS": 0.5058667348982695,
+          "bracketS": [
+            0.5058496093750002,
+            0.5059496093750002
+          ],
+          "bracketWidthS": 9.999999999998899e-05
+        },
+        "liftoffReferenceS": 0.0474973515488093,
+        "maxPositionErrorM": 0.0012071043340924348,
+        "maxVelocityErrorMps": 0.0008505056632372998,
+        "maxTransversePositionM": 6.751422847846489e-15,
+        "maxTransverseVelocityMps": 5.672999585821784e-15,
+        "maxRateRadps": 1.4488726462553342e-16,
+        "maxQuaternionChord": 1.1102230246251565e-16,
+        "maxMassErrorKg": 2.7755575615628914e-17,
+        "committedSamplesCompared": 201,
+        "railTimeErrorS": 1.7125523269267973e-05,
+        "checks": {
+          "referencePositionDeltaM": {
+            "observed": 3.090860900556436e-13,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "referenceVelocityDeltaMps": {
+            "observed": 2.1316282072803006e-13,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "referenceRailDeltaS": {
+            "observed": 1.057203546928065e-09,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "maxPositionErrorM": {
+            "observed": 0.0012071043340924348,
+            "reserve": 0.01,
+            "pass": true
+          },
+          "maxVelocityErrorMps": {
+            "observed": 0.0008505056632372998,
+            "reserve": 0.02,
+            "pass": true
+          },
+          "railTimeErrorS": {
+            "observed": 1.7125523269267973e-05,
+            "reserve": 0.0001,
+            "pass": true
+          },
+          "maxTransversePositionM": {
+            "observed": 6.751422847846489e-15,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxTransverseVelocityMps": {
+            "observed": 5.672999585821784e-15,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxRateRadps": {
+            "observed": 1.4488726462553342e-16,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxQuaternionChord": {
+            "observed": 1.1102230246251565e-16,
+            "reserve": 1e-10,
+            "pass": true
+          },
+          "maxMassErrorKg": {
+            "observed": 2.7755575615628914e-17,
+            "reserve": 1e-14,
+            "pass": true
+          }
+        },
+        "diagnosticPass": true,
+        "finalReference": {
+          "zM": 32.46947276956308,
+          "vzMps": 19.784635604442624
+        }
+      }
+    },
+    {
+      "id": "h2-dt005",
+      "expected": "success",
+      "inputSha256": "75fc4bf27aeb620ec9557f07f090805586bb801825bfcd57aa790bfadef55bc0",
+      "pass": true,
+      "exitCode": 0,
+      "stdoutSha256": "4d91cd130385feeb2485c4a7767fd0d6f82f266c3dd5f7439d1feb8f2135b250",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metrics": {
+        "referencePositionDeltaM": 3.375077994860476e-13,
+        "referenceVelocityDeltaMps": 2.4158453015843406e-13,
+        "referenceRailDeltaS": 1.057203546928065e-09,
+        "referenceRail": {
+          "estimateS": 0.5058667348982695,
+          "bracketS": [
+            0.5058496093750002,
+            0.5059496093750002
+          ],
+          "bracketWidthS": 9.999999999998899e-05
+        },
+        "liftoffReferenceS": 0.0474973515488093,
+        "maxPositionErrorM": 0.0012071043336376874,
+        "maxVelocityErrorMps": 0.0008505056632328589,
+        "maxTransversePositionM": 6.751422847846418e-15,
+        "maxTransverseVelocityMps": 5.6731008092484835e-15,
+        "maxRateRadps": 1.4488726462553335e-16,
+        "maxQuaternionChord": 1.1102230246251565e-16,
+        "maxMassErrorKg": 2.7755575615628914e-17,
+        "committedSamplesCompared": 402,
+        "railTimeErrorS": 1.7125523269267973e-05,
+        "checks": {
+          "referencePositionDeltaM": {
+            "observed": 3.375077994860476e-13,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "referenceVelocityDeltaMps": {
+            "observed": 2.4158453015843406e-13,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "referenceRailDeltaS": {
+            "observed": 1.057203546928065e-09,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "maxPositionErrorM": {
+            "observed": 0.0012071043336376874,
+            "reserve": 0.01,
+            "pass": true
+          },
+          "maxVelocityErrorMps": {
+            "observed": 0.0008505056632328589,
+            "reserve": 0.02,
+            "pass": true
+          },
+          "railTimeErrorS": {
+            "observed": 1.7125523269267973e-05,
+            "reserve": 0.0001,
+            "pass": true
+          },
+          "maxTransversePositionM": {
+            "observed": 6.751422847846418e-15,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxTransverseVelocityMps": {
+            "observed": 5.6731008092484835e-15,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxRateRadps": {
+            "observed": 1.4488726462553335e-16,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxQuaternionChord": {
+            "observed": 1.1102230246251565e-16,
+            "reserve": 1e-10,
+            "pass": true
+          },
+          "maxMassErrorKg": {
+            "observed": 2.7755575615628914e-17,
+            "reserve": 1e-14,
+            "pass": true
+          }
+        },
+        "diagnosticPass": true,
+        "finalReference": {
+          "zM": 32.46947276956326,
+          "vzMps": 19.784635604442645
+        }
+      }
+    },
+    {
+      "id": "h2003-dt020",
+      "expected": "success",
+      "inputSha256": "41a995c0c73698fb8918705f0c2c57cf3282e9bf2b9c4ef1653426e158da88aa",
+      "pass": false,
+      "exitCode": 0,
+      "stdoutSha256": "44082dc3e6ea8ac0117f15a82f2fcb539edee9fbbc13bd54add90f749a445276",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metrics": {
+        "referencePositionDeltaM": 3.375077994860476e-13,
+        "referenceVelocityDeltaMps": 2.2026824808563106e-13,
+        "referenceRailDeltaS": 5.865240848557107e-09,
+        "referenceRail": {
+          "estimateS": 0.5058667354803978,
+          "bracketS": [
+            0.5058617187500001,
+            0.5059617187500001
+          ],
+          "bracketWidthS": 9.999999999998899e-05
+        },
+        "liftoffReferenceS": 0.0474973515488093,
+        "maxPositionErrorM": 0.007375894555089246,
+        "maxVelocityErrorMps": 0.005020062311348106,
+        "maxTransversePositionM": 6.7673819950129606e-15,
+        "maxTransverseVelocityMps": 5.6735755912268895e-15,
+        "maxRateRadps": 1.447815178983979e-16,
+        "maxQuaternionChord": 1.1102230246251565e-16,
+        "maxMassErrorKg": 2.7755575615628914e-17,
+        "committedSamplesCompared": 102,
+        "railTimeErrorS": 0.00010501673039775561,
+        "checks": {
+          "referencePositionDeltaM": {
+            "observed": 3.375077994860476e-13,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "referenceVelocityDeltaMps": {
+            "observed": 2.2026824808563106e-13,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "referenceRailDeltaS": {
+            "observed": 5.865240848557107e-09,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "maxPositionErrorM": {
+            "observed": 0.007375894555089246,
+            "reserve": 0.01,
+            "pass": true
+          },
+          "maxVelocityErrorMps": {
+            "observed": 0.005020062311348106,
+            "reserve": 0.02,
+            "pass": true
+          },
+          "railTimeErrorS": {
+            "observed": 0.00010501673039775561,
+            "reserve": 0.0001,
+            "pass": false
+          },
+          "maxTransversePositionM": {
+            "observed": 6.7673819950129606e-15,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxTransverseVelocityMps": {
+            "observed": 5.6735755912268895e-15,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxRateRadps": {
+            "observed": 1.447815178983979e-16,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxQuaternionChord": {
+            "observed": 1.1102230246251565e-16,
+            "reserve": 1e-10,
+            "pass": true
+          },
+          "maxMassErrorKg": {
+            "observed": 2.7755575615628914e-17,
+            "reserve": 1e-14,
+            "pass": true
+          }
+        },
+        "diagnosticPass": false,
+        "finalReference": {
+          "zM": 32.528768401968996,
+          "vzMps": 19.745792193404906
+        }
+      }
+    },
+    {
+      "id": "h2003-dt010",
+      "expected": "success",
+      "inputSha256": "88de79cf40e5b46150fd108ab11cd209f638ba7cdfebee78776c2b5faa3f8971",
+      "pass": true,
+      "exitCode": 0,
+      "stdoutSha256": "663a21f744510ffdc9fe27528747a2b7bf9e89f65bdadad928d5bd1daa03a776",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metrics": {
+        "referencePositionDeltaM": 3.090860900556436e-13,
+        "referenceVelocityDeltaMps": 2.1316282072803006e-13,
+        "referenceRailDeltaS": 1.057203546928065e-09,
+        "referenceRail": {
+          "estimateS": 0.5058667348982695,
+          "bracketS": [
+            0.5058496093750002,
+            0.5059496093750002
+          ],
+          "bracketWidthS": 9.999999999998899e-05
+        },
+        "liftoffReferenceS": 0.0474973515488093,
+        "maxPositionErrorM": 0.0012085827508485636,
+        "maxVelocityErrorMps": 0.0008505056632372998,
+        "maxTransversePositionM": 6.766093179245352e-15,
+        "maxTransverseVelocityMps": 5.672999585821784e-15,
+        "maxRateRadps": 1.4488726462553342e-16,
+        "maxQuaternionChord": 1.1102230246251565e-16,
+        "maxMassErrorKg": 2.7755575615628914e-17,
+        "committedSamplesCompared": 202,
+        "railTimeErrorS": 1.7125523269267973e-05,
+        "checks": {
+          "referencePositionDeltaM": {
+            "observed": 3.090860900556436e-13,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "referenceVelocityDeltaMps": {
+            "observed": 2.1316282072803006e-13,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "referenceRailDeltaS": {
+            "observed": 1.057203546928065e-09,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "maxPositionErrorM": {
+            "observed": 0.0012085827508485636,
+            "reserve": 0.01,
+            "pass": true
+          },
+          "maxVelocityErrorMps": {
+            "observed": 0.0008505056632372998,
+            "reserve": 0.02,
+            "pass": true
+          },
+          "railTimeErrorS": {
+            "observed": 1.7125523269267973e-05,
+            "reserve": 0.0001,
+            "pass": true
+          },
+          "maxTransversePositionM": {
+            "observed": 6.766093179245352e-15,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxTransverseVelocityMps": {
+            "observed": 5.672999585821784e-15,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxRateRadps": {
+            "observed": 1.4488726462553342e-16,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxQuaternionChord": {
+            "observed": 1.1102230246251565e-16,
+            "reserve": 1e-10,
+            "pass": true
+          },
+          "maxMassErrorKg": {
+            "observed": 2.7755575615628914e-17,
+            "reserve": 1e-14,
+            "pass": true
+          }
+        },
+        "diagnosticPass": true,
+        "finalReference": {
+          "zM": 32.528768401968975,
+          "vzMps": 19.745792193404903
+        }
+      }
+    },
+    {
+      "id": "h2003-dt005",
+      "expected": "success",
+      "inputSha256": "9fa160d28484c497cf5ba92d8d5c75d0b0d1213cff9e73706b9ce27ca194f275",
+      "pass": true,
+      "exitCode": 0,
+      "stdoutSha256": "0d13e60b41bba570fa90d8e24fd7e67ffbdb5a9f36b6f445c65dc0695ad21307",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metrics": {
+        "referencePositionDeltaM": 3.375077994860476e-13,
+        "referenceVelocityDeltaMps": 2.4158453015843406e-13,
+        "referenceRailDeltaS": 1.057203546928065e-09,
+        "referenceRail": {
+          "estimateS": 0.5058667348982695,
+          "bracketS": [
+            0.5058496093750002,
+            0.5059496093750002
+          ],
+          "bracketWidthS": 9.999999999998899e-05
+        },
+        "liftoffReferenceS": 0.0474973515488093,
+        "maxPositionErrorM": 0.0012085827503796054,
+        "maxVelocityErrorMps": 0.0008505056632328589,
+        "maxTransversePositionM": 6.76609317924528e-15,
+        "maxTransverseVelocityMps": 5.6731008092484835e-15,
+        "maxRateRadps": 1.4488726462553335e-16,
+        "maxQuaternionChord": 1.1102230246251565e-16,
+        "maxMassErrorKg": 2.7755575615628914e-17,
+        "committedSamplesCompared": 402,
+        "railTimeErrorS": 1.7125523269267973e-05,
+        "checks": {
+          "referencePositionDeltaM": {
+            "observed": 3.375077994860476e-13,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "referenceVelocityDeltaMps": {
+            "observed": 2.4158453015843406e-13,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "referenceRailDeltaS": {
+            "observed": 1.057203546928065e-09,
+            "reserve": 1e-07,
+            "pass": true
+          },
+          "maxPositionErrorM": {
+            "observed": 0.0012085827503796054,
+            "reserve": 0.01,
+            "pass": true
+          },
+          "maxVelocityErrorMps": {
+            "observed": 0.0008505056632328589,
+            "reserve": 0.02,
+            "pass": true
+          },
+          "railTimeErrorS": {
+            "observed": 1.7125523269267973e-05,
+            "reserve": 0.0001,
+            "pass": true
+          },
+          "maxTransversePositionM": {
+            "observed": 6.76609317924528e-15,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxTransverseVelocityMps": {
+            "observed": 5.6731008092484835e-15,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxRateRadps": {
+            "observed": 1.4488726462553335e-16,
+            "reserve": 1e-09,
+            "pass": true
+          },
+          "maxQuaternionChord": {
+            "observed": 1.1102230246251565e-16,
+            "reserve": 1e-10,
+            "pass": true
+          },
+          "maxMassErrorKg": {
+            "observed": 2.7755575615628914e-17,
+            "reserve": 1e-14,
+            "pass": true
+          }
+        },
+        "diagnosticPass": true,
+        "finalReference": {
+          "zM": 32.52876840196917,
+          "vzMps": 19.745792193404924
+        }
+      }
+    },
+    {
+      "id": "h2003-dt010-repeat",
+      "expected": "byte-identical-to-h2003-dt010",
+      "inputSha256": "88de79cf40e5b46150fd108ab11cd209f638ba7cdfebee78776c2b5faa3f8971",
+      "pass": true,
+      "exitCode": 0,
+      "stdoutSha256": "663a21f744510ffdc9fe27528747a2b7bf9e89f65bdadad928d5bd1daa03a776",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "fractional-expiry",
+      "expected": "fractional stage time",
+      "inputSha256": "a5b8aba1cde1c15bbcea88caaa8410ea1e9b498368a3c2d914c414f7d934eac4",
+      "pass": true,
+      "exitCode": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "f4fc95946f6d8fc643d2b4f555dc1bed2e38da03fc10426c226f3058f1588aa9",
+      "failurePhase": "adaptive-endpoint-stage",
+      "speculative": true,
+      "failureStageTimeS": 2.0000000000000013
+    },
+    {
+      "id": "speculative-altitude-exit",
+      "expected": "outside tabulated coverage",
+      "inputSha256": "86214c44324fb55a5d53a371475b9f9ca0a2e28af0c3928c59da034cf1fda829",
+      "pass": true,
+      "exitCode": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "44516da1748b94616c573f7e52d55f053236deb873a983787e76cc9477a66991",
+      "failurePhase": "adaptive-endpoint-stage",
+      "speculative": true,
+      "failureStageTimeS": 0.05
+    }
+  ]
+}

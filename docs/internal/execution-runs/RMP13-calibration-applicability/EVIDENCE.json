@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP13",
+  "subpacket": "RMP13-C03 / RMP07-C03 provenance-bound calibration applicability and strict dispatch engine identity",
+  "baseSha": "1edea79239666755f3f16da8db4b1bf703f94841",
+  "sourceSha": "3a8a6cdb8ff4a8abfe9cafda402209edd2757f5c",
+  "owner": "DeepSeek V4.1 Flash 1017 author lane; coordinator owns independent review, acceptance and integration",
+  "modelRouting": {
+    "author": "omp/openrouter/deepseek/deepseek-v4.1-flash-1017, high",
+    "reviewer": "independent coordinating OpenAI GPT session; ACCEPT bounded software increment after focused rework and real production-CSP browser proof; see REVIEW.md"
+  },
+  "scope": {
+    "in": "shared applicability resolver; design/dispatch/ensemble/archive/UI alignment; documented historical shear-key recognition; vehicle-derived altitude in design/fit; strict different/unknown engine dispatch refusal; legacy policy preserved",
+    "out": "Rust/physics/defaults; schema/parser/budget changes; saved-output lane; other worktrees; release/push/outreach/outcome data"
+  },
+  "sourceHashes": {
+    "src/application/calibrationApplicability.ts": "f8074adb752b1369415290f0c955b5d401ab047fa6ca9772d926da1d659ea65c",
+    "src/application/dragCalibration.ts": "a422ee2bd6b7020a9bf53555342023687cf6133a5161254febb028a994d88775",
+    "src/application/runInputs.ts": "a74a3f9164bf065a2cc428f6a4639ac34a932a9e4c1f2bceb370cb41cae409e8",
+    "src/console/design.ts": "a2e32f7917a19231ea97fc21b5a668996287941f24f7171e88fa15f2d03944bb",
+    "src/console/store.ts": "d453f5d6f8959173a2b767a85f19c86dbc4efe952646c3c8e0cf23f04e09f40a",
+    "src/console/data/adapter.ts": "d70e1661ae347c6b2bcd227f8560d447f7a58ab3d62a3a60e1ab0ee4388bcf9e",
+    "src/console/livePreview.ts": "047c84b48a9783828565153ec91d85a34b1bb14a8114d330e0b6edba9d81786d",
+    "src/console/evidence/CalibrationCard.tsx": "6a1d039c3cc4887e0e8d6ca291ec63083ed396ed32dbee124dfd0ddfe2e9e0a3",
+    "src/console/evidence/CalibrationChip.tsx": "6b196acf6e8b1d6d39b6e61a68df36811a3527da4f56b2997cd4dc98c6e70258",
+    "src/console/evidence/ModelStatusPanel.tsx": "17ffd101ab03727fdc691ce055a87c26c1b334230aa20d28ef88258cc9721832",
+    "runtimeWasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b"
+  },
+  "artifactAvailability": [
+    {
+      "kind": "portable",
+      "location": "docs/internal/execution-runs/RMP13-calibration-applicability/ (ASSIGNMENT, RESULT, EVIDENCE); source/tests in repository"
+    },
+    {
+      "kind": "external-local-only",
+      "location": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-calibration-applicability",
+      "contents": "probe.mjs/before.json (supplied), probe-after.mjs/after.json, site-context-probe.mjs/site-before.json/site-after.json, browser witness and context JSON"
+    }
+  ],
+  "checks": [
+    {
+      "id": "RMP13-C03",
+      "status": "in_progress",
+      "mechanismStatus": "bounded-increment-accepted",
+      "observed": "model binding + recorded uncalibrated case key + strict recorded engine identity gate the artifact; input mismatch/unkeyable inputs exclude scale from design, run identity and archive; artifact retained byte-identical; undo restores; historical shear-suffixed recorded keys recognized without truncating arbitrary suffixes; vehicle site (or 0) is the only altitude input",
+      "limitation": "synthetic transitions only; bounded author-independent review accepted, broader physical/source eligibility and full check remain open"
+    },
+    {
+      "id": "RMP07-C03",
+      "status": "in_progress",
+      "mechanismStatus": "bounded-increment-accepted",
+      "observed": "dispatch/preview/ensemble/archive consistent via one resolved artifact; archive equals dispatched options; different and unknown recorded firmware SHA refuse with distinct reasons; legacy no-provenance policy unchanged; the preview key now includes the retained artifact so a same-scale provenance change re-evaluates the engine guard and cannot leave a refused result current",
+      "limitation": "production SHA proof uses synthetic fit; no physical validation"
+    },
+    {
+      "id": "RMP07-C02",
+      "status": "pass retained",
+      "observed": "legacy records/keys/archives unchanged; schema 1.11.0; parser/budgets untouched"
+    }
+  ],
+  "testEvidence": {
+    "typecheck": "tsc --noEmit clean",
+    "focused": "54/54 applicability/adapter/UI/preview/console calibration",
+    "affected": "420/420 application+format+io; 104/104 altitude/store/stages/evidence",
+    "previewRework": "7/7 livePreview incl. provenance transition; 46/46 preview/console/stage/build affected set",
+    "build": "Vite-only build OK; built WASM SHA matches pinned runtime"
+  },
+  "probeEvidence": {
+    "after.json": "key 66833f73 active; wind +10 inactive with no scale/artifact; archive scale 1; reopen inactive retained; undo active scale 0.9968644859450916; engine same",
+    "site-after.json": "no vehicle site: design/fit altitude 0 before and after workspace.site 0->100; actual dispatch altitude 0; fit key unchanged"
+  },
+  "coordinatorVerification": {
+    "browserEvidence": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-calibration-applicability/coordinator-browser.json",
+    "actualSurface": "Final built Chromium, production CSP, 1440x1000, two-worker cap; active wind3 -> inactive wind13 -> actual WASM flight -> save exact dispatched scale1/no artifact/input48da622c -> undo -> save/reopen active with historical wind13 case preserved",
+    "engineRefusal": "Missing-hash/different-kind and different production-SHA manufactured artifacts refuse explicit Run with no extra simulate_flight call; unknown same-kind branch covered by author tests, not a separate browser claim",
+    "runtimeErrors": 0,
+    "cleanup": "Browser and preview service stopped",
+    "sourceDeltaAfterBuild": "Coordinator corrected only an obsolete adapter comment; no executable change",
+    "acceptance": "ACCEPT bounded repair; RMP13-C03/RMP07-C03 remain in progress"
+  },
+  "scientificLimits": "All evidence is synthetic controlled-coast and manufactured evidence. No flight outcome, empirical validation, physical qualification or release permission is claimed. Test-engine provenance fits are intentionally refused as engine-unknown."
+}

@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP07",
+  "subpacket": "RMP07d calibration/flight-model binding and fail-closed inactive scale",
+  "baseSha": "de6b0df1df7e7cc27119198b7019166022d962e9",
+  "owner": "coordinator/author in intended branch/worktree; exclusive lane lease; released at completion",
+  "modelRouting": {
+    "author": "prior author session recorded mimo-v2.6-pro/high; provider attribution not independently established in this record",
+    "reviewer": "fresh ephemeral no-history read-only pi session (tools=read), same installed model/high",
+    "meaning": "independent authorship reasoning, not multi-model consensus or qualification"
+  },
+  "scope": {
+    "in": "binding declaration parse, status helpers, active-scale gating of dispatch/identity/UI, apply-time refusal, fit-time binding capture, status display",
+    "out": "candidate selection/activation, fit algorithm/eligibility/policy, physics/defaults, schema version bump, core/engine changes"
+  },
+  "sourceHashes": {
+    "src/application/dragCalibration.ts": "29a0f265e1b5a0314e098b114f2431fb56518e5cf24651d54a0ca06aa67de6ff",
+    "src/application/runInputs.ts": "ecbb9b20b67f21e564822fd2762709c63a62f56502d65d045facbabce5359eb9",
+    "src/console/design.ts": "3e3a8d57ad3949f3523fde7807b1ac6fab2826859e8cc59bba093e9b31bddb03",
+    "src/console/store.ts": "096b455ed8c7187be4a2e7805abf2ee1f00b3153043c301e89634d96a0a05474",
+    "src/console/evidence/CalibrationCard.tsx": "275bf696bc2ad14971877773becfba87a3648c387600efcbbe5bdfa5312397ef"
+  },
+  "artifactAvailability": [
+    {
+      "kind": "portable",
+      "location": "docs/internal/execution-runs/RMP07-calibration-binding/ (ASSIGNMENT, REVIEW, RESULT, EVIDENCE); source/tests in repository"
+    },
+    {
+      "kind": "external-local-only",
+      "location": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-calibration-binding",
+      "contents": "review prompts/reviews, focused/affected/build logs"
+    }
+  ],
+  "checks": [
+    {
+      "id": "RMP07-C03",
+      "status": "in_progress",
+      "mechanismStatus": "accepted",
+      "observed": "incompatible calibration retained as history but never dispatched, never in input keys (key-identical with/without artifact), never applied; fit-time binding pinned; malformed bindings fail closed",
+      "limitation": "synthetic incompatibility paths (only legacy selection exists); full non-leak across candidate consumers and migration difference reports remain open"
+    },
+    {
+      "id": "RMP07-C02",
+      "status": "pass retained",
+      "observed": "legacy records/keys/results unchanged; old calibrations (no binding) keep legacy semantics"
+    },
+    {
+      "id": "RMP07-C05",
+      "status": "in_progress retained",
+      "observed": "apply refusal makes zero state change (whole-project identity asserted)"
+    },
+    {
+      "id": "RMP07-C07",
+      "status": "in_progress retained",
+      "observed": "binding status visible in the calibration panel; inactive chip suppressed"
+    }
+  ],
+  "testEvidence": {
+    "focused": "66/66 across 4 files",
+    "affected": "279/279 across 18 files",
+    "typescript": "clean",
+    "viteBuild": "pass"
+  },
+  "failedAttempts": [
+    "one focused test failed on a minimal fixture rejected by writeProject validation; round-trip test moved to the full-record generator's file, no product change",
+    "one sed-level call-signature update batch initially left old argument positions; corrected mechanically, TypeScript verified"
+  ],
+  "review": {
+    "disposition": "ACCEPT after one focused rework",
+    "round1": "REQUEST_CHANGES: (1) incompatible calibration joined run identity via launchCaseInput (fixed: active calibration from design; key-level test), (2) binding recorded at apply time not fit time (fixed: FitState capture + selection in staleness key; apply uses fit-time binding)",
+    "round2": "ACCEPT; no new defects; three optional followups honestly left (staleness behavior test awaits a second model; jsdom act() nit; pre-existing render-time build guard)",
+    "rawHashes": {
+      "review.md": "ed68a803d5c126311ecde45bb0b3285d8223c70a33cb7e0d6effb4f0a884a73c",
+      "rereview.md": "73750cf1cb6efaee32c41dc9a0dfe50146f3514e9c962cdd40db024332c8037c"
+    }
+  },
+  "remainingScope": [
+    "full RMP07-C03 non-leak across all candidate consumers + migration difference reports",
+    "consumer consistency/status exposure (C04/C07)",
+    "candidate calibration retention/refit policy at candidate activation",
+    "scientific/mission/platform/release gates"
+  ],
+  "nextActions": [
+    "continue RMP07 consumer-consistency/status or the reviewed knot-split regime experiment; no default change"
+  ]
+}

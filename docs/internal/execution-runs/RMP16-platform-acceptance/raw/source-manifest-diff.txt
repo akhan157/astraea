@@ -1,0 +1,4 @@
+819c819
+< 366e3540422650234bc0ce38917807a98463e985d0190be053b29831dab9abaa  src-tauri/gen/schemas/windows-schema.json
+---
+> 4a946fe48fbb0c7c535ea53e6070bd8276f3f3d74f96efbaa6d85bd7b53b0f05  src-tauri/gen/schemas/windows-schema.json

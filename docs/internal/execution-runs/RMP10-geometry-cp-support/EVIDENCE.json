@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP10",
+  "subpacket": "RMP10c geometry CP support",
+  "baseSha": "27c1b05",
+  "sourceSha": "49b07adccc2c882bd8eabc861fe05625fb2b0465",
+  "status": "accepted bounded correction; increment 6/10",
+  "review": {
+    "initial": "REQUEST_CHANGES",
+    "rereview": "REQUEST_CHANGES; recorded stop retained",
+    "resumed": "ACCEPT after owner-authorized resume",
+    "boundary": "opencode-go/mimo-v2.6-pro medium, no tools, supplied source/evidence"
+  },
+  "checks": [
+    {
+      "id": "RMP10-C02",
+      "status": "in_progress",
+      "observed": "unsupported geometry CP/margin/verdict withheld; copilot Unknown/reason; native coefficient UI baseline gate",
+      "remaining": "unified-provider, full C/J/force/moment/free-couple and Mach-specific CP semantics"
+    }
+  ],
+  "verification": {
+    "beforeCopilot": "1 failed / 4 passed",
+    "fullBeforeCoefficientUI": "124 files / 1537 pass; tsc clean",
+    "coefficientBefore": "1 failed / 17 skipped",
+    "finalAffected": "7 files / 73 pass; tsc/Vite pass",
+    "browser": "built Chromium copilot explanation/checks plus coefficient preview; runtime errors empty; screenshots/text externally inventoried",
+    "wasmSha256": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b"
+  },
+  "previousEvidence": "docs/internal/execution-runs/RMP10-flight-model-history/EVIDENCE.json",
+  "nonClaims": [
+    "RMP10-C02 pass",
+    "Mach-specific native aero_curves support",
+    "physics or flight accuracy qualification",
+    "release or platform acceptance"
+  ],
+  "sourceInventory": "SOURCE-INVENTORY.json",
+  "rawArtifacts": "RAW-ARTIFACTS.json"
+}

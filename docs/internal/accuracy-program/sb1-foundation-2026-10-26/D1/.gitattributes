@@ -1,0 +1,3 @@
+# Retain original extraction bytes so the source-artifact hashes remain valid.
+19670020050-pdf-p*.txt -whitespace
+first-reader-points.csv whitespace=cr-at-eol

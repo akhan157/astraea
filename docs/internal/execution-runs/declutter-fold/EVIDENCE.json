@@ -1,0 +1,135 @@
+{
+  "lane": "declutter-fold",
+  "branch": "declutter-fold",
+  "base": "c09c3f0d8111f637d1c1d7eeb2bfe7194be04e7f",
+  "assignment_commit": "c09c3f0d8111f637d1c1d7eeb2bfe7194be04e7f",
+  "gate1": {
+    "status": "approved with amendments",
+    "note": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-declutter-fold/gate1.md"
+  },
+  "implementation_commits": [
+    {
+      "sha": "5f6d111463fcedb2d0c6214141817dd8912924f4",
+      "scope": "production folds, session-only validation state"
+    },
+    {
+      "sha": "30a803cdf88ab85d8e41efd052d12686f7d0a377",
+      "scope": "unit tests"
+    },
+    {
+      "sha": "11e380563aa63ea70034b28af37a282fa54c7d26",
+      "scope": "browser journeys"
+    }
+  ],
+  "report_commit": "this commit (RESULT.md + EVIDENCE.json)",
+  "evidence_dir": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-declutter-fold",
+  "files": {
+    "production": [
+      "src/console/kit/Caveat.tsx",
+      "src/console/kit/Status.tsx",
+      "src/console/stages/Airframe.tsx",
+      "src/console/stages/Aero.tsx",
+      "src/console/stages/Verify.tsx",
+      "src/state/session.ts"
+    ],
+    "tests": [
+      "src/console/kit/fold.test.tsx",
+      "src/console/stages/declutterFold.test.tsx",
+      "src/console/stages/aeroBreakdown.test.tsx",
+      "src/console/evidence/ShareFlightCard.test.tsx"
+    ],
+    "scripts": [
+      "scripts/preview-journeys.mjs"
+    ],
+    "docs": [
+      "docs/internal/execution-runs/declutter-fold/RESULT.md",
+      "docs/internal/execution-runs/declutter-fold/EVIDENCE.json"
+    ]
+  },
+  "fold_decisions": [
+    {
+      "surface": "Airframe/Aero StabilityStrip caveat",
+      "rule": "always fold when both lines exist (m > 3); single grey line at m <= 3 stays unfolded with no More; data-margin-unavailable warning never folded or merged",
+      "collapsed": "one ellipsized line, amber span then grey span",
+      "expanded": "the same two spans as blocks in their original colours",
+      "tested_in": ["src/console/stages/declutterFold.test.tsx", "scripts/preview-journeys.mjs"]
+    },
+    {
+      "surface": "Aero Stability breakdown intro",
+      "rule": "fold only when the measured line overflows",
+      "measurement": "scrollWidth > clientWidth + 1; useLayoutEffect after mount; ResizeObserver re-measures on resize; decision frozen while open",
+      "tested_in": ["src/console/stages/aeroBreakdown.test.tsx", "src/console/kit/fold.test.tsx"]
+    },
+    {
+      "surface": "Verify/Recovery gate reasons (data-gate-reason)",
+      "rule": "fail status never folds; other statuses fold only when the measured line overflows",
+      "interaction": "nested More isolates click and Enter/Space keydown so the row's gate selection does not fire; row clicks elsewhere still select",
+      "tested_in": ["src/console/kit/fold.test.tsx", "scripts/preview-journeys.mjs"]
+    },
+    {
+      "surface": "Verify Validation card",
+      "rule": "starts collapsed; heading is a button with aria-expanded/aria-controls and a rotating chevron; content stays in the DOM hidden",
+      "state": "useSessionStore().validationOpen, session-only, survives stage switches, never written to the project envelope or exports",
+      "tested_in": ["src/console/stages/declutterFold.test.tsx", "scripts/preview-journeys.mjs"]
+    }
+  ],
+  "exact_strings": {
+    "airframe_amber": "Above generic geometry band (>3 cal). Weathercocking requires flight analysis.",
+    "airframe_rollup": "Component rollup only; selected motor and powered-flight margin history unavailable.",
+    "aero_intro": "Subsonic component geometry and mass rollup; excludes the selected motor and depletion history. Pad all-up, burnout and powered-flight minimum margins are unavailable here."
+  },
+  "colours": {
+    "amber": "rgb(245, 181, 68)",
+    "grey": "rgb(94, 100, 109)",
+    "source": "src/console/kit/theme.ts C.changed / C.dim"
+  },
+  "commands": [
+    {
+      "command": "pnpm exec tsc --noEmit",
+      "result": "exit 0, no diagnostics",
+      "log": "tsc.log"
+    },
+    {
+      "command": "pnpm exec vitest run --maxWorkers=2",
+      "result": "164 test files passed, 1944 tests passed, exit 0",
+      "log": "vitest-full.log"
+    },
+    {
+      "command": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 pnpm build",
+      "result": "build:engine + tsc + vite build succeeded, exit 0",
+      "log": "build.log"
+    },
+    {
+      "command": "pnpm test:browser",
+      "result": "Chromium production-CSP smoke and all journeys passed (38 acceptance lines), exit 0",
+      "log": "browser.log"
+    }
+  ],
+  "browser_acceptance_evidence": [
+    "chromium smoke passed: Apogee (committed run) 533 m, Modeled; WebAssembly workers under production CSP",
+    "all eight stages, themed controls and reachable gate reasons",
+    "Airframe caveat folds to one line and expands to both full sentences",
+    "calibration survives save, reload and reopen from the browser slot",
+    "calibration survives save and open through a project file",
+    "the imported log survives Verify -> Flight -> Verify",
+    "share this flight: bundle files, log bytes and checksum"
+  ],
+  "journey_edits": [
+    "assertGateReasonsWrapped replaced by assertGateReasonsReachable (fully visible, or More then fully visible)",
+    "Flight Results basis-cell assertion unchanged",
+    "openValidation(page) helper added and called after each Verify evidence entry: previewJourneys 1x, calibrationJourney 6x, shareFlightJourney 2x",
+    "new Airframe caveat journey step asserting one ellipsized line, amber-before-grey order, original colours, and both full sentences after More"
+  ],
+  "consumer_test_change": {
+    "file": "src/console/evidence/ShareFlightCard.test.tsx",
+    "why": "it renders Workstation directly on Verify without clicking the new disclosure; it now seeds validationOpen true in beforeEach",
+    "disclosure_coverage": "src/console/stages/declutterFold.test.tsx and the preview journeys click the real heading"
+  },
+  "not_done": [
+    "no image was opened, read or attached; preview PNGs were listed by filename only",
+    "no fold on Flight Results basis cells",
+    "no label, wording, colour, layout, engine, physics, schema or export changes",
+    "no push, merge, release or publish",
+    "no self-acceptance; coordinator review pending"
+  ]
+}

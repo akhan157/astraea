@@ -1,0 +1,174 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP12",
+  "subpacket": "RMP12b candidate-only diagnostic tolerance/knot controls",
+  "planningBaseSha": "803b76b5d16922bd862beea2eabdf771e04e23ef",
+  "contractCommit": "2b56012f01179fa9a9c6550f1f8b8fd27974273d",
+  "implementationCommits": [
+    "b8c4e3938062251aa9767c648b62bfb70b21c944",
+    "d734bc3fbc35f2a2ae37cc8338b4163a5fb0217a",
+    "3f40fcc8507800966c1edb9939870e58a09bd843",
+    "ab0dbb0acc681f1797c399c110dfea3da99cc685"
+  ],
+  "sealedSourceCommit": "ab0dbb0acc681f1797c399c110dfea3da99cc685 (contains 3f40fcc)",
+  "owner": "coordinator/author in intended branch/worktree; exclusive lane lease incl. recorded example-file extension; lease released at completion",
+  "modelRouting": {
+    "author": "installed OpenAI mimo-v2.6-pro/high",
+    "contractAndImplementationReviewers": "separate fresh ephemeral no-history read-only pi sessions, tools=read only",
+    "resultsReviewer": "same route",
+    "meaning": "independent authorship reasoning, not multi-model scientific consensus or qualification",
+    "usage": "provider cost/quota/reset not supplied; one Codex route attempt hit its usage limit and is retained"
+  },
+  "experimentIntegrity": {
+    "status": "complete",
+    "profileAttempts": 7,
+    "legacyAttempts": 1,
+    "totalProcessAttempts": 8,
+    "retries": 0,
+    "freshOutputDirectory": true,
+    "preSpawnReservations": "per attempt, fsynced before spawn",
+    "timeoutS": 30,
+    "seal": "RUN-SEAL.json verified (plan/contract/source/checker/binary/toolchain/input hashes) before every call",
+    "deltaSets": "all seven exact vs frozen caseDeltaSets (bare 'diagnosticNumerics' entry resolved fail-closed to the nested candidate DTO location)",
+    "dispositionsMatched": "8/8 including F/G frozen refusal reason+phase and H legacy byte identity"
+  },
+  "results": {
+    "A_inherited_absent": {
+      "railTimeErrorS": 0.000105014038,
+      "reserve": 0.0001,
+      "verdict": "FAIL (retained default failure reproduced; report leaf-identical to retained RMP12a output)",
+      "straddledTrials": 21
+    },
+    "B_inherited_explicit": {
+      "railTimeErrorS": 0.000105014038,
+      "verdict": "FAIL, physically bit-identical to A; identity differs; explicit policy ID; applied values = inherited literals",
+      "straddledTrials": 21
+    },
+    "C_knots_only": {
+      "railTimeErrorS": 2.4011850356941977e-06,
+      "positionErrorM": 0.0001503,
+      "velocityErrorMps": 9.256e-05,
+      "verdict": "PASS all provisional reserves",
+      "clippedTrials": 21
+    },
+    "D_tolerance_only": {
+      "railTimeErrorS": 0.0001245,
+      "verdict": "FAIL; samples bit-identical to A through 0.20 s; one extra rejection near 0.209 s knot shifted dt sequence (22 events/21 knots)",
+      "straddledTrials": 22
+    },
+    "E_knots_and_tolerance": {
+      "railTimeErrorS": 2.4011850356941977e-06,
+      "verdict": "PASS; bit-identical physical report to C (post-hoc bit-aware zero-leaf comparison); identities differ",
+      "clippedTrials": 21
+    },
+    "F_G": "refusals matched frozen reason/phase (fractional stage time >2 s at t\u22482.0000000000000013 s; outside tabulated coverage at t=0.057 s; adaptive-endpoint-stage speculative=true)",
+    "H_legacy": "stdout byte-identical to frozen f37d195f... hash; no diagnostic sidecar"
+  },
+  "interpretation": [
+    "Single synthetic vertical case at 20 ms macro: provisional diagnostic failures under inherited defaults are dominated by adaptive trials straddling piecewise-linear thrust knots, not absolute tolerance magnitudes (43.7x rail / 49.0x position improvement from splitting; 100x tighter tolerances alone leave the failure).",
+    "Tolerance change inert once knots split - in this case only; not a universal tolerance claim.",
+    "A->D delta is a one-rejection dt-sequence effect (confound acknowledged in the frozen plan), not evidence tighter tolerances are harmful.",
+    "C/E residuals sit near the declared model-mismatch floor (9.80665e-6 m/s^2); not pure numerical remainders. Reference root is a numerical bracket (<=1e-8 s) of the implemented stepping routine, not the exact ODE root."
+  ],
+  "nonClaims": [
+    "production default change or closed RMP12-C02 (retained failure preserved; optional C/E passes never close it)",
+    "adaptive convergence order/global error bound/universal knot rule",
+    "full-6D/canopy/continuous peaks",
+    "physical/source/empirical/native-WASM/installed-platform/mission qualification",
+    "new RMP12a attempts or threshold changes"
+  ],
+  "checks": [
+    {
+      "id": "RMP12-C01",
+      "status": "pass-frozen-experiment-integrity-only",
+      "observed": "plan/seal/delta sets/8-of-8 dispositions/failure retention complete; two pre-flight failures disclosed with zero attempts"
+    },
+    {
+      "id": "RMP12-C02",
+      "status": "fail-retained",
+      "observed": "default A reproduces 105.0us rail error vs provisional 100us; optional knot-split C/E pass is not closure; broader regimes/default-change evidence and decision budgets still missing"
+    },
+    {
+      "id": "RMP12-C03",
+      "status": "in_progress-partial",
+      "observed": "corner errors separated and burnout residuals surfaced; interpolation/peak separation beyond this case untested"
+    },
+    {
+      "id": "RMP12-C04",
+      "status": "not_run",
+      "observed": "native-only experiment; no WASM build/parity"
+    },
+    {
+      "id": "RMP12-C05",
+      "status": "retained-prior-partial",
+      "observed": "unchanged by this native-only lane"
+    },
+    {
+      "id": "RMP12-C06",
+      "status": "blocked-owner-decision-budgets",
+      "observed": "provisional reserves only; effect sizes feed RMP13"
+    },
+    {
+      "id": "RMP12-C07",
+      "status": "pass-default-preservation",
+      "observed": "legacy byte identity, absent-preimage digests pinned to RMP07a records, legacy dispatch untouched"
+    }
+  ],
+  "artifactAvailability": [
+    {
+      "kind": "portable",
+      "location": "docs/internal/execution-runs/RMP12-candidate-controls/ (CONTRACT, EXPERIMENT, ASSIGNMENT, RUN-SEAL, RESULT, REVIEW, EVIDENCE, pre-seal invocation record referenced)"
+    },
+    {
+      "kind": "external-local-only",
+      "location": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/run-1/",
+      "contents": "result.json, attempts.json, reservations, per-attempt inputs/stdout/stderr with mechanism sidecars, analysis-posthoc.json, pre-seal-invocations.json, plan/seal copies"
+    },
+    {
+      "kind": "external-local-only",
+      "location": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/",
+      "contents": "review prompts/transcripts/results, checker unit-test logs, build/test logs, run-1.log (successful run stdout)"
+    },
+    {
+      "kind": "generated-local-only",
+      "location": "target-rmp01/debug/examples/",
+      "contents": "two sealed example binaries (hashes in RUN-SEAL); no production WASM build"
+    }
+  ],
+  "testEvidence": {
+    "coreTests": 187,
+    "engineTests": 92,
+    "checkerPureChecks": "10/10 (equation-block identity gate included)",
+    "wasm32": "compile-only check passed"
+  },
+  "rawLogLimitation": "two pre-flight failures' raw stderr was overwritten by later same-path log writes; tracebacks summarized in session record + pre-seal-invocations.json, not reconstructed",
+  "review": {
+    "chain": "contract ACCEPT(3 rounds) -> implementation REQUEST_CHANGES(incl. controls-injection blocker) -> ACCEPT -> results REQUEST_CHANGES(2 record-level claims) -> post-hoc saved-output analysis + corrected wording -> re-review REQUEST_CHANGES(1 hash-claim residual) -> genuine reservation verification + aligned prose -> final ACCEPT",
+    "rawHashes": {
+      "docs/internal/execution-runs/RMP12-candidate-controls/RESULT.md": "28f2136f24267f3e38e13ab04c135937ea5c0861057a9524820ee2f381b4122a",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/run-1/analysis-posthoc.json": "b28e8d1776ab98b38fa51710ae7887b2492e03e6938d8a5bbf07410df66378c6",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/run-1/pre-seal-invocations.json": "5b8950eb9d3fc8afb4b74190014a004588a0a5666c29ed695595178b1de5229c",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/run-1/result.json": "5d4a5076f015515ccb0aaa8b7428894c6e56bf0b4ca2309716f38f97579c3bb9",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/run-1/attempts.json": "3f939771d0c3f2c36b6143a5e784a189615fa5a6f936d6b17dcc6589cb21bd9c",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/run-1.log": "5d4a5076f015515ccb0aaa8b7428894c6e56bf0b4ca2309716f38f97579c3bb9",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/implementation-review.md": "c57f7d1d35560ea26afeb90389a6e57918afcadcd979f74f2bb4b91262480175",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/implementation-rereview.md": "b219b583e3f6e8bb4ec49e5387a5ffba505b8086eac5ce907e4530c8ea9c7519",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/results-review.md": "093191b662d2e06a0312c4408b3131642558cdc4770112fc3a2f719f6fb2fcc7",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/contract-review.md": "d6ff8796143c7a1cd7df44b46011791d9ab3ee651f6036ef83986babf477804e",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/contract-rereview.md": "519f7adcc12dde20c0aa85717291a1ba77ce14326eb6b94659aee442f5c73c5e",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/contract-rereview2.md": "6c14ad0ad10115d115cf6bcb530b924fc5ea1885191ef1368bb7a47c89f18e53",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-candidate-controls/contract-rereview3.md": "aac2ecd4cc14e98309c205be74321a7b2a28e4fe5e9897fc231f9e4db358ab2e"
+    }
+  },
+  "remainingScope": [
+    "knot-split policy across other macro steps/knot densities (new frozen experiment)",
+    "fifth split-with-dt-reset case (new reviewed plan)",
+    "default-policy proposal needs broader RMP08-10 evidence + RMP05 decision budgets",
+    "RMP07 candidate calibration/consumer/status exposure",
+    "scientific/mission/team/platform/release gates"
+  ],
+  "nextActions": [
+    "independent re-review disposition filed with these records",
+    "propose next reviewed numerical experiment or resume RMP07 candidate integration; no default change"
+  ]
+}

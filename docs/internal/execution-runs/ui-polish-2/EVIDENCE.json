@@ -1,0 +1,170 @@
+{
+  "lane": "ui-polish-2",
+  "repository": "astraea",
+  "base": "6de01f63ad45230d6dc40f37fb8f4540374b4d82",
+  "baseNote": "524fadd1dba1a21b9202582cc812bd8c11ee2d1e plus the 167-line lane ASSIGNMENT.md only",
+  "commits": {
+    "aero_secondary_rows": "731010a13a295550d0d794cfa2d5b33bc8c3a581",
+    "layout_1280_fit": "2b6362e45927eb0b66828e48b4e33e70c377770b",
+    "inspector_auto": "9747baa3d5654045f49ba08a4416580feffaaf95",
+    "records": "committed after this file; see git log"
+  },
+  "author": "OMP lane author <omp@localhost>",
+  "selfAccepted": false,
+  "evidenceRoot": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2",
+  "artifacts": [
+    {
+      "id": "tsc",
+      "command": "npx tsc --noEmit",
+      "exit": 0,
+      "path": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/tsc.log"
+    },
+    {
+      "id": "vitest-focused",
+      "command": "npx vitest run --maxWorkers=2 src/console/kit/Table.test.tsx src/console/stages/aeroBreakdownText.test.ts src/console/stages/aeroBreakdown.test.tsx src/console/shell/inspectorAuto.test.tsx src/console/shortcutLabels.test.tsx src/console/shell/editBoundaries.test.tsx",
+      "result": { "files": 6, "tests": 31, "failed": 0 },
+      "path": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/vitest-focused.log"
+    },
+    {
+      "id": "vitest-full",
+      "command": "npx vitest run --maxWorkers=2",
+      "result": { "files": 152, "tests": 1836, "failed": 0, "durationSeconds": 160.08 },
+      "path": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/vitest-full.log"
+    },
+    {
+      "id": "build",
+      "command": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 pnpm build",
+      "exit": 0,
+      "appChunk": "dist/assets/app-BFpaatzp.js",
+      "path": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/build.log"
+    },
+    {
+      "id": "browser-suite",
+      "command": "pnpm test:browser",
+      "exit": 0,
+      "result": { "acceptancePasses": 27, "runtimeErrors": 0, "cspErrors": 0 },
+      "covers": [
+        "landing and app beta notices",
+        "all eight stages and themed controls",
+        "1280/1024/800 header fit (RMP15-C05)",
+        "new palette/header/Motor/Aero assertions",
+        "earlier ui-polish-pass journeys",
+        "calibration, exports, Monte Carlo, share-flight"
+      ],
+      "path": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/browser.log"
+    },
+    {
+      "id": "probe-A-B-C",
+      "command": "node ~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/probe.mjs",
+      "exit": 0,
+      "runtimeErrors": 0,
+      "cspViolations": 0,
+      "path": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/probe.json",
+      "log": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/probe.log",
+      "screenshots": [
+        "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/screenshots/A-1600-load-empty.png",
+        "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/screenshots/A-1600-selected.png",
+        "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/screenshots/A-1600-after-escape.png",
+        "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/screenshots/A-1600-manual-open-empty.png",
+        "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/screenshots/A-1024-drawer.png",
+        "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/screenshots/B-1280-header.png",
+        "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/screenshots/B-1280-airframe-open.png",
+        "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/screenshots/B-1280-motor-open.png",
+        "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/screenshots/B-1024-airframe-selected.png",
+        "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/screenshots/C-1600-aero-table.png",
+        "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/screenshots/C-1600-secondary-hover.png",
+        "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/screenshots/C-1280-aero-table.png"
+      ]
+    },
+    {
+      "id": "sweep-after",
+      "command": "node ~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/sweep.mjs after",
+      "captures": 48,
+      "meaningfulFindings": 0,
+      "runtimeErrors": 0,
+      "cspViolations": 0,
+      "path": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/sweep/sweep.json",
+      "summary": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/sweep-summary.json",
+      "screenshotsDir": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-after/sweep/screenshots"
+    },
+    {
+      "id": "sweep-base",
+      "captures": 48,
+      "meaningfulFindings": 30,
+      "breakdown": {
+        "paletteClipped": 16,
+        "columnHeaderWrapped": 1,
+        "radioWrapped": 12,
+        "labelWrapped": 1
+      },
+      "path": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate1-base/sweep.json",
+      "screenshotsDir": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate1-base/screenshots"
+    }
+  ],
+  "measurements": {
+    "itemA": {
+      "load1600": { "expanded": false, "width": 0, "inert": true, "ariaHidden": true },
+      "openTransitionMs": 160,
+      "manualCloseTransitionMs": 160,
+      "escapeCloseWallClockMs": 385,
+      "escapeCloseNote": "SwiftShader starves timers while the 3D highlight changes; the CSS duration is 0.16 s and transitionend on the manual close is 160 ms",
+      "reducedMotion": { "transitionDuration": "1e-06s", "widthTransitionEvents": 0, "wallClockToFullWidthMs": 106 },
+      "drawer1024": { "selectOpensDrawer": false, "manualOpenDrawer": true },
+      "manualPins": { "openWhileEmptyStaysOpen": true, "closeWithContentStaysClosed": true, "newSelectionReopens": true }
+    },
+    "itemB": {
+      "massHeaderLines1280": 1,
+      "massTable1280": { "scrollWidth": 636, "clientWidth": 636, "lastHeaderRight": 943, "tableRight": 955 },
+      "palette1280": "Search",
+      "palette1280Clipped": false,
+      "palette1600": "Search, or type span 200",
+      "motorTabs1280": { "count": 5, "maxLines": 1 },
+      "aeroHeaders1280WithInspector": { "headerLines": [1, 1, 1, 1, 1], "scrollWidth": 636, "clientWidth": 636 }
+    },
+    "itemC": {
+      "partHeader": true,
+      "divider": "Not lifting surfaces",
+      "secondaryRows": 5,
+      "footnote": "— not modelled as a lifting surface in this subsonic rollup. These parts move the CG, not the CP.",
+      "oldSentencePresent": false,
+      "hoverCanvasChanged": true,
+      "clickSelectsTreeItem": true
+    }
+  },
+  "falsifier": {
+    "script": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-base/falsifier.mjs",
+    "base": {
+      "dist": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-base/dist-6de01f6",
+      "command": "BASE_SHA=6de01f63ad45230d6dc40f37fb8f4540374b4d82 node falsifier.mjs ./dist-6de01f6 base",
+      "exit": 1,
+      "passed": 3,
+      "failed": ["A1", "A2", "A4", "A5", "B1", "B2", "B3", "B5", "C1", "C2", "C3", "C4", "C6", "C7"],
+      "path": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-base/base-falsifier.json",
+      "log": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-base/base-falsifier.log"
+    },
+    "after": {
+      "dist": "dist in the lane worktree at commit 9747baa (rebuilt at the final tree)",
+      "command": "node falsifier.mjs <repo>/dist after",
+      "exit": 0,
+      "passed": 17,
+      "failed": [],
+      "path": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-base/after-falsifier.json",
+      "log": "~/.paseo/worktrees/3s8t98rp/evidence-ui-polish-2/gate2-base/after-falsifier.log"
+    }
+  },
+  "deliberatelyNotDone": [
+    "no src/console/viewport changes",
+    "no crates, engine, WAsm, schema, physics, presets or exports changes",
+    "no README/docs screenshot recapture",
+    "no push, merge, tag, release or publish",
+    "no acceptance register, manifest, board or handoff edits",
+    "no Segmented whitespace-nowrap (the Motor note hide was sufficient)",
+    "empty 3D click remains non-deselecting"
+  ],
+  "openQuestions": [
+    "The wide inline panel stays mounted and inert while closed so the 160 ms transition can run.",
+    "Escape's overlay guard also covers any open role=dialog, not only palette/shortcuts.",
+    "Close wall-clock timing under SwiftShader is distorted by a software-rendered 3D frame; CSS duration is 160 ms.",
+    "Mass-budget fixed column widths were narrowed to keep the nowrap header and Delta column inside the 1280 table."
+  ]
+}

@@ -1,0 +1,81 @@
+name: Website
+
+# Publishes the web app (pnpm build -> dist/) to Cloudflare Pages on every
+# push to main. The website runs the same WebAssembly engine as the desktop
+# app.
+#
+# One-time setup (repository Settings -> Secrets and variables -> Actions):
+#   CLOUDFLARE_API_TOKEN   API token with the "Cloudflare Pages: Edit" permission
+#   CLOUDFLARE_ACCOUNT_ID  the account ID shown on the Cloudflare dashboard
+# First deploy creates the Pages project named astraea (production: main).
+# See docs/internal/hosting.md. No credentials belong in this file.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: website
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6, Node 24
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/astraea-engine
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:browser
+      # Keep npm's deployment tools out of pnpm's node_modules.
+      - run: mkdir -p "$RUNNER_TEMP/cloudflare-tools"
+      # First deploy only: create the Pages project when the account has none
+      # by this name, so no manual dashboard step is needed.
+      - name: List Cloudflare Pages projects
+        id: projects
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
+          wranglerVersion: '4.151.3'
+          workingDirectory: ${{ runner.temp }}/cloudflare-tools
+          command: pages project list
+      - name: Create the Pages project
+        if: ${{ !contains(steps.projects.outputs.command-output, ' astraea ') }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
+          wranglerVersion: '4.151.3'
+          workingDirectory: ${{ runner.temp }}/cloudflare-tools
+          command: pages project create astraea --production-branch=main
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
+          wranglerVersion: '4.151.3'
+          workingDirectory: ${{ runner.temp }}/cloudflare-tools
+          command: pages deploy ${{ github.workspace }}/dist --project-name=astraea --branch=${{ github.ref_name }}

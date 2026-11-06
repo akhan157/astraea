@@ -1,0 +1,31 @@
+# RMP13 scenario provenance and unsupported certification claims — queued
+
+Status ACTIVE (proposal gate), repinned to accepted integration `0f6f08e`. Prepared at `1d04d20`.
+OWNER APPROVAL: the serial-subagent host rule is lifted for this phase, so other lanes
+may run concurrently. Stay inside your own worktree and files, and never exceed
+2 compiler/test jobs total across your own work; coordinate through the coordinator,
+not by editing another lane's tree. Native OpenAI session exclusively coordinates; do not restart Paseo or subdelegate. Route at activation: fresh catalog-verified direct `deepseek/deepseek-flash` / DeepSeek V4.1 Flash 1017 / max, never fallback. <=2 compile/test jobs; `free -h` before heavy work, stop below 2GiB available.
+
+## Known issue / bounded target
+
+Coordinator inspected `src/sim/motorVariance.ts` and consumers. It calls an arbitrary per-class 6–10% taper a NAR/Tripoli certification tolerance/typical band and recommends sigma at that band edge, while its own cited premise is a class-independent 6.7% certification ceiling. That premise cannot establish a measured distribution, arbitrary class taper, Gaussian family, correlations or physical coverage. No new source acquisition is needed or authorized to stop the unsupported claim. Numeric defaults/sampler/fixtures must NOT change to resolve it.
+
+Current literal-reference inventory: exports `sigmaForImpulseClass`, `defaultImpulseSigma`, `describeUncertaintyDisplay`, `SUPPORTED_IMPULSE_CLASSES` are used only by their own tests; `monteCarlo.ts` advertises them in comments, and emit-benchmark-metadata scripts list their files. Actual console ensemble uses explicit persisted workspace sigmas and already calls footprints scenario-only. Verify using LSP references before any exported change. Consider removing an unused, ungrounded suggestion module/tests/adverts rather than maintaining a misleading second source of defaults; do not delete historical benchmark records or retune fixtures/accepted hashes. Current metadata file inventory must stay runnable if source paths are removed. Alternative is honest scenario-only naming with a clean caller migration, not a claim the arbitrary table is grounded. Design gate decides, not author alone.
+
+RMP13-C01 asks every assigned range/distribution/correlation to have independent provenance OR explicit scenario-only status; C02 asks unsupported physical identification to be refused/constrained; C04 protects data roles/splits. Inventory actual runtime perturbations (wind/rail/impulse) and independent-draw/correlation assumptions, fixed versus varied inputs, current defaults, immutable archives and displayed probability caveats. Do not invent physical ranges, measurement evidence, discrepancy estimates, numerical budgets, measured source links or a universal uncertainty schema. Identify any genuinely missing local consumer guard versus external physical evidence. Existing fit eligibility/model/engine/input bindings must be reused, not replaced. No false pass just because one model warning is visible.
+
+## First deliverable / ownership
+
+Read current host AGENTS, TASKS/MODELS, CONTROL-LOOP/DECISIONS, RMP13 brief, RMP13-calibration-applicability and ensemble-outcome-ledger REVIEW/EVIDENCE, actual sampler/oracle/runtime code and this file. Confirm cwd/branch/pin/direct-model/max. Before edits return a concise proposal: exact claim defect, actual runtime consumer/source ledger, minimal chosen cleanup, affected APIs/callers and tests, concrete runtime/UI proof, per-check local versus external split. Write PROPOSAL and stop for coordinator review. No builds/tests/formatters/dependency installs during this gate.
+
+Potential lease after gate: `src/sim/motorVariance*`, narrowly necessary current sampler comments/presentation and current metadata inventory scripts; ensemble qualification/provenance presentation and relevant current docs/changelog. Do not edit Rust, numerical defaults, sampler policy, project schema/IO, candidate runtime semantics, core physics, protected inputs or historical evidence. Do not edit register/manifest/index/TASKS/handoff. Any widening requires gate. Candidate-app remains sole owner of its source until independently accepted; queued preparation is not simultaneous edit authority.
+
+## Acceptance after separate approval
+
+- Unsupported certification/measurement/probability claims removed from live source/API/UI while all invoked numeric sampler inputs/seeds/results remain unchanged. Old archives preserve exactly recorded values/identities; no backfill/relabel of historical measured data.
+- Existing current ensemble controls/live/saved/trace consumers consistently say scenario-only and distinguish input sensitivity from grounded predictive probability; keep denominator/failure/cancellation classifications intact. Reuse existing policy rather than a parallel provenance framework.
+- Genuine behavioral tests only: preserved unsupported-input errors, stale/incompatible fit refusals or consumer-visible availability/identity transitions where changed. Delete incidental wording/implementation/default-value tests instead of re-pinning them. Use throwaway direct API/metadata probes for numerical preservation and field inventory. No source-text tests, mocks-as-runtime, manufactured flight data or protected scoring.
+- Final focused checks after complete edits; exact built production-CSP browser evidence for changed visible surface and real sampler invocation if affected, source/input/build identities and numerical unchanged proof; dispose temporary browser/server/probes promptly. No need to rebuild unchanged Rust merely for docs but any offered app receipt must bind the actual invoked WASM.
+- RESULT/EVIDENCE with exact source commits/commands/failed attempts, bounded scope and external prerequisites (measured distributions/correlations/eligible physical development data, approved budgets/custody/freeze/team participation). Author cannot self-accept. Coordinator independently reviews, merges --no-ff and verifies before any acceptance status changes.
+
+No downloads/data acquisition/outreach/new paid services/main merge/push/tag/release/deploy/publication/platform mutation. No hidden fallback, relaxed assertions, fixture retuning or historical identity rewrite.

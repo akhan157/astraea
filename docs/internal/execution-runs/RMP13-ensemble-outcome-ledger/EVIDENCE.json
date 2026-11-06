@@ -1,0 +1,220 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP13",
+  "subpacket": "RMP13-C05 / RMP13-C06 ensemble outcome ledger",
+  "baseSha": "a68c03e95540fd6a3fb0e1a0384ec732accc75624",
+  "sourceSha": "4d7e377a396e6593154b63e000c96b0c8265c547",
+  "rework": {
+    "baseSourceSha": "4d7e377a396e6593154b63e000c96b0c8265c547",
+    "commit": "focused classification rework committed on top; exact SHA reported to the coordinator",
+    "reason": "independent review required the off-nominal excursion condition in the supported branch",
+    "wasmRebuilt": false,
+    "wasmRebuildNote": "Rust-only classification/test rework; the recorded 08394e... runtime must be rebuilt during coordinator integration before it is used as final classification evidence"
+  },
+  "owner": "single worktree owner, rmp13-ensemble-outcome-ledger",
+  "modelRouting": {
+    "model": "omp/openrouter/deepseek/deepseek-v4.1-flash-1017",
+    "effort": "high",
+    "usageTelemetry": "not supplied"
+  },
+  "effectiveInputs": [
+    "Actual browser-exported NASA Student Launch preset: ../evidence-rmp10-qualified-output-archive/browser-project.astraea.json",
+    "Declared probe conditions: pad 0 m, surface winds 3/15/30 m/s, zero sigmas, seed 123, one sample, per-run-v2; synthetic, no measurements",
+    "Artificial timeout scenario: declared 100 m diameter canopies, explicitly not a physically supported vehicle",
+    "Artificial per-run failure scenario: rail elevation 95 deg, rejected by the native command per run"
+  ],
+  "sourceHashes": {
+    "crates/astraea-core/src/monte_carlo.rs": "fda90243378adec003eb12cd382033798848bd75a781d761862d8c4a4ec2d520",
+    "crates/astraea-engine/src/commands.rs": "9a5f08abf93ec15e9c86f55dc0ecc3285b83ac20b553f1c34c5db6b410d99813",
+    "crates/astraea-engine/src/models.rs": "9deac36364fec3030f974dd73881c9001b3137675b3259c2396aab134d79ba40",
+    "crates/astraea-engine/src/lib.rs": "4f83e2d4f0c1cdb16d5fefb1590a70e6ce88fa6e08451917d658f275b95a62a2",
+    "src/sim/monteCarlo.ts": "7a9fea8450f0cf2abcbb629e6fe0d085dcaf677a5ab6adae78f3fb071baa70a9",
+    "src/tauri/bridge.ts": "4bcf2553223383438a04eb12ff50db17ae1592fd1d423bf9d32bac7722b67ce2",
+    "src/console/data/adapter.ts": "ea6d29b902754cfc6e7c053a89c80fb521e0d803ca6831051f4f89a2f096543f",
+    "src/console/data/contract.ts": "733e73c5d304ff756e944b4ab132d49bf54cd19668758502af94326258305cba",
+    "src/console/store.ts": "20dad0f2b943083c9257a0531f5d962cf77e56e9eff62c772de268725ac5a1d9",
+    "src/console/stages/Flight.tsx": "260a96d7e854e7e6c927036afb28a3cbcb67c7b06aac5f5790d2386bcc26473c",
+    "src/console/stages/SavedRuns.tsx": "a65d6cd27595be307a23716b5085b7f134af1fdb17d3c22eaafb1b4be58c2c93",
+    "src/application/runCases.ts": "9db197b438e150cc29e9bae6442004a70c970b0f9fac7d97c8f7d6676c839b87"
+  },
+  "runtimeHashes": {
+    "previousShippedWasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+    "newShippedWasm": "08394e5299f1cb8f8dae9f4e726a332300abd962efa27d367c49c131d6fa7ea6",
+    "cargoTargetDirectory": "/home/ak/.paseo/worktrees/3s8t98rp/rmp13-ensemble-outcome-ledger/crates/astraea-engine/target",
+    "buildCommand": "CARGO_BUILD_JOBS=2 node scripts/build-engine.mjs",
+    "projectSchemaVersion": "1.11.0"
+  },
+  "artifactAvailability": [
+    "after-classified.json and replay-classified.mjs are retained outside Git at ../evidence-rmp13-ensemble-outcome-ledger/",
+    "before.json and more-before.json are the supplied pre-fix probes outside Git",
+    "src/engine/astraea_engine.wasm and dist/ are generated and ignored; not committed",
+    "No protected outcomes, measurements, holdouts or research-benchmark artifacts were used"
+  ],
+  "checks": [
+    {
+      "id": "RMP13-C05-off-nominal-excursion",
+      "status": "pass",
+      "kind": "unit test",
+      "commandOrMechanism": "manufactured observation with terminated/touchdown-nominal/PASS/enveloped/off-nominal-excursion true; Rust classify_observation plus the TypeScript mirror",
+      "expectedRule": "off-nominal excursion must fall to unsupported-nominal-touchdown; a valid timeout with the same native flags remains time-limit-endpoint",
+      "observed": "Unsupported class asserted; paired timeout asserted TimeLimitEndpoint; TS mocked-result assertion passes",
+      "exitCode": 0,
+      "evidencePath": null,
+      "sha256": null,
+      "limitation": "No WASM rebuild in this rework; runtime evidence for this condition awaits coordinator integration rebuild."
+    },
+    {
+      "id": "RMP13-C05-classification",
+      "status": "pass",
+      "kind": "real shipped-WASM replay",
+      "commandOrMechanism": "node replay-classified.mjs against src/engine/astraea_engine.wasm and the actual browser-exported project",
+      "expectedRule": "supported nominal only when native validity PASS + envelope + touchdown-nominal; timeout is time-limit; unsupported touchdown is not support; zero eligible => no statistics",
+      "observed": "wind 3: 1 supported, statisticsAvailable=true; wind 15: 1 unsupported, false; wind 30: 1 unsupported, false; artificial 100 m canopy: 1 time-limit, terminationReason=timeout, false; rail 95 deg: 2 computational failures, both indices retained, false",
+      "exitCode": 0,
+      "evidencePath": "../evidence-rmp13-ensemble-outcome-ledger/after-classified.json",
+      "sha256": null,
+      "limitation": "Synthetic declared conditions only; no measurement, physical accuracy, coverage or probability claim. The artificial scenarios are not supported vehicles."
+    },
+    {
+      "id": "RMP13-C06-coverage",
+      "status": "pass",
+      "kind": "deterministic partition replay on shipped WASM + unit tests",
+      "commandOrMechanism": "6-run seed 4242 split [2,6) then [0,2) and reordered; plus Rust and TS reducer tests",
+      "expectedRule": "exactly-once coverage of [0,nRuns); missing/duplicate/overlap/mismatched index rejects completion; reorder does not change classified identity",
+      "observed": "sameRuns=true, sameLandings=true, sameEligible=true; reducer tests reject missing/duplicate/overlap/mismatch and retain all-failure ledgers",
+      "exitCode": 0,
+      "evidencePath": "../evidence-rmp13-ensemble-outcome-ledger/after-classified.json",
+      "sha256": null,
+      "limitation": "Cancellation is tested in the TS host, not by a browser session."
+    },
+    {
+      "id": "RMP13-C05-legacy-contract",
+      "status": "pass",
+      "kind": "real shipped-WASM comparison",
+      "commandOrMechanism": "legacy run_ensemble at the same pad-0/zero-sigma/wind 3/15/30 conditions",
+      "expectedRule": "legacy unclassified finite endpoints and failed-run counts unchanged",
+      "observed": "matchesBeforeFiniteEndpoints=true; numeric landings and failedRuns exact against before.json",
+      "exitCode": 0,
+      "evidencePath": "../evidence-rmp13-ensemble-outcome-ledger/after-classified.json",
+      "sha256": null,
+      "limitation": "Only the supplied declared probe conditions were compared."
+    },
+    {
+      "id": "rust-core-monte-carlo",
+      "status": "pass",
+      "kind": "unit test",
+      "commandOrMechanism": "CARGO_BUILD_JOBS=2 cargo test --offline -j 2 --manifest-path crates/astraea-core/Cargo.toml monte_carlo",
+      "expectedRule": "RNG/statistics parity, classification priority, per-index ledger, zero-eligible absence, all-failure retention, coverage rejection",
+      "observed": "21 passed, 0 failed",
+      "exitCode": 0,
+      "evidencePath": null,
+      "sha256": null,
+      "limitation": "The command generated a temporary core Cargo.lock, removed before commit."
+    },
+    {
+      "id": "rust-engine-dto-commands",
+      "status": "pass",
+      "kind": "unit test",
+      "commandOrMechanism": "CARGO_BUILD_JOBS=2 cargo test --locked -j 2 --manifest-path crates/astraea-engine/Cargo.toml --lib",
+      "expectedRule": "classified whole/chunk DTO mapping, five-count sum, old command behavior",
+      "observed": "43 passed, 0 failed",
+      "exitCode": 0,
+      "evidencePath": null,
+      "sha256": null,
+      "limitation": "Native debug tests, not the WASM profile."
+    },
+    {
+      "id": "typescript-oracle-and-consumers",
+      "status": "pass",
+      "kind": "focused test suite",
+      "commandOrMechanism": "node node_modules/vitest/vitest.mjs run src/sim/monteCarlo.test.ts src/engine/engine.test.ts src/engine/ensembleDeterminism.test.ts src/console/data/consoleData.test.ts src/console/data/calibrationBinding.test.ts src/console/data/engineIdentity.test.ts src/console/projectJobs.test.ts src/console/store.test.tsx src/console/dragCalibration.test.tsx src/console/stages/SavedRuns.test.tsx src/application/runCases.test.ts --maxWorkers=2",
+      "expectedRule": "classification/counts/eligible-only footprint/coverage rejection/cancellation/archive counts/no fabricated snapshot/real WASM chunk ledger",
+      "observed": "11 files, 144 tests passed",
+      "exitCode": 0,
+      "evidencePath": null,
+      "sha256": null,
+      "limitation": "Focused affected set, not the full repository suite."
+    },
+    {
+      "id": "typescript",
+      "status": "pass",
+      "kind": "typecheck",
+      "commandOrMechanism": "node node_modules/typescript/bin/tsc --noEmit",
+      "expectedRule": "no type errors",
+      "observed": "clean",
+      "exitCode": 0,
+      "evidencePath": null,
+      "sha256": null,
+      "limitation": "Worktree node_modules was a temporary symlink to the sibling calibration worktree during checks; removed before commit."
+    },
+    {
+      "id": "vite-build",
+      "status": "pass",
+      "kind": "build",
+      "commandOrMechanism": "node node_modules/vite/bin/vite.js build",
+      "expectedRule": "production bundle includes the rebuilt WASM",
+      "observed": "built successfully; astraea_engine asset present",
+      "exitCode": 0,
+      "evidencePath": null,
+      "sha256": null,
+      "limitation": "Vite-only build, not a real browser run."
+    },
+    {
+      "id": "browser-ui-archive",
+      "status": "not_run",
+      "kind": "browser",
+      "commandOrMechanism": "real production-CSP browser Monte Carlo run, saved-run reopen and archive round-trip",
+      "expectedRule": "counts and no-footprint state visible; saved archive retains policy/counts consistently",
+      "observed": "unit tests cover the rendering/archive rules; coordinator browser verification pending",
+      "exitCode": null,
+      "evidencePath": null,
+      "sha256": null,
+      "limitation": "Author lane did not run a browser."
+    },
+    {
+      "id": "calibration-old-sha-applicability",
+      "status": "not_run",
+      "kind": "consumer boundary",
+      "commandOrMechanism": "open the retained old-SHA-bound fit against the rebuilt engine",
+      "expectedRule": "existing strict engine-identity guard shows the retained fit inactive/refused; fit SHA is never rewritten",
+      "observed": "existing applicability tests pass; real project/browser display not checked in this lane",
+      "exitCode": null,
+      "evidencePath": null,
+      "sha256": null,
+      "limitation": "The rebuild changes the production engine SHA; coordinator must verify the real artifact display."
+    }
+  ],
+  "review": {
+    "reviewer": null,
+    "independentOfAuthor": null,
+    "disposition": "pending",
+    "findings": [
+      "Coordinator review/integration required; author did not promote acceptance."
+    ]
+  },
+  "qualification": {
+    "computational": "bounded software evidence on actual shipped WASM; focused tests pass",
+    "physical": "unqualified",
+    "dynamic": "scenario-only; no empirical coverage or probability"
+  },
+  "failedAttempts": [
+    "Independent review found the supported branch omitted off_nominal_excursion; fixed with a manufactured-observation regression test and a valid-timeout pairing in the Rust classifier and its TypeScript mirror.",
+    "Rust check: invalid Copy derive on IndexedLandingDto/DispersionStatisticsDto; removed Copy and rechecked.",
+    "pnpm exec tsc refused the temporary node_modules symlink; used the direct TypeScript binary instead.",
+    "First real replay compared against before.json with vehicle-site altitude 100 m rather than the probe's declared pad 0 m; corrected to pad 0 and the legacy endpoints matched.",
+    "Artificial-timeout numeric endpoint did not match more-before.json because that probe's vehicle/options are not fully identified; only the timeout classification is claimed."
+  ],
+  "remainingScope": [
+    "Coordinator independent review of source commit 4d7e377 and acceptance disposition.",
+    "Real production-CSP browser proof of Monte Carlo counts/no-footprint state and saved archive round-trip.",
+    "RMP13-C05 probability/coverage assessment remains open; footprint is scenario-only.",
+    "RMP13-C01/C02/C04/C07 untouched.",
+    "Old production-SHA-bound calibration artifact display must be checked as inactive/refused; fit history must remain unrewritten.",
+    "No full test suite, research benchmark, protected outcomes or physical qualification."
+  ],
+  "nextActions": [
+    "Coordinator reviews the contract and evidence, then verifies the rebuilt engine identity and real browser/archive behavior.",
+    "If accepted, record the bounded source/consumer repair without promoting RMP13-C05/C06 to a physical/probability PASS."
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

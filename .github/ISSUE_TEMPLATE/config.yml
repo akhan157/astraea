@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/akhan157/astraea/security/policy
+    about: Check the private reporting policy; do not disclose vulnerabilities in public issues.

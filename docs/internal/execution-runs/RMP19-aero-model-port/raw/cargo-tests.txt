@@ -1,0 +1,91 @@
+   Compiling astraea-core v0.9.0 (/tmp/astraea-port/crates/astraea-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.84s
+     Running tests/calibrated_oracle_parity.rs (crates/astraea-core/target/debug/deps/calibrated_oracle_parity-16edaee84d314ccc)
+
+running 1 test
+test rust_provider_reproduces_the_ts_oracle ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Compiling astraea-core v0.9.0 (/tmp/astraea-port/crates/astraea-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.25s
+     Running tests/calibrated_app_adapter.rs (crates/astraea-core/target/debug/deps/calibrated_app_adapter-0dab8f281a3d522c)
+
+running 6 tests
+test elliptical_fins_refuse_with_a_reason ... ok
+test airfoil_cross_section_refuses_instead_of_guessing ... ok
+test support_refuses_freeform_with_the_adapter_reason ... ok
+test freeform_fins_refuse_with_a_reason ... ok
+test support_reports_supported_with_its_assumptions ... ok
+test adapter_design_matches_the_oracle_fixture ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running unittests src/lib.rs (crates/astraea-engine/target/debug/deps/astraea_engine-49221e57164ba46e)
+
+running 58 tests
+test aero_provider::tests::registry_matches_the_application_typescript ... ok
+test aero_provider::tests::registry_rejects_unknown_id_version_and_term ... ok
+test candidate_identity::tests::canonical_is_typed_ordered_and_not_lossy_for_large_integers ... ok
+test aero_provider::tests::status_scopes_panels_and_flight ... ok
+test aero_provider::tests::stability_uses_provider_totals_and_no_contributions ... ok
+test aero_provider::tests::stability_totals_use_radians_and_axial_metres ... ok
+test aero_provider::tests::curves_cover_the_grid_and_name_breakdown_availability ... ok
+test candidate_identity::tests::nonfinite_is_not_silently_hashed_as_null ... ok
+test candidate_identity::replay::tests::canonical_decoder_is_exact_and_rejects_malformed_tokens ... ok
+test commands::aero_provider_command_tests::legacy_stability_keeps_its_bytes_and_has_no_model_id ... ok
+test commands::aero_provider_command_tests::provider_stability_names_the_model_and_withholds_the_breakdown ... ok
+test commands::aero_provider_command_tests::unknown_version_refuses_before_any_number ... ok
+test candidate_identity::tests::model_policy_changes_invalidate_the_digest ... ok
+test commands::aero_provider_command_tests::provider_curves_name_the_model_and_flag_the_transonic_breakdown ... ok
+test commands::ensemble_chunk_tests::drag_cd_scale_wire_name_maps_through_opts ... ok
+test commands::ensemble_chunk_tests::chunk_command_refuses_the_order_dependent_legacy_version ... ok
+test commands::ensemble_chunk_tests::removed_calibrated_options_are_rejected_by_the_dto ... ok
+test commands::ensemble_chunk_tests::unknown_option_field_is_rejected_by_the_dto ... ok
+test commands::ensemble_chunk_tests::simulate_flight_rejects_nonpositive_drag_cd_scale ... ok
+test candidate_identity::tests::every_bound_active_policy_changes_the_digest ... ok
+test environment_diagnostic::tests::isothermal_same_speed_and_mach_different_pressure_changes_reynolds ... ok
+test environment_diagnostic::tests::full_input_preserved_and_no_empirical_promotion ... ok
+test environment_diagnostic::tests::shared_typed_renderer_preserves_pre_refactor_wire_response ... ok
+test environment_diagnostic::tests::zero_speed_and_overflow_return_numbers_or_errors_never_nulls ... ok
+test environment_diagnostic::tests::unsupported_policies_and_invalid_query_are_errors ... ok
+test environment_diagnostic::tests::nested_unknown_fields_and_missing_required_metadata_are_rejected ... ok
+test friction_diagnostic::tests::same_mach_different_pressure_changes_cf_and_cd ... ok
+test friction_diagnostic::tests::preserves_complete_input_contributions_and_unqualified_status ... ok
+test models::dto_tests::actual_native_preparation_and_loads_match_signed_stability_at_low_mach ... ok
+test models::dto_tests::alpha_mass_oracle ... ok
+test friction_diagnostic::tests::identity_surface_domain_and_invalid_numeric_inputs_fail ... ok
+test models::dto_tests::alpha_prepare_flight_oracle ... ok
+test models::dto_tests::alpha_stability_oracle_via_dto ... ok
+test friction_diagnostic::tests::zero_speed_returns_null_coefficients_and_explicit_zero_static_resistance ... ok
+test models::dto_tests::ipc_chamber_matches_apcp_oracle ... ok
+test models::dto_tests::signed_normal_contribution_requires_finite_station_and_keeps_couples ... ok
+test models::dto_tests::unknown_type_fails_closed ... ok
+test friction_diagnostic::tests::strict_nested_unknown_and_required_fields_are_rejected ... ok
+test native_candidate::tests::collection_cap_surfaces_as_a_named_resource_limit ... ok
+test native_candidate::tests::curves_report_reports_an_inapplicable_reference_as_data ... ok
+test native_candidate::tests::dispatch_never_offers_the_research_retention_control ... ok
+test native_candidate::tests::wrench_bitwise_comparison_refuses_a_single_flipped_bit ... ok
+test commands::ensemble_chunk_tests::undefined_normal_station_reaches_native_flight_command_as_error ... ok
+test models::dto_tests::ipc_flight_matches_zero_wind_alpha_c6_oracle ... ok
+test sb1_geometry::tests::actual_decimal_dto_cylinder_average_one_ulp_above_reference_is_supported ... ok
+test sb1_geometry::tests::actual_frontend_dto_to_profiles_and_coefficient_evaluation ... ok
+test sb1_geometry::tests::explicit_internal_exclusions_preserve_station_and_provenance ... ok
+test sb1_geometry::tests::rejected_adapters_leave_the_input_vehicle_identical_and_localize_the_component ... ok
+test sb1_geometry::tests::rejects_unsupported_geometry_missing_data_and_nonfinite_inputs ... ok
+test sb1_geometry::tests::tangent_ogive_requires_interpretation_and_records_quadrature ... ok
+test sb1_geometry::tests::transitions_preserve_source_profiles_and_signed_contributions ... ok
+test propellant::tests::custom_ingredient_and_errors ... ok
+test propellant::tests::knsb_round_trip_over_the_wire ... ok
+test commands::ensemble_chunk_tests::classified_commands_expose_the_complete_outcome_ledger ... ok
+test commands::ensemble_chunk_tests::ensemble_applies_drag_cd_scale_to_every_run ... ok
+test models::dto_tests::ipc_ensemble_matches_oracle_accounting ... ok
+test native_candidate::tests::report_retention_keeps_mandatory_context_and_full_prefix_peaks ... ok
+test commands::ensemble_chunk_tests::chunked_ranges_reproduce_the_whole_ensemble_landings ... ok
+
+test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.32s
+
+
+=== parity residual (nocapture) ===
+worst TS-oracle residual: 2.2162861179974333e-16 (cdPowerOff at design 0 rogers M0.7 a4: 1.0018769829486813 vs 1.001876982948681)

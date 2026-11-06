@@ -1,0 +1,138 @@
+{
+  "lane": "viewport-look",
+  "branch": "viewport-look-b",
+  "author": "OpenCode Go opencode-go/deepseek-v4.1-flash (lane author, continued from checkpoint c9d90da)",
+  "self_accepted": false,
+  "coordinator_review": "pending",
+  "base": {
+    "commit": "ac805fcdfcffb56da78026c33157b8a69611fe36",
+    "note": "lane base; the before capture was taken from this build"
+  },
+  "checkpoint": {
+    "commit": "c9d90da5f0f331cdbb93f20cd76fd5ba25814f2b",
+    "note": "previous author's unreviewed work, kept as-is; this session continued from it"
+  },
+  "commits": [
+    { "sha": "8116188", "message": "fix(viewport-look): selection dim is the approved 0.62, with the emissive lift" },
+    { "sha": "673929f", "message": "feat(viewport-look): fit the Flight pose into the free canvas region" },
+    { "sha": "99852d1", "message": "test(viewport-look): guard the Flight frame and the shadow refresh in the browser smoke" },
+    { "sha": "docs-commit", "message": "docs(viewport-look): RESULT and EVIDENCE (this commit)" }
+  ],
+  "build": {
+    "command": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 pnpm build",
+    "appBundle": "app-CXYbeTkc.js",
+    "appBundleSha256": "31d31e64ac3a85d9721020bc14320382484559d055c13312cee0c837ec77b180",
+    "note": "identical bundle hash for every after-probe run, so the served artifact is pinned"
+  },
+  "commands": [
+    { "cmd": "pnpm install --frozen-lockfile", "result": "ok (once at session start)" },
+    { "cmd": "pnpm build:engine", "result": "ok" },
+    { "cmd": "npx tsc --noEmit", "result": "exit 0" },
+    { "cmd": "npx vitest run --maxWorkers=2 src/console/viewport/", "result": "6 files, 44 tests passed" },
+    { "cmd": "npx vitest run --maxWorkers=2", "result": "156 files, 1875 tests passed" },
+    { "cmd": "pnpm build", "result": "ok, 65 assets, app bundle sha above" },
+    { "cmd": "pnpm test:browser", "result": "passed, incl. the new Flight framing/preset/shadow assertions" },
+    { "cmd": "node probe.mjs --label after ...", "result": "37 assertions, 0 failed" }
+  ],
+  "amendments": {
+    "new_flight_clipping": {
+      "status": "PASS",
+      "what": "Flight fits the pose-invariant envelope into the free canvas region left by the toolbar, pose readout and scrubber, and centres the model there; Airframe/Aero keep the approved silhouette fit",
+      "probe_assertions": 30,
+      "failed": 0,
+      "samples": "rail (0.00 s), burnout (2.80 s), apogee (11.38 s), T+28.98 s, touchdown (67.85 s) at 1600x1000 and 1280x800",
+      "min_clearance_px": { "1600x1000": 24, "1280x800": 11 },
+      "reported_boxes_1600": {
+        "rail": "453,41,496,317",
+        "burnout": "433,41,517,325",
+        "apogee": "347,136,574,271",
+        "T+28.98": "415,58,517,283",
+        "touchdown": "416,57,516,284"
+      },
+      "note": "the pose-invariant envelope costs 1.5% fill (hypot(1.485,0.256)/1.485) and removes pose-dependent zoom pumping"
+    },
+    "A_shadow_freshness": {
+      "status": "PASS (ghost path code-verified only)",
+      "dependencies_in_code": ["layout identity (length, parts added/removed)", "canvas size", "attitude quaternion (every playback frame)", "ghost vehicle + opacity", "view preset"],
+      "pose_counter": { "samples": ["0.05", "0.29", "11.38", "28.98", "67.85"], "increments": "one per pose change" },
+      "playback": { "window_s": 2, "updates": [7, 8, 9] },
+      "part_length_change": "counter +1",
+      "rendered_proof": {
+        "method": "fixed camera, five poses, pixels outside the projected silhouette hull in every pose",
+        "changed_floor_pixels": 3690,
+        "mean_shadow_luma": 8.84,
+        "frozen_counterfactual": "0 changed pixels"
+      },
+      "static_vs_dynamic_diagnostic": "autoUpdate=true build rendered 0 differing pixels against the shipped static path in Airframe and Flight",
+      "ghost_overlay": { "isolated": false, "reason": "no edit checkpoint existed, so no ghost was drawn; opening the compare panel also resized the canvas" }
+    },
+    "B_selection_dim": {
+      "status": "PASS",
+      "selection_dim": 0.62,
+      "selected_emissive": 0.45,
+      "hover_dims": false,
+      "single_call_site": "partTone is called once in Vehicle3D.tsx and the markers/parachute/motor/ghost never use it (pinned by appearance.test.ts)",
+      "contrast": { "metric": "rendered selected tone vs dimmed base tone", "min_ratio": 3.49, "tones_tested": 18 },
+      "flat_ratio_note": "flat 0.62 gives 2.76:1 for the palest shell tone; the emissive lift is what carries the 3:1 floor, and the test measures the rendered pair"
+    },
+    "C_refit_and_drag": {
+      "status": "PASS",
+      "layoutPersistence_test": "passes untouched",
+      "drag_probe": {
+        "max_turn_deg": 0,
+        "steps_with_unchanged_length": 12,
+        "max_step_frac_unchanged_length": 0,
+        "orbit_then_resize_then_length_turn_deg": 0.36
+      }
+    },
+    "D_drag_performance": {
+      "status": "REPORTED — inconclusive on this host",
+      "before": { "commit": "ac805fc", "p50_ms": [150.0, 150.0], "p95_ms": [266.7, 250.0], "mean_ms": [147.1, 142.6] },
+      "after": { "p50_ms": [183.4, 183.3, 183.3], "p95_ms": [316.6, 250.0, 283.4], "mean_ms": [196.7, 170.6, 179.2] },
+      "delta_p50_percent": 22.2,
+      "delta_p95_percent_range": [0, 26.6],
+      "host_variance": "the identical before build measured p50 33.4 ms and the identical after build 66.7 ms in other runs; load average 2.7-11 on 8 shared cores",
+      "conclusion": "no p50 regression above 25% in any paired run, one p95 sample above 25%; host variance exceeds the effect, so re-measure on a quiet machine before accepting the performance claim",
+      "new_per_frame_cost": "one 1024^2 shadow pass per geometry change (required by amendment A)"
+    }
+  },
+  "files": [
+    "src/console/viewport/appearance.ts",
+    "src/console/viewport/appearance.test.ts",
+    "src/console/viewport/Vehicle3D.tsx",
+    "src/console/viewport/framing.ts",
+    "src/console/viewport/framing.test.ts",
+    "src/console/viewport/overlays.ts",
+    "src/console/viewport/overlays.test.ts",
+    "src/console/viewport/Viewport.tsx",
+    "scripts/preview-journeys.mjs",
+    "CHANGELOG.md"
+  ],
+  "probe_hooks_added": [
+    "data-camera-dir/distance/target/fov/aspect/pose/length",
+    "data-fit-fraction",
+    "data-safe-region",
+    "data-viewport-size",
+    "data-rocket-bbox",
+    "data-rocket-hull",
+    "data-pose-q",
+    "data-shadow-updates",
+    "data-gizmo-rect",
+    "data-viewport-toolbar",
+    "data-canvas-overlay"
+  ],
+  "evidence": {
+    "dir": "~/.paseo/worktrees/3s8t98rp/evidence-viewport-look",
+    "before": "before/probe.json + before/*.png (original ac805fc capture, 2026-11-04)",
+    "before2": "before2/probe.json + before2/*.png (same ac805fc dist re-run 2026-11-05 for a paired comparison)",
+    "after": "after/probe.json + after/*.png (final build 99852d1, bundle sha 31d31e64...)",
+    "probe": "probe.mjs (assertions in after/probe.json; exit code 1 on any failure)",
+    "gate1": "GATE1-DESIGN.md, viewport-mock.html/png"
+  },
+  "known_limits": [
+    "At 1280x800 the Flight stage gives the 3D canvas 636x168 px; after the pose strip and scrubber the free region is 57.5 px tall, so the rocket is ~40 px tall. Stage-layout issue, out of scope.",
+    "The ghost/compare shadow refresh was not isolated by the probe (no checkpoint existed to draw a ghost).",
+    "The Flight ISO floor shadow is a thin strip mostly behind the rocket; visible and pose-following, not a strong ground shadow.",
+    "Probe numbers are SwiftShader software rendering; they are a relative comparison only."
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": null,
+  "subpacket": null,
+  "baseSha": null,
+  "sourceSha": null,
+  "owner": null,
+  "modelRouting": {"model": null, "effort": null, "usageTelemetry": "not supplied"},
+  "effectiveInputs": [],
+  "sourceHashes": {},
+  "runtimeHashes": {},
+  "artifactAvailability": [],
+  "checks": [{"id": null, "status": "not_run", "kind": null, "commandOrMechanism": null, "expectedRule": null, "observed": null, "exitCode": null, "evidencePath": null, "sha256": null, "limitation": null}],
+  "review": {"reviewer": null, "independentOfAuthor": null, "disposition": "pending", "findings": []},
+  "qualification": {"computational": "unknown", "physical": "unqualified", "dynamic": "unknown"},
+  "failedAttempts": [],
+  "remainingScope": [],
+  "nextActions": [],
+  "usageLimitMessageActuallyProvided": null
+}

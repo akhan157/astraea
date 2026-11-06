@@ -1,0 +1,261 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP19",
+  "subpacket": "1b \u2014 built-up aero model behind a beta flag (panels + pre-run refusal)",
+  "sourceSha": "d76c300",
+  "mergeSha": "1246fda",
+  "baseSha": "e5690a8",
+  "owner": "research session authored the provider, engine commands, bridge and UI; coordinator reviewed, merged and registered",
+  "modelRouting": {
+    "author": "research session (separate agent) on aero-model/port; no OMP subagent used",
+    "reviewer": "coordinator, two review rounds (see REVIEW.md); no author self-acceptance"
+  },
+  "scope": {
+    "in": "provider module (13 calibrated files + adapter), engine stability/aero_curves commands with optional selection, bridge, pre-run status, beta control, panels, identity/persistence",
+    "out": "flight/Monte-Carlo coefficient path (1c), default-on promotion, formats, stage composition, user-facing provenance page, engine-corpus native re-run"
+  },
+  "gates": [
+    {
+      "id": "RMP19-C01",
+      "result": "pass",
+      "detail": "216-point TS-oracle\u2194Rust parity fixture; worst residual 2.2162861179974333e-16 (cdPowerOff, design 0, Rogers M0.7 a4), assertion 1e-15; 6 adapter/refusal tests; scope confined to the crate.",
+      "receipts": [
+        "raw/cargo-tests.txt"
+      ]
+    },
+    {
+      "id": "RMP19-C02",
+      "result": "pass",
+      "detail": "Hybrid panel verified: subtitle, paragraph, model line and confidence describe aero-buildup 1.1.0 as the built-up method with Astraea's legacy drag override over Mach 0.80-1.20; the component breakdown is withheld inside the band and the drag split hidden; units remain CNalpha per radian and CP in axial metres; airfoil and default-template limitation noted. Production-CSP journey: hybrid on, breakdown line, refusal, persistence, legacy run.",
+      "receipts": [
+        "raw/1-hybrid-on.png",
+        "raw/2-run-refused.png",
+        "raw/3-persisted-after-reopen.png",
+        "raw/4-beta-off-legacy-run.png",
+        "src/console/aeroModelBeta.test.tsx",
+        "src/console/aeroModelWording.test.ts"
+      ]
+    },
+    {
+      "id": "RMP19-C03",
+      "result": "pass",
+      "detail": "Version/term pairs: 1.0.0+buildup (method-only) and 1.1.0+legacy (hybrid) execute; 1.0.0+legacy is the defective 1b identity that loads but never executes (panel offers the current hybrid or the legacy model, no silent migration); 1.1.0+buildup is undefined and refuses. The selection persists on the envelope, pins into case inputs, and survives save/reopen; absent selection leaves legacy keys byte-identical.",
+      "receipts": [
+        "raw/3-persisted-after-reopen.png",
+        "src/formats/projectJson.test.ts",
+        "src/application/aeroModel.test.ts",
+        "src/application/caseResolver.test.ts"
+      ]
+    },
+    {
+      "id": "RMP19-C04",
+      "result": "pass",
+      "detail": "Flight and Monte Carlo with a selection refuse before any case, archive, analysis record or simulate_flight call; message names the model and how to proceed (browser screenshot 2).",
+      "receipts": [
+        "raw/2-run-refused.png",
+        "src/console/aeroModelBeta.test.tsx"
+      ]
+    },
+    {
+      "id": "RMP19-C05",
+      "result": "pass",
+      "detail": "Absent selection: bridge omits aeroModel and the new DTO fields; legacy panel values and run results unchanged (browser screenshot 4: legacy run commits).",
+      "receipts": [
+        "raw/4-beta-off-legacy-run.png",
+        "src/tauri/bridge.ts"
+      ]
+    },
+    {
+      "id": "RMP19-C06",
+      "result": "pass",
+      "detail": "Native 1.14 \u00b5s/evaluation (20,000 in 22.8 ms, allocation-free); WASM provider aero_curves 278.7 \u00b5s/call = 6.8 \u00b5s/evaluation (1.55x legacy curves), stability 35.2 \u00b5s/call; inside the 2x curves budget and the +100 ms flight budget is untouched until 1c.",
+      "receipts": [
+        "crates/astraea-core/examples/aero_model_bench.rs",
+        "scripts/measure-aero-model-wasm.mjs"
+      ]
+    },
+    {
+      "id": "RMP19-C07",
+      "result": "pass",
+      "detail": "No vendor binary/sample rocket/motor data in the repo; the parity fixture is generated from self-owned synthetic designs; the engine corpus ships only as a 40-design/36,936-row hash manifest plus harness commands.",
+      "receipts": [
+        "crates/astraea-core/tests/fixtures/engine-corpus-manifest.json",
+        "crates/astraea-core/src/calibrated/README.md"
+      ]
+    },
+    {
+      "id": "RMP19-C08",
+      "result": "pass",
+      "detail": "Engine corpus parity verified independently: 40/40 designs, 36,936/36,936 rows, every file matched to the manifest, worst relative residual 1.5535456002007316e-6 at w20-steep-boattail Barrowman M3 CP, exact tier (2e-6). Test skips loudly without ASTRAEA_ENGINE_CORPUS; data never committed.",
+      "responsible": "coordinator + native lane",
+      "reopen": "Windows harness run of aero/stageaero/stageaero-sweep against the built engine, residuals recorded per tier",
+      "receipts": [
+        "raw/c08.txt",
+        "raw/c08-residuals.json"
+      ]
+    },
+    {
+      "id": "RMP19-C09",
+      "result": "pass",
+      "detail": "Provenance dialog delivered: self-contained hash-modal and panel/status-panel entry, labelled dialog with focus trap/Escape/close and hash cleared on close; global disclaimer; composition wording (legacy total-drag override 0.80-1.20, build-up terms replaced in band); four term classes; six legacy constants marked unvalidated; method-only C08 parity with the not-applicable-to-hybrid qualifier; limits (breakdown, airfoil/default template, beta panels-only/flight refusal/off by default/promotion, sea-level reference); plain-text citations, no links, no vendor strings. Production-CSP journey: panel and deep-link opens, close returns and clears the hash.",
+      "responsible": "coordinator",
+      "reopen": "product provenance page reachable from the model label",
+      "receipts": [
+        "raw/5-provenance-panel.png",
+        "raw/6-provenance-hash.png",
+        "src/application/aeroModelProvenance.ts",
+        "src/console/evidence/AeroModelProvenance.tsx",
+        "src/application/aeroModelProvenance.test.ts",
+        "src/console/evidence/aeroModelProvenance.test.tsx"
+      ]
+    },
+    {
+      "id": "RMP19-C10",
+      "result": "not_run",
+      "detail": "1c: simulate_flight consumes provider coefficients behind the same flag with the legacy transonic term; six_dof::Vehicle data extension and solver unchanged.",
+      "responsible": "research session + coordinator",
+      "reopen": "1c slice with flight-dump parity and the same refusal/identity rules"
+    },
+    {
+      "id": "RMP19-C11",
+      "result": "blocked",
+      "detail": "Default-on promotion requires C08 and held-out real flights plus the owner decision; no default change has been made.",
+      "Responsible": "owner (promotion decision) and team (held-out flights)",
+      "reopen": "dated owner decision backed by held-out flight evidence"
+    }
+  ],
+  "verification": {
+    "commands": [
+      "cargo test -j 2 --manifest-path crates/astraea-core/Cargo.toml --test calibrated_oracle_parity",
+      "cargo test -j 2 --manifest-path crates/astraea-core/Cargo.toml --test calibrated_app_adapter",
+      "cargo test -j 2 --manifest-path crates/astraea-engine/Cargo.toml --lib",
+      "node node_modules/typescript/bin/tsc --noEmit",
+      "node node_modules/vitest/vitest.mjs run --maxWorkers=2",
+      "node scripts/aero-model-beta-browser.mjs",
+      "ASTRAEA_ENGINE_CORPUS=<research corpus> cargo test -j 2 --manifest-path crates/astraea-core/Cargo.toml --test engine_corpus_parity",
+      "cargo test -j 2 --manifest-path crates/astraea-engine/Cargo.toml --lib",
+      "node scripts/aero-model-beta-browser.mjs (hybrid build)"
+    ],
+    "results": {
+      "oracleParity": "1 passed; worst residual 2.2162861179974333e-16",
+      "adapter": "6 passed",
+      "engineLib": "58 passed",
+      "typescript": "clean",
+      "suite": "137 files / 1755 tests (author run; coordinator ran the focused wording/panel tests 6/6 and the browser journey)",
+      "browser": "corrective build: disabled control, note and legacy run verified by the author's production-CSP journey (raw/1-beta-disabled.png, raw/2-legacy-run.png); coordinator re-ran the pre-correction journey before the finding",
+      "engineCorpus": "1 passed; 40 designs, 36,936 rows, worst 1.5535456002007316e-6 (exact tier)",
+      "composition": "engine lib 63/63; focused TS 68/68; full suite 137 files / 1757 tests (author); production-CSP hybrid journey passed on a fresh build of 885a083",
+      "provenance": "tsc clean; focused TS 16/16; fresh-build production-CSP journey with panel and hash opens, Escape/Close, hash cleared; dialog content inspected"
+    }
+  },
+  "limitations": [
+    "Beta is enabled but panels-only; flight and Monte Carlo still refuse pre-run until 1c.",
+    "The shipped default template uses the undefined 'airfoil' fin section and refuses by design.",
+    "Inside the 0.80-1.20 band the hybrid uses the legacy total CD, overriding the build-up base/protuberance/friction terms there; the model is labeled hybrid.",
+    "The WASM timings are Node-hosted measurements of the built binary, not in-app measurements.",
+    "Pre-correction and pre-composition screenshots are retained under raw/pre-correction/ and raw/pre-composition/ as evidence of the findings."
+  ],
+  "findings": [
+    {
+      "date": "2026-10-31",
+      "finding": "terms.transonic was validated but not used; the 1b panel claimed the legacy term.",
+      "disposition": "Corrective f7dd01f: engine refuses terms.transonic='legacy'; beta control disabled with a note; pre-correction screenshots retained under raw/pre-correction/. C02/C03 remain reopened until the composition. C08 verified and recorded.",
+      "severity": "resolved claim exposure; composition still pending"
+    },
+    {
+      "date": "2026-10-31",
+      "finding": "legacy-transonic composition implemented as an approved total-CD band; version/term pairs enforced; defective 1b projects load but never execute.",
+      "disposition": "C02/C03 re-recorded as pass on 885a083 (merged 0898784); C09/C10 remain not run; C11 blocked."
+    },
+    {
+      "date": "2026-10-31",
+      "finding": "C09 provenance dialog delivered (c53b9b0) with the approved content and limits.",
+      "disposition": "C09 recorded as pass; C10 flight path is the last local slice; C11 blocked."
+    },
+    {
+      "date": "2026-11-01",
+      "finding": "Owner decided the flight path stays held; matched-state diagnostic authorized; no experimental enablement.",
+      "disposition": "C10 remains not run; diagnostic evidence will be recorded when it lands."
+    },
+    {
+      "date": "2026-11-01",
+      "finding": "Matched-state diagnostic: the coefficient model is correct; the app drops design inputs (surface finish, turbulence, fin airfoil/bevels/LE radius, rail guides/lugs/shoe), causing the 8.3-40.8% (per-flight mean) CD gap. Corrected inputs match the engine to 0.001-0.456% per-flight mean CD; the hybrid remains 0.09-6.86% and the 6-DOF/table replay difference remains 0.1-7.9% on 8/9. Mass/CG/thrust histories were not measured (empty comparison, n=0), so the replay residual is not attributed to the solver alone. Corrected per independent review (MatchedStateReview, 2026-11-02).",
+      "disposition": "Flight path held; fix proposal deferred (typed input plumbing needs the input source/UI and airfoil mapping). No tuning, no gate change, no merge."
+    },
+    {
+      "date": "2026-11-02",
+      "finding": "Design-input plumbing implemented on branch frontend/design: surface finish, forced turbulence, nozzle exit, body-tube rail guide/lug/shoe and fin airfoil section/bevels/LE radius now reach the calibrated method; airfoil maps to Subsonic NACA unless overridden. Browser check: M2.00 CD 0.462 -> 0.480 with surface/turbulence/nozzle, and rail hardware/fin section change it further; save/open persists. Full vitest 1781 pass, engine/core cargo tests pass.",
+      "disposition": "Product fix on the frontend branch; flight path still held; no gate change or flight validation."
+    }
+  ],
+  "composition": {
+    "version": "aero-buildup 1.1.0 + terms.transonic='legacy'",
+    "mechanism": "total-CD blend with the legacy total over Mach 0.80-1.20; C1 smoothstep weights (0 below 0.80, 1 on 0.90-1.05, 0 above 1.20); weights sum to one so the method's transonic rise is weighted out",
+    "referenceAtmosphere": "sea-level standard day (ISA 1976) for both totals, recorded in curve metadata",
+    "breakdown": "withheld inside the band (flag true for the curve); no mixed-source stack",
+    "seams": {
+      "0.80": {
+        "weight": 0,
+        "composed": 0.668570037,
+        "provider": 0.668570037,
+        "legacy": 0.88483795
+      },
+      "0.90": {
+        "weight": 1,
+        "composed": 1.179016346,
+        "provider": 0.677265961,
+        "legacy": 1.179016346
+      },
+      "1.05": {
+        "weight": 1,
+        "composed": 1.221918382,
+        "provider": 1.116381084,
+        "legacy": 1.221918382
+      },
+      "1.20": {
+        "weight": 0,
+        "composed": 1.254335664,
+        "provider": 1.254335664,
+        "legacy": 1.278504564
+      }
+    },
+    "limitation": "inside the band the composed CD is the legacy total, so the build-up base/protuberance/friction terms are overridden there; the model is labeled hybrid and is not the method-only model. C08 parity applies to the provider alone and is not quoted for the hybrid.",
+    "receipts": [
+      "raw/composition/seams.json",
+      "raw/composition/seams.csv",
+      "raw/composition/curves.svg"
+    ]
+  },
+  "candidates": [
+    {
+      "id": "1c-flight-path",
+      "commit": "915392c (lane, not merged)",
+      "gate": "pre-registered <=0.5% apogee/maxV/TTA per flight",
+      "result": "FAILED",
+      "measured": "9 single-stage flights; 24 of 27 metrics above 0.5%; worst kinsel apogee 29.29%; hybrid mean apogee 10.27% vs legacy 17.90% (hybrid better on 4/9 apogee, 8/9 maxV, 4/9 TTA).",
+      "attribution": "Site temperature/pressure and nozzle exit do not explain the residual; best apogee with both is 3.74%, most combinations make it worse; the provider nozzle input affects drag only while the engine also applies pressure thrust, so the attribution is incomplete but not overstating help.",
+      "staged": "the two staged dumps are not applicable to the single-stage product solver; never counted as passes",
+      "disposition": "not merged; no tuning and no widened gate; C10 remains not run. Owner decision 2026-11-01: keep the flight path held and authorize the matched-state diagnostic (aero at the engine's own trajectory states, no product change); experimental enablement declined until a fix or an accepted criterion exists.",
+      "receipts": [
+        "raw/c10-candidate/attribution.json",
+        "raw/c10-candidate/gate.json",
+        "raw/c10-candidate/gate-strict.log"
+      ],
+      "matchedState": {
+        "lane": "3a44065 (diagnostic tests only)",
+        "finding": "AERO INPUT defect, not the coefficient model. With the design inputs the engine used (surface finish, turbulent flag, fin airfoil section/bevels/LE radius, rail guide/lug/shoe), sourced from each corpus design.json (no fitting, no engine CD read back), the method CD residual collapses to 0.001-0.456% per-flight mean (pooled 0.123%); base inputs are 8.3-40.8% low. The hybrid remains 0.09-6.86% because the legacy override replaces drag in 0.80-1.20. CP per-flight mean 0-2.26% (per-row max 6.81%, raven). Mass/CG/thrust: NOT measured; the burn comparison vectors are never populated (n=0), so the report's 0.000% is not a measurement.",
+        "solver": "Engine-CD replay through our 6-DOF: 0.1-7.9% apogee on 8/9 flights; qu8k replay is not a valid bound because the core table is Mach-only while the engine CD varies ~1.5x with altitude at fixed Mach. This is a 6-DOF/table replay difference; it cannot be attributed to the solver alone while mass/CG/thrust are unverified. It remains above 0.5% and is not fixed by inputs.",
+        "defect": "FrontendVehicle drops surfaceFinish/forceTurbulentFlow; FrontendComponent and aero Component lack airfoilSection, leadingEdgeBevel, trailingEdgeBevel, leadingEdgeRadius, railGuideDiameter, railGuideHeight, launchShoeArea; the adapter hard-codes None/derives the airfoil. Kinsel M2.0 fin interference: engine ~0.494 vs app ~0.071.",
+        "fixProposal": "Implemented on branch frontend/design as typed plumbing: vehicle surfaceFinish/forceTurbulentFlow/nozzleExitDiameter, body-tube rail guide/lug/shoe, fin airfoilSection/bevels/LE radius, through TS types, project JSON, engine DTO, aero::Vehicle design inputs, component_input and design_from_app_vehicle. Airfoil cross-section now maps to Subsonic NACA unless an explicit section is chosen. No formula change.",
+        "receipts": [
+          "raw/c10-candidate/matched-state/REPORT.md",
+          "raw/c10-candidate/matched-state/aero.json",
+          "raw/c10-candidate/matched-state/solver-replay.json",
+          "corpus/kinsel-p4935-a-601-rocket/points.csv (engine corpus, not shipped; finInterfSup 0.4943 at M2.0)"
+        ],
+        "disposition": "Flight path remains held; C10 not run. The input defect is fixed on the frontend/design branch and verified in the production UI (drag changes with the inputs, save/open round-trip); the separate solver/table difference remains, so the 0.5% end-to-end gate is not expected to pass.",
+        "review": "Independent review MatchedStateReview (2026-11-02): ACCEPT-WITH-CORRECTIONS. Input defect, provenance (design.json, no circularity), matched-state method/CP results and replay/table bound confirmed; test-only code, production paths unchanged. Corrected: base range (was 16-41%), corrected mean (was ~1.3e-5, blister only), mass/CG/thrust 0.000% withdrawn (n=0), 1c maxV count (was 5/9), CP qualified as mean."
+      }
+    }
+  ]
+}

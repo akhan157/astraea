@@ -1,0 +1,287 @@
+{
+ "candidate": {
+  "adapter": {
+   "aftTermination": "flatExposedBaseAtFinalStation",
+   "declarations": {
+    "circularAxisymmetricBody": true,
+    "identicalEquallySpacedThinUncantedFins": true,
+    "noOtherExternalFeaturesOrUnmodeledInterferences": true,
+    "provenance": "synthetic fixture declarations for a bounded native diagnostic; not as-flown evidence",
+    "sharpPhysicalTip": true,
+    "smoothSlenderProfile": true,
+    "sourceRepresentsCompleteExternalGeometry": true
+   },
+   "internalNonGeometryIds": [
+    "syn-drogue",
+    "syn-main"
+   ],
+   "ogiveInterpretation": null,
+   "quadrature": {
+    "absoluteToleranceM3": 1e-14,
+    "maxPanels": 4096,
+    "relativeTolerance": 1e-10
+   },
+   "sourceIdentity": "synthetic-native-candidate-fixture-not-as-flown",
+   "transitionInterpretation": null
+  },
+  "axial": {
+   "ca0": 0.35,
+   "inputIdentity": "constant CA0 0.35 declared by this synthetic fixture; not a source export",
+   "providerId": "fixture-prescribed-CA0"
+  },
+  "curveMachs": [
+   0.02,
+   0.05,
+   0.1,
+   0.2,
+   0.4,
+   0.6,
+   0.79
+  ],
+  "environment": {
+   "launchAltitudeASL": 100,
+   "windAzimuthDeg": 90,
+   "windSpeedSurfaceMps": 0
+  },
+  "environmentSourceId": "synthetic-profile-wind-v1",
+  "horizonSeconds": 1.6,
+  "launch": {
+   "dragCdScale": null,
+   "finCantAngleDeg": null,
+   "mainDeployAltitudeAglM": 250,
+   "railAzimuthDeg": 0,
+   "railElevationDeg": 85,
+   "railLengthM": 3,
+   "timeStepS": 0.01
+  },
+  "mechanicalSourceId": "synthetic-fixture-mass-rollup; not measured",
+  "motor": {
+   "burnTime": 1.86,
+   "designation": "Estes C6",
+   "diameter": 0.018,
+   "dryMass": 0.0123,
+   "length": 0.07,
+   "maxThrust": 14.09,
+   "propellantMass": 0.0108,
+   "thrustCurve": [
+    {
+     "thrust": 0,
+     "time": 0
+    },
+    {
+     "thrust": 0.946,
+     "time": 0.031
+    },
+    {
+     "thrust": 4.826,
+     "time": 0.092
+    },
+    {
+     "thrust": 7.004,
+     "time": 0.139
+    },
+    {
+     "thrust": 11.094,
+     "time": 0.192
+    },
+    {
+     "thrust": 14.09,
+     "time": 0.209
+    },
+    {
+     "thrust": 11.313,
+     "time": 0.231
+    },
+    {
+     "thrust": 9.936,
+     "time": 0.281
+    },
+    {
+     "thrust": 8.436,
+     "time": 0.331
+    },
+    {
+     "thrust": 5.582,
+     "time": 0.481
+    },
+    {
+     "thrust": 4.686,
+     "time": 0.631
+    },
+    {
+     "thrust": 4.406,
+     "time": 0.781
+    },
+    {
+     "thrust": 4.296,
+     "time": 0.931
+    },
+    {
+     "thrust": 4.212,
+     "time": 1.081
+    },
+    {
+     "thrust": 4.117,
+     "time": 1.231
+    },
+    {
+     "thrust": 4.006,
+     "time": 1.381
+    },
+    {
+     "thrust": 3.932,
+     "time": 1.531
+    },
+    {
+     "thrust": 3.673,
+     "time": 1.631
+    },
+    {
+     "thrust": 2.821,
+     "time": 1.681
+    },
+    {
+     "thrust": 0.995,
+     "time": 1.731
+    },
+    {
+     "thrust": 0.224,
+     "time": 1.781
+    },
+    {
+     "thrust": 0,
+     "time": 1.86
+    }
+   ],
+   "totalMass": 0.0231
+  },
+  "motorAftStationFromNoseM": 1,
+  "query": null,
+  "vehicle": {
+   "components": [
+    {
+     "baseDiameter": 0.1,
+     "id": "syn-nose",
+     "isHollow": true,
+     "length": 0.3,
+     "materialId": "pla_3dprint",
+     "name": "Synthetic conical nose",
+     "shape": "conical",
+     "type": "nosecone",
+     "wallThickness": 0.001
+    },
+    {
+     "id": "syn-tube",
+     "innerDiameter": 0.099,
+     "length": 0.7,
+     "materialId": "cardboard",
+     "name": "Synthetic body tube and motor mount",
+     "outerDiameter": 0.1,
+     "type": "bodytube"
+    },
+    {
+     "axialOffset": 0.4,
+     "crossSection": "rounded",
+     "finCount": 4,
+     "id": "syn-fins",
+     "materialId": "pla_3dprint",
+     "name": "Synthetic four-fin set",
+     "rootChord": 0.2,
+     "span": 0.08,
+     "sweepLength": 0.05,
+     "thickness": 0.0008,
+     "tipChord": 0.1,
+     "type": "trapezoidfinset"
+    },
+    {
+     "axialOffset": 0.05,
+     "cd": 0.8,
+     "diameter": 0.3,
+     "id": "syn-drogue",
+     "mass": 0.008,
+     "materialId": "cardboard",
+     "name": "Synthetic drogue",
+     "type": "parachute"
+    },
+    {
+     "axialOffset": 0.08,
+     "cd": 0.8,
+     "diameter": 0.45,
+     "id": "syn-main",
+     "mass": 0.008,
+     "materialId": "cardboard",
+     "name": "Synthetic main",
+     "type": "parachute"
+    }
+   ]
+  }
+ },
+ "environmentSelection": {
+  "launchAltitudeGeometricMslM": 100,
+  "launchTimeUtcUnixS": 1792965600,
+  "profile": {
+   "altitudeDatum": "geometricMsl",
+   "closureId": "dry-ideal-air-sutherland/1.0.0",
+   "extrapolationPolicy": "reject",
+   "interpolationPolicy": "logPressureLinearTemperatureWind",
+   "issueTimeUtcUnixS": 1792965600,
+   "knots": [
+    {
+     "altitudeM": 0,
+     "pressurePa": 100000,
+     "temperatureK": 300,
+     "windTowardEnuMps": {
+      "east": 0,
+      "north": 0,
+      "up": 0
+     }
+    },
+    {
+     "altitudeM": 100,
+     "pressurePa": 99700,
+     "temperatureK": 300,
+     "windTowardEnuMps": {
+      "east": 0,
+      "north": 0,
+      "up": 0
+     }
+    },
+    {
+     "altitudeM": 1000,
+     "pressurePa": 80000,
+     "temperatureK": 300,
+     "windTowardEnuMps": {
+      "east": 4,
+      "north": 0,
+      "up": 0
+     }
+    }
+   ],
+   "location": {
+    "horizontalDatumIdentity": "synthetic-coordinates-no-geodetic-survey",
+    "identity": "synthetic-coordinate-origin",
+    "latitudeDeg": 0,
+    "longitudeDeg": 0
+   },
+   "source": {
+    "description": "Synthetic implementation-only profile with zero wind at the launch altitude and a declared cross wind aloft; not weather or as-flown evidence.",
+    "evidenceClass": "synthetic",
+    "identity": "synthetic-profile-wind-v1"
+   },
+   "units": {
+    "altitude": "m",
+    "pressure": "Pa",
+    "temperature": "K",
+    "time": "UTC Unix seconds",
+    "wind": "m/s"
+   },
+   "validity": {
+    "fromUtcUnixS": 1792965600,
+    "untilUtcUnixS": 1792969200
+   },
+   "verticalDatumIdentity": "synthetic-MSL-no-geoid-model"
+  },
+  "verticalDatumIdentity": "synthetic-MSL-no-geoid-model"
+ },
+ "schemaId": "native-E1-profile-candidate-request/1.0.0"
+}

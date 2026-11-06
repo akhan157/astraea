@@ -1,0 +1,69 @@
+{
+  "extractor": "coordinator/root",
+  "status": "independent second visual pass, frozen before seeing first-reader numbers; provisional",
+  "source": "NASA TN D4013 Fig7(b)/(c) M0.60 shortmodel fins-onroll0 squares",
+  "method": "shared source raster/crops; independent local anchor/marker estimates using original-size and nearest-neighbor4x view; no invented extra resolution",
+  "firstPassNumericValuesSeen": false,
+  "nearzeroTargets": "excluded: cannot independently distinguish square from overlapping symbols/grid origin",
+  "uncertainty": "conservative pixel picking+anchor bounds, not confidence intervals; source measurement errors remain separate. Local skew/geometry/source assumptions not qualified.",
+  "series": [
+    {
+      "crop": "d4013-M0p60-CN-crop.png",
+      "cropSha256": "61c9263de8930d26938a79d22d092e39f16e7523cfa85d7e980f44e130569e2d",
+      "calibration": {
+        "xAt0deg": 92,
+        "xAt4deg": 166,
+        "yAt0coef": 103,
+        "yAt2coef": 30
+      },
+      "points": [
+        {
+          "pixelX": 54.5,
+          "pixelY": 113,
+          "alphaDeg": -2.027027027027027,
+          "coefficient": -0.273972602739726
+        },
+        {
+          "pixelX": 128,
+          "pixelY": 87,
+          "alphaDeg": 1.945945945945946,
+          "coefficient": 0.4383561643835616
+        }
+      ],
+      "pickBoundPx": 2,
+      "anchorBoundPx": 2,
+      "combinedConservativeReadBoundPx": 4,
+      "coefficientReadBound": 0.1095890410958904,
+      "alphaReadBoundDeg": 0.21621621621621623
+    },
+    {
+      "crop": "d4013-M0p60-Cm-crop.png",
+      "cropSha256": "d0ea8b855b8cbe541639368190e8819461005aab8aa8f39989d6f98ef4505b10",
+      "calibration": {
+        "xAt0deg": 81,
+        "xAt4deg": 150,
+        "yAt0coef": 78,
+        "yAt2coef": 12
+      },
+      "points": [
+        {
+          "pixelX": 46.5,
+          "pixelY": 63.5,
+          "alphaDeg": -2.0,
+          "coefficient": 0.4393939393939394
+        },
+        {
+          "pixelX": 114.5,
+          "pixelY": 86.5,
+          "alphaDeg": 1.9420289855072463,
+          "coefficient": -0.25757575757575757
+        }
+      ],
+      "pickBoundPx": 2,
+      "anchorBoundPx": 2,
+      "combinedConservativeReadBoundPx": 4,
+      "coefficientReadBound": 0.12121212121212122,
+      "alphaReadBoundDeg": 0.2318840579710145
+    }
+  ]
+}

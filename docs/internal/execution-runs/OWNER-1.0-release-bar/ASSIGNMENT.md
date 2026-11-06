@@ -1,0 +1,13 @@
+# Owner clarification: real 1.0 product quality
+
+Base `3d1925e1c981b947ca7d67d7f784477f91dda6eb`, branch execute-rmp01-package-c80e7d3, existing isolated worktree clean; other worktrees preserved. Package preflight passes (18 packets/117 checks/23 recorded passes/45 package hashes). No task reviewer/build/native experiment active.
+
+Scope: record the owner's explicit public-product/first-customer/production-quality clarification, not a new roadmap or software implementation. CREATE execution-package/OWNER-1.0-RELEASE-BAR.md and this run's result. Lease DECISIONS.md, STATE.md, manifest.json only. No acceptance statuses, numerical thresholds, input/rights declarations, model identities, app/default/WASM/config or historical source/evidence changes.
+
+Owner states general public is the market, Binghamton University's rocketry team is the first intended customer (not Queen's), and 1.0 must enable useful independent rocket design/engineering rather than enlist them to test an unfinished prototype. Record broad team design-variation intent without inventing the team's actual vehicle/category/Mach requirements or a partnership. Two modes were floated, not approved as a way to lower 1.0 quality. Missing empirical data blocks relevant claims, not all independent engineering. No scientific signoff or release/outreach authority inferred.
+
+Coordinator ordinary semantic/document review against current user statements and existing primary-collegiate decision; no agent, build, browser, source acquisition or data access needed. Checks: package/link/hash validator and diff whitespace; acceptance counts/historical source hashes unchanged; clean local checkpoint. Preserve stopped automation and no push/release/paid/external-contact/holdout boundaries.
+
+Follow-up at `014f5774f80b6d6673028f3a50deb1ad878be6b9`: owner explicitly requires integrating this clarification with all prior discussion, not reinventing the project around the latest statement. Small additive continuity wording in OWNER-1.0-RELEASE-BAR/DECISIONS and this run's result; refresh manifest only. Same 18 packets, architecture, dependencies, accepted work/failures and authorization boundaries. No new plan, mode commitment, acceptance status, scope reset or implementation.
+
+Goal consolidation at `fac8d400cfeba8419ad5dee3f02378c021cc9993`: owner asks to use all established context to set the Version 1 completion goal. Add a concise goal to section1 of the existing roadmap, cross-link it from OWNER-1.0-RELEASE-BAR, and append this run's result; refresh manifest. The existing G0–G8/117 checks remain the definition of done, not a new roadmap/check set. No deadline, blanket accuracy threshold, unsupported category promise, case eligibility or release authority is inferred.

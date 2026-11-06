@@ -1,0 +1,103 @@
+{
+  "schema": "astraea-coordinator-verification/1.0.0",
+  "sourceCommit": "49070710b6c5fb5070b3b42da0ed9bc9cec4a9b7",
+  "mergeCommit": "c5ac1a1",
+  "review": "REVIEW.md",
+  "independentAuthorFamily": true,
+  "wasm": {
+    "sha256": "cf57158b84bdc92861fc56530c2fedb2e13d290e2d1212d90015fbce5746f508",
+    "buildCommand": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 node scripts/build-engine.mjs",
+    "authorArtifactDifferent": true,
+    "cause": "unresolved; path-remapping did not establish cross-worktree reproducibility; no production build changes"
+  },
+  "checks": {
+    "core": {
+      "command": "cargo test --offline -j 2 --manifest-path crates/astraea-core/Cargo.toml --lib -- --test-threads=2",
+      "passed": 223
+    },
+    "engine": {
+      "command": "cargo test --offline --locked -j 2 --manifest-path crates/astraea-engine/Cargo.toml --tests -- --test-threads=2",
+      "passed": 100
+    },
+    "typescript": {
+      "command": "node node_modules/vitest/vitest.mjs run src/dynamics/rigidBody.adaptive.test.ts src/sim/sixDofSimulator.test.ts src/sim/event-restart.test.ts src/engine/engine.test.ts src/engine/ensembleDeterminism.test.ts src/sim/monteCarlo.test.ts src/engine/pool.test.ts src/console/data/adapter.test.ts src/application/runCases.test.ts src/application/calibrationApplicability.test.ts --maxWorkers=2 --no-file-parallelism",
+      "passed": 115,
+      "files": 9
+    },
+    "typecheck": {
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "exitCode": 0
+    },
+    "build": {
+      "command": "node node_modules/vite/bin/vite.js build",
+      "modules": 3116,
+      "exitCode": 0
+    },
+    "diagnostic": {
+      "command": "python3 docs/internal/execution-runs/RMP12-knot-split/run_rows.py ../target-knot-coordinator/debug/examples/profile_candidate_flight ../target-rmp01/debug/examples/profile_candidate_flight ../evidence-rmp12-knot-split/coordinator-run",
+      "rows": 6,
+      "allStdoutHashesMatchAuthor": true,
+      "newBinarySha256": "9530bd28bd062e2d6a565c06db3343641ec0e3c8dc797d29f0cf9cd76b22dab7",
+      "oldBinarySha256": "bf18b6faadaa180a9a31f4ef7be50d57aec609ee0a1beb5acbbe5aa1a0cb7e5c"
+    },
+    "browser": {
+      "command": "node ../evidence-rmp12-knot-split/coordinator-browser.mjs",
+      "productionCsp": true,
+      "modeledApogeeM": 533,
+      "pageErrors": [],
+      "actualLoadedHashMatchesRun": true,
+      "runtimesClosed": true
+    }
+  },
+  "recordedHashChecks": {
+    "sourceHashes": {
+      "crates/astraea-core/src/six_dof.rs": true,
+      "crates/astraea-engine/src/candidate_identity.rs": true,
+      "crates/astraea-engine/src/native_candidate.rs": true,
+      "crates/astraea-engine/tests/candidate_identity.rs": true,
+      "crates/astraea-engine/tests/drag_cd_scale_parity.rs": true,
+      "crates/astraea-engine/tests/fixtures/drag-cd-scale-parity.json": true,
+      "crates/astraea-engine/tests/fixtures/freeform-fin-parity.json": true,
+      "crates/astraea-engine/tests/fixtures/telemetry-parity.json": true,
+      "crates/astraea-engine/tests/native_candidate.rs": true,
+      "crates/astraea-engine/tests/profile_candidate.rs": true,
+      "crates/astraea-engine/tests/telemetry_parity.rs": true,
+      "src/dynamics/rigidBody.adaptive.test.ts": true,
+      "src/dynamics/rigidBody.ts": true,
+      "src/sim/sixDofSimulator.ts": true,
+      "docs/internal/execution-runs/RMP12-knot-split/run_rows.py": true
+    },
+    "recordHashes": {
+      "ASSIGNMENT.md": true,
+      "RESULT.md": true,
+      "run_rows.py": true
+    }
+  },
+  "externalEvidence": "../evidence-rmp12-knot-split",
+  "artifacts": {
+    "coordinator-core.log": {
+      "bytes": 18409,
+      "sha256": "bff100fd070555451a0a6c4c9fe4346931ef28d2c941fc7b3b98a3a0d75849ca"
+    },
+    "coordinator-engine.log": {
+      "bytes": 11604,
+      "sha256": "30a97d42ef9be65f51bd942aa919a494af9c9ec5b689c8a1235703380acce317"
+    },
+    "coordinator-run/rows.json": {
+      "bytes": 39180,
+      "sha256": "ffcdc35c4a6607ae4907b74c5d71b6f3a96dcbfa8ed2cf7186283cc04b96d89a"
+    },
+    "coordinator-browser.mjs": {
+      "bytes": 2967,
+      "sha256": "0d92f046ede1e6e6f296636a47fee5f713ef06caf58ea3c5207799bf3d5dc6b4"
+    },
+    "coordinator-browser.json": {
+      "bytes": 6426,
+      "sha256": "84e5ad964632236094e015b7e920e263ee764427623fcb47cc7590e5c311655f"
+    },
+    "coordinator-browser.png": {
+      "bytes": 239117,
+      "sha256": "1e439f19d6737e94b9ef62a7d8d77d8501f4a1faa03464a759a7995b2c7b4f13"
+    }
+  }
+}

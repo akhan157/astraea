@@ -1,0 +1,196 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP12",
+  "subpacket": "RMP12a-bounded-vertical-native-reference",
+  "baseSha": "d77c0557ed60c4de4f6652b6e7676f4b9e3f2b6e",
+  "sourceSha": "46e74e633c9e5f890ca9f1be64960b8703453ec0",
+  "owner": "coordinator; lease released after checkpoint",
+  "modelRouting": {
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "usageTelemetry": "not supplied; independent serial contract and implementation/results review sessions, no consensus claim"
+  },
+  "effectiveInputs": [
+    "docs/internal/execution-runs/RMP12-native-reference/EXPERIMENT.json"
+  ],
+  "sourceHashes": {
+    "scripts/diagnostics/check-candidate-numerics.py": "2a6921e9f20a4b454dca38dd5145e1012716cf7c04f383d8a24229fe6a80a7b8",
+    "scripts/diagnostics/tests/test_candidate_reference.py": "4dcefb100cf898abd09debf8277da0f5d7943c8c9f7b17f7db98a5c5d97841ba",
+    "docs/internal/execution-runs/RMP12-native-reference/EXPERIMENT.json": "6d37ff09f7823f3b6d8639ad48a3381fb4fe46ee4cd94bcb267170fddf5e2e52",
+    "docs/internal/execution-runs/RMP12-native-reference/native-result.json": "d810e40cff4a645f65e90da8d1687ac262d11fc0d85aeefa956063b013b51e97",
+    "docs/internal/execution-runs/RMP12-native-reference/saved-output-analysis.json": "19b2ff29444618221143f462546f77dfb914e06b615178c87500296095c88555"
+  },
+  "runtimeHashes": {
+    "profile_candidate_flight": "fefe4b8cbc62371fe99317050d13d90145844a7f5b906f020e3ae9ed4a9429a2"
+  },
+  "artifactAvailability": [
+    {
+      "artifacts": "all9 raw requests/stdout/stderr,attempt ledger,logs,analysis script",
+      "status": "external sibling evidence-rmp12-native-reference; no native retries"
+    },
+    {
+      "artifacts": "complete metrics,input/output hashes and saved-output analysis",
+      "status": "portable native-result.json and saved-output-analysis.json"
+    },
+    {
+      "artifacts": "productionWASM",
+      "status": "not rebuilt or invoked for this increment"
+    }
+  ],
+  "checks": [
+    {
+      "id": "RMP12-C01",
+      "status": "pass",
+      "kind": "provisional-native-software-diagnostic-not-mission-qualification",
+      "commandOrMechanism": "Frozen inputs/config/reserves and exactly9 native attempts,all results preserved",
+      "expectedRule": "Frozen limits and complete failure reporting; no physical/default/native-WASM inference",
+      "observed": "Frozen inputs/config/reserves and exactly9 native attempts,all results preserved",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP12-native-reference/RESULT.md",
+      "sha256": null,
+      "limitation": "Parent partial; actual rail reserve failed; no owner budget/nativeWASM/full6D qualification"
+    },
+    {
+      "id": "RMP12-C02",
+      "status": "fail",
+      "kind": "provisional-native-software-diagnostic-not-mission-qualification",
+      "commandOrMechanism": "Both20ms cases rail error.00010501673039775561s exceeds frozen provisional.0001s;10/5ms selectedmetrics pass",
+      "expectedRule": "Frozen limits and complete failure reporting; no physical/default/native-WASM inference",
+      "observed": "Both20ms cases rail error.00010501673039775561s exceeds frozen provisional.0001s;10/5ms selectedmetrics pass",
+      "exitCode": 1,
+      "evidencePath": "docs/internal/execution-runs/RMP12-native-reference/RESULT.md",
+      "sha256": null,
+      "limitation": "Parent partial; actual rail reserve failed; no owner budget/nativeWASM/full6D qualification"
+    },
+    {
+      "id": "RMP12-C03",
+      "status": "not_run",
+      "kind": "provisional-native-software-diagnostic-not-mission-qualification",
+      "commandOrMechanism": "No geometry/table/cache/continuous-peak qualification executed",
+      "expectedRule": "Frozen limits and complete failure reporting; no physical/default/native-WASM inference",
+      "observed": "No geometry/table/cache/continuous-peak qualification executed",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP12-native-reference/RESULT.md",
+      "sha256": null,
+      "limitation": "Parent partial; actual rail reserve failed; no owner budget/nativeWASM/full6D qualification"
+    },
+    {
+      "id": "RMP12-C04",
+      "status": "not_run",
+      "kind": "provisional-native-software-diagnostic-not-mission-qualification",
+      "commandOrMechanism": "No actual productionWASM experiment",
+      "expectedRule": "Frozen limits and complete failure reporting; no physical/default/native-WASM inference",
+      "observed": "No actual productionWASM experiment",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP12-native-reference/RESULT.md",
+      "sha256": null,
+      "limitation": "Parent partial; actual rail reserve failed; no owner budget/nativeWASM/full6D qualification"
+    },
+    {
+      "id": "RMP12-C05",
+      "status": "in_progress",
+      "kind": "provisional-native-software-diagnostic-not-mission-qualification",
+      "commandOrMechanism": "One byte-identical native repeat only; no seed/chunk/cancellation coverage",
+      "expectedRule": "Frozen limits and complete failure reporting; no physical/default/native-WASM inference",
+      "observed": "One byte-identical native repeat only; no seed/chunk/cancellation coverage",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP12-native-reference/RESULT.md",
+      "sha256": null,
+      "limitation": "Parent partial; actual rail reserve failed; no owner budget/nativeWASM/full6D qualification"
+    },
+    {
+      "id": "RMP12-C06",
+      "status": "blocked",
+      "kind": "provisional-native-software-diagnostic-not-mission-qualification",
+      "commandOrMechanism": "Final model/owner mission decision budgets absent; provisional diagnostic limits only",
+      "expectedRule": "Frozen limits and complete failure reporting; no physical/default/native-WASM inference",
+      "observed": "Final model/owner mission decision budgets absent; provisional diagnostic limits only",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP12-native-reference/RESULT.md",
+      "sha256": null,
+      "limitation": "Parent partial; actual rail reserve failed; no owner budget/nativeWASM/full6D qualification"
+    },
+    {
+      "id": "RMP12-C07",
+      "status": "pass",
+      "kind": "provisional-native-software-diagnostic-not-mission-qualification",
+      "commandOrMechanism": "No core/engine/production/default/tolerance change; source diff to acceptedcfdded2 empty",
+      "expectedRule": "Frozen limits and complete failure reporting; no physical/default/native-WASM inference",
+      "observed": "No core/engine/production/default/tolerance change; source diff to acceptedcfdded2 empty",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP12-native-reference/RESULT.md",
+      "sha256": null,
+      "limitation": "Parent partial; actual rail reserve failed; no owner budget/nativeWASM/full6D qualification"
+    }
+  ],
+  "executedChecks": [
+    {
+      "command": "cargo build --offline --locked --manifest-path crates/astraea-engine/Cargo.toml --example profile_candidate_flight -j2",
+      "exitCode": 0,
+      "scope": "existing offline cache,unchanged source"
+    },
+    {
+      "command": "python3 -m unittest discover -s scripts/diagnostics/tests -p test_candidate_reference.py -v",
+      "exitCode": 0,
+      "tests": 9,
+      "nativeCalls": 0
+    },
+    {
+      "command": "python3 scripts/diagnostics/check-candidate-numerics.py NATIVE_EXAMPLE NEW_OUTPUT_DIRECTORY",
+      "exitCode": 1,
+      "nativeCalls": 9,
+      "failedCases": [
+        "h2-dt020",
+        "h2003-dt020"
+      ]
+    },
+    {
+      "command": "python3 -m unittest discover -s scripts/diagnostics/tests -p test_*.py -v",
+      "exitCode": 0,
+      "tests": 34,
+      "nativeCalls": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "review": {
+    "reviewer": "separate read-only Codex/OpenAI gpt-6.1-sol/high sessions",
+    "independentOfAuthor": true,
+    "disposition": "approved-experiment-and-report-including-retained-diagnostic-failure",
+    "findings": [],
+    "evidencePath": "docs/internal/execution-runs/RMP12-native-reference/REVIEW.md"
+  },
+  "qualification": {
+    "computational": "selected native provisional rail reserve failed for20ms;experiment integrity accepted",
+    "physical": "unqualified",
+    "dynamic": "unknown;vertical symmetry only"
+  },
+  "failedAttempts": [
+    {
+      "case": "h2-dt020",
+      "metric": "railTimeErrorS",
+      "observed": 0.00010501673039775561,
+      "reserve": 0.0001,
+      "disposition": "retained;no threshold change/retry"
+    },
+    {
+      "case": "h2003-dt020",
+      "metric": "railTimeErrorS",
+      "observed": 0.00010501673039775561,
+      "reserve": 0.0001,
+      "disposition": "retained;no threshold change/retry"
+    }
+  ],
+  "remainingScope": [
+    "Independent adaptive/corner-partition causal isolation under separately reviewed experiment",
+    "Full6D/rate/canopy/peaks/grid/nativeWASM/cancellation and final-model qualification",
+    "Responsible owner RMP05 decision/numerical allocations; no threshold inferred"
+  ],
+  "nextActions": [
+    "Prepare RMP05 input-only owner decision/rights/custody request without outcomes",
+    "Do not change defaults to make a provisional threshold green"
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

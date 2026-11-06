@@ -1,0 +1,412 @@
+{
+  "ok": {
+    "computationalStatus": "candidateStaticEvaluation",
+    "conventions": {
+      "angles": "alpha=atan2(v.z,v.y); beta=atan2(v.x,hypot(v.y,v.z)); radians",
+      "axes": "right-handed body B: +Y noseward, +X pitch axis, X cross Y = Z",
+      "forceSigns": "CA=-CF.y; CN_pitch=-CF.z; CN_yaw=-CF.x",
+      "positionDatum": "body position relative to nose; centerline station x aft maps to (0,-x,0)",
+      "rateOrder": "omega_B=(q_pitch,p_roll,r_yaw), rad/s; omegaHat=omega_B*L/(2V)",
+      "units": "SI: m, m2, m3, m/s, kg/m3, Pa, N, N*m; coefficients dimensionless; C 1/rad, J m/rad",
+      "velocityReference": "air-relative velocity at instantaneous CG, body B",
+      "windSigns": "CF_W=(CY,-CD,-CL); R_BW columns below"
+    },
+    "cp": {
+      "accuracy": "unqualified; conditioning is not physical uncertainty",
+      "definition": "derivative centerline CP at symmetric zero incidence: J/C, station meters aft of nose; static only",
+      "denominatorUncertainty": {
+        "kind": "notSupplied"
+      },
+      "kappaC": 1.0,
+      "policyId": "cp-ratio-roundoff-cancellation/1.0.0",
+      "relativeCancellationBound": 1.4210854715202004e-14,
+      "stationFromNoseM": 1.1705896014607269,
+      "sums": {
+        "cPerRad": 8.681705617107262,
+        "jMPerRad": 10.162714318328945,
+        "sumAbsCPerRad": 8.681705617107262,
+        "sumAbsJMPerRad": 10.162714318328945
+      },
+      "unavailableReason": null
+    },
+    "empiricalQualificationByQuantity": {
+      "axial": "unqualified prescribed input",
+      "derivativeCp": "unqualified",
+      "rateForce": "unknown",
+      "rateMoment": "unknown",
+      "staticForce": "unqualified",
+      "staticMoment": "unqualified"
+    },
+    "flow": {
+      "angles": {
+        "alphaRad": 0.01999733397315053,
+        "betaRad": 0.009997667486345372,
+        "incidenceRad": 0.022356954112670243
+      },
+      "dynamicPressurePa": 6002.999999999999,
+      "reducedRatesB": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "speedMps": 100.024996875781,
+      "unavailableReason": null,
+      "windBasisBW": {
+        "x": {
+          "x": 0.9999500237386929,
+          "y": -0.009995502036572302,
+          "z": -0.00019991004073144602
+        },
+        "y": {
+          "x": 0.009997500937109547,
+          "y": 0.9997500937109546,
+          "z": 0.01999500187421909
+        },
+        "z": {
+          "x": 0.0,
+          "y": -0.019996001199600138,
+          "z": 0.999800059980007
+        }
+      }
+    },
+    "input": {
+      "adapterOptions": {
+        "aftTermination": "flatExposedBaseAtFinalStation",
+        "declarations": {
+          "circularAxisymmetricBody": true,
+          "identicalEquallySpacedThinUncantedFins": true,
+          "noOtherExternalFeaturesOrUnmodeledInterferences": true,
+          "provenance": "Synthetic algebra fixture assertions only; no measured geometry or flight evidence",
+          "sharpPhysicalTip": true,
+          "smoothSlenderProfile": true,
+          "sourceRepresentsCompleteExternalGeometry": true
+        },
+        "internalNonGeometryIds": [],
+        "ogiveInterpretation": "notApplicable",
+        "quadrature": {
+          "absoluteToleranceM3": 1e-14,
+          "maxPanels": 4096,
+          "relativeTolerance": 1e-10
+        },
+        "sourceIdentity": "synthetic-cone-cylinder-one-fin-set",
+        "transitionInterpretation": "notApplicable"
+      },
+      "axial": {
+        "ca0": 0.3,
+        "inputIdentity": "synthetic-constant-0.3-not-measured",
+        "providerId": "synthetic-prescribed-CA0"
+      },
+      "cpPolicy": {
+        "denominatorUncertainty": {
+          "kind": "notSupplied"
+        },
+        "policyId": "cp-ratio-roundoff-cancellation/1.0.0"
+      },
+      "datumPositionFromNoseBM": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "inputIdentity": "synthetic-command-fixture-not-empirical",
+      "schemaVersion": "sb1-static-diagnostic/1.0.0",
+      "state": {
+        "cgPositionFromNoseBM": {
+          "x": 0.0,
+          "y": -1.0,
+          "z": 0.0
+        },
+        "densityKgM3": 1.2,
+        "environmentIdentity": "synthetic-prescribed-density-and-Mach-not-an-atmosphere",
+        "mach": 0.3,
+        "omegaBRadps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "powerNozzleCondition": "synthetic coast condition; CA0 prescribed separately",
+        "relativeVelocityAtCgBMps": {
+          "x": 1.0,
+          "y": 100.0,
+          "z": 2.0
+        }
+      },
+      "vehicle": {
+        "components": [
+          {
+            "baseDiameter": 0.1,
+            "id": "nose",
+            "length": 0.3,
+            "name": "synthetic cone",
+            "shape": "conical",
+            "type": "nosecone"
+          },
+          {
+            "id": "tube",
+            "length": 1.6,
+            "massOverride": 1.0,
+            "materialId": "cardboard",
+            "name": "synthetic cylinder",
+            "outerDiameter": 0.1,
+            "type": "bodytube"
+          },
+          {
+            "axialOffset": 1.1,
+            "finCount": 4,
+            "id": "fins",
+            "name": "synthetic thin trapezoidal fins",
+            "rootChord": 0.2,
+            "span": 0.08,
+            "sweepLength": 0.05,
+            "thickness": 0.001,
+            "tipChord": 0.1,
+            "type": "trapezoidfinset"
+          }
+        ]
+      }
+    },
+    "normalDerivativesAtZeroIncidence": {
+      "cPerRad": 8.681705617107262,
+      "jMPerRad": 10.162714318328945,
+      "sumAbsCPerRad": 8.681705617107262,
+      "sumAbsJMPerRad": 10.162714318328945
+    },
+    "provenance": {
+      "adapterId": "frontend-external-profile-SB1/1.0.0",
+      "axialInputIdentity": "synthetic-constant-0.3-not-measured",
+      "axialProviderId": "synthetic-prescribed-CA0",
+      "empiricalEvidenceIds": [],
+      "geometryIdentity": "frontend-external-profile-SB1/1.0.0:synthetic-cone-cylinder-one-fin-set",
+      "identityKind": "caller-supplied; not a cryptographic geometry hash",
+      "integralProvenance": "retained exact source profiles; analytic cone/cylinder/frustum; error-estimated Simpson tangent ogive; see SupportReport",
+      "interpolationPolicy": "none; prescribed scalar CA0",
+      "providerId": "static-body-total-SB1/1.0.0",
+      "rateProviderId": null,
+      "sourceEquationIds": "OpenRocket 13.05 techdoc: 3.18,3.24,3.25,3.30-3.34,3.40,3.53,3.55,3.56; accepted P0 1.0.0"
+    },
+    "rateCoefficientsAtDatum": null,
+    "rateLoadsAtCg": null,
+    "rateSupport": "notModeledStaticOnly",
+    "rateUnavailableReason": "SB1 evaluates static contributions only, including for nonzero supplied rates; no total dynamic prediction",
+    "references": {
+      "areaM2": 0.007853981633974483,
+      "cgPositionFromNoseBM": {
+        "x": 0.0,
+        "y": -1.0,
+        "z": 0.0
+      },
+      "datumPositionFromNoseBM": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "diameterM": 0.1,
+      "lengthM": 0.1
+    },
+    "schemaVersion": "sb1-static-diagnostic/1.0.0",
+    "staticCoefficientsAtCg": {
+      "cfB": {
+        "x": -0.08679680597417526,
+        "y": -0.3,
+        "z": -0.17361096668187084
+      },
+      "cmB": {
+        "x": 0.29616225615471925,
+        "y": 0.0,
+        "z": -0.14806632539198594
+      }
+    },
+    "staticCoefficientsAtDatum": {
+      "cfB": {
+        "x": -0.08679680597417526,
+        "y": -0.3,
+        "z": -0.17361096668187084
+      },
+      "cmB": {
+        "x": 2.0322719229734276,
+        "y": 0.0,
+        "z": -1.0160343851337386
+      }
+    },
+    "staticLoadsAtCg": {
+      "forceBN": {
+        "x": -4.092248221612941,
+        "y": -14.144235524624644,
+        "z": -8.185314674687143
+      },
+      "momentBNm": {
+        "x": 1.3963295681855212,
+        "y": 0.0,
+        "z": -0.6980949932033199
+      }
+    },
+    "supportReport": {
+      "adapterId": "frontend-external-profile-SB1/1.0.0",
+      "candidateDomain": {
+        "flow": "forward for V>0; V=0 static loads only",
+        "geometry": "sharp smooth slender axisymmetric circular body; one 3/4 equally spaced thin uncanted trapezoidal fin set",
+        "incidenceMaxRadInclusive": 0.08726646259971647,
+        "machMaxExclusive": 0.8,
+        "machMinInclusive": 0.0
+      },
+      "components": [
+        {
+          "role": {
+            "contribution": {
+              "cPerRad": 2.0,
+              "jMPerRad": 0.3999999999999999
+            },
+            "integration": {
+              "converged": true,
+              "estimatedErrorM3": 0.0,
+              "evaluations": 0,
+              "integralAreaM3": 0.0007853981633974484,
+              "method": "Analytic",
+              "panels": 0,
+              "requestedToleranceM3": 8.853981633974484e-14,
+              "roundoffIndicatorM3": 1.1161179193627624e-17
+            },
+            "interval": {
+              "area0M2": 0.0,
+              "area1M2": 0.007853981633974483,
+              "integralAreaM3": 0.0007853981633974484,
+              "x0M": 0.0,
+              "x1M": 0.3
+            },
+            "intervalIndex": 0,
+            "kind": "body",
+            "profile": {
+              "aftRadiusM": 0.05,
+              "foreRadiusM": 0.0,
+              "kind": "cone",
+              "lengthM": 0.3
+            }
+          },
+          "source": {
+            "baseDiameter": 0.1,
+            "id": "nose",
+            "length": 0.3,
+            "name": "synthetic cone",
+            "shape": "conical",
+            "type": "nosecone"
+          },
+          "sourceIndex": 0
+        },
+        {
+          "role": {
+            "contribution": {
+              "cPerRad": 0.0,
+              "jMPerRad": 0.0
+            },
+            "integration": {
+              "converged": true,
+              "estimatedErrorM3": 0.0,
+              "evaluations": 0,
+              "integralAreaM3": 0.012566370614359175,
+              "method": "Analytic",
+              "panels": 0,
+              "requestedToleranceM3": 1.2666370614359174e-12,
+              "roundoffIndicatorM3": 1.7857886709804198e-16
+            },
+            "interval": {
+              "area0M2": 0.007853981633974483,
+              "area1M2": 0.007853981633974483,
+              "integralAreaM3": 0.012566370614359175,
+              "x0M": 0.3,
+              "x1M": 1.9000000000000001
+            },
+            "intervalIndex": 1,
+            "kind": "body",
+            "profile": {
+              "aftRadiusM": 0.05,
+              "foreRadiusM": 0.05,
+              "kind": "cylinder",
+              "lengthM": 1.6
+            }
+          },
+          "source": {
+            "id": "tube",
+            "length": 1.6,
+            "massOverride": 1.0,
+            "materialId": "cardboard",
+            "name": "synthetic cylinder",
+            "outerDiameter": 0.1,
+            "type": "bodytube"
+          },
+          "sourceIndex": 1
+        },
+        {
+          "role": {
+            "contribution": {
+              "cPerRad": 6.681705617107261,
+              "jMPerRad": 9.762714318328944
+            },
+            "geometry": {
+              "count": 4,
+              "exposedSemispanM": 0.08,
+              "localBodyRadiusM": 0.05,
+              "rootChordM": 0.2,
+              "rootLeStationM": 1.4000000000000001,
+              "tipChordM": 0.1,
+              "tipLeSweepM": 0.05
+            },
+            "hostComponentId": "tube",
+            "hostEndM": 1.9000000000000001,
+            "hostStartM": 0.3,
+            "kind": "fins"
+          },
+          "source": {
+            "axialOffset": 1.1,
+            "finCount": 4,
+            "id": "fins",
+            "name": "synthetic thin trapezoidal fins",
+            "rootChord": 0.2,
+            "span": 0.08,
+            "sweepLength": 0.05,
+            "thickness": 0.001,
+            "tipChord": 0.1,
+            "type": "trapezoidfinset"
+          },
+          "sourceIndex": 2
+        }
+      ],
+      "limits": [
+        "Typed DTO boundary: unknown raw JSON fields may already have been discarded; this adapter cannot validate raw-source completeness.",
+        "Physical sharpness, smoothness/slenderness, thinness, spacing, cant and omitted features/interferences are explicit caller assertions, not empirical qualification.",
+        "Flat exposed aft base ends the profile; no invented closing-cap normal force. Axial/base drag requires a separately identified provider.",
+        "Known fin cross-section and thickness are retained; the asserted thin-fin SB1 idealization does not model thickness or cross-section effects.",
+        "Quadrature Richardson error and roundoff indicators are convergence diagnostics, not rigorous bounds or physical uncertainty.",
+        "body-area-upper-bound-roundoff/1.0.0 admits only relative 64-epsilon arithmetic differences in SB1 area upper-bound validation; source profile radius continuity remains exact.",
+        "Source identity is caller supplied; retained DTO/options are provenance, not a canonical geometry hash or cache identity."
+      ],
+      "options": {
+        "aftTermination": "flatExposedBaseAtFinalStation",
+        "declarations": {
+          "circularAxisymmetricBody": true,
+          "identicalEquallySpacedThinUncantedFins": true,
+          "noOtherExternalFeaturesOrUnmodeledInterferences": true,
+          "provenance": "Synthetic algebra fixture assertions only; no measured geometry or flight evidence",
+          "sharpPhysicalTip": true,
+          "smoothSlenderProfile": true,
+          "sourceRepresentsCompleteExternalGeometry": true
+        },
+        "internalNonGeometryIds": [],
+        "ogiveInterpretation": "notApplicable",
+        "quadrature": {
+          "absoluteToleranceM3": 1e-14,
+          "maxPanels": 4096,
+          "relativeTolerance": 1e-10
+        },
+        "sourceIdentity": "synthetic-cone-cylinder-one-fin-set",
+        "transitionInterpretation": "notApplicable"
+      },
+      "rawInputPolicy": "unknown vehicle/component/point keys rejected before existing typed DTO; exact parsed input retained; physical completeness remains caller assertion",
+      "sourceIdentity": "synthetic-cone-cylinder-one-fin-set"
+    },
+    "totalDynamicLoadsAtCg": null,
+    "windCoefficients": {
+      "cdWind": 0.3042641308665403,
+      "clWind": 0.16757745454184142,
+      "cyWind": -0.08375911100792677
+    }
+  }
+}

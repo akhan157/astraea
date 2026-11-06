@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP12",
+  "subpacket": "RMP12c paired macro-step regime expansion",
+  "status": "experiment executed once; contract, implementation and results interpretation independently ACCEPTED; C02 fail retained",
+  "contractCommit": "47908a800150c0a7662f9131d51fb56b6b9f7244",
+  "sourceCommit": "51611d1c662823cea3cbb9bfba65cf4de379aed6",
+  "preExecutionSealCommit": "4a425f2e3c0a176df52ac93f6b1ad4fd3808c913",
+  "routing": {
+    "currentAuthor": "openai/gpt-6.1-sol/high (current continuation environment)",
+    "initialPlanningAuthor": "prior session recorded opencode-go/mimo-v2.6-pro/high; no retroactive inference from current environment",
+    "reviewer": "explicit opencode-go/mimo-v2.6-pro; fresh no-history read-only independent sessions",
+    "nonClaim": "No scientific qualification or comparative model-quality claim from routing/review agreement"
+  },
+  "lease": "source/compute lease released after results ACCEPT; documentation/package integration only; no task-owned native processes remain",
+  "artifactAvailability": {
+    "portable": "this directory: frozen inputs/contract/plan/seal, RESULT/REVIEW, metrics.json and post-outcome saved-output analysis; runner/tests in scripts/diagnostics",
+    "externalLocalOnly": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12c-regime-expansion/ (raw run-1, invocation/logs, implementation/results reviews); contract reviews in evidence-rmp12-candidate-controls/; raw artifacts not in Git"
+  },
+  "artifactHashes": {
+    "portable": {
+      "ASSIGNMENT.md": "fcd478a0672fe6963d3649d3d443a87738e244f038d9c9dda8ab966e6e4a4e76",
+      "BASE-INPUT.json": "f790a2472543771d7fbd7efe5503dca9add94153988a6b60c9f19078c4a37bb2",
+      "CONTRACT.md": "2227e7058b4b7730eedeb2e949076a7748a9d6f53d54316828e82905dca94f09",
+      "EXPERIMENT.json": "c736f0732798ced79a2b8db08e560c0cd68d01874b4792973d9a7c26224b9006",
+      "LEGACY-INPUT.json": "1a58a570d423ae49adf8e459815ce12e599eed0f188a8a5ee15ef67a29235fbd",
+      "RESULT.md": "22d6fff2562e78c8a4798f6e9690013dde0777aa4fc67762e3e5598964234ff2",
+      "REVIEW.md": "ab6f209be27e6ea079367481e02a33239050ed7790008202ad84faecd01e59d9",
+      "RUN-SEAL.json": "1706366b45d1340eba3724d7e52b979aaff0960919bc887b768f35b33cddeedc",
+      "analyze-saved-output.py": "51e180ff9d332f079e57e5cca95480e4a17ead29288b71a585ae7ca97d3324b2",
+      "metrics.json": "59354974fd22969e26c6fbd1e381e1044d7482cf0212a6f8558ce03d090151c4"
+    },
+    "external": {
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12c-regime-expansion/run-1/result.json": "c65c7b09f321d5f9a3d8407cd40e8a6862ff2b12fa50acfbbd6d1ce5361ca59d",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12c-regime-expansion/run-1/attempts.json": "034032cc3e95ff3d41127e17ac64ea186030d1353d32192ebeaee75f4b982c3a",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12c-regime-expansion/execute-1.log": "8558ca6438c4210dd92ff8aa27c97d41ed739a7b2f5416ee1c3c0629404924f4",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12c-regime-expansion/unit-final.log": "f0d44a02a0c807e2ea35f30b73dd97bf7bbe9300a3e0a2465db22831dd80efd4",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12c-regime-expansion/implementation-review.md": "3f912402789ba71238314f00e4ce183fe28dd87b5dfb9dfceb14748bc290d126",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12c-regime-expansion/run-1.invocation-20261027T053536.548659Z-425448.json": "4ca5bb0e0d47ea239890a1d4457bc5f271bcf98836acac94b7771fe2fe4b781a",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12c-regime-expansion/saved-analysis-failure-checks.json": "337fb789046f069cdce32d15af4eda6fe11550353f3d737b89832ed35d6778d1",
+      "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12c-regime-expansion/results-review.md": "0957ba4e1e2c5866b56b7dbf74638a134687a14f2538e74d34f1b27f33d966b1"
+    }
+  },
+  "execution": {
+    "profileReservations": 6,
+    "legacyReservations": 1,
+    "totalReservations": 7,
+    "retries": 0,
+    "experimentCheckerInvocations": 1,
+    "experimentPreflightFailures": 0,
+    "timeoutS": 30,
+    "expectedDispositionsMatched": 7,
+    "determinism20msAnchors": "both prior request/stdout hashes match",
+    "legacy": "unchanged f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249"
+  },
+  "integrity": {
+    "status": "complete",
+    "comparisonsUnresolved": false,
+    "primaryOutputHashesVerified": 28,
+    "savedOutputAnalysisHashesVerified": 30,
+    "allMatch": true,
+    "anyProvisionalReserveFailed": true,
+    "retained20msDefaultFailureReproduced": true,
+    "qualification": "not established by integrity"
+  },
+  "verification": {
+    "pureHarness": "19/19 final tests; unit-final.log on sealed final runner/test bytes; zero native process calls in harness checks",
+    "supersededLog": "unit-1.log = earlier 15-test iteration; unit-2.log = reviewed 19-test iteration",
+    "sourcePreservation": "Rust/old checkers/binaries/defaults/equations unchanged; no production WASM rebuild",
+    "reference": "same 200/100 microsecond grids, same equation gate and shared numerical rail-root control; all six reference checks and manufactured crossing pass; not a global bound"
+  },
+  "resultsReview": {
+    "disposition": "ACCEPT",
+    "materialFindings": "none",
+    "scope": "independent read-only saved-output/reporting/numerical-interpretation review; no execution or hash recomputation by reviewer",
+    "adoptedOptional": "post-acceptance saved-array length assertion and retained-metric note; no native calls/reference solves",
+    "deferredOptional": "external hash-pinning strengthening; original audit expectations remain anchored by execution audit and separately recorded original result/ledger hashes, not a security signature"
+  },
+  "checks": [
+    {
+      "id": "RMP12-C01",
+      "status": "pass retained",
+      "scope": "bounded 7-attempt frozen experiment integrity; results independently accepted; not numerical/physical qualification"
+    },
+    {
+      "id": "RMP12-C02",
+      "status": "fail retained",
+      "scope": "20 ms no-split provisional rail reserve failed; five other configurations pass selected provisional checks; neither closes C02"
+    },
+    {
+      "id": "RMP12-C07",
+      "status": "pass retained",
+      "scope": "unchanged Rust/defaults and one byte-identical legacy output only"
+    }
+  ],
+  "conclusion": "For this synthetic fixture/three selected macro steps, split reduces errors at all three; no-split fails rail reserve at 20 ms only. No macro-step/default recommendation; within-series trends confounded by integration/event service/alignment/sample sets; fixed-step A/C isolates split including dt sequence.",
+  "knownLimits": [
+    "total adaptive trial/integration-call counts and final candidate refinement brackets unavailable; local window denominator only; no global rates/efficiency",
+    "5 ms rows contain 402 committed samples incl near-2-second sample and exact horizon; not deduplicated",
+    "pointwise acceleration mismatch is not proved propagated state-error floor/bound",
+    "tolerance-arm findings remain bounded to RMP12b 20 ms regime",
+    "hypothetical nonfinite persistence abort/determinism-mismatch metric-availability caveats in REVIEW; partial failures retained",
+    "no other knot densities/full-6D/complete-flight/native-WASM/physical/empirical/mission/platform/team/install/release qualification"
+  ],
+  "next": "Package/checkpoint integration; then RMP07 consumer consistency/migration reporting. No experiment rerun or default change."
+}

@@ -1,0 +1,14 @@
+{
+  "scope": "author-hashed at 75c9ea4cf3b0e1267e44657ec97306b7a1c4c2c2",
+  "sourceFilesSha256": {
+    "src/state/projectIo.ts": "1634c3c885e4c5a0a1cd8a912c36a91b18d0b22af9fcc2b53ef58d71a7f5012a",
+    "src/state/projectIo.test.ts": "636c02f73a710a512f983c9b979ab46857ab5fac58dd1847e8a2c4f38d2e5483"
+  },
+  "readonlyFilesSha256": {
+    "src/formats/projectStorage.ts": "3d2ef9c27c92b1b3196a46a6eb0d797f8363f6f5a7bf61762f2cbf37dda1dafa",
+    "src/formats/projectJson.ts": "7af0a85e3a346603833b4722f063d63d78404f5708052bb178357ed3ecd7e20b",
+    "src/state/project.ts": "0f99ec0456c741961f7fd937ec3078fa37f7f9544149f6d44329f3f7bdcb7c0f",
+    "src/io/files.ts": "3a27f27f0144ec6dbbacc583e583ef8ef82040eaeac6a954d5b647551ff65ec5",
+    "src/engine/astraea_engine.wasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b"
+  }
+}

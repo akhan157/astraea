@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Astraea source coefficient digitization point v0.1",
+  "type": "object",
+  "required": [
+    "point_id",
+    "series_id",
+    "source_sha256",
+    "pdf_page_1based",
+    "figure",
+    "quantity",
+    "conditions",
+    "reference",
+    "reading",
+    "uncertainty",
+    "review"
+  ],
+  "properties": {
+    "point_id": {
+      "type": "string"
+    },
+    "series_id": {
+      "type": "string"
+    },
+    "source_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "pdf_page_1based": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "figure": {
+      "type": "string"
+    },
+    "quantity": {
+      "enum": [
+        "CN",
+        "Cm",
+        "CA_raw",
+        "CA_corr",
+        "CA_b",
+        "CA_chamber"
+      ]
+    },
+    "conditions": {
+      "type": "object",
+      "required": [
+        "mach",
+        "reynolds_definition",
+        "configuration",
+        "fin_cant_deg",
+        "roll_definition",
+        "alpha_definition"
+      ]
+    },
+    "reference": {
+      "type": "object",
+      "required": [
+        "axes",
+        "area",
+        "moment_length",
+        "moment_origin",
+        "base_convention"
+      ]
+    },
+    "reading": {
+      "type": "object",
+      "required": [
+        "image_sha256",
+        "crop_box_pixels",
+        "calibration_id",
+        "pixel_x",
+        "pixel_y",
+        "value",
+        "reading_kind"
+      ],
+      "properties": {
+        "reading_kind": {
+          "enum": [
+            "marker_center",
+            "source_faired_line",
+            "interpolated"
+          ]
+        }
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "required": [
+        "digitization_bound",
+        "source_bound",
+        "confidence_interpretation",
+        "correlations",
+        "unresolved_terms"
+      ]
+    },
+    "review": {
+      "type": "object",
+      "required": [
+        "reader_id",
+        "status",
+        "independent_reader_id"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "first_reader_provisional",
+            "second_reader_independent",
+            "reconciled",
+            "excluded"
+          ]
+        },
+        "independent_reader_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

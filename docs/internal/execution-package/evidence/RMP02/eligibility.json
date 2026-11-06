@@ -1,0 +1,373 @@
+{
+  "schema": "rmp02-retained-source-exclusions/1.0.0",
+  "scope": "retained-public-development-only-no-new-readings",
+  "basis": [
+    {
+      "path": "docs/internal/accuracy-program/execution-2026-10-25/candidateinventory.json",
+      "bytes": 25385,
+      "sha256": "e71a468d3d77aa88741bc352ea9ad7f519da45e8b99e2c43d327463d77514886"
+    },
+    {
+      "path": "docs/internal/accuracy-program/diagnostics/A1b-reference-eligibility-2026-10-26.md",
+      "bytes": 2787,
+      "sha256": "b65136e43f45e5b243ceaae4ca50d59133f72c2e8efc9815ceade8efb582946d"
+    },
+    {
+      "path": "docs/internal/accuracy-program/sb1-foundation-2026-10-26/D1/geometry-ledger.json",
+      "bytes": 7866,
+      "sha256": "3caab204665703806fc3a974767e5cf383c80570e1f2ce39d1a024e38482420e"
+    },
+    {
+      "path": "docs/internal/accuracy-program/sb1-foundation-2026-10-26/D1/frozen-subset.json",
+      "bytes": 2012,
+      "sha256": "857a78c8d8c730acae8b488c4ab1bd4fe37056e0c42db64376288f7be89e1b3d"
+    },
+    {
+      "path": "docs/internal/accuracy-program/sb1-foundation-2026-10-26/D1/README.md",
+      "bytes": 4815,
+      "sha256": "ef88af144c53ebcc4812d60c77d7d6b14f59403b36b53947655879dcc255b4b1"
+    },
+    {
+      "path": "docs/internal/accuracy-program/first-batch-2026-10-26/D1/frozen-subset.json",
+      "bytes": 9399,
+      "sha256": "478e9157b7691d8201bb6c08c16e0a713124ca08d8b7c1033510a57571ccf534"
+    },
+    {
+      "path": "docs/internal/accuracy-program/first-batch-2026-10-26/D1/README.md",
+      "bytes": 7958,
+      "sha256": "bf7f2c26eccec29f3b4cda9840544fdb9164dcbe0e4435139a7ce44a3fa67401"
+    }
+  ],
+  "native_source": [
+    {
+      "path": "crates/astraea-engine/src/sb1_geometry.rs",
+      "bytes": 24668,
+      "sha256": "b1d792a61ed83219fa0a15ac3bdba003207c42a54e2875f15bd35bf4dbc7918b"
+    },
+    {
+      "path": "crates/astraea-core/src/aero_coefficients.rs",
+      "bytes": 46226,
+      "sha256": "73da11e497e2d234012f5903579ef74b407db2d87feead55bda1b6e68b19403c"
+    }
+  ],
+  "custody_manifests": [
+    {
+      "path": "docs/internal/accuracy-program/first-batch-2026-10-26/D1/artifact-manifest.json",
+      "bytes": 5254,
+      "sha256": "9edf88a3fa754a2cdad764abd2391414b45ef73cb218ed4722cde068e4556d2d"
+    },
+    {
+      "path": "docs/internal/accuracy-program/sb1-foundation-2026-10-26/D1/artifact-manifest.json",
+      "bytes": 5478,
+      "sha256": "31f34fe21eced276cfcb2fe692c74f6acb32c6c4c188ec14e9328cdf95fcf96d"
+    }
+  ],
+  "sources": [
+    {
+      "id": "19670020050",
+      "pdf_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+      "pdf_bytes": 2606973,
+      "original_pdf_status": "not-retained-in-repository",
+      "rights_basis": "NASA/NACA government report; public-use catalog notice; retain source attribution"
+    },
+    {
+      "id": "19670020031",
+      "pdf_sha256": "d698b06798ad806a4fd6463f02f4c9e2624cd944d7a7902f2c015dbb5a351064",
+      "pdf_bytes": 12458544,
+      "original_pdf_status": "not-retained-in-repository",
+      "rights_basis": "NASA/NACA government report; public-use catalog notice; retain source attribution"
+    },
+    {
+      "id": "19930087740",
+      "pdf_sha256": "76ded4490acbe271b94f49d7cc2e588724feb034425186f97d0f722427819247",
+      "pdf_bytes": 18644788,
+      "original_pdf_status": "not-retained-in-repository",
+      "rights_basis": "NASA/NACA government report; public-use catalog notice; retain source attribution"
+    },
+    {
+      "id": "19630004995",
+      "pdf_sha256": "44c9ac6046b83db16d156cbc26a608d632fbb844854eff568d50ad6ec99be51e",
+      "pdf_bytes": 7841499,
+      "original_pdf_status": "not-retained-in-repository",
+      "rights_basis": "NASA/NACA government report; public-use catalog notice; retain source attribution"
+    }
+  ],
+  "cases": [
+    {
+      "id": "d4013-m0p60",
+      "source": "19670020050",
+      "mach": 0.6,
+      "selection": "Short ARCAS, four fins on, zero cant/roll0 squares; Fig7b PDF24/printed22 CN; Fig7c PDF25/printed23 Cm. Signed nominal +/-2deg targets only; actual alpha intervals retained. CA not selected.",
+      "features": {
+        "nose_profile": {
+          "status": "unsupported",
+          "basis": "D4013 Fig1/PDF11-12 and D4014 Fig1/PDF10 specify finite ordinate-defined ogive. Adapter accepts only cone or explicitly interpreted tangent ogive."
+        },
+        "physical_tip": {
+          "status": "unsupported",
+          "basis": "Adapter requires physical sharpness. D4013 finite-tip leader/radius convention remains unclosed; D4014 .062in radius is not interchangeable with it."
+        },
+        "centerbody_tail_base": {
+          "status": "unsupported",
+          "basis": "Cylinder type is supported, but taper junction/detail and reflex lip are not closed; adapter has conical transitions and an explicit flat aft termination without lip."
+        },
+        "fin_planform": {
+          "status": "unclosed",
+          "basis": "Four zero-cant trapezoidal fins are a supported type. Full vertex/root/extension-line mapping and source roll orientation are not independently reconstructed."
+        },
+        "fin_section": {
+          "status": "unclosed",
+          "basis": "Source double wedge must be retained. Adapter retains thickness/section metadata but its thin-fin law does not model section effects; dimensions/attachment remain open."
+        },
+        "fin_roots_attachments": {
+          "status": "unsupported",
+          "basis": "Source raised compound anchors and roots on the tail assembly are not a set rooted wholly on a cylinder with no other features."
+        },
+        "support_protrusions": {
+          "status": "unclosed",
+          "basis": "Source sting, trip, anchors and correction conditions must be explicitly accounted for; no no-interference declaration establishes harmlessness."
+        }
+      },
+      "convention_gaps": {
+        "area_length": "Force qS and moment qSd are retained source definitions; do not claim dimensional native conversion before independent signs/datum review. Metric/inch drawing rounding retained.",
+        "axes_signs": "Body-axis pitch/normal signs and source-to-P0 rotation require independent worksheet; no guessed CN or Cm sign.",
+        "moment_station": "D4013 12.75d drawing vs .70*18.20=12.74d text rounding retained; D4014 25.95in on 40.95in (63.37%L). Never substitute one station for the other.",
+        "reynolds": "Unit Re=3e6/ft (report also rounds to 9.8e6/m) is not length Re. No standard-atmosphere substitute or common Re inferred.",
+        "incidence_roll": "D4013 selected zero roll/cant squares with actual alpha bounds, not exact nominal targets; D4014 pitch-test numeric roll is intentionally null/unreviewed.",
+        "power_base": "Unpowered tunnel source. D4013 raw vs corrected alpha0 summary/base quantities separate; D4014 raw CA/chamber correction separate. No powered-base claim.",
+        "trip_surface": "D4013 No120 and D4014 No60 grit/location differ; no natural-transition/roughness equivalence inferred.",
+        "extraction_uncertainty": "Two readings share raster/crops, source/calibration errors; 144ppi render is not embedded 300ppi source. Marker/skew audit and correction uncertainty still open; source bounds not probability intervals."
+      },
+      "quantities": {
+        "CA": "not-selected",
+        "CN": "retained-provisional",
+        "Cm": "retained-provisional",
+        "CD": "not-selected"
+      },
+      "nearzero": "Both readers exclude nominal-zero symbols; no measured center or zero intercept invented. Absolute source CN .03, Cm .05 and alpha .1deg bounds separate from pixel picking/anchor/skew allowance, correlated not confidence limits.",
+      "extension_request": "RMP08: reviewed finite-tip/ordinate nose, lip/taper and anchor/root/section representation plus associated aerodynamic support, not geometric substitution alone. RMP13: source-dependent bounded extraction/correction uncertainty. Alternative supplied-total/independent-moment provider tests only normalization/load assembly.",
+      "native_qualification": false
+    },
+    {
+      "id": "d4013-m1p20",
+      "source": "19670020050",
+      "mach": 1.2,
+      "selection": "Short ARCAS zero cant/roll0 squares; CN Fig7b PDF24/printed22; Cm Fig7c PDF27/printed25. CA raw PDF23 and corrected/base summary Fig11 PDF62 frozen unextracted.",
+      "features": {
+        "nose_profile": {
+          "status": "unsupported",
+          "basis": "D4013 Fig1/PDF11-12 and D4014 Fig1/PDF10 specify finite ordinate-defined ogive. Adapter accepts only cone or explicitly interpreted tangent ogive."
+        },
+        "physical_tip": {
+          "status": "unsupported",
+          "basis": "Adapter requires physical sharpness. D4013 finite-tip leader/radius convention remains unclosed; D4014 .062in radius is not interchangeable with it."
+        },
+        "centerbody_tail_base": {
+          "status": "unsupported",
+          "basis": "Cylinder type is supported, but taper junction/detail and reflex lip are not closed; adapter has conical transitions and an explicit flat aft termination without lip."
+        },
+        "fin_planform": {
+          "status": "unclosed",
+          "basis": "Four zero-cant trapezoidal fins are a supported type. Full vertex/root/extension-line mapping and source roll orientation are not independently reconstructed."
+        },
+        "fin_section": {
+          "status": "unclosed",
+          "basis": "Source double wedge must be retained. Adapter retains thickness/section metadata but its thin-fin law does not model section effects; dimensions/attachment remain open."
+        },
+        "fin_roots_attachments": {
+          "status": "unsupported",
+          "basis": "Source raised compound anchors and roots on the tail assembly are not a set rooted wholly on a cylinder with no other features."
+        },
+        "support_protrusions": {
+          "status": "unclosed",
+          "basis": "Source sting, trip, anchors and correction conditions must be explicitly accounted for; no no-interference declaration establishes harmlessness."
+        }
+      },
+      "convention_gaps": {
+        "area_length": "Force qS and moment qSd are retained source definitions; do not claim dimensional native conversion before independent signs/datum review. Metric/inch drawing rounding retained.",
+        "axes_signs": "Body-axis pitch/normal signs and source-to-P0 rotation require independent worksheet; no guessed CN or Cm sign.",
+        "moment_station": "D4013 12.75d drawing vs .70*18.20=12.74d text rounding retained; D4014 25.95in on 40.95in (63.37%L). Never substitute one station for the other.",
+        "reynolds": "Unit Re=3e6/ft (report also rounds to 9.8e6/m) is not length Re. No standard-atmosphere substitute or common Re inferred.",
+        "incidence_roll": "D4013 selected zero roll/cant squares with actual alpha bounds, not exact nominal targets; D4014 pitch-test numeric roll is intentionally null/unreviewed.",
+        "power_base": "Unpowered tunnel source. D4013 raw vs corrected alpha0 summary/base quantities separate; D4014 raw CA/chamber correction separate. No powered-base claim.",
+        "trip_surface": "D4013 No120 and D4014 No60 grit/location differ; no natural-transition/roughness equivalence inferred.",
+        "extraction_uncertainty": "Two readings share raster/crops, source/calibration errors; 144ppi render is not embedded 300ppi source. Marker/skew audit and correction uncertainty still open; source bounds not probability intervals."
+      },
+      "quantities": {
+        "CA": "frozen-unextracted",
+        "CN": "retained-provisional",
+        "Cm": "retained-provisional",
+        "CD": "not-selected"
+      },
+      "nearzero": "First-reader nominal-zero baseline intersections remain excluded, coordinator centers provisional, no averaging or forced-origin fit; source CN .03/Cm .05/CA .004/alpha .1deg limits separate from reading and base-correction error.",
+      "extension_request": "RMP08: reviewed finite-tip/ordinate nose, lip/taper and anchor/root/section representation plus associated aerodynamic support, not geometric substitution alone. RMP13: source-dependent bounded extraction/correction uncertainty. Alternative supplied-total/independent-moment provider tests only normalization/load assembly.",
+      "native_qualification": false
+    },
+    {
+      "id": "d4014-m1p50",
+      "source": "19670020031",
+      "mach": 1.5,
+      "selection": "Configuration1 short, zero cant, open circles Fig5b PDF28 CA/PDF29 Cm/PDF30 CN, all frozen unextracted. Numeric simulator roll mapping unavailable.",
+      "features": {
+        "nose_profile": {
+          "status": "unsupported",
+          "basis": "D4013 Fig1/PDF11-12 and D4014 Fig1/PDF10 specify finite ordinate-defined ogive. Adapter accepts only cone or explicitly interpreted tangent ogive."
+        },
+        "physical_tip": {
+          "status": "unsupported",
+          "basis": "Adapter requires physical sharpness. D4013 finite-tip leader/radius convention remains unclosed; D4014 .062in radius is not interchangeable with it."
+        },
+        "centerbody_tail_base": {
+          "status": "unsupported",
+          "basis": "Cylinder type is supported, but taper junction/detail and reflex lip are not closed; adapter has conical transitions and an explicit flat aft termination without lip."
+        },
+        "fin_planform": {
+          "status": "unclosed",
+          "basis": "Four zero-cant trapezoidal fins are a supported type. Full vertex/root/extension-line mapping and source roll orientation are not independently reconstructed."
+        },
+        "fin_section": {
+          "status": "unclosed",
+          "basis": "Source double wedge must be retained. Adapter retains thickness/section metadata but its thin-fin law does not model section effects; dimensions/attachment remain open."
+        },
+        "fin_roots_attachments": {
+          "status": "unsupported",
+          "basis": "Source raised compound anchors and roots on the tail assembly are not a set rooted wholly on a cylinder with no other features."
+        },
+        "support_protrusions": {
+          "status": "unclosed",
+          "basis": "Source sting, trip, anchors and correction conditions must be explicitly accounted for; no no-interference declaration establishes harmlessness."
+        }
+      },
+      "convention_gaps": {
+        "area_length": "Force qS and moment qSd are retained source definitions; do not claim dimensional native conversion before independent signs/datum review. Metric/inch drawing rounding retained.",
+        "axes_signs": "Body-axis pitch/normal signs and source-to-P0 rotation require independent worksheet; no guessed CN or Cm sign.",
+        "moment_station": "D4013 12.75d drawing vs .70*18.20=12.74d text rounding retained; D4014 25.95in on 40.95in (63.37%L). Never substitute one station for the other.",
+        "reynolds": "Unit Re=3e6/ft (report also rounds to 9.8e6/m) is not length Re. No standard-atmosphere substitute or common Re inferred.",
+        "incidence_roll": "D4013 selected zero roll/cant squares with actual alpha bounds, not exact nominal targets; D4014 pitch-test numeric roll is intentionally null/unreviewed.",
+        "power_base": "Unpowered tunnel source. D4013 raw vs corrected alpha0 summary/base quantities separate; D4014 raw CA/chamber correction separate. No powered-base claim.",
+        "trip_surface": "D4013 No120 and D4014 No60 grit/location differ; no natural-transition/roughness equivalence inferred.",
+        "extraction_uncertainty": "Two readings share raster/crops, source/calibration errors; 144ppi render is not embedded 300ppi source. Marker/skew audit and correction uncertainty still open; source bounds not probability intervals."
+      },
+      "quantities": {
+        "CA": "frozen-unextracted",
+        "CN": "frozen-unextracted",
+        "Cm": "frozen-unextracted",
+        "CD": "not-selected"
+      },
+      "nearzero": "No new readings/marker audit. Keep raw source CA .004/CN .03/Cm .05 and alpha .1deg bounds separate; do not transfer corrected-CA or D4013 Mach limits.",
+      "extension_request": "RMP08: reviewed finite-tip/ordinate nose, lip/taper and anchor/root/section representation plus associated aerodynamic support, not geometric substitution alone. RMP13: source-dependent bounded extraction/correction uncertainty. Alternative supplied-total/independent-moment provider tests only normalization/load assembly.",
+      "native_qualification": false
+    },
+    {
+      "id": "a53d02-unselected",
+      "source": "19930087740",
+      "mach": null,
+      "selection": "Inventory-only NACA RM A53D02 fineness10 tangent-ogive cruciform wedge-fin body, zero-lift corrected total CD. No shot/fin variant/Re or exact drawing subset selected; no CN/independent Cm selection.",
+      "features": {
+        "nose_profile": {
+          "status": "unclosed",
+          "basis": "Feature type described by retained inventory is not an audited complete reconstruction; exact nose/tip/fin section/attachments and shot/variant conditions remain unreviewed."
+        },
+        "physical_tip": {
+          "status": "unclosed",
+          "basis": "Feature type described by retained inventory is not an audited complete reconstruction; exact nose/tip/fin section/attachments and shot/variant conditions remain unreviewed."
+        },
+        "centerbody_tail_base": {
+          "status": "unclosed",
+          "basis": "Feature type described by retained inventory is not an audited complete reconstruction; exact nose/tip/fin section/attachments and shot/variant conditions remain unreviewed."
+        },
+        "fin_planform": {
+          "status": "unclosed",
+          "basis": "Feature type described by retained inventory is not an audited complete reconstruction; exact nose/tip/fin section/attachments and shot/variant conditions remain unreviewed."
+        },
+        "fin_section": {
+          "status": "unclosed",
+          "basis": "Feature type described by retained inventory is not an audited complete reconstruction; exact nose/tip/fin section/attachments and shot/variant conditions remain unreviewed."
+        },
+        "fin_roots_attachments": {
+          "status": "unclosed",
+          "basis": "Feature type described by retained inventory is not an audited complete reconstruction; exact nose/tip/fin section/attachments and shot/variant conditions remain unreviewed."
+        },
+        "support_protrusions": {
+          "status": "unclosed",
+          "basis": "Feature type described by retained inventory is not an audited complete reconstruction; exact nose/tip/fin section/attachments and shot/variant conditions remain unreviewed."
+        }
+      },
+      "convention_gaps": {
+        "area_length": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "axes_signs": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "moment_station": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "reynolds": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "incidence_roll": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "power_base": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "trip_surface": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "extraction_uncertainty": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table."
+      },
+      "quantities": {
+        "CA": "not-selected",
+        "CN": "not-selected",
+        "Cm": "not-selected",
+        "CD": "inventory-only"
+      },
+      "nearzero": "No selected points or source-dependent floor audited; no percent residual, arbitrary floor or normal-force/moment inference from drag.",
+      "extension_request": "Select an actual representable geometry/condition from the existing inventory and freeze source drawing, shot/sheet, Re, surface, correction and reference identities before any scoring; no broad acquisition or geometry equivalence assumption.",
+      "native_qualification": false
+    },
+    {
+      "id": "r100-unselected",
+      "source": "19630004995",
+      "mach": null,
+      "selection": "Inventory-only NASA TR R100 collection of many different bodies. No individual sheet/geometry selected. Measured total drag and theoretical estimated components are distinct; no CN/independent Cm selection.",
+      "features": {
+        "nose_profile": {
+          "status": "unclosed",
+          "basis": "No case sheet selected; do not infer any feature geometry or reference convention from collection title."
+        },
+        "physical_tip": {
+          "status": "unclosed",
+          "basis": "No case sheet selected; do not infer any feature geometry or reference convention from collection title."
+        },
+        "centerbody_tail_base": {
+          "status": "unclosed",
+          "basis": "No case sheet selected; do not infer any feature geometry or reference convention from collection title."
+        },
+        "fin_planform": {
+          "status": "unclosed",
+          "basis": "No case sheet selected; do not infer any feature geometry or reference convention from collection title."
+        },
+        "fin_section": {
+          "status": "unclosed",
+          "basis": "No case sheet selected; do not infer any feature geometry or reference convention from collection title."
+        },
+        "fin_roots_attachments": {
+          "status": "unclosed",
+          "basis": "No case sheet selected; do not infer any feature geometry or reference convention from collection title."
+        },
+        "support_protrusions": {
+          "status": "unclosed",
+          "basis": "No case sheet selected; do not infer any feature geometry or reference convention from collection title."
+        }
+      },
+      "convention_gaps": {
+        "area_length": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "axes_signs": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "moment_station": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "reynolds": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "incidence_roll": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "power_base": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "trip_surface": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table.",
+        "extraction_uncertainty": "No selected condition/geometry and independent source worksheet for this field. Existing inventory is discovery metadata, not a qualified table."
+      },
+      "quantities": {
+        "CA": "not-selected",
+        "CN": "not-selected",
+        "Cm": "not-selected",
+        "CD": "inventory-only"
+      },
+      "nearzero": "No selected points or source-dependent floor audited; no percent residual, arbitrary floor or normal-force/moment inference from drag.",
+      "extension_request": "Select an actual representable geometry/condition from the existing inventory and freeze source drawing, shot/sheet, Re, surface, correction and reference identities before any scoring; no broad acquisition or geometry equivalence assumption.",
+      "native_qualification": false
+    }
+  ],
+  "qualification_claim": false
+}

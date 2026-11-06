@@ -1,0 +1,12 @@
+{
+  "scope": "author-hashed at 0263c20f6c1a131af050446caa29129e144b92ca",
+  "sourceFilesSha256": {
+    "src/engine/ensembleDeterminism.test.ts": "d11a354a7f96c3acaad23716220b62c1e71af4fa503deecaebb5a81e90075e51"
+  },
+  "readonlyFilesSha256": {
+    "src/console/data/adapter.ts": "8636af1e50ddbf4c148ac60fe1806157a29ad7249efee185a3d4d73210fd79fd",
+    "src/sim/monteCarlo.ts": "596e04fe07d1c743696a235739034a631e4ce219f765f570584ef6f8a4fd67ac",
+    "src/tauri/bridge.ts": "8de1b33e73d88c85fe36e8d9df60c6f56f72a7853114f17874da9a5ad1e37f49",
+    "src/engine/astraea_engine.wasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b"
+  }
+}

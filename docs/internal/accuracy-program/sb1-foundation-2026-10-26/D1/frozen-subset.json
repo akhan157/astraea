@@ -1,0 +1,14 @@
+{
+  "record_version": "0.2-sb1-subsonic-first-pass",
+  "base_commit": "f07f0fb",
+  "freeze_utc": "2026-10-26",
+  "freeze_order": "Written after source-page/legend identification and before coefficient numerical picks/calibrations/model output. No model outputs inspected or generated.",
+  "purpose": "Source fixture candidate within A1 Mach<0.8; not a qualified aerodynamic reference",
+  "source": {"ntrs_id":"19670020050","report":"NASA TN D-4013","retained_pdf_path":"/tmp/astraea-data-path/19670020050.pdf","url":"https://ntrs.nasa.gov/api/citations/19670020050/downloads/19670020050.pdf","pdf_sha256":"44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a","pdf_bytes":2606973,"downloaded_this_task":false},
+  "selection": {"model":"short ARCAS","body_fineness_ratio":18.2,"fins":"four fins on","fin_cant_deg":0,"roll_deg":0,"marker":"square","mach":0.60,"alpha_targets_deg":[-2,0,2],"alpha_rule":"Read actual square center positions and interval. Nominal targets are labels, not forced coordinates; no forced zero intercept; do not treat grid intersections as observations."},
+  "series":[{"id":"d4013-cn-m0p60","quantity":"CN","pdf_page_1based":24,"printed_page":22,"figure":"7(b)","series_position":"top vertically offset Mach0.60 series; its local CN0 line"},{"id":"d4013-cm-m0p60","quantity":"Cm","pdf_page_1based":25,"printed_page":23,"figure":"7(c)","series_position":"upper Mach0.60 panel; its local Cm0 line"}],
+  "preexisting_exposure":"Reader has read prior M1.20 packet including previous reader/coordinator picks; this M0.60 extraction is a new first pass, not a blind re-reading or independent validation of M1.20.",
+  "scope_exclusions":["D4014","CA","slopes","model comparisons","simulations","physics-code changes","flight outcomes","new source searches/downloads"],
+  "independent_status":"Second extraction and independent geometry/convention review pending. Preserve all first-pass artifacts unchanged for later reconciliation.",
+  "release_status":"NOT_QUALIFIED_REFERENCE"
+}

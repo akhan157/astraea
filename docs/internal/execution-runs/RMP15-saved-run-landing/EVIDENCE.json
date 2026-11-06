@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP15",
+  "subpacket": "RMP15a saved-run landing availability / retained termination+energy",
+  "baseSha": "64596884a5a51cc2249b4ae11368d71b39903f21",
+  "sourceSha": "041a8fcd71964f9fa876bbab6a7bc132a4d6e22a",
+  "status": "bounded software correction accepted after REQUEST_CHANGES (evidence/lease)/records rework/ACCEPT; parent partial",
+  "sourceInventory": "SOURCE-INVENTORY.json author hashes 4 source/test + 4 read-only; no independent seal",
+  "lease": "released after source commit; one out-of-lease built-site smoke disclosed and retroactively narrowly extended in ASSIGNMENT",
+  "review": {
+    "initial": "REQUEST_CHANGES (out-of-lease smoke receipt; evidence gaps); no correctness defect",
+    "rereview": "ACCEPT, no material findings",
+    "boundary": "no-tools supplied-text reviews; no reviewer execution/hash"
+  },
+  "routing": {
+    "author": "anthropic/claude-opus-5-5 (omp takeover of pi session e89491d1)",
+    "reviewer": "explicit opencode-go/mimo-v2.6-pro / medium / no-tools"
+  },
+  "verification": {
+    "beforeFix": "3fail/14pass",
+    "focused": "17/17",
+    "affected": "63 files/717 tests",
+    "typeScript": "tsc-1 clean",
+    "build": "Vite build-1 pass, WASM b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b unchanged",
+    "browserSmoke": "one bounded author-attested built-site Saved runs comparison, both-nominal only"
+  },
+  "checks": [
+    {
+      "id": "RMP15-C01",
+      "status": "in_progress",
+      "observed": "saved flight cases retain landingEnergyJ and recorded terminationReason through write/read; absence stays absent",
+      "remaining": "trajectory/event retention, new provider/import/environment archives, export field comparison"
+    },
+    {
+      "id": "RMP10-C06",
+      "status": "in_progress",
+      "observed": "Saved runs landing values/deltas now follow the same landingAvailability rule as live Recovery/Flight",
+      "remaining": "RecoveryCard/Build/history-panel dictionary/export audit"
+    }
+  ],
+  "relatedEvidence": [
+    "../RMP10-recovery-readouts/EVIDENCE.json"
+  ],
+  "artifactAvailability": {
+    "portable": "assignment/result/review/source inventory/code/tests",
+    "externalLocalOnly": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp15-saved-run-landing/"
+  },
+  "nonClaims": [
+    "RMP15 or RMP10 check PASS",
+    "schema/physics/event/default/WASM change",
+    "nominal touchdown implies parachute success or approval",
+    "per-section/measured landing energy",
+    "browser journey/usability/native/team/release acceptance"
+  ],
+  "next": "RMP15 saved trajectory/event retention contract (schema 1.9 prospective) or RecoveryCard/Build dictionary audit; no push",
+  "artifactHashes": {
+    "portable": {
+      "ASSIGNMENT.md": "3e012d4eb87e9a749a9eaae231bdb325924372735ca8bbcd2711fa181fdd0a61",
+      "RESULT.md": "2a2c2ae2001be2fec898e6ccd89f57d1f2ec3037e5cb22fd6bd38b5ba10f54aa",
+      "REVIEW.md": "797196d0da9dd47a5efefe566830af07dcb4fcb92634402af2ee5518493a9f4f",
+      "SOURCE-INVENTORY.json": "e8bcfe229eb4dbdbf5bc4b1db63dd768f517466c100dc64e6744d17eb6f6486b",
+      "RAW-ARTIFACTS.json": "cf716da3f2cd597757f52716d83df7ab84b69aae8d6b044391107a886cc09fb3"
+    },
+    "scope": "author-hashed integrity/availability, not scientific approval"
+  }
+}

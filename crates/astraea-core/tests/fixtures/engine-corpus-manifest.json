@@ -1,0 +1,208 @@
+{
+  "generator": "scripts/export-engine-corpus-manifest.mjs (research repo)",
+  "source": "RASAero II engine aero sweep captured by reverse/native/Probe.cs (aero/runtesttable modes)",
+  "note": "Engine-derived data. Hashes and commands only; no points.csv or trajectory ships in the product repo.",
+  "totalRows": 36936,
+  "designs": [
+    {
+      "slug": "aeropac104kstageone-two-2",
+      "rows": 1296,
+      "sha256": "fb9d2826e6b403b588afdab56d264501d774b066175b4aced85f34db9e34356e"
+    },
+    {
+      "slug": "arcas-long",
+      "rows": 648,
+      "sha256": "c9959be77798a1af52e762a04b1ca128eb6f04886bd8cd82a7232d75c2b8c8c0"
+    },
+    {
+      "slug": "arcas-short",
+      "rows": 648,
+      "sha256": "b104f890e4ca9eadfc91ee5339774da42042e9066612c0cc16ee43ac58aabea9"
+    },
+    {
+      "slug": "blister",
+      "rows": 1296,
+      "sha256": "9c627812c0e1957b90c2041ff860f3e58b7f01a1692257a8c4e40d0ad2abca9c"
+    },
+    {
+      "slug": "byrum",
+      "rows": 648,
+      "sha256": "27d2ac670dde8d71dbe59760b2ce97904c7e8b33b25876a59c3560af1b8a40b2"
+    },
+    {
+      "slug": "calisp1",
+      "rows": 1296,
+      "sha256": "a1e3db4940d9ce952e0d1b57d08e1284531401b3f64b7d176e1ec7c09514803a"
+    },
+    {
+      "slug": "calisp2",
+      "rows": 1296,
+      "sha256": "a1e3db4940d9ce952e0d1b57d08e1284531401b3f64b7d176e1ec7c09514803a"
+    },
+    {
+      "slug": "calisp3",
+      "rows": 1296,
+      "sha256": "a1e3db4940d9ce952e0d1b57d08e1284531401b3f64b7d176e1ec7c09514803a"
+    },
+    {
+      "slug": "calisp4",
+      "rows": 1296,
+      "sha256": "a1e3db4940d9ce952e0d1b57d08e1284531401b3f64b7d176e1ec7c09514803a"
+    },
+    {
+      "slug": "calisp5",
+      "rows": 1296,
+      "sha256": "a1e3db4940d9ce952e0d1b57d08e1284531401b3f64b7d176e1ec7c09514803a"
+    },
+    {
+      "slug": "cancerdescending",
+      "rows": 648,
+      "sha256": "25198db624ffa4111ca10c05d25fe1a7c9b87e0653518c414712dd6e2805fed5"
+    },
+    {
+      "slug": "dontdebatethisn5800mindia",
+      "rows": 1296,
+      "sha256": "56068ea9e5d72b49b776370662572fd49854603451fc595de06b41100e682bba"
+    },
+    {
+      "slug": "ezi65-1",
+      "rows": 648,
+      "sha256": "28c0f48f286ed9f4ffc5c9d97a7d359df699d01ab22ae1dfbcce4a5e58b283b6"
+    },
+    {
+      "slug": "full-metal-jacket1",
+      "rows": 1296,
+      "sha256": "471c53ac56843de73ee2251f8645f871824cd3199375e82fc755264b3b952819"
+    },
+    {
+      "slug": "full-metal-jacket2",
+      "rows": 1296,
+      "sha256": "0c4160b0cd47d18ac8113b631e998dbbba58622903cad4d4c614d6e9457b55cb"
+    },
+    {
+      "slug": "gibb",
+      "rows": 648,
+      "sha256": "a9bb4351b110014aa4a8820b89576bd90eef14bb2a31fcbbd27310eb2d56829b"
+    },
+    {
+      "slug": "iondrive",
+      "rows": 648,
+      "sha256": "581b2cedf20f0c2296c41f8a412340a797118477d470079496e695684662d0d0"
+    },
+    {
+      "slug": "kinsel-p4935-a-601-rocket",
+      "rows": 1296,
+      "sha256": "959e7e1040424e91883fe457712c0854ccaa1a1f62e664e54729f4d0c66a09f8"
+    },
+    {
+      "slug": "l500roc",
+      "rows": 1296,
+      "sha256": "c08013bb11aeefd55650a42f1804887418e4efd0b8649c986751901aa2902abd"
+    },
+    {
+      "slug": "proteus6",
+      "rows": 1296,
+      "sha256": "8c5abbca6a45aa4c36321940eab318824eec8eda65222c28d01d5bea88df891b"
+    },
+    {
+      "slug": "qu8k",
+      "rows": 1296,
+      "sha256": "765cb2f19b6d46b1b875868ba6ebf2a64299dd3a5d013699b538e11a0ed3b90b"
+    },
+    {
+      "slug": "rabia",
+      "rows": 1296,
+      "sha256": "367f9ea82df799ef02bbc65ae8814c082e7ec1d1a2cd762af0f719c5ea43d420"
+    },
+    {
+      "slug": "rabia-shortfincan",
+      "rows": 1296,
+      "sha256": "4db1a18684eea3ac863f347f177dd3be7ee95b4d2480fb27e1309fca79e1e64d"
+    },
+    {
+      "slug": "raven",
+      "rows": 648,
+      "sha256": "6ff9699013070c67df2c387c614981fad732f04dd88245183da084a01e1e57f5"
+    },
+    {
+      "slug": "thunder-lightning",
+      "rows": 648,
+      "sha256": "0186a76b017a40f33f5e436d60f9fc22dd78f1d91c2b543293ac5d6e456f4b73"
+    },
+    {
+      "slug": "torrent",
+      "rows": 1296,
+      "sha256": "22c06dbbf97357e0205a8175225310de63466e24a41cb745c88d882ad86bb794"
+    },
+    {
+      "slug": "w20-elliptical",
+      "rows": 648,
+      "sha256": "2881ba40b3a28dcf280ef06f6d20d5111fd7801dd16371a0cc000fc3680e35de"
+    },
+    {
+      "slug": "w20-fin-biconvex",
+      "rows": 648,
+      "sha256": "3283f074868258167eae06d65ee9aa0acfbec3d47a4df41cd77033abd27391fd"
+    },
+    {
+      "slug": "w20-fin-double-wedge",
+      "rows": 648,
+      "sha256": "5d955f9bcf93a4200462b38a9dc93dc410ec73a93f95d3df74e58bd58abef8e3"
+    },
+    {
+      "slug": "w20-fin-hexagonal-blunt",
+      "rows": 648,
+      "sha256": "da982dce587e7d29866c6c8056dca62a578bcc70ded75089fa8832175a546104"
+    },
+    {
+      "slug": "w20-fin-single-wedge",
+      "rows": 648,
+      "sha256": "215b0bffeb4753049f60f0ba9442ceeba4709dcc70f79235a0e5bfa799253f8f"
+    },
+    {
+      "slug": "w20-fin-subsonic-naca",
+      "rows": 648,
+      "sha256": "10d9e1f567040ae32fe4c7062aac4c13a14272ae2813440931fcce38f67861c2"
+    },
+    {
+      "slug": "w20-lvhaack",
+      "rows": 648,
+      "sha256": "bd278734b123de3f6fb8ba749a93c14042cd668c71ead4a111d4de9dec34728a"
+    },
+    {
+      "slug": "w20-parabolic",
+      "rows": 648,
+      "sha256": "277385a6642dd02b93a2cfb852420d6347ec687f85f30b3c80f782657d3ac67c"
+    },
+    {
+      "slug": "w20-powerlaw-0p5",
+      "rows": 648,
+      "sha256": "23a41a3117b712ae7ce9a80ee06b09e97753d432d96a017e799d9009df106643"
+    },
+    {
+      "slug": "w20-powerlaw-0p75",
+      "rows": 648,
+      "sha256": "1c4152d8d9167f97887d5bcc094c691f3e06d559b7c5ba4c3f94410def40eee9"
+    },
+    {
+      "slug": "w20-powerlaw-1p0",
+      "rows": 648,
+      "sha256": "948c500e4e6df4cbea009fdf9420ce7dc331ff1fecaf8d393a4975ebd37bf03b"
+    },
+    {
+      "slug": "w20-steep-boattail",
+      "rows": 648,
+      "sha256": "d2a63d5999d7210672086e595c1779aafdfd5645eac8aea3ed06abc0bd213679"
+    },
+    {
+      "slug": "w20-transition-expanding",
+      "rows": 648,
+      "sha256": "f16e10ae343eab8c1ab1736b5511768bd15410b0ac234052c2e5ee661b141e2a"
+    },
+    {
+      "slug": "w20-transition-reducing",
+      "rows": 648,
+      "sha256": "453fbda73eccf89ba366ea665c98125df35d551899e89bafb60d23208f55c453"
+    }
+  ]
+}

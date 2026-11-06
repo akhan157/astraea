@@ -1,0 +1,12 @@
+{
+  "method": "test-only launch with WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS='--remote-debugging-port=9222 --remote-allow-origins=*'; the guest-local DevTools port was tunnelled over the existing SSH connection; CDP Runtime.evaluate in the live page",
+  "target": "http://tauri.localhost/app/index.html (the installed app's webview)",
+  "steps": [
+    {"action": "canvas.getContext('webgl2').getExtension('WEBGL_lose_context').loseContext()", "result": "lost-requested"},
+    {"action": "read [data-webgl-fallback] text", "result": "3D viewport unavailable — editing preserved / No WebGL context is available. The parts tree, every inspector field, the metrics and the exports keep working ..."},
+    {"action": "click the Restore viewport button inside the fallback", "result": "clicked"},
+    {"action": "after 2 s: [data-webgl-fallback] and canvas presence", "result": {"fallback": "absent", "canvas": "present"}}
+  ],
+  "screenshots": ["screen-w32.jpg (fallback with live tree and metrics)", "screen-w33.jpg (restored 3D viewport)"],
+  "notes": "the debug port existed only for this exercise; the app was relaunched without it afterwards"
+}

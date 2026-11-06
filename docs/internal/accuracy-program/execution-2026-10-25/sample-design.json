@@ -1,0 +1,38 @@
+{
+  "status": "illustrative proposal; not frozen or approved acceptance criteria",
+  "assumptions": [
+    "Independent exchangeable Bernoulli units; repeated flights on one vehicle/source are not automatically independent",
+    "One selected binary decision/coverage criterion, no multiple-output or multiple-regime correction",
+    "Thresholds p0=.8,p1=.9,alpha=.05,power=.8 chosen only to illustrate effort, not asserted suitable for primary simulation",
+    "Real design must allocate strata, cluster effects, useful interval width and measurement uncertainty before outcome exposure"
+  ],
+  "all_pass_bounds": [
+    {
+      "independent_units": 6,
+      "successes": 6,
+      "one_sided_95pct_lower": 0.6069622310029172
+    },
+    {
+      "independent_units": 14,
+      "successes": 14,
+      "one_sided_95pct_lower": 0.8073638243498646
+    },
+    {
+      "independent_units": 29,
+      "successes": 29,
+      "one_sided_95pct_lower": 0.9018553723227043
+    },
+    {
+      "independent_units": 59,
+      "successes": 59,
+      "one_sided_95pct_lower": 0.950492390111773
+    }
+  ],
+  "minimum_fixed_design_example": {
+    "n": 82,
+    "minimum_successes": 72,
+    "false_positive_at_p0": 0.04584810111222099,
+    "power_at_p1": 0.8057063959899097
+  },
+  "primary_method_source": "https://itl.nist.gov/div898/software/dataplot/refman2/auxillar/exacbici.htm"
+}

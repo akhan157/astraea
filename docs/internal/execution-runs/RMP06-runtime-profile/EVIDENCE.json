@@ -1,0 +1,248 @@
+{
+  "lane": "rmp06-runtime-profile",
+  "status": "implementation-complete-awaiting-coordinator-review",
+  "authorSelfAccepted": false,
+  "registerManifestTasksHandoffEdited": false,
+  "base": {
+    "acceptedIntegrationPin": "24fc8dcb85848078a0c68ea75ba0b804832fda58",
+    "branch": "rmp06-runtime-profile",
+    "worktree": "/home/ak/.paseo/worktrees/3s8t98rp/rmp06-runtime-profile"
+  },
+  "commits": [
+    {
+      "sha": "1fa2630",
+      "title": "Sample the reference Mach from the reference stage in candidate curves",
+      "scope": "C1 reference-Mach identity sampling"
+    },
+    {
+      "sha": "8f07b6c",
+      "title": "Report static-curve applicability as data and validate curve grids first",
+      "scope": "C2 curves applicability + grid ordering + report 3.0.0 union"
+    },
+    {
+      "sha": "ac05caa",
+      "title": "Bound candidate sample collection and the reported sample subset",
+      "scope": "C3 retention"
+    },
+    {
+      "sha": "d1fb283",
+      "title": "Dispatch the explicit E1 profile envelope on native and wasm32",
+      "scope": "C4 profile dispatch + cfg removal"
+    },
+    {
+      "sha": "02a8a83",
+      "title": "Classify the sample-collection cap refusal as a declared resource limit",
+      "scope": "C5 resource classification before evidence"
+    }
+  ],
+  "contracts": {
+    "command": "simulate_candidate (single command, tagged union on request.schemaId)",
+    "envelopes": {
+      "untagged": "simulate-candidate-runtime-request/1.0.0 (absent schemaId; prior runtime shape)",
+      "profile": "native-E1-profile-candidate-request/1.0.0 (string kept verbatim: inside the hashed identity preimage)"
+    },
+    "reports": {
+      "candidate": "astraea-native-candidate-report/3.0.0",
+      "profile": "astraea-native-profile-candidate-report/3.0.0",
+      "result": "astraea-bounded-candidate-result/1.0.0 (unchanged)"
+    },
+    "newPolicies": {
+      "curveApplicability": "candidate-curve-applicability/1.0.0",
+      "curveNotApplicableCanopyLive": "airframe-curves-not-applicable-canopy-live/1.0.0",
+      "curveNotApplicableNoFlowDirection": "no-flow-direction-at-zero-airspeed/1.0.0",
+      "collectionCap": "candidate-committed-sample-collection-cap/1.0.0",
+      "reportSubset": "candidate-archive-display-samples/1.0.0 (reuses the accepted app constant)",
+      "researchRetentionControl": "candidate-native-sample-retention/1.0.0"
+    },
+    "approvedConstants": {
+      "collectedSampleCap": 50000,
+      "reportSampleCap": 5000,
+      "maxCurveMachs": 1024,
+      "researchHardCeiling": 250000
+    },
+    "identity": {
+      "identitiesOrActivePoliciesChanged": false,
+      "contentIdentityUnchangedForRetainedFixtures": true
+    }
+  },
+  "failingBefore": {
+    "environment": "engine source at 24fc8dc (unmodified), probes built from that tree; raw outputs in the external evidence directory",
+    "referenceMachCurveMismatch": {
+      "fixture": "crates/astraea-engine/tests/fixtures/native-candidate-request.json with horizonSeconds 1.6 (committed as native-candidate-request-incidence-16.json by C1)",
+      "command": "target/debug/examples/candidate_command /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-runtime-profile/before/incidence16.json",
+      "observed": "curveMatchesReferenceSample=false, queryMatchesReferenceSample=true, referenceMach=0.06754335170208796, alpha=-0.26670266147452665 deg, datum coefficient bit indices [2,3] and CG index [2] differ",
+      "afterC1": "curveMatchesReferenceSample=true, queryMatchesReferenceSample=true, zero differing bits, only the reference-Mach curve point changed; every other point byte-identical; contentIdentity identical",
+      "note": "The reviewer suggested a wind-bearing fixture. Nonzero retained wind is refused at t=0 by the candidate forward-flow support check (see windRefusedAtLaunch), so the generic nonzero-incidence in-plane state at 1.6 s is the strongest available non-vacuous case."
+    },
+    "windRefusedAtLaunch": {
+      "command": "candidate_command before/wind.json (base fixture, environment.windSpeedSurfaceMps=3)",
+      "observed": "native candidate bounded run failed: [candidate-static-rate-composition/1.0.0] candidate requires forward flow and incidence <= 5 degrees at t=0 s (committed-macro-sample; speculative=false)"
+    },
+    "curveSeamDiscardAndGridOrder": {
+      "command": "throwaway /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-runtime-profile/probe-core (path dependency on the lane core crate)",
+      "beforeAt24fc8dc": [
+        "control-airframe-valid-grid: OK points=1 first_mach=Some(0.1)",
+        "canopy-live-valid-grid: ERR kind=UnsupportedDomain reason=airframe static curves are not applicable while a declared canopy is live; no fallback",
+        "canopy-live-invalid-grid-0.9: ERR kind=UnsupportedDomain reason=airframe static curves are not applicable while a declared canopy is live; no fallback",
+        "canopy-live-nonfinite-grid: ERR kind=UnsupportedDomain reason=airframe static curves are not applicable while a declared canopy is live; no fallback",
+        "airframe-invalid-grid-0.9: ERR kind=UnsupportedDomain reason=candidate requires 0 <= Mach < 0.8; curve sample 0.9 is outside support",
+        "zero-airspeed-valid-grid: ERR kind=UnsupportedDomain reason=curve sampling requires a nonzero reference air-relative velocity direction; zero speed has no flow direction",
+        "main-live-valid-grid: ERR kind=UnsupportedDomain reason=airframe static curves are not applicable while a declared canopy is live; no fallback"
+      ],
+      "afterC2": [
+        "control-airframe-valid-grid: OK points=1 first_mach=Some(0.1)",
+        "canopy-live-valid-grid: ERR kind=UnsupportedDomain reason=airframe static curves are not applicable while a declared canopy is live; no fallback",
+        "canopy-live-invalid-grid-0.9: ERR kind=UnsupportedDomain reason=candidate requires 0 <= Mach < 0.8; curve sample 0.9 is outside support",
+        "canopy-live-nonfinite-grid: ERR kind=InvalidInput reason=curve Mach sample NaN must be finite and nonnegative",
+        "airframe-invalid-grid-0.9: ERR kind=UnsupportedDomain reason=candidate requires 0 <= Mach < 0.8; curve sample 0.9 is outside support",
+        "zero-airspeed-valid-grid: ERR kind=UnsupportedDomain reason=curve sampling requires a nonzero reference air-relative velocity direction; zero speed has no flow direction",
+        "main-live-valid-grid: ERR kind=UnsupportedDomain reason=airframe static curves are not applicable while a declared canopy is live; no fallback"
+      ],
+      "interpretation": "Before: applicability was decided before the grid, so an invalid grid at a canopy-live reference returned the canopy error. After: the grid error wins. curves() keeps its accepted meaning: both not-applicable states still return the same Err text."
+    },
+    "canopyTouchdownUnreachable": {
+      "attempts": [
+        "rail 1.0 m, main 10 m AGL, horizon 60 s: native candidate bounded run failed: [candidate-static-rate-composition/1.0.0] candidate requires forward flow and incidence <= 5 degrees at t=3.240999999999975 s (adaptive-endpoint-stage; speculative=true)",
+        "rail 3.0 m, main 10 m AGL, horizon 30 s: same refusal at t=3.2539999999999747 s",
+        "larger fin set (span 0.16 m, root 0.30 m), rail 4 m: same refusal class",
+        "timeStep 1e-3 and 5e-4: same refusal at the same physical state"
+      ],
+      "priorAcceptedFinding": "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json: \"a candidate touchdown trajectory is unreachable under SB1 forward-flow support; touchdown mapping is a labeled schema test, not a flown candidate run\"",
+      "consequence": "A flown canopy-live reference state cannot be produced today. The report-level not-applicable path is therefore proven at the exact production seam with a real committed sample whose flags are set, plus a real exactly-zero-airspeed first committed sample; the trajectory/query survive and no substitute airframe state is sampled."
+    }
+  },
+  "checks": {
+    "coreLib": {
+      "command": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 cargo test --offline --manifest-path crates/astraea-core/Cargo.toml --lib",
+      "result": "227 passed, 0 failed",
+      "newTests": [
+        "flight_provider::tests::reference_mach_curve_point_reproduces_the_reference_composition_bits",
+        "flight_provider::tests::canopy_live_and_zero_airspeed_references_are_not_applicable_not_errors",
+        "flight_provider::tests::curve_grid_and_state_validation_precede_applicability",
+        "flight_provider::tests::collection_cap_refuses_with_the_policy_and_limit_instead_of_growing"
+      ]
+    },
+    "engineAllTargets": {
+      "command": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 cargo test --offline --manifest-path crates/astraea-engine/Cargo.toml --all-targets",
+      "result": "110 passed across 23 targets, 0 failed (includes new engine/unit tests listed below)"
+    },
+    "engineNewTests": [
+      "tests/native_candidate.rs::reference_mach_curve_point_matches_the_query_at_nonzero_incidence",
+      "tests/profile_candidate.rs::profile_reference_mach_curve_point_is_exact_with_cross_wind",
+      "tests/profile_candidate.rs::candidate_command_accepts_exactly_the_profile_envelope",
+      "src/native_candidate.rs::tests::wrench_bitwise_comparison_refuses_a_single_flipped_bit",
+      "src/native_candidate.rs::tests::curves_report_reports_an_inapplicable_reference_as_data",
+      "src/native_candidate.rs::tests::report_retention_keeps_mandatory_context_and_full_prefix_peaks",
+      "src/native_candidate.rs::tests::dispatch_never_offers_the_research_retention_control",
+      "src/native_candidate.rs::tests::collection_cap_surfaces_as_a_named_resource_limit"
+    ],
+    "untaggedDiffEnumeration": {
+      "command": "python3 /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-runtime-profile/enumerate_diff.py before/sum-plain.r1.json final/report-plain.r1.json",
+      "result": {
+        "declaredRows": {
+          "row1 report version": ["/schemaId"],
+          "row2 curves applicability union": ["/curves/notApplicable", "/curves/policyId", "/curves/status"],
+          "row3 equivalence comparison object": ["/equivalence/curveComparison", "/equivalence/curveMatchesReferenceSample"],
+          "row4 declared retention metadata": ["/trajectory/retention"],
+          "row5 envelope id metadata": ["/commands/envelopeSchemaId"],
+          "row6 output policy text": ["/commands/outputPolicy"]
+        },
+        "undeclaredDifferenceCount": 0,
+        "samplesIdentical": true,
+        "contentIdentityIdentical": true,
+        "sampleCountBefore": 201,
+        "sampleCountAfter": 201
+      },
+      "note": "For this 2.0 s fixture the reference-Mach coefficient row is empty because that sample was already bit-equal; the row is evidenced on the 1.6 s fixture (see failingBefore.referenceMachCurveMismatch)."
+    },
+    "legacyPreservation": {
+      "command": "target/debug/examples/legacy_flight_snapshot docs/internal/execution-runs/RMP12-candidate-controls/LEGACY-INPUT.json",
+      "beforeSha256": "1c1e0f4129db92948613b303592a9a91ca8f86a758705461b98f2cfd9c352353",
+      "afterSha256": "1c1e0f4129db92948613b303592a9a91ca8f86a758705461b98f2cfd9c352353",
+      "result": "byte-identical, two runs each"
+    },
+    "determinism": {
+      "plain": "identical bytes across two runs",
+      "incidence16": "identical bytes across two runs",
+      "profile": "identical bytes across two runs",
+      "profile-wind": "identical bytes across two runs",
+      "legacy": "identical bytes across two runs"
+    },
+    "wasmBuild": {
+      "command": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 cargo build --release --offline --locked --target wasm32-unknown-unknown --manifest-path crates/astraea-engine/Cargo.toml",
+      "flagsNote": "same cargo flags as scripts/build-engine.mjs; the copy into src/engine was deliberately not performed (read-only app surface)",
+      "targetDirectory": "crates/astraea-engine/target (crate-local; CARGO_TARGET_DIR unset)",
+      "toolchain": {"cargo": "cargo 1.99.1 (5f94df478 2026-08-27)", "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)", "target": "wasm32-unknown-unknown"},
+      "artifact": {
+        "path": "crates/astraea-engine/target/wasm32-unknown-unknown/release/astraea_engine.wasm",
+        "bytes": 1876901,
+        "sha256": "0007768851f2e18da753ec5ec24af11022fdbb6d65f6cab23130f98ddd6705a3"
+      },
+      "rootDependence": "not claimed; only these bytes/this root are recorded",
+      "appAssetUntouched": {
+        "path": "src/engine/astraea_engine.wasm",
+        "bytes": 1827128,
+        "sha256": "13da44d5a70af2bd4e8feee082f49277a4ce92e07fed97743d4d3aedf0022328"
+      }
+    },
+    "nativeWasmParity": {
+      "method": "throwaway Node host instantiating the built bytes and calling engine_alloc/engine_call/engine_reply_ptr/engine_reply_len; native reply from the same dispatch_json entry point (examples/candidate_command). Request bytes identical per case (hashed).",
+      "invokedBuffer": "the instantiated bytes are the artifact above (hash recorded per case in final/wasm-*.meta.json)",
+      "cases": {
+        "plain": {"numericDifferences": 813, "maxRelativeDifference": 1.62e-12, "nonNumericDifferences": 0},
+        "incidence16": {"numericDifferences": 584, "maxRelativeDifference": 3.54e-13, "nonNumericDifferences": 0},
+        "profile": {"numericDifferences": 1963, "maxRelativeDifference": 1.39e-12, "nonNumericDifferences": 0},
+        "profile-wind": {"numericDifferences": 2683, "maxRelativeDifference": 3.26e-11, "nonNumericDifferences": 0},
+        "unknown-schema": {"byteIdentical": true, "bytes": 200},
+        "missing-candidate": {"byteIdentical": true, "bytes": 72},
+        "wind-error": {"byteIdentical": true, "bytes": 202},
+        "controls-refused": {"byteIdentical": true, "bytes": 123},
+        "retention-refused": {"byteIdentical": true, "bytes": 127}
+      },
+      "interpretation": "Every error reply and every non-numeric report value (schema ids, identities, statuses, flags, counts, strings) is byte-identical between native and the built wasm32 artifact. Success replies differ only in platform libm last bits; the maximum relative difference is 3.26e-11 (on a near-zero aero moment of 3.6e-7 N m), inside the standing 1e-9 native/WASM precision. This is pre-existing: the untouched legacy command differs between native and wasm on the same host (burnoutAltitude 107.8003368374231 vs 107.80033683742307, plus three near-zero telemetry values). No float-rounding policy was introduced."
+    },
+    "serializedSampleSize": {
+      "measurement": "mean 2913.6 bytes per committed sample JSON, min 2422, max 2977 (201-sample fixture report)",
+      "consequence": "a 6000-sample report would be about 17.5 MB and a 30000-sample app-default report about 87 MB; the declared subset caps the report near 14.6 MB and the collector cap bounds owned samples"
+    }
+  },
+  "amendmentDispositions": {
+    "1_untaggedPathParity": "PASS - enumerated, six declared rows, zero undeclared differences, samples and contentIdentity identical.",
+    "2_resourceRefusalShape": "PASS - policy id and limit in the message, resource_limit classification (no evaluation record, no domain/phase label). The app receives {\"error\":\"native candidate resource limit: [candidate-committed-sample-collection-cap/1.0.0] committed macro samples would exceed 50000; increase timeStep or shorten the horizon\"} and no report.",
+    "3_researchUnreachable": "PASS - dispatch refuses sampleRetention before typed parsing at request.* and request.candidate.* (object, null and nested shapes tested), plus a test that a valid helper control is accepted and the 250001 ceiling refused.",
+    "4_naCompleteness": "PASS - status/policyId/reasonId/context, points null, requestedMachs equal to the request grid, referenceMachAddedForEquivalence false, curveComparison.reasonId equal to the not-applicable reasonId, and a limitations entry naming the reason.",
+    "5_profileIdentityProof": "PASS - profile-candidate-request-wind.json has zero wind at the launch altitude and a declared cross wind aloft: incidence 0.2732 deg, beta -0.0320 deg, identity point bit-equal to the query.",
+    "6_noEqualityRelaxation": "PASS - wrenches_bitwise_equal/bits_equal/wrench_near unchanged, no epsilon added; a flipped-bit mutation test makes the comparison false.",
+    "7_legacyExposureRecorded": "PASS - legacy display telemetry untouched and recorded as a residual with a reopening trigger (see residuals).",
+    "8_versionHonesty": "PASS - reports 3.0.0, old 2.0.0 reports and 1.0.0 archives untouched and not re-tagged; new values are not retro-applied."
+  },
+  "residuals": [
+    {
+      "id": "legacy-telemetry-unbounded-internally",
+      "detail": "six_dof.rs record_telemetry collects one display point per macro step before rail exit and after apogee (and every fifth step otherwise) with no internal cap; bounded only by MAX_MACRO_ITERATIONS=5e6 and then decimated to MAX_TELEMETRY_POINTS for the wire in models.rs. The candidate path sets record_telemetry=false, so simulate_candidate cannot reach it.",
+      "whyNotFixed": "capping it would change accepted legacy output",
+      "reopeningTrigger": "a separately reviewed legacy reporting migration"
+    },
+    {
+      "id": "canopy-live-reference-unreachable",
+      "detail": "no supported candidate trajectory reaches apogee/touchdown (accepted RMP01 finding, re-probed here), so the not-applicable curves branch is exercised at the report seam rather than by a flown run",
+      "reopeningTrigger": "a reviewed recovery-phase support composition that makes a canopy-live committed state reachable"
+    },
+    {
+      "id": "no-float-roundtrip-parser",
+      "detail": "this serde_json build has no float_roundtrip feature, so re-parsing a 17-digit decimal can move a value by one ULP; whole-report text round trips are therefore not an equality proof",
+      "reopeningTrigger": "a reviewed decision to enable float_roundtrip or to compare serialized strings only"
+    },
+    {
+      "id": "app-migration-pending",
+      "detail": "report 3.0.0, archive 2.0.0, N/A presentation, retention metadata and the profile envelope are not consumed by src/** in this lane",
+      "reopeningTrigger": "the coordinator's sequential app cutover"
+    }
+  ],
+  "notDone": [
+    "no src/**, scripts/**, manifest, lock, docs/internal/execution-package/** or coordination-doc edit",
+    "no app build, no browser run, no pnpm command",
+    "no 5M-sample or OOM probe",
+    "no owner-level model/dt/tolerance/horizon/support/budget change"
+  ]
+}

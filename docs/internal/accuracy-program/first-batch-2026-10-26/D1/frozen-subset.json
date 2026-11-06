@@ -1,0 +1,263 @@
+{
+  "record_version": "0.1",
+  "base_commit": "00e768b",
+  "freeze_scope": "small source subset fixed before model residual inspection; versioned draft until independent geometry/convention review",
+  "sources": [
+    {
+      "id": "19670020050",
+      "url": "https://ntrs.nasa.gov/api/citations/19670020050/downloads/19670020050.pdf",
+      "retained_pdf_path": "/tmp/astraea-data-path/19670020050.pdf",
+      "pdf_sha256": "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a",
+      "pdf_bytes": 2606973,
+      "download_this_task": false,
+      "rights": "NASA catalog: public US-government material; source attribution retained",
+      "selected_pdf_pages_1based": [
+        6,
+        11,
+        12,
+        23,
+        24,
+        27,
+        62
+      ]
+    },
+    {
+      "id": "19670020031",
+      "url": "https://ntrs.nasa.gov/api/citations/19670020031/downloads/19670020031.pdf",
+      "retained_pdf_path": "/tmp/astraea-data-path/19670020031.pdf",
+      "pdf_sha256": "d698b06798ad806a4fd6463f02f4c9e2624cd944d7a7902f2c015dbb5a351064",
+      "pdf_bytes": 12458544,
+      "download_this_task": false,
+      "rights": "NASA catalog: public US-government material; source attribution retained",
+      "selected_pdf_pages_1based": [
+        6,
+        10,
+        28,
+        29,
+        30
+      ]
+    }
+  ],
+  "selection": "short model/configuration1; fins on; zero cant; signed nearzero alpha for paired CN/Cm; alpha0 axial quantities",
+  "series": [
+    {
+      "id": "d4013-cn-m1p20",
+      "source": "19670020050",
+      "figure": "7b",
+      "pdf_page_1based": 24,
+      "printed_page": 22,
+      "quantity": "CN",
+      "mach": 1.2,
+      "marker": "square",
+      "roll_deg": 0,
+      "fin_cant_deg": 0,
+      "alpha_targets_deg": [
+        -2,
+        0,
+        2
+      ],
+      "status": "first extraction performed"
+    },
+    {
+      "id": "d4013-cm-m1p20",
+      "source": "19670020050",
+      "figure": "7c",
+      "pdf_page_1based": 27,
+      "printed_page": 25,
+      "quantity": "Cm",
+      "mach": 1.2,
+      "marker": "square",
+      "roll_deg": 0,
+      "fin_cant_deg": 0,
+      "alpha_targets_deg": [
+        -2,
+        0,
+        2
+      ],
+      "status": "first extraction performed"
+    },
+    {
+      "id": "d4013-ca-raw-m1p20",
+      "source": "19670020050",
+      "figure": "7a",
+      "pdf_page_1based": 23,
+      "printed_page": 21,
+      "quantity": "CA_raw",
+      "mach": 1.2,
+      "marker": "square",
+      "roll_deg": 0,
+      "fin_cant_deg": 0,
+      "alpha_targets_deg": [
+        0
+      ],
+      "base_convention": "uncorrected measured CA; separate summary correction",
+      "status": "frozen_pending_extraction"
+    },
+    {
+      "id": "d4013-cacorr-m1p20",
+      "source": "19670020050",
+      "figure": "11 middle",
+      "pdf_page_1based": 62,
+      "printed_page": 60,
+      "quantity": "CA_corr",
+      "mach": 1.2,
+      "marker": "solid zero-cant line",
+      "roll_deg": 0,
+      "fin_cant_deg": 0,
+      "alpha_targets_deg": [
+        0
+      ],
+      "base_convention": "summary axial force corrected to free-stream base conditions; line reading, not a plotted raw marker",
+      "status": "frozen_pending_extraction"
+    },
+    {
+      "id": "d4013-cabase-m1p20",
+      "source": "19670020050",
+      "figure": "11 bottom",
+      "pdf_page_1based": 62,
+      "printed_page": 60,
+      "quantity": "CA_b",
+      "mach": 1.2,
+      "marker": "solid zero-cant line",
+      "roll_deg": 0,
+      "fin_cant_deg": 0,
+      "alpha_targets_deg": [
+        0
+      ],
+      "base_convention": "reported base axial contribution; derive subtraction sign from definitions before combining",
+      "status": "frozen_pending_extraction"
+    },
+    {
+      "id": "d4014-ca_raw-m1p50",
+      "source": "19670020031",
+      "figure": "5b",
+      "pdf_page_1based": 28,
+      "printed_page": 26,
+      "quantity": "CA_raw",
+      "mach": 1.5,
+      "marker": "open circle",
+      "configuration": "1 short, fins on, zero cant",
+      "fin_cant_deg": 0,
+      "roll_deg": null,
+      "roll_convention": "pitch-test orientation per report geometry/photos; numeric mapping to Astraea roll requires independent review, not silently assumed",
+      "alpha_targets_deg": [
+        0
+      ],
+      "base_convention": "raw axial uncorrected to free-stream base; CN/Cm do not use CA correction",
+      "status": "frozen_pending_extraction"
+    },
+    {
+      "id": "d4014-cm-m1p50",
+      "source": "19670020031",
+      "figure": "5b",
+      "pdf_page_1based": 29,
+      "printed_page": 27,
+      "quantity": "Cm",
+      "mach": 1.5,
+      "marker": "open circle",
+      "configuration": "1 short, fins on, zero cant",
+      "fin_cant_deg": 0,
+      "roll_deg": null,
+      "roll_convention": "pitch-test orientation per report geometry/photos; numeric mapping to Astraea roll requires independent review, not silently assumed",
+      "alpha_targets_deg": [
+        -2,
+        0,
+        2
+      ],
+      "base_convention": "raw axial uncorrected to free-stream base; CN/Cm do not use CA correction",
+      "status": "frozen_pending_extraction"
+    },
+    {
+      "id": "d4014-cn-m1p50",
+      "source": "19670020031",
+      "figure": "5b",
+      "pdf_page_1based": 30,
+      "printed_page": 28,
+      "quantity": "CN",
+      "mach": 1.5,
+      "marker": "open circle",
+      "configuration": "1 short, fins on, zero cant",
+      "fin_cant_deg": 0,
+      "roll_deg": null,
+      "roll_convention": "pitch-test orientation per report geometry/photos; numeric mapping to Astraea roll requires independent review, not silently assumed",
+      "alpha_targets_deg": [
+        -2,
+        0,
+        2
+      ],
+      "base_convention": "raw axial uncorrected to free-stream base; CN/Cm do not use CA correction",
+      "status": "frozen_pending_extraction"
+    }
+  ],
+  "geometry_and_references": {
+    "status": "source drawings frozen; transcription below partial and unreviewed; not a completed exact representability certificate",
+    "coordinate_rule": "nose-to-tail positive axial distance in drawing; force/moment signs require report definitions audit",
+    "sources": {
+      "19670020050": {
+        "drawing_images": [
+          "19670020050-pdf-p11.png",
+          "19670020050-pdf-p12.png"
+        ],
+        "short_body_diameter_m_report_decimal": 0.0572,
+        "diameter_in_source": 2.25,
+        "length_over_d": 18.2,
+        "moment_station_over_d_drawing": 12.75,
+        "moment_fraction_length_text": 0.7,
+        "nose_length_over_d": 4.71,
+        "nose_ordinates": "fig1b lists x/d and diameter/d; preserve tabulated shape, finite tip and not generic tangent-ogive approximation",
+        "tail": "fig1b exact double-wedge fin/anchor/boattail/reflex lip with roll orientations; retain image dimensions until reviewed transcription",
+        "transition": "No120 carborundum .10in wide,1.25in aft nose and .5in aft fin LE; T0=322K",
+        "reference": "force/(qS), moment/(qSd); S=max body section",
+        "Re_per_foot": 3000000.0
+      },
+      "19670020031": {
+        "drawing_image": "19670020031-pdf-p10.png",
+        "diameter_in": 2.25,
+        "short_length_in": 40.95,
+        "short_moment_station_in": 25.95,
+        "moment_fraction_text": 0.6337,
+        "nose_length_in": 10.6,
+        "nose_tip_radius_in": 0.062,
+        "body_nose_ordinate_table": "fig1a x/r table; full transcription pending",
+        "fin_and_anchor": "fig1b includes root/tip geometry, double wedge and compound anchor; reflex lip detailA. Do not assume identical drawings/rounding to D4013.",
+        "transition": "No60 carborundum1/16in wide,.75in aft nose and .5in aft finLE",
+        "reference": "force/(qA), moment/(qAd); A=max body section",
+        "Re_per_foot": 3000000.0
+      }
+    },
+    "mandatory_geometry_fields": [
+      "body/nose ordinate table and tip radius",
+      "cylinder and boattail/lip profile",
+      "fin count, planform vertices, profile/thickness, LE/TE bevels, axial origin/cant",
+      "fin-anchor/protrusion geometry",
+      "sting/support geometry and pressure correction",
+      "transition/trip/surface treatment",
+      "source drawing units and rounding",
+      "length, area, moment origin, axes/force signs",
+      "representable exactly or documented mismatch/exclusion"
+    ],
+    "unresolved": "Independent geometry transcription and native representability decision required before component acceptance."
+  },
+  "source_uncertainty": {
+    "19670020050": {
+      "CA_bound": 0.004,
+      "CN_bound": 0.03,
+      "Cm_bound": 0.05,
+      "alpha_deg_bound": 0.1,
+      "roll_deg_bound": 0.5,
+      "Mach_bound": 0.003,
+      "source_location": "printed p4 / PDF6; calibration and repeatability limits; not stated confidence level",
+      "corrected_CA_warning": "CAcorr uncertainty must include base-pressure/correction effects; do not copy raw CA bound as complete corrected uncertainty"
+    },
+    "19670020031": {
+      "CA_bound": 0.004,
+      "CN_bound": 0.03,
+      "Cm_bound": 0.05,
+      "alpha_deg_bound": 0.1,
+      "Mach_bound_low_range": 0.015,
+      "source_location": "printed p5 / PDF7; calibration and repeatability limits",
+      "corrected_CA_warning": "raw CA uncorrected to free-stream base; chamber contribution fig4 if later selected"
+    }
+  },
+  "release_status": "not a qualified reference packet; no model comparison permitted under this first-pass deliverable"
+}

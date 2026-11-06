@@ -1,0 +1,131 @@
+name: macOS smoke
+
+# Scripted smoke of the packaged desktop app on GitHub-hosted macOS runners,
+# Apple Silicon and Intel. It builds the release .app from the commit, launches
+# the real bundle binary in smoke mode (ASTRAEA_SMOKE_OUT, src/desktop/smoke.ts)
+# and asserts the baseline flight it reports. It is NOT interactive macOS
+# acceptance (docs/internal/desktop-acceptance-checklist.md still needs a person on a Mac).
+#
+# macOS minutes bill at 10x on a private repository, so this never runs on
+# push or pull request: dispatch it by hand or push a release tag.
+#   gh workflow run macos-smoke.yml --ref <branch>
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_DIR: src-tauri/target/release/bundle/macos
+
+jobs:
+  smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-latest # Apple Silicon (arm64)
+            arch: arm64
+          - runner: macos-15-intel # Intel (x86_64), the last Intel image
+            arch: x64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
+        with:
+          persist-credentials: false
+      - run: echo "SMOKE_DIR=$RUNNER_TEMP/smoke" >> "$GITHUB_ENV"
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6, Node 24
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            src-tauri
+            crates/astraea-engine
+          key: ${{ matrix.arch }}
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build the .app bundle
+        # Only the .app (no dmg). Updater artifacts are signed with a release
+        # secret this job does not have, so they are switched off here.
+        run: |
+          start=$SECONDS
+          pnpm tauri build --bundles app --config '{"bundle":{"createUpdaterArtifacts":false}}'
+          echo "BUILD_SECONDS=$((SECONDS - start))" >> "$GITHUB_ENV"
+
+      - name: Launch the packaged app in smoke mode
+        run: |
+          mkdir -p "$SMOKE_DIR"
+          app=$(ls -d "$APP_DIR"/*.app | head -n 1)
+          exe=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")
+          echo "launching $app/Contents/MacOS/$exe ($(uname -m))"
+          start=$SECONDS
+          ASTRAEA_SMOKE_OUT="$SMOKE_DIR/report.json" "$app/Contents/MacOS/$exe" > "$SMOKE_DIR/app.log" 2>&1 &
+          pid=$!
+          # The app times its own startup flight out at 180 s and still reports.
+          while [ ! -s "$SMOKE_DIR/report.json" ] && kill -0 "$pid" 2>/dev/null && [ $((SECONDS - start)) -lt 240 ]; do
+            sleep 1
+          done
+          echo "LAUNCH_SECONDS=$((SECONDS - start))" >> "$GITHUB_ENV"
+          if [ -s "$SMOKE_DIR/report.json" ]; then
+            # The app keeps its window up for a few seconds after reporting.
+            screencapture -x "$SMOKE_DIR/window.png" || echo "screencapture failed (non-fatal)"
+            sips --resampleWidth 1280 "$SMOKE_DIR/window.png" > /dev/null 2>&1 || true
+          fi
+          for _ in $(seq 1 30); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+          if kill -0 "$pid" 2>/dev/null; then
+            echo "app did not exit after its report; killing it"
+            kill "$pid" || true
+            code=timeout
+          else
+            wait "$pid" && code=0 || code=$?
+          fi
+          echo "app exit code: $code"
+          tail -c 20000 "$SMOKE_DIR/app.log" > "$SMOKE_DIR/app.tail" && mv "$SMOKE_DIR/app.tail" "$SMOKE_DIR/app.log"
+          if [ ! -s "$SMOKE_DIR/report.json" ]; then
+            echo "::error::the app wrote no smoke report"
+            cat "$SMOKE_DIR/app.log"
+            exit 1
+          fi
+
+      - name: Assert the reported flight
+        run: |
+          version=$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")
+          {
+            echo "### macOS smoke (${{ matrix.runner }}, ${{ matrix.arch }})"
+            echo
+            echo "Scripted smoke of the packaged .app on a hosted runner, not interactive macOS acceptance."
+            echo
+            echo '```json'
+            node -e "const r=require('$SMOKE_DIR/report.json');console.log(JSON.stringify({apogeeM:r.apogeeM,maxMach:r.maxMach,railExitSpeedMps:r.railExitSpeedMps,terminationReason:r.terminationReason,engine:r.engine,webgl:r.webgl,appVersion:r.appVersion,elapsedMs:r.elapsedMs,buildSeconds:+process.env.BUILD_SECONDS,launchSeconds:+process.env.LAUNCH_SECONDS},null,2))"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          node scripts/macos-smoke-check.mjs "$SMOKE_DIR/report.json" "$version"
+
+      - name: Upload report, screenshot and app log
+        # Artifact storage quota has run out on this repository before; the
+        # assertions above decide the job result, never this upload.
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-smoke-${{ matrix.arch }}
+          path: |
+            ${{ runner.temp }}/smoke/report.json
+            ${{ runner.temp }}/smoke/window.png
+            ${{ runner.temp }}/smoke/app.log
+          retention-days: 3
+          if-no-files-found: ignore

@@ -1,0 +1,23 @@
+{
+  "reviewManifestSha256": "5d26776953735fcc371b40f9c8136b963b3c7f38185e7fe35515242daae972b5",
+  "review": "Coordinator inspected inverse edit/source proof, main/appendix controls, semantic comparator, ledger/resource/stop gates; independent read-only verify passed",
+  "provenanceLimitationAccepted": "Historical preparer script identity mismatch retained; actual generated source verified against base and build binary hash. No old recipe bit-reproduction claim.",
+  "phases": [
+    {
+      "ordinals": [
+        1,
+        4
+      ],
+      "approval": "approved before any native flights; four defaults completed parity pass"
+    },
+    {
+      "ordinals": [
+        5,
+        20
+      ],
+      "approval": "approved after four full DTO parity passes; stop on process/engine/resource failure; no retries"
+    }
+  ],
+  "maximumTotalNativeAttempts": 20,
+  "productionChangesAuthorized": false
+}

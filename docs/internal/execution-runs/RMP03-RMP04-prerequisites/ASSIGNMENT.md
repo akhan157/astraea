@@ -1,0 +1,9 @@
+# RMP03/RMP04 new-host prerequisite review
+
+Base `8b935f20e0cefabba3b09ece103a0c86c0ce5541`, existing isolated branch/worktree; RMP02 lease/reviewer finished. Scope READ source/schema and native runtime/cache availability, CREATE this run's source-profile/technical-plan/result records; affected RMP03/RMP04 briefs/index/register/STATE/roadmap entries and manifest only after review. No parser/native guard implementation, dependencies, keys, packages, browser, container start, update apply or release/default edits. No protected outcomes or external acquisition.
+
+RMP03: actual tool-export headers/units not inferable from docs. Preserve T1a complete-load rejection, missing independent moment/rates and exact RocketPy-cn vs RASAero-CN semantics. Inventory focused engine fixtures and installed runtime metadata only. Record real export prerequisite rather than constructing fictional vendor CSV.
+
+RMP04: review exact pending com.astraea.fixture.updater-apply, versions1.0.0/1.0.1, loopback18751/feed against UP1c/source/current host. Inventory Docker images, frontend dependencies, WebKit/pkg-config, Cargo/registry/updater/bundling cache without starting/downloading anything. Produce guard/consent/apply/independent-receipt/cleanup conditions. If required local tool/runtime/cache absent, stop execution and save explicit blocker; no broad rebuild surprise or host package install. Exact build recipe remains unapproved until actual dependencies/plugin/build inputs exist and are reviewed.
+
+One independent read-only Sol/high plan/source-availability reviewer, serial; no builds/test execution. Do not mark real schema/guard/consent/apply checks passed from documentary review. After checkpoint, continue unblocked RMP12 synthetic native numerical reference work; actual production WASM and physical decision-budget closure remain separate.

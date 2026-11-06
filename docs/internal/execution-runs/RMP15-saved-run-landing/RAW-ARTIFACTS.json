@@ -1,0 +1,62 @@
+{
+  "root": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp15-saved-run-landing",
+  "scope": "external-local, author-hashed availability index",
+  "files": {
+    "affected-1.log": {
+      "sha256": "902e900ceaefe72f7d9c7f4fd009f311ac81f3e43eff85ec933b72ca7bbad4ff",
+      "bytes": 1945
+    },
+    "before-fix.log": {
+      "sha256": "377c431d5b4082695a80837be69fac77b754ee4da6195bc583b9ae78a305e5e3",
+      "bytes": 3742
+    },
+    "browser-smoke-1.json": {
+      "sha256": "09d135020aff7247360532302b93b22039aeada9e81b75fc3a7d06fcf2556cb7",
+      "bytes": 1795
+    },
+    "build-1.log": {
+      "sha256": "f2f20f7ae21b69ceae57f80f839f4aeef1187f35dacec46ce000854330ba006b",
+      "bytes": 5559
+    },
+    "exit-status.log": {
+      "sha256": "3db01f1a7b860df5070d9e211e3eda31b4344dfa38d57b61c53ab2f243783231",
+      "bytes": 388
+    },
+    "focused-1.log": {
+      "sha256": "0ca662bd276ddb9046be1e9d783ae11180b7fcc68cd51372342bd61c6f8e8382",
+      "bytes": 214
+    },
+    "rereview-input.md": {
+      "sha256": "a7aad05bfcb2a7edef309d2088464fdbc8ddeaf1a04533a138843a58ef67d49a",
+      "bytes": 23359
+    },
+    "rereview.err": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "rereview.md": {
+      "sha256": "2764bff3b97f022bb76fe172a9fa6780c4b7fef3eb978fc7881bb6abe4243323",
+      "bytes": 2780
+    },
+    "review-input.md": {
+      "sha256": "605f73992b49500bdf8836721a837c31cfed892ede589e529db106fb589a0e7b",
+      "bytes": 68668
+    },
+    "review.err": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "review.md": {
+      "sha256": "afd75d9ac7118e6767d0e76c9396b1ea328b12a6b0fa8ca4ceec579bcf70d1e5",
+      "bytes": 3408
+    },
+    "tsc-1.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-hash.log": {
+      "sha256": "16cc746d68aa551a2ad80a4682b9c6f9650c45ee304a1023ad3f062cc11944b3",
+      "bytes": 291
+    }
+  }
+}

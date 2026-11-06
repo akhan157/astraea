@@ -1,0 +1,145 @@
+{
+  "baseCommit": "be40032421b041b60118fbb9197b6ad1c1be2a69",
+  "designs": {
+    "alpha": {
+      "contributions": [
+        {
+          "cna": 2.0,
+          "cp": 0.07689000000000001,
+          "id": "alpha-nc"
+        },
+        {
+          "cna": 22.317876312553757,
+          "cp": 0.4355970197602852,
+          "id": "alpha-fins"
+        }
+      ],
+      "cp": 0.40609551106356495,
+      "staticMarginCalibers": 4.796443170553217,
+      "totalCna": 24.317876312553757
+    },
+    "arcas-long": {
+      "contributions": [
+        {
+          "cna": 2.0,
+          "cp": 0.12546584,
+          "id": "arcas-nose"
+        },
+        {
+          "cna": -1.1111111111111112,
+          "cp": 1.3343805333333334,
+          "id": "arcas-boattail"
+        },
+        {
+          "cna": 8.192183142356452,
+          "cp": 1.299703743093943,
+          "id": "arcas-fins"
+        }
+      ],
+      "cp": 1.036848700769915,
+      "staticMarginCalibers": 4.490306130167396,
+      "totalCna": 9.081072031245341
+    },
+    "arcas-short": {
+      "contributions": [
+        {
+          "cna": 2.0,
+          "cp": 0.12546584,
+          "id": "arcas-nose"
+        },
+        {
+          "cna": -1.1111111111111112,
+          "cp": 1.0156105333333332,
+          "id": "arcas-boattail"
+        },
+        {
+          "cna": 8.192183142356452,
+          "cp": 0.980933743093943,
+          "id": "arcas-fins"
+        }
+      ],
+      "cp": 0.788284068352774,
+      "staticMarginCalibers": 3.0266512594565786,
+      "totalCna": 9.081072031245341
+    },
+    "nasa-sl": {
+      "contributions": [
+        {
+          "cna": 2.0,
+          "cp": 0.325,
+          "id": "nsl-nc"
+        },
+        {
+          "cna": 11.990945166157932,
+          "cp": 2.7567997623291745,
+          "id": "nsl-fins"
+        }
+      ],
+      "cp": 2.409174961652899,
+      "staticMarginCalibers": 4.025994785931167,
+      "totalCna": 13.990945166157932
+    },
+    "nose-mount": {
+      "contributions": [
+        {
+          "cna": 2.0,
+          "cp": 0.2,
+          "id": "n"
+        },
+        {
+          "cna": 5.354012335933722,
+          "cp": 0.15539627227265232,
+          "id": "f"
+        }
+      ],
+      "cp": 0.16752671907905803,
+      "staticMarginCalibers": -0.2777116517822066,
+      "totalCna": 7.354012335933722
+    },
+    "spaceport": {
+      "contributions": [
+        {
+          "cna": 2.0,
+          "cp": 0.35,
+          "id": "sac-nc"
+        },
+        {
+          "cna": -0.511341791618608,
+          "cp": 2.873157894736842,
+          "id": "sac-boattail"
+        },
+        {
+          "cna": 11.627069327962156,
+          "cp": 2.6234915939830614,
+          "id": "sac-fins"
+        }
+      ],
+      "cp": 2.2670761386797285,
+      "staticMarginCalibers": 4.380672326763757,
+      "totalCna": 13.115727536343547
+    },
+    "taper-mount": {
+      "contributions": [
+        {
+          "cna": 2.0,
+          "cp": 0.06666666666666667,
+          "id": "n"
+        },
+        {
+          "cna": -1.111111111111111,
+          "cp": 0.5933333333333333,
+          "id": "t"
+        },
+        {
+          "cna": 5.388379354250398,
+          "cp": 0.5726297276112092,
+          "id": "f"
+        }
+      ],
+      "cp": 0.4077602193855375,
+      "staticMarginCalibers": 0.05847538643350969,
+      "totalCna": 6.277268243139288
+    }
+  },
+  "note": "Post-fix P4 fin-station parity fixture. Mirrors the TS implementation to <=1e-12 relative; the bit-identity anchor is the separate pre-fix baseline."
+}

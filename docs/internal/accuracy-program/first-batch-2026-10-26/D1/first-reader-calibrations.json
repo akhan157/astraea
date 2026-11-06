@@ -1,0 +1,89 @@
+{
+  "status": "provisional",
+  "method": "manual marker-center reading in retained 2x raster source crops; local linear x/y calibration; no automatic curve fit",
+  "reader_id": "accuracy_data_path first-reader",
+  "calibrations": [
+    {
+      "id": "d4013-cn-m1p20",
+      "image": "d4013-M1p2-CN-crop.png",
+      "source_page_image": "19670020050-pdf-p24.png",
+      "crop_box_pixels": [
+        300,
+        930,
+        850,
+        1190
+      ],
+      "x_quantity": "alpha_deg",
+      "y_quantity": "CN",
+      "x_anchors": [
+        {
+          "pixel": 95,
+          "value": 0
+        },
+        {
+          "pixel": 170.5,
+          "value": 4
+        }
+      ],
+      "y_anchors": [
+        {
+          "pixel": 152,
+          "value": 0
+        },
+        {
+          "pixel": 224,
+          "value": -2
+        }
+      ],
+      "marker": "square (fins on, roll0); overlapping symbols at small incidence",
+      "coordinate_system": "crop top-left=(0,0); x right/y down; original source render2px/PDFpoint",
+      "pixel_pick_bound_xy": [
+        3,
+        3
+      ],
+      "calibration_anchor_bound_px": 2,
+      "series_zero": "bottom repeated CN0, M1.20; not page-global zero"
+    },
+    {
+      "id": "d4013-cm-m1p20",
+      "image": "d4013-M1p2-Cm-crop.png",
+      "source_page_image": "19670020050-pdf-p27.png",
+      "crop_box_pixels": [
+        310,
+        780,
+        825,
+        1180
+      ],
+      "x_quantity": "alpha_deg",
+      "y_quantity": "Cm",
+      "x_anchors": [
+        {
+          "pixel": 87,
+          "value": 0
+        },
+        {
+          "pixel": 160,
+          "value": 4
+        }
+      ],
+      "y_anchors": [
+        {
+          "pixel": 204,
+          "value": 0
+        },
+        {
+          "pixel": 271,
+          "value": -2
+        }
+      ],
+      "marker": "square (fins on, roll0); overlapping symbols at small incidence",
+      "coordinate_system": "crop top-left=(0,0); x right/y down; original source render2px/PDFpoint",
+      "pixel_pick_bound_xy": [
+        3,
+        3
+      ],
+      "calibration_anchor_bound_px": 2,
+      "series_zero": "bottom M1.20 Cm0 baseline; not upper M1.00 baseline"
+    }
+  ]
+}

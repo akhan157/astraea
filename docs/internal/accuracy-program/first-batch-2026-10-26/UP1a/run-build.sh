@@ -1,0 +1,6 @@
+#!/bin/bash
+set -uo pipefail
+env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH docker --host=unix:///var/run/docker.sock run --rm --pull=never --network=none --cpus=1 --memory=4g --user "$(id -u):$(id -g)" --mount type=bind,src=/workspace/.toolchains,dst=/workspace/.toolchains --mount type=bind,src=/workspace/astraea-worktrees/updater-bridge204-20261025,dst=/workspace/astraea-worktrees/updater-bridge204-20261025 --mount type=bind,src=/workspace/astraea/node_modules,dst=/workspace/astraea/node_modules,readonly --mount type=bind,src=/opt/codex/runtimes/codex-primary-runtime/dependencies/node,dst=/opt/node,readonly --mount type=bind,src=/workspace/astraea-plan/evidence/accuracy-first-batch-20261025/UP1a,dst=/evidence --mount type=bind,src=/etc/passwd,dst=/etc/passwd,readonly --mount type=bind,src=/etc/group,dst=/etc/group,readonly --workdir /workspace/astraea-worktrees/updater-bridge204-20261025 sha256:9c6c230e1d815013fa34fcb6b9174d9a6f9e2a9ec68920b93f345e547c723174 bash /evidence/build.sh > /workspace/astraea-plan/evidence/accuracy-first-batch-20261025/UP1a/build.log 2>&1
+result=$?
+echo "$result" > /workspace/astraea-plan/evidence/accuracy-first-batch-20261025/UP1a/build.exit
+exit "$result"

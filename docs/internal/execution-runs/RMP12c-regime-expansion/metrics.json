@@ -1,0 +1,700 @@
+{
+  "schema": "rmp12c-saved-output-analysis/1.0.0",
+  "scope": "post-outcome saved-output arithmetic/hash checks only; zero native calls or new reference solves",
+  "originalResultSha256": "c65c7b09f321d5f9a3d8407cd40e8a6862ff2b12fa50acfbbd6d1ce5361ca59d",
+  "originalAttemptsSha256": "034032cc3e95ff3d41127e17ac64ea186030d1353d32192ebeaee75f4b982c3a",
+  "integrityStatus": "complete",
+  "totalProcessAttempts": 7,
+  "retries": 0,
+  "comparisonsUnresolved": false,
+  "retained20msDefaultFailureReproduced": true,
+  "anyProvisionalReserveFailed": true,
+  "hashChecksAllMatch": true,
+  "hashChecks": [
+    {
+      "path": "experiment.json",
+      "expected": "c736f0732798ced79a2b8db08e560c0cd68d01874b4792973d9a7c26224b9006",
+      "observed": "c736f0732798ced79a2b8db08e560c0cd68d01874b4792973d9a7c26224b9006",
+      "state": "match"
+    },
+    {
+      "path": "run-seal.json",
+      "expected": "1706366b45d1340eba3724d7e52b979aaff0960919bc887b768f35b33cddeedc",
+      "observed": "1706366b45d1340eba3724d7e52b979aaff0960919bc887b768f35b33cddeedc",
+      "state": "match"
+    },
+    {
+      "path": "A-dt020.input.json",
+      "expected": "f790a2472543771d7fbd7efe5503dca9add94153988a6b60c9f19078c4a37bb2",
+      "observed": "f790a2472543771d7fbd7efe5503dca9add94153988a6b60c9f19078c4a37bb2",
+      "state": "match"
+    },
+    {
+      "path": "A-dt020.stdout",
+      "expected": "ced63cf42a93ca4a8019f484caacf3e37eb00b1bfc2a4425d061b978baddf98c",
+      "observed": "ced63cf42a93ca4a8019f484caacf3e37eb00b1bfc2a4425d061b978baddf98c",
+      "state": "match"
+    },
+    {
+      "path": "A-dt020.stderr",
+      "expected": "c1bec9ee9a774668fb7ae7ea8c31eefcc5758df8ef0ff1c4c3f68ccd8dc81596",
+      "observed": "c1bec9ee9a774668fb7ae7ea8c31eefcc5758df8ef0ff1c4c3f68ccd8dc81596",
+      "state": "match"
+    },
+    {
+      "path": "reservations/A-dt020.reservation.json",
+      "expected": "62affa743c22d6797a240a77067c110287a179490e5a62d65731ad6772bc93f5",
+      "observed": "62affa743c22d6797a240a77067c110287a179490e5a62d65731ad6772bc93f5",
+      "state": "match"
+    },
+    {
+      "path": "C-dt020.input.json",
+      "expected": "70711ea6c8c8f1476770d8f5281b77da2407728abcf80606342cc05f2c6781fc",
+      "observed": "70711ea6c8c8f1476770d8f5281b77da2407728abcf80606342cc05f2c6781fc",
+      "state": "match"
+    },
+    {
+      "path": "C-dt020.stdout",
+      "expected": "bab6133971df1d84517e0fa179dc28d22c4f1b8a2ac900583e1b7695956408f8",
+      "observed": "bab6133971df1d84517e0fa179dc28d22c4f1b8a2ac900583e1b7695956408f8",
+      "state": "match"
+    },
+    {
+      "path": "C-dt020.stderr",
+      "expected": "703bc6179cb58b26c3e40950fdd273bfc4a6bcd723d713a70dc787976ce4d2a8",
+      "observed": "703bc6179cb58b26c3e40950fdd273bfc4a6bcd723d713a70dc787976ce4d2a8",
+      "state": "match"
+    },
+    {
+      "path": "reservations/C-dt020.reservation.json",
+      "expected": "718524e0318e75526ecda70c78c7af2f99140258bba83f65a64357d0062deb57",
+      "observed": "718524e0318e75526ecda70c78c7af2f99140258bba83f65a64357d0062deb57",
+      "state": "match"
+    },
+    {
+      "path": "A-dt010.input.json",
+      "expected": "75ee455e087de0146394257bf44f4219203d607da965489aa89b127ef86cadc9",
+      "observed": "75ee455e087de0146394257bf44f4219203d607da965489aa89b127ef86cadc9",
+      "state": "match"
+    },
+    {
+      "path": "A-dt010.stdout",
+      "expected": "a2ca0a8dfb343e729052abfe3f9fbc315797a8140e59f2a049ed97f45212f20e",
+      "observed": "a2ca0a8dfb343e729052abfe3f9fbc315797a8140e59f2a049ed97f45212f20e",
+      "state": "match"
+    },
+    {
+      "path": "A-dt010.stderr",
+      "expected": "599fbe9c0bfe3654f896a54cd927e02d1f064319a0f5bc5a83ae462a15074ab3",
+      "observed": "599fbe9c0bfe3654f896a54cd927e02d1f064319a0f5bc5a83ae462a15074ab3",
+      "state": "match"
+    },
+    {
+      "path": "reservations/A-dt010.reservation.json",
+      "expected": "66941748e40ffe35966437e1d8ed297c5ba00f3df0c7d99681f5da297dc18237",
+      "observed": "66941748e40ffe35966437e1d8ed297c5ba00f3df0c7d99681f5da297dc18237",
+      "state": "match"
+    },
+    {
+      "path": "C-dt010.input.json",
+      "expected": "cc40ee4d7ae4aa77db4cae7ab02be4ce88ca539fea8fd7b7b75ef63ec87ec3c6",
+      "observed": "cc40ee4d7ae4aa77db4cae7ab02be4ce88ca539fea8fd7b7b75ef63ec87ec3c6",
+      "state": "match"
+    },
+    {
+      "path": "C-dt010.stdout",
+      "expected": "4e4467ea4836566790c67bbe6a857767b74591a3a7f7d8e9f7be3ec92c66478f",
+      "observed": "4e4467ea4836566790c67bbe6a857767b74591a3a7f7d8e9f7be3ec92c66478f",
+      "state": "match"
+    },
+    {
+      "path": "C-dt010.stderr",
+      "expected": "9daee7f46d13ae74099ef98ebfcde6141b5cd11a7ecd4166cecfb3cc283e14f8",
+      "observed": "9daee7f46d13ae74099ef98ebfcde6141b5cd11a7ecd4166cecfb3cc283e14f8",
+      "state": "match"
+    },
+    {
+      "path": "reservations/C-dt010.reservation.json",
+      "expected": "ae1914d282fb80573c4b8e78f7d7c475e20551612fea53d7aaeeb29a1af713b4",
+      "observed": "ae1914d282fb80573c4b8e78f7d7c475e20551612fea53d7aaeeb29a1af713b4",
+      "state": "match"
+    },
+    {
+      "path": "A-dt005.input.json",
+      "expected": "75fc4bf27aeb620ec9557f07f090805586bb801825bfcd57aa790bfadef55bc0",
+      "observed": "75fc4bf27aeb620ec9557f07f090805586bb801825bfcd57aa790bfadef55bc0",
+      "state": "match"
+    },
+    {
+      "path": "A-dt005.stdout",
+      "expected": "08f11b52b39e67c93e1791b861ac33d0bd923438d5f100cc1ce0df0178ada758",
+      "observed": "08f11b52b39e67c93e1791b861ac33d0bd923438d5f100cc1ce0df0178ada758",
+      "state": "match"
+    },
+    {
+      "path": "A-dt005.stderr",
+      "expected": "268b317041198f988240fa98ddb3f3ef71eba024cafd625397ad062ff50be13b",
+      "observed": "268b317041198f988240fa98ddb3f3ef71eba024cafd625397ad062ff50be13b",
+      "state": "match"
+    },
+    {
+      "path": "reservations/A-dt005.reservation.json",
+      "expected": "2b0523a80875e4cd14f1a1d6921c934589f2dbd0778afe91c5c44b11f181fc2b",
+      "observed": "2b0523a80875e4cd14f1a1d6921c934589f2dbd0778afe91c5c44b11f181fc2b",
+      "state": "match"
+    },
+    {
+      "path": "C-dt005.input.json",
+      "expected": "0246476da6681b3e34adfe1eb099c352da520384b93fc5aa05657b97f33b623b",
+      "observed": "0246476da6681b3e34adfe1eb099c352da520384b93fc5aa05657b97f33b623b",
+      "state": "match"
+    },
+    {
+      "path": "C-dt005.stdout",
+      "expected": "df206625e377dba5d1d59518670f271bd8387d5b9ac2e194dc0be3019da2f8f2",
+      "observed": "df206625e377dba5d1d59518670f271bd8387d5b9ac2e194dc0be3019da2f8f2",
+      "state": "match"
+    },
+    {
+      "path": "C-dt005.stderr",
+      "expected": "7939e2a27f1476ea69955a2525f4e569efcfcedef55e02b856639049784c0b45",
+      "observed": "7939e2a27f1476ea69955a2525f4e569efcfcedef55e02b856639049784c0b45",
+      "state": "match"
+    },
+    {
+      "path": "reservations/C-dt005.reservation.json",
+      "expected": "12ba26a6aa8a10f46c81e11fd88a461e502980bd5f04f2b807b19cf2cff9c37d",
+      "observed": "12ba26a6aa8a10f46c81e11fd88a461e502980bd5f04f2b807b19cf2cff9c37d",
+      "state": "match"
+    },
+    {
+      "path": "H-legacy.input.json",
+      "expected": "1a58a570d423ae49adf8e459815ce12e599eed0f188a8a5ee15ef67a29235fbd",
+      "observed": "1a58a570d423ae49adf8e459815ce12e599eed0f188a8a5ee15ef67a29235fbd",
+      "state": "match"
+    },
+    {
+      "path": "H-legacy.stdout",
+      "expected": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249",
+      "observed": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249",
+      "state": "match"
+    },
+    {
+      "path": "H-legacy.stderr",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "observed": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "state": "match"
+    },
+    {
+      "path": "reservations/H-legacy.reservation.json",
+      "expected": "b93a4d9974e72b8b60f48505fb184555bf2f3efdf044eb7d1b56eed2199c521d",
+      "observed": "b93a4d9974e72b8b60f48505fb184555bf2f3efdf044eb7d1b56eed2199c521d",
+      "state": "match"
+    }
+  ],
+  "table": [
+    {
+      "id": "A-dt020",
+      "macroStepS": 0.02,
+      "splitAtThrustKnots": false,
+      "reservePass": false,
+      "railTimeErrorS": 0.00010501403808582666,
+      "maxPositionErrorM": 0.0073667897951992245,
+      "maxVelocityErrorMps": 0.005020062311348106,
+      "finalPositionErrorM": 0.0073667897951992245,
+      "finalVelocityErrorMps": 0.0030363599754039683,
+      "modelMismatchFloorMps2": 9.80665e-06,
+      "serviceEvidence": {
+        "railEventTimeS": 0.5057617187500001,
+        "containingCommittedIntervalS": [
+          0.5000000000000001,
+          0.5200000000000001
+        ],
+        "configuredRefinementWidthLimitS": 1e-05,
+        "observedFinalCandidateRefinementBracket": "unavailable in sealed binary",
+        "totalAdaptiveTrialCount": "unavailable in sealed binary",
+        "totalIntegrationCallCount": "unavailable in sealed binary",
+        "committedSampleCount": 101,
+        "windowTrialAttemptsIncludingRejected": 8,
+        "windowS": [
+          0.18,
+          0.25
+        ],
+        "counts": {
+          "straddledTrials": {
+            "globalRawKnotEvents": 21,
+            "windowKnotEvents": 3,
+            "windowDistinctTrialStarts": 3
+          },
+          "clippedTrials": {
+            "globalRawKnotEvents": 0,
+            "windowKnotEvents": 0,
+            "windowDistinctTrialStarts": 0
+          }
+        },
+        "populationNote": "local only; straddles and clips are different event types; no global rate/efficiency comparison"
+      },
+      "lastThreeSampleTimesS": [
+        1.9600000000000013,
+        1.9800000000000013,
+        2.0
+      ],
+      "referenceChecks": {
+        "referencePositionDeltaM": {
+          "observed": 3.375077994860476e-13,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        },
+        "referenceVelocityDeltaMps": {
+          "observed": 2.2026824808563106e-13,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        },
+        "referenceRailDeltaS": {
+          "observed": 0.0,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        }
+      },
+      "failedChecks": [
+        "railTimeErrorS"
+      ],
+      "determinism": {
+        "expectedSha256": "ced63cf42a93ca4a8019f484caacf3e37eb00b1bfc2a4425d061b978baddf98c",
+        "match": true
+      },
+      "inputSha256": "f790a2472543771d7fbd7efe5503dca9add94153988a6b60c9f19078c4a37bb2",
+      "stdoutSha256": "ced63cf42a93ca4a8019f484caacf3e37eb00b1bfc2a4425d061b978baddf98c"
+    },
+    {
+      "id": "C-dt020",
+      "macroStepS": 0.02,
+      "splitAtThrustKnots": true,
+      "reservePass": true,
+      "railTimeErrorS": 2.4011850356941977e-06,
+      "maxPositionErrorM": 0.00015025388225353709,
+      "maxVelocityErrorMps": 9.255699395403771e-05,
+      "finalPositionErrorM": 0.00015025388225353709,
+      "finalVelocityErrorMps": 5.5289795710677936e-05,
+      "modelMismatchFloorMps2": 9.80665e-06,
+      "serviceEvidence": {
+        "railEventTimeS": 0.5058691406250002,
+        "containingCommittedIntervalS": [
+          0.5000000000000001,
+          0.5200000000000001
+        ],
+        "configuredRefinementWidthLimitS": 1e-05,
+        "observedFinalCandidateRefinementBracket": "unavailable in sealed binary",
+        "totalAdaptiveTrialCount": "unavailable in sealed binary",
+        "totalIntegrationCallCount": "unavailable in sealed binary",
+        "committedSampleCount": 101,
+        "windowTrialAttemptsIncludingRejected": 11,
+        "windowS": [
+          0.18,
+          0.25
+        ],
+        "counts": {
+          "straddledTrials": {
+            "globalRawKnotEvents": 0,
+            "windowKnotEvents": 0,
+            "windowDistinctTrialStarts": 0
+          },
+          "clippedTrials": {
+            "globalRawKnotEvents": 21,
+            "windowKnotEvents": 3,
+            "windowDistinctTrialStarts": 3
+          }
+        },
+        "populationNote": "local only; straddles and clips are different event types; no global rate/efficiency comparison"
+      },
+      "lastThreeSampleTimesS": [
+        1.9600000000000013,
+        1.9800000000000013,
+        2.0
+      ],
+      "referenceChecks": {
+        "referencePositionDeltaM": {
+          "observed": 3.339550858072471e-13,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        },
+        "referenceVelocityDeltaMps": {
+          "observed": 2.2026824808563106e-13,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        },
+        "referenceRailDeltaS": {
+          "observed": 0.0,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        }
+      },
+      "failedChecks": [],
+      "determinism": {
+        "expectedSha256": "bab6133971df1d84517e0fa179dc28d22c4f1b8a2ac900583e1b7695956408f8",
+        "match": true
+      },
+      "inputSha256": "70711ea6c8c8f1476770d8f5281b77da2407728abcf80606342cc05f2c6781fc",
+      "stdoutSha256": "bab6133971df1d84517e0fa179dc28d22c4f1b8a2ac900583e1b7695956408f8"
+    },
+    {
+      "id": "A-dt010",
+      "macroStepS": 0.01,
+      "splitAtThrustKnots": false,
+      "reservePass": true,
+      "railTimeErrorS": 1.712341308590659e-05,
+      "maxPositionErrorM": 0.0012071043340924348,
+      "maxVelocityErrorMps": 0.0008505056632372998,
+      "finalPositionErrorM": 0.0012071043340924348,
+      "finalVelocityErrorMps": 0.0004930393790090193,
+      "modelMismatchFloorMps2": 9.80665e-06,
+      "serviceEvidence": {
+        "railEventTimeS": 0.5058496093750002,
+        "containingCommittedIntervalS": [
+          0.5000000000000002,
+          0.5100000000000002
+        ],
+        "configuredRefinementWidthLimitS": 1e-05,
+        "observedFinalCandidateRefinementBracket": "unavailable in sealed binary",
+        "totalAdaptiveTrialCount": "unavailable in sealed binary",
+        "totalIntegrationCallCount": "unavailable in sealed binary",
+        "committedSampleCount": 201,
+        "windowTrialAttemptsIncludingRejected": 14,
+        "windowS": [
+          0.18,
+          0.25
+        ],
+        "counts": {
+          "straddledTrials": {
+            "globalRawKnotEvents": 21,
+            "windowKnotEvents": 3,
+            "windowDistinctTrialStarts": 3
+          },
+          "clippedTrials": {
+            "globalRawKnotEvents": 0,
+            "windowKnotEvents": 0,
+            "windowDistinctTrialStarts": 0
+          }
+        },
+        "populationNote": "local only; straddles and clips are different event types; no global rate/efficiency comparison"
+      },
+      "lastThreeSampleTimesS": [
+        1.9800000000000015,
+        1.9900000000000015,
+        2.0
+      ],
+      "referenceChecks": {
+        "referencePositionDeltaM": {
+          "observed": 3.090860900556436e-13,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        },
+        "referenceVelocityDeltaMps": {
+          "observed": 2.1316282072803006e-13,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        },
+        "referenceRailDeltaS": {
+          "observed": 0.0,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        }
+      },
+      "failedChecks": [],
+      "determinism": null,
+      "inputSha256": "75ee455e087de0146394257bf44f4219203d607da965489aa89b127ef86cadc9",
+      "stdoutSha256": "a2ca0a8dfb343e729052abfe3f9fbc315797a8140e59f2a049ed97f45212f20e"
+    },
+    {
+      "id": "C-dt010",
+      "macroStepS": 0.01,
+      "splitAtThrustKnots": true,
+      "reservePass": true,
+      "railTimeErrorS": 2.4011850356941977e-06,
+      "maxPositionErrorM": 0.00013102922331142963,
+      "maxVelocityErrorMps": 8.130121631834755e-05,
+      "finalPositionErrorM": 0.00013102922331142963,
+      "finalVelocityErrorMps": 4.85652989823393e-05,
+      "modelMismatchFloorMps2": 9.80665e-06,
+      "serviceEvidence": {
+        "railEventTimeS": 0.5058691406250002,
+        "containingCommittedIntervalS": [
+          0.5000000000000002,
+          0.5100000000000002
+        ],
+        "configuredRefinementWidthLimitS": 1e-05,
+        "observedFinalCandidateRefinementBracket": "unavailable in sealed binary",
+        "totalAdaptiveTrialCount": "unavailable in sealed binary",
+        "totalIntegrationCallCount": "unavailable in sealed binary",
+        "committedSampleCount": 201,
+        "windowTrialAttemptsIncludingRejected": 16,
+        "windowS": [
+          0.18,
+          0.25
+        ],
+        "counts": {
+          "straddledTrials": {
+            "globalRawKnotEvents": 0,
+            "windowKnotEvents": 0,
+            "windowDistinctTrialStarts": 0
+          },
+          "clippedTrials": {
+            "globalRawKnotEvents": 21,
+            "windowKnotEvents": 3,
+            "windowDistinctTrialStarts": 3
+          }
+        },
+        "populationNote": "local only; straddles and clips are different event types; no global rate/efficiency comparison"
+      },
+      "lastThreeSampleTimesS": [
+        1.9800000000000015,
+        1.9900000000000015,
+        2.0
+      ],
+      "referenceChecks": {
+        "referencePositionDeltaM": {
+          "observed": 3.090860900556436e-13,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        },
+        "referenceVelocityDeltaMps": {
+          "observed": 2.1316282072803006e-13,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        },
+        "referenceRailDeltaS": {
+          "observed": 0.0,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        }
+      },
+      "failedChecks": [],
+      "determinism": null,
+      "inputSha256": "cc40ee4d7ae4aa77db4cae7ab02be4ce88ca539fea8fd7b7b75ef63ec87ec3c6",
+      "stdoutSha256": "4e4467ea4836566790c67bbe6a857767b74591a3a7f7d8e9f7be3ec92c66478f"
+    },
+    {
+      "id": "A-dt005",
+      "macroStepS": 0.005,
+      "splitAtThrustKnots": false,
+      "reservePass": true,
+      "railTimeErrorS": 1.712341308590659e-05,
+      "maxPositionErrorM": 0.0012071043336376874,
+      "maxVelocityErrorMps": 0.0008505056632328589,
+      "finalPositionErrorM": 0.0012071043336376874,
+      "finalVelocityErrorMps": 0.0004930393790090193,
+      "modelMismatchFloorMps2": 9.80665e-06,
+      "serviceEvidence": {
+        "railEventTimeS": 0.5058496093750002,
+        "containingCommittedIntervalS": [
+          0.5050000000000003,
+          0.5100000000000003
+        ],
+        "configuredRefinementWidthLimitS": 1e-05,
+        "observedFinalCandidateRefinementBracket": "unavailable in sealed binary",
+        "totalAdaptiveTrialCount": "unavailable in sealed binary",
+        "totalIntegrationCallCount": "unavailable in sealed binary",
+        "committedSampleCount": 402,
+        "windowTrialAttemptsIncludingRejected": 14,
+        "windowS": [
+          0.18,
+          0.25
+        ],
+        "counts": {
+          "straddledTrials": {
+            "globalRawKnotEvents": 21,
+            "windowKnotEvents": 3,
+            "windowDistinctTrialStarts": 3
+          },
+          "clippedTrials": {
+            "globalRawKnotEvents": 0,
+            "windowKnotEvents": 0,
+            "windowDistinctTrialStarts": 0
+          }
+        },
+        "populationNote": "local only; straddles and clips are different event types; no global rate/efficiency comparison"
+      },
+      "lastThreeSampleTimesS": [
+        1.9949999999999795,
+        1.9999999999999793,
+        2.0
+      ],
+      "referenceChecks": {
+        "referencePositionDeltaM": {
+          "observed": 3.375077994860476e-13,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        },
+        "referenceVelocityDeltaMps": {
+          "observed": 2.4158453015843406e-13,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        },
+        "referenceRailDeltaS": {
+          "observed": 0.0,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        }
+      },
+      "failedChecks": [],
+      "determinism": null,
+      "inputSha256": "75fc4bf27aeb620ec9557f07f090805586bb801825bfcd57aa790bfadef55bc0",
+      "stdoutSha256": "08f11b52b39e67c93e1791b861ac33d0bd923438d5f100cc1ce0df0178ada758"
+    },
+    {
+      "id": "C-dt005",
+      "macroStepS": 0.005,
+      "splitAtThrustKnots": true,
+      "reservePass": true,
+      "railTimeErrorS": 2.4011850356941977e-06,
+      "maxPositionErrorM": 0.00013102922292063113,
+      "maxVelocityErrorMps": 8.130131620401673e-05,
+      "finalPositionErrorM": 0.00013102922292063113,
+      "finalVelocityErrorMps": 4.856529893260131e-05,
+      "modelMismatchFloorMps2": 9.80665e-06,
+      "serviceEvidence": {
+        "railEventTimeS": 0.5058691406250004,
+        "containingCommittedIntervalS": [
+          0.5050000000000003,
+          0.5100000000000003
+        ],
+        "configuredRefinementWidthLimitS": 1e-05,
+        "observedFinalCandidateRefinementBracket": "unavailable in sealed binary",
+        "totalAdaptiveTrialCount": "unavailable in sealed binary",
+        "totalIntegrationCallCount": "unavailable in sealed binary",
+        "committedSampleCount": 402,
+        "windowTrialAttemptsIncludingRejected": 17,
+        "windowS": [
+          0.18,
+          0.25
+        ],
+        "counts": {
+          "straddledTrials": {
+            "globalRawKnotEvents": 0,
+            "windowKnotEvents": 0,
+            "windowDistinctTrialStarts": 0
+          },
+          "clippedTrials": {
+            "globalRawKnotEvents": 21,
+            "windowKnotEvents": 3,
+            "windowDistinctTrialStarts": 3
+          }
+        },
+        "populationNote": "local only; straddles and clips are different event types; no global rate/efficiency comparison"
+      },
+      "lastThreeSampleTimesS": [
+        1.9949999999999795,
+        1.9999999999999793,
+        2.0
+      ],
+      "referenceChecks": {
+        "referencePositionDeltaM": {
+          "observed": 3.375077994860476e-13,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        },
+        "referenceVelocityDeltaMps": {
+          "observed": 2.4158453015843406e-13,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        },
+        "referenceRailDeltaS": {
+          "observed": 0.0,
+          "reserve": 1e-07,
+          "pass": true,
+          "modelMismatchFloorMps2": 9.80665e-06
+        }
+      },
+      "failedChecks": [],
+      "determinism": null,
+      "inputSha256": "0246476da6681b3e34adfe1eb099c352da520384b93fc5aa05657b97f33b623b",
+      "stdoutSha256": "df206625e377dba5d1d59518670f271bd8387d5b9ac2e194dc0be3019da2f8f2"
+    }
+  ],
+  "paired": [
+    {
+      "macroStepS": 0.02,
+      "AOverCErrorRatios": {
+        "railTimeErrorS": 43.73425476369689,
+        "maxPositionErrorM": 49.028948102442826,
+        "maxVelocityErrorMps": 54.23752540884146
+      },
+      "CMinusA": {
+        "railTimeErrorS": -0.00010261285305013246,
+        "maxPositionErrorM": -0.007216535912945687,
+        "maxVelocityErrorMps": -0.004927505317394068,
+        "modelMismatchFloorMps2": 9.80665e-06
+      },
+      "modelMismatchFloorMps2": 9.80665e-06
+    },
+    {
+      "macroStepS": 0.01,
+      "AOverCErrorRatios": {
+        "railTimeErrorS": 7.131234299465849,
+        "maxPositionErrorM": 9.212481792885201,
+        "maxVelocityErrorMps": 10.461167762939889
+      },
+      "CMinusA": {
+        "railTimeErrorS": -1.4722228050212394e-05,
+        "maxPositionErrorM": -0.0010760751107810052,
+        "maxVelocityErrorMps": -0.0007692044469189523,
+        "modelMismatchFloorMps2": 9.80665e-06
+      },
+      "modelMismatchFloorMps2": 9.80665e-06
+    },
+    {
+      "macroStepS": 0.005,
+      "AOverCErrorRatios": {
+        "railTimeErrorS": 7.131234299465849,
+        "maxPositionErrorM": 9.21248181689112,
+        "maxVelocityErrorMps": 10.461154910439681
+      },
+      "CMinusA": {
+        "railTimeErrorS": -1.4722228050212394e-05,
+        "maxPositionErrorM": -0.0010760751107170563,
+        "maxVelocityErrorMps": -0.0007692043470288422,
+        "modelMismatchFloorMps2": 9.80665e-06
+      },
+      "modelMismatchFloorMps2": 9.80665e-06
+    }
+  ],
+  "originalReferenceControls": {
+    "manufacturedCrossing": {
+      "exactS": 0.04375,
+      "estimateS": 0.04374999739229679,
+      "bracketWidthS": 5.2154064192344585e-09,
+      "pass": true
+    },
+    "allSixCoarseFineChecksPass": true
+  },
+  "note": "Sample counts are retained metrics, cross-checked against the saved arrays; terminal sample times are listed per case, including near-horizon/exact-horizon entries. Nothing is deduplicated.",
+  "confounds": "Within-series trends conflate integration error, event service, knot/grid alignment, straddle population and sample sets. Only paired A/C changes at fixed macro step isolate split intervention including dt-sequence effects. railRootAtSampleTimes is a +/-20 ms window, not a final candidate refinement bracket.",
+  "unavailablePolicy": "Explicit unavailable entries; no inference from sample counts; no full-flight normalized trial-rate/efficiency claim; local window denominator is not global",
+  "mismatchInterpretation": "Acceleration mismatch is pointwise, not a proved propagated state-error floor or bound.",
+  "nonClaims": [
+    "production default change or closed RMP12-C02",
+    "adaptive convergence order/global error bound/universal knot rule",
+    "tolerance-arm claims beyond RMP12b's 20 ms regime",
+    "full-6D/physical/source/empirical/native-WASM/mission qualification",
+    "aerospace safety or flight authorization",
+    "macro-step default recommendation from A-series passes",
+    "global trial/call efficiency or normalized mechanism rates from unrecorded denominators"
+  ]
+}

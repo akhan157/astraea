@@ -1,0 +1,49 @@
+{
+  "sourceCommit": "00e768b2d2dcfc9913b2a9428040a67fd42d3d58",
+  "mode": "plan only; no keys/downloads/builds/tests/install",
+  "sources": [
+    {
+      "path": "src/desktop/updates.ts",
+      "sha256": "47d3cbe459aa8c0c2cb2fa9cef10208acd615f7b59b5ad1777502c5b7f60b343"
+    },
+    {
+      "path": "src/desktop/UpdateBanner.tsx",
+      "sha256": "ae233724dc91102f87393dd699139b7757d839f979857ee653621f2d119d3c24"
+    },
+    {
+      "path": "src/desktop/updates.test.tsx",
+      "sha256": "a301ba4f47436c40d0c2a7231784b18197343ef8196361861631eabd3efc0320"
+    },
+    {
+      "path": "src/App.tsx",
+      "sha256": "fc15f5a53a0179b84124e79b34126a4612bfc0fd8edc1c6b4c80f0152b756df3"
+    },
+    {
+      "path": "src-tauri/src/lib.rs",
+      "sha256": "8bbeb25d5810f2d086a357058a36b47eae26649d822a666b603929db46f0f866"
+    },
+    {
+      "path": "src-tauri/tauri.conf.json",
+      "sha256": "5d66919814f5211d839db98c610c3ceaafcd6fd3841b9078da2cba93f27f9168"
+    },
+    {
+      "path": "src-tauri/capabilities/default.json",
+      "sha256": "38ed15daa9d574dc4405c8a4493f3aad76e8350e815704bb8ecb3f3d3295cf1b"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "sha256": "8b299a8ce0a04e3abe1da68991c752dda1684d0ca4a922b046f1e0cbacde0b6e"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "sha256": "e280efc7aa807ff700de8c5536eda69e47dab1000babadea979eefaded990c01"
+    }
+  ],
+  "planSha256": "df2a38e730f3686a2e317e112a3dd1c2c752612dbd3da913b8a2d9b048c43935",
+  "pluginGlobals": {
+    "updater": "tauri-plugin-updater2.14.0 build.rs + api-iife.js",
+    "process": "tauri-plugin-process2.4.0 build.rs + api-iife.js",
+    "nativeRuntimeProof": "not executed; UP1a first gate"
+  },
+  "nextGate": "reviewed compile-time loopback204 debug overlay; no app code changes expected"
+}

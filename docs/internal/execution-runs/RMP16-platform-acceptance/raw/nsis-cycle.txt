@@ -1,0 +1,16 @@
+setup: C:\astraea\src-tauri\target\release\bundle\nsis\Astraea Workstation_0.9.0_x64-setup.exe
+install exit: 0
+dir: C:\Users\ak\AppData\Local\Astraea Workstation exists: True
+
+
+DisplayName     : Astraea Workstation
+DisplayVersion  : 0.9.0
+InstallLocation : "C:\Users\ak\AppData\Local\Astraea Workstation"
+
+
+
+
+uninstall exit: 0
+dir exists after: False
+exe exists after: False
+registry entries after: 0

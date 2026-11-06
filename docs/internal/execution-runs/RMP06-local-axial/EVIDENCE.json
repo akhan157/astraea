@@ -1,0 +1,182 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP06",
+  "subpacket": "RMP06a: direct complete subsonic axial diagnostic / actual E1 typed consumption; parent partial",
+  "baseSha": "3d9ca93b3a8bbf9283535a71ac502499b5e86dc5",
+  "sourceSha": "15be61bbd7598f6a6b485bd3f9ebe9b217071312",
+  "owner": "current coordinator/author session on existing isolated execute-rmp01-package-c80e7d3 worktree",
+  "modelRouting": {
+    "model": "Author OpenAI gpt-6.1-sol; separate independent Codex CLI sessions using installed OpenAI gpt-6.1-sol",
+    "effort": "author high; initial three reviewer headers report none; final independent full audit explicitly high, confirmed in transcript",
+    "usageTelemetry": "not supplied"
+  },
+  "effectiveInputs": [
+    "Committed synthetic axial-synthetic-request.json (sha256 590faac67a211ef7d97d44401913b4bd73174cc2640c67a7d20f54e0c35d5b4b); arbitrary geometry/independent P/T/wind, not as-flown or qualified weather",
+    "Only pre-existing synthetic RMP01 native fixture and longstanding legacy wind0 request used for preservation; no protected outcomes, new real sources or datasets opened"
+  ],
+  "sourceHashes": {
+    "crates/astraea-core/src/axial.rs": "7ca99f3aafd01bcbece10eb2e7086a8e113203d0d40cfb372a2797eae1e3b230",
+    "crates/astraea-core/src/axial/tests.rs": "6de97edc24860da35587d85e5dd26d2f70d814d0630ab94bc781db5e2a9a4d7b",
+    "crates/astraea-core/src/lib.rs": "fbf9dc0e10baa49098fdcf4c07b0e5522365f2c2ab489168fd40d67955be2f12",
+    "crates/astraea-engine/src/axial_diagnostic.rs": "93ade547757ccfc71d6dfa3abea9bb2a17c267890dde995d7269a3f6b38f10d9",
+    "crates/astraea-engine/src/lib.rs": "2fbe605f6ac4d436a68f82412043c1bffb26c38b32b87c4086b5b6f56da0928c",
+    "crates/astraea-engine/tests/axial_diagnostic.rs": "cbd620ea4ed2a1b9b4c36bef7050ccf91fc60cf21fde8dba469f432ec5ff79e1",
+    "crates/astraea-engine/examples/axial_diagnostic.rs": "55f46b0faa16975a0e7eb05019bf4abe21e22263f380ce50fe2ce8d513ec4ae8",
+    "crates/astraea-engine/tests/fixtures/axial-synthetic-request.json": "590faac67a211ef7d97d44401913b4bd73174cc2640c67a7d20f54e0c35d5b4b",
+    "scripts/diagnostics/check-total-axial-boundary.py": "31ed5a9880b8dbc72450fcd6c9608d459c2ed448f2dc8f39f3849652e4d273a5"
+  },
+  "runtimeHashes": {
+    "response.json": "379be5e8938c9f9300033e45747406bf9f772cc5201da7f1ffd8f0af2808d2aa",
+    "native-boundary.json": "3a906747e8f4e6e93ad73db09842f6d5fe71bf43c646bf576b8af006a7d10381",
+    "core-suite.log": "33c197d25161b50655fb966e68caff7dd52f6882902c181410ed2318b6c0d9e9",
+    "engine-suite.log": "882aef2e2b3114c21f2be630773a7e5596103c2042273ff87454d8e4bac28a75",
+    "high-review.md": "c01a619f9625b494679553afc8698668a8de36f4cb79239826f63ac38d5dcb31",
+    "rmp01-preserved.json": "a8b08ccb8630e0045a01eb7270f1d4830854170bb653de27c6b866d7e2bc8751",
+    "legacy-preserved.json": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249",
+    "axial_example_binary": "d0a58e929e1adcc110ab6e05ba6db392a92f3b0ca43328bd631c60816b605dcf"
+  },
+  "artifactAvailability": [
+    "Portable fixture, checker, focused core/engine tests, per-check native result and verbatim reviewer final dispositions are committed.",
+    "Raw test/build logs, native report and review transcripts external: /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-local-axial (local, not portable Git artifacts).",
+    "No old-machine artifacts inferred available. Results regenerate with documented fixture/example commands."
+  ],
+  "checks": [
+    {
+      "id": "RMP06-C01",
+      "status": "pass",
+      "kind": "synthetic-native-software / source review",
+      "commandOrMechanism": "core analytic_components_and_reference_conversion_have_one_total; 22-case independent Python probe",
+      "expectedRule": "Exact component sum, dimensional negative-Y force, normalization and no duplicated aero",
+      "observed": "CA0 .24950090926721638; force=(0,-4.345905150978223,0) N; independently computed friction, nose, base, fin LE/TE/wave. Fourfold Sref preserves every dimensional component. Every fin set included once.",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP06-local-axial/native-boundary-result.json; /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-local-axial/core-suite.log, engine-suite.log; docs/internal/execution-runs/RMP06-local-axial/REVIEW.md",
+      "sha256": "3a906747e8f4e6e93ad73db09842f6d5fe71bf43c646bf576b8af006a7d10381",
+      "limitation": "Direct zero-incidence software only; source constants/geometry declarations not physically qualified."
+    },
+    {
+      "id": "RMP06-C02",
+      "status": "pass",
+      "kind": "synthetic-native-software / source review",
+      "commandOrMechanism": "core local_pressure_viscosity_length_and_roughness_change_only_friction_coefficients; engine same_mach_different_pressure_changes_friction_not_pressure_coefficients",
+      "expectedRule": "At equal Mach isolate rho/mu/L/roughness dependencies without sea-level cache",
+      "observed": "Pressure/density, viscosity, fin length and fin roughness changes affect intended friction coefficients only; pressure coefficients invariant. Real E1 profile fourfold pressure ratio gives fourfold Re ratio at same Mach.",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP06-local-axial/native-boundary-result.json; /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-local-axial/core-suite.log, engine-suite.log; docs/internal/execution-runs/RMP06-local-axial/REVIEW.md",
+      "sha256": "3a906747e8f4e6e93ad73db09842f6d5fe71bf43c646bf576b8af006a7d10381",
+      "limitation": "The isolated viscosity test deliberately constructs a typed state, not another atmosphere or a physically independent E1-closure degree of freedom."
+    },
+    {
+      "id": "RMP06-C03",
+      "status": "pass",
+      "kind": "synthetic-native-software / source review",
+      "commandOrMechanism": "core powered_coast_transition_changes_only_base_and_never_falls_back; native boundary power cases",
+      "expectedRule": "Explicit source power convention, no inferred coast or nozzle correction",
+      "observed": "Powered base coefficient equals coast*.38; all other components bit-identical; coast-only rejects powered even at V=0; query requires power and policy; unobstructed clean-base convention explicit.",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP06-local-axial/native-boundary-result.json; /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-local-axial/core-suite.log, engine-suite.log; docs/internal/execution-runs/RMP06-local-axial/REVIEW.md",
+      "sha256": "3a906747e8f4e6e93ad73db09842f6d5fe71bf43c646bf576b8af006a7d10381",
+      "limitation": "Inherited project-authored fit only; no nozzle-area/sting/experimental plume qualification or flight burnout application."
+    },
+    {
+      "id": "RMP06-C04",
+      "status": "in_progress",
+      "kind": "synthetic-native-software / source review",
+      "commandOrMechanism": "E1 retained tests plus engine profile_time_msl_units_and_toward_wind_are_actually_consumed",
+      "expectedRule": "Actual profile semantics and single wind conversion through all intended consumers",
+      "observed": "Toward ENU unchanged; ground-minus-wind gives (30,40,0); log-P/linear-T/wind, geometric-MSL/time/units/coverage checks exercised with inclusive endpoints and rejection. Shared-flight stage clock/AGL conversion unimplemented.",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP06-local-axial/native-boundary-result.json; /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-local-axial/core-suite.log, engine-suite.log; docs/internal/execution-runs/RMP06-local-axial/REVIEW.md",
+      "sha256": "3a906747e8f4e6e93ad73db09842f6d5fe71bf43c646bf576b8af006a7d10381",
+      "limitation": "No claim of trajectory/profile application; parent not pass."
+    },
+    {
+      "id": "RMP06-C05",
+      "status": "not_run",
+      "kind": "synthetic-native-software / source review",
+      "commandOrMechanism": "Direct-only implementation; sourceLedger cachePolicy=direct-only-no-axial-cache",
+      "expectedRule": "Cache outputs/trajectory error within declared budgets with every dependency keyed",
+      "observed": "No axial cache/interpolation created, no stale-cache risk in this subpacket. Parent cache numerical policy/trajectory budgets not decided or exercised.",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP06-local-axial/native-boundary-result.json; /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-local-axial/core-suite.log, engine-suite.log; docs/internal/execution-runs/RMP06-local-axial/REVIEW.md",
+      "sha256": "3a906747e8f4e6e93ad73db09842f6d5fe71bf43c646bf576b8af006a7d10381",
+      "limitation": "Cache-specific scope N/A for this reviewed direct increment, but parent check deliberately remains not_run rather than silently waived."
+    },
+    {
+      "id": "RMP06-C06",
+      "status": "pass",
+      "kind": "synthetic-native-software / source review",
+      "commandOrMechanism": "core zero/low-Re/geometry/extreme/sweep/cancellation tests; engine strict-boundary tests; Python native regressions",
+      "expectedRule": "Zero loads/null coefficients, invalid inputs and unsupported arithmetic refuse without floors",
+      "observed": "Zero all component/total coefficients null with reason and zero force; positive Re<1000 refuses; invalid P/T/rho/mu/a/refs/roughness, mismatched surface/identities, overflow/underflow, M>=.8 refuse. Positive sweep quotient/LE/TE loss refuses; structural double-wedge/airfoil-TE/subsonic-wave zeros retained.",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP06-local-axial/native-boundary-result.json; /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-local-axial/core-suite.log, engine-suite.log; docs/internal/execution-runs/RMP06-local-axial/REVIEW.md",
+      "sha256": "3a906747e8f4e6e93ad73db09842f6d5fe71bf43c646bf576b8af006a7d10381",
+      "limitation": "Subsonic model refuses before inherited asin domain; retained E1b asin-domain test still passes. No new wall/transition/temperature physics claimed."
+    },
+    {
+      "id": "RMP06-C07",
+      "status": "blocked",
+      "kind": "synthetic-native-software / source review",
+      "commandOrMechanism": "No candidate integration performed; source/lease inspection",
+      "expectedRule": "One prepared provider and state yields matching flight/query/curve axial data and identities",
+      "observed": "Standalone actual-E1 total diagnostic works, but flight_provider.rs/six_dof.rs/native_candidate.rs are untouched. Local source cannot support startup at arbitrarily small positive Re; no bridge or automatic blend claimed.",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP06-local-axial/native-boundary-result.json; /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-local-axial/core-suite.log, engine-suite.log; docs/internal/execution-runs/RMP06-local-axial/REVIEW.md",
+      "sha256": "3a906747e8f4e6e93ad73db09842f6d5fe71bf43c646bf576b8af006a7d10381",
+      "limitation": "Next native E1 bridge can use already-explicit prescribed axial source; integrating this local source requires reviewed all-stage source/support composition."
+    },
+    {
+      "id": "RMP06-C08",
+      "status": "in_progress",
+      "kind": "synthetic-native-software / source review",
+      "commandOrMechanism": "177 core /70 engine tests; real native RMP01/legacy byte-preservation probes; native-only module/source inspection",
+      "expectedRule": "Preserve defaults/output/project reopening; no silent atmosphere activation",
+      "observed": "RMP01 report byte-identical (a8b08ccb…); legacy response byte-identical (f37d195f…). No dispatch/schema/frontend/WASM/default change. Existing native suites pass.",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP06-local-axial/native-boundary-result.json; /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp06-local-axial/core-suite.log, engine-suite.log; docs/internal/execution-runs/RMP06-local-axial/REVIEW.md",
+      "sha256": "3a906747e8f4e6e93ad73db09842f6d5fe71bf43c646bf576b8af006a7d10381",
+      "limitation": "Project reopening/browser/WASM identity tests not newly run; later activation must verify them. Parent remains partial."
+    }
+  ],
+  "commands": [
+    "CARGO_BUILD_JOBS=2 cargo test --offline --manifest-path crates/astraea-core/Cargo.toml -- --test-threads=2",
+    "CARGO_BUILD_JOBS=2 cargo test --offline --locked --manifest-path crates/astraea-engine/Cargo.toml --all-targets -- --test-threads=2",
+    "CARGO_BUILD_JOBS=2 cargo build --offline --locked --manifest-path crates/astraea-engine/Cargo.toml --example axial_diagnostic --example native_candidate_flight --example legacy_flight_snapshot",
+    "python3 scripts/diagnostics/check-total-axial-boundary.py \"$CARGO_TARGET_DIR/debug/examples/axial_diagnostic\" crates/astraea-engine/tests/fixtures/axial-synthetic-request.json",
+    "\"$CARGO_TARGET_DIR/debug/examples/axial_diagnostic\" crates/astraea-engine/tests/fixtures/axial-synthetic-request.json",
+    "\"$CARGO_TARGET_DIR/debug/examples/native_candidate_flight\" crates/astraea-engine/tests/fixtures/native-candidate-request.json",
+    "\"$CARGO_TARGET_DIR/debug/examples/legacy_flight_snapshot\" /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp01/legacy-before/request-wind0.json",
+    "git diff --check"
+  ],
+  "review": {
+    "reviewer": "Independent separate Codex CLI/OpenAI gpt-6.1-sol read-only sessions; final full audit high effort",
+    "independentOfAuthor": true,
+    "disposition": "accepted for RMP06a bounded direct diagnostic; parent partial",
+    "findings": [
+      "Contract: normalize nose as well as base; whole-body/all-fin-face coverage excludes pressure in FF; LE-only sweep-length scaling. Incorporated before implementation.",
+      "Implementation P2: lost positive fin LE underflow/cancellation accepted as zero. Fixed in 15be61b with positivity checks and regression evidence.",
+      "Focused rereview ACCEPT; final independent high-effort full audit ACCEPT. No new findings, no reviewer builds/tests."
+    ]
+  },
+  "qualification": {
+    "computational": "reviewed direct-native diagnostic complete; parent RMP06 partial",
+    "physical": "unqualified",
+    "dynamic": "not-modeled"
+  },
+  "failedAttempts": [
+    "Pre-implementation contract review required three clarifications; not silently accepted as originally proposed.",
+    "Initial implementation did not refuse an underflowed sweep quotient or rounded/airfoil low-Mach subtraction cancellation. Preserved review, corrected, and retested; no inherited-source rewrite.",
+    "rustfmt not installed for current toolchain; no formatting pass or installation claimed."
+  ],
+  "remainingScope": [
+    "E1 profile through actual candidate flight/query/curves, stage time and launch datum semantics, all-stage startup source support, and default/project reopening checks upon activation.",
+    "Cache policy/trajectory error budgets if a cache is implemented; physical qualification RMP02/RMP08; identity/migration/product exposure RMP07.",
+    "No empirical/source-qualified nozzle/weather/transition/wall-temperature/roughness/damping claim."
+  ],
+  "nextActions": [
+    "RMP06b: repin accepted head, lease flight_provider.rs/six_dof.rs shared flow seam/native helper and tests; freeze fractional-stage-time/launch geometric-MSL mapping before edits.",
+    "First exercise immutable E1 environment with existing prescribed axial provider across trajectory/query/curves, preserving native/legacy behavior.",
+    "Independently review any new local-source startup composition; never floor Re or automatically blend. No owner input blocks useful native bridge work."
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

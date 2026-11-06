@@ -1,0 +1,237 @@
+{
+  "lane": "live-sizing-fix",
+  "base": "4a914ea159cbef349e4ac36367a1e107cf6b7e99",
+  "assignment_commit": "5adc8f86307f5b52ded61ec008e6f7cfcd36b491",
+  "implementation_commits": [
+    "4ff792fc181635d9199cfce39bf4925ae84fce86",
+    "5d84eccc4e75495e1b803f058a7fa5d861a37916",
+    "6d532ee1f0d58b2f705acfc8be0d6621ad10c880",
+    "39b4dad72b01b1acd518db6d025992f6c01fbbee"
+  ],
+  "evidence_dir": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-live-sizing-fix",
+  "files": {
+    "production": [
+      "src/console/hooks.ts",
+      "src/console/kit/Fields.tsx",
+      "src/console/shell/Inspector.tsx",
+      "src/console/shell/partBounds.ts",
+      "src/console/shell/PartsTree.tsx",
+      "src/console/stages/Aero.tsx",
+      "src/console/stages/AeroControls.tsx",
+      "src/console/stages/Airframe.tsx",
+      "src/console/stages/FlightTimeline.tsx",
+      "src/console/viewport/Drawing2D.tsx",
+      "src/console/viewport/Vehicle3D.tsx",
+      "src/console/viewport/Viewport.tsx"
+    ],
+    "tests": [
+      "src/console/hooks.test.ts",
+      "src/console/shell/inspector.test.tsx",
+      "src/console/stages/aeroStale.test.tsx",
+      "src/console/viewport/layoutPersistence.test.tsx",
+      "src/console/viewport/markers.test.tsx"
+    ],
+    "docs": [
+      "README.md",
+      "CHANGELOG.md",
+      "docs/screenshots/live-sizing.webp",
+      "docs/internal/execution-runs/live-sizing-fix/RESULT.md",
+      "docs/internal/execution-runs/live-sizing-fix/EVIDENCE.json"
+    ]
+  },
+  "review_fixes": [
+    {
+      "finding": "pending stability requests dropped by a single global slot",
+      "fix": "per-cache-key pending Map; prune unsubscribed/cached keys; dispatch most recently requested subscribed key; leading+trailing 120 ms; one in flight",
+      "tests": [
+        "three concurrently subscribed keys all dispatched",
+        "20-step drag burst produces at most two dispatches for the dragged slot",
+        "subscribed committed key pending during a burst is dispatched"
+      ]
+    },
+    {
+      "finding": "tube length could still leave children overhanging",
+      "fix": "tube length min = furthest child axial end on slider and field; tube-side warning names overhanging parts",
+      "tests": ["tube length slider min >= 1420 mm", "tube warning names fins and main chute"]
+    },
+    {
+      "finding": "Drawing2D drew the current vehicle with a stale layout",
+      "fix": "draw snapshot.vehicle with snapshot.layout"
+    },
+    {
+      "finding": "mixed aero-model keys",
+      "fix": "Viewport/Drawing2D take aeroModel props from the vehicle owner; ghost uses ghostAeroModel; PartsTree uses its committed design's model"
+    },
+    {
+      "finding": "markers flickered during a drag because the cg/cp opt-in was undefined while loading",
+      "fix": "explicit markers prop; Airframe/Aero enable it, flight playback does not; CG/CP always read from snapshot.breakdown; cg/cp props and last-prop refs removed",
+      "test": "while the next key is held, data-markers stays present and data-marker-cg/cp keep the previous breakdown values"
+    },
+    {
+      "finding": "pressing the slider track recomputed the window around the pressed value and the first move jumped",
+      "fix": "hold the last pre-gesture window in a ref, freeze once per gesture, ignore focus while frozen, unfreeze on pointerup/cancel/blur; snap min/max inward to the step",
+      "test": "pointerdown + far track value + focus keeps the pre-press min/max; at 6d532ee max becomes 5600 instead of 2900"
+    }
+  ],
+  "commands": [
+    {
+      "command": "npx tsc --noEmit",
+      "result": "exit 0, no diagnostics",
+      "log": "fixed-tsc.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console",
+      "result": "44 test files passed, 372 tests passed",
+      "log": "fixed-console-tests.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console/hooks.test.ts src/console/shell/inspector.test.tsx src/console/viewport/layoutPersistence.test.tsx src/console/stages/aeroStale.test.tsx",
+      "result": "fixed tree: 4 files passed, 20 tests passed",
+      "log": "focused-fixed-tests.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console/viewport/markers.test.tsx",
+      "result": "fixed tree: 1 passed",
+      "log": "focused-marker-test.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console/shell/inspector.test.tsx",
+      "result": "fixed tree: 15 passed (includes track-press regression)",
+      "log": "focused-track-test.log"
+    },
+    {
+      "command": "pnpm --config.verify-deps-before-run=false build",
+      "result": "production build succeeded in 0.712 s; flag needed because node_modules is a symlink, no install run",
+      "log": "fixed-build.log"
+    },
+    {
+      "command": "current regression tests at base 4a914ea in a detached worktree",
+      "result": "10 failed, 10 passed",
+      "log": "base-tests-current.log"
+    },
+    {
+      "command": "three-concurrent-keys test at 4ff792f",
+      "result": "failed with [1, 3]; key 2 was dropped",
+      "log": "review-4ff-three-key.log"
+    }
+  ],
+  "base_falsifier_failures_current_tests": [
+    "mass slider step was 1 (expected 0.005 kg)",
+    "inner diameter slider max was 1000 mm (expected <= 151.5)",
+    "fin offset slider max was 6000 mm (expected <= 1130)",
+    "tube length slider min was 20 mm (expected >= 1420)",
+    "no tube-side overhang warning",
+    "no part-side overhang warning",
+    "optional rail-guide row had no slider",
+    "aero table had no updating state",
+    "layout is null while the next stability key is held",
+    "useLayout request omits the selected aero model"
+  ],
+  "blocker_reproduction": {
+    "commit": "4ff792fc181635d9199cfce39bf4925ae84fce86",
+    "scenario": "three concurrently subscribed keys a/b/c, 1000 ms",
+    "observed": [1, 3],
+    "expected": [1, 2, 3],
+    "log": "review-4ff-three-key.log"
+  },
+  "marker_reproduction": {
+    "commit": "5d84eccc4e75495e1b803f058a7fa5d861a37916",
+    "scenario": "Viewport with markers enabled while the next stability key is held",
+    "observed": "data-markers is undefined (attribute absent)",
+    "expected": "present, with the previous breakdown's CG/CP",
+    "log": "review-5d8-markers.log"
+  },
+  "track_press_reproduction": {
+    "commit": "6d532ee1f0d58b2f705acfc8be0d6621ad10c880",
+    "scenario": "pointerdown on slider track, change to 2800, focus",
+    "observed": { "max": "5600" },
+    "expected": { "min": "1420", "max": "2900" },
+    "log": "review-6d5-track-press.log"
+  },
+  "built_surface": {
+    "runner": "Chromium + SwiftShader, production CSP from dist/_headers",
+    "viewport": "1600x1000",
+    "drag": "24 pointer moves at 8 ms on NASA Student Launch body-tube length slider",
+    "track_press_run": {
+      "press_position": "80% of track width; thumb at 2%",
+      "steps": 30,
+      "samples": 31,
+      "before": { "value": 1450, "min": "1420", "max": "2900" },
+      "press_value": 2630,
+      "final_value": 1690,
+      "min_constant": true,
+      "max_constant": true,
+      "monotonic_left": true,
+      "artifact": "track-drag-steps.json"
+    },
+    "markers_run": {
+      "drag_raf_frames": 40,
+      "marker_present_frames": 40,
+      "marker_absent_frames": 0,
+      "distinct_marker_cg_values": 24,
+      "empty_viewport_frames": 0,
+      "stale_viewport_frames": 30,
+      "release_to_final_layout_ms": 447.8,
+      "final_layout_length_m": 4.698,
+      "artifact": "fixed-markers-latency.json"
+    },
+    "fixed_runs": [
+      {
+        "run": 1,
+        "drag_raf_frames": 41,
+        "empty_viewport_frames": 0,
+        "stale_viewport_frames": 28,
+        "release_to_final_layout_ms": 518.6,
+        "final_layout_length_m": 4.698,
+        "artifact": "fixed-review-final-latency-run1.json"
+      },
+      {
+        "run": 2,
+        "drag_raf_frames": 40,
+        "empty_viewport_frames": 0,
+        "stale_viewport_frames": 29,
+        "release_to_final_layout_ms": 771.1,
+        "final_layout_length_m": 4.698,
+        "artifact": "fixed-review-final-latency-run2.json"
+      },
+      {
+        "run": 3,
+        "drag_raf_frames": 32,
+        "empty_viewport_frames": 0,
+        "stale_viewport_frames": 26,
+        "release_to_final_layout_ms": 686.8,
+        "final_layout_length_m": 4.698,
+        "artifact": "fixed-review-final-latency-run3.json"
+      }
+    ],
+    "base": {
+      "commit": "4a914ea159cbef349e4ac36367a1e107cf6b7e99",
+      "drag_raf_frames": 56,
+      "frames_without_stability_strip": 36,
+      "empty_viewport_frames": "not measurable: data-layout-state absent at base",
+      "release_to_final_layout_ms": 878.8,
+      "screenshot_frames": 12,
+      "screenshot_bright_pixel_range_pct": [2.25, 3.11],
+      "compositor_frames": 36,
+      "compositor_bright_pixel_range_pct": [2.652, 5.65367],
+      "visibly_blank_observed": false,
+      "honest_note": "The base build did not visibly blank in sampled screenshots or CDP compositor frames. The hook-level regression proves useLayout returned null during the held/pending key; the built-surface blank was not observed under this probe.",
+      "artifacts": ["base-latency.json", "base-probe.json", "base-screencast.json", "base-frame-brightness.txt", "base-screencast-brightness.txt"]
+    },
+    "readme_screenshot": {
+      "tool": "Playwright pointer drag on fin span, NASA Student Launch",
+      "source_commit": "4ff792fc181635d9199cfce39bf4925ae84fce86",
+      "layout_state_at_capture": "stale",
+      "source": "fixed-live-sizing-final.png",
+      "installed": "docs/screenshots/live-sizing.webp",
+      "dimensions": "2000x1375"
+    }
+  },
+  "deliberately_not_done": [
+    "no re-anchoring of child offsets when a parent shrinks (cap/warn only)",
+    "no TS-side 3D preview during a drag",
+    "no engine, WASM, schema, preset-value, gate, tolerance or physics edits",
+    "no push, merge or release; register, manifest, TASKS.md and handoff untouched",
+    "parachute drawing default (0.12 m) vs mass-rollup default (0.05 m) recorded, not changed"
+  ]
+}

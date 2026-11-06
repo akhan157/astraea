@@ -1,0 +1,26 @@
+{
+  "area": "4-undo-redo",
+  "label": "compare-basis-follows-undo-tail",
+  "url": "http://localhost:5190/",
+  "studio": "Airframe CAD studio (shortcut 1)",
+  "banners": [],
+  "badges": [
+    "●Stable — 5.28 cal",
+    "▲Over-stable — weathercocking risk",
+    "●Run ready — inputs resolve",
+    "Ready — set coordinates and fetch a pressure-level profile.",
+    "Wind for MC: manual wind table (surface probe)",
+    "Samples parsed—Samples @ dt—Apogee altitude—Apogee at—",
+    "No committed simulation run yet — open Trajectory and run a case. Flight logs can still be ingested below.",
+    "Nothing layered — layer the sim or a flight log to plot.",
+    "1 item excluded from clearance — packed length missing.",
+    "Compare dock open: data-compare-rows=1, header 'Compare vs last saved · v1.0', overlay=40%",
+    "After 2 commits: diff row 'Modified Stabilizer Fins (3-Fin)' (basis = tail = post-commit-1)",
+    "After Undo: diff row switched to 'Modified Ogive Nosecone' (basis followed history tail = original preset); Redo now enabled"
+  ],
+  "consoleErrors": 0,
+  "overflow": {
+    "x": false,
+    "y": false
+  }
+}

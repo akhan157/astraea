@@ -1,0 +1,174 @@
+{
+  "schemaVersion": "rmp07-candidate-runtime-evidence/1.0.0",
+  "base": "06952252ce937bdaabddbcc528ede8f3c6c427fd",
+  "branch": "rmp07-candidate-runtime",
+  "sourceCommit": "066960f5fa7a5614f47fa035986016be6ecc3cce",
+  "gate": "gate 1 approved with amendments; author result only, no self-acceptance",
+  "routing": {
+    "providerHost": "omp",
+    "model": "deepseek/deepseek-flash",
+    "catalogName": "DeepSeek V4.1 Flash 1017",
+    "thinking": "max",
+    "resolvedModelIsFallback": false,
+    "subagents": 0,
+    "lsp": "unavailable: No language server found for this action; REPORT_SCHEMA_ID and schema literals traced by exact string/symbol search"
+  },
+  "reportSchemas": {
+    "native": "astraea-native-candidate-report/2.0.0",
+    "profile": "astraea-native-profile-candidate-report/2.0.0",
+    "request": "unchanged native-E1-profile-candidate-request/1.0.0 and the unversioned base candidate request",
+    "contentIdentityScheme": "native-candidate-input-model-sha256/1.0.0",
+    "contentIdentityEncoding": "astraea-typed-json-bits/1.0.0",
+    "coreResultSchema": "astraea-bounded-candidate-result/1.0.0"
+  },
+  "inputs": {
+    "nativeCandidateRequestSha256": "ea853d96452372c9b662b9111cb56bd6ea510990adc16e24afdf691cac375a50",
+    "profileCandidateRequestSha256": "7d6a9c96e0555f4f5641d94cc9cf506c627e6a357ab55f00c9a4a6a12b54fc7a",
+    "legacyRequestSha256": "1a58a570d423ae49adf8e459815ce12e599eed0f188a8a5ee15ef67a29235fbd"
+  },
+  "commands": [
+    {
+      "command": "CARGO_BUILD_JOBS=2 cargo test --offline --locked -j 2 --manifest-path crates/astraea-engine/Cargo.toml -- --test-threads=2",
+      "result": "102 passed, 12 suites, 0 failed"
+    },
+    {
+      "command": "CARGO_BUILD_JOBS=2 cargo build --offline --locked --examples -j 2 --manifest-path crates/astraea-engine/Cargo.toml",
+      "result": "pass"
+    },
+    {
+      "command": "target-lane/debug/examples/candidate_command crates/astraea-engine/tests/fixtures/native-candidate-request.json (twice)",
+      "result": "byte-identical; exit 0"
+    },
+    {
+      "command": "target-lane/debug/examples/native_candidate_flight crates/astraea-engine/tests/fixtures/native-candidate-request.json",
+      "result": "report written; exit 0"
+    },
+    {
+      "command": "target-lane/debug/examples/profile_candidate_flight crates/astraea-engine/tests/fixtures/profile-candidate-request.json",
+      "result": "report written; exit 0"
+    },
+    {
+      "command": "target-lane/debug/examples/legacy_flight_snapshot docs/internal/execution-runs/RMP12-candidate-controls/LEGACY-INPUT.json",
+      "result": "byte-identical to accepted-parent legacy output"
+    },
+    {
+      "command": "CARGO_BUILD_JOBS=2 cargo build --offline --locked --release --target wasm32-unknown-unknown -j 2 --manifest-path crates/astraea-engine/Cargo.toml",
+      "result": "pass; 1827256 bytes"
+    },
+    {
+      "command": "node ../evidence-rmp07-candidate-runtime/wasm-smoke.mjs <wasm> <native-fixture> <output> <profile-fixture>",
+      "result": "real worker success plus 8 refusals; worker terminated"
+    },
+    {
+      "command": "node ../evidence-rmp07-candidate-runtime/compare-reports.mjs <native-envelope> <wasm-replies> <output>",
+      "result": "identity exact; 14958 numeric leaves; 0 differences"
+    },
+    {
+      "command": "python3 scripts/diagnostics/check-candidate-identity.py <examples> <output> <parent-baseline> docs/internal/execution-runs/RMP12-candidate-controls/LEGACY-INPUT.json",
+      "result": "pass; 5 CLI invocations"
+    },
+    {
+      "command": "python3 scripts/diagnostics/check-profile-candidate.py <profile-example> crates/astraea-engine/tests/fixtures/profile-candidate-request.json",
+      "result": "pass; 9 checks"
+    },
+    {
+      "command": "git diff --check",
+      "result": "clean"
+    }
+  ],
+  "artifacts": {
+    "wasmSha256": "307f585c9e1523bf441f5b5f3a9a1e11eee70a9683d3f2fb823c9a3984f40a1f",
+    "wasmBytes": 1827256,
+    "nativeDispatchEnvelopeSha256": "b95e3b04f867e8de8802c6ebf6ebed4fd73f326b0dae38682773ab52e7a70625",
+    "nativeHelperReportSha256": "54aeb530e2cecb0355684d12f69497b36c60ed0b6705c23972efda1b3154063b",
+    "profileHelperReportSha256": "9e0f9a111013b00fc3053f60c4ae91295bfc146c7725d6112a2ccde742f53fda",
+    "legacyOutputSha256": "1c1e0f4129db92948613b303592a9a91ca8f86a758705461b98f2cfd9c352353",
+    "wasmRepliesSha256": "f701441008408ca8184b1556ce76f49ca3d8e857547d77a7355ab2f5be801ac3",
+    "crossTargetSha256": "9797f0c43704b98b30f37bacf59e87247dfdeffacb26abd775a0b27c1d2de8ab",
+    "identityCheckerSha256": "0ac0800dc815a2bd8e92ffa8c5091ea4a99a4bd8a6a75902f669da4fa190bb58",
+    "profileCheckerSha256": "8eb0913a13f831cd2a9c1bf3d3b2d971171029b050222ae9b464dd1b22848869",
+    "parentNativeReportSha256": "059f8e116f6843f180b05e309649b1bc482b8454ee997dc03fb7027cb797a83f",
+    "parentProfileReportSha256": "187c58c6b65ca0c4318ca270d521881ab3c11066f6ac9a9af8288a001ecdd039",
+    "parentLegacyOutputSha256": "1c1e0f4129db92948613b303592a9a91ca8f86a758705461b98f2cfd9c352353",
+    "candidateCommandExampleSha256": "3f8574ba054aa61bea08e36ae659e0dcf4539deb6fea1e71da9a77cbc9fcfa24",
+    "nativeCandidateExampleSha256": "094ccc27bf411946126db172a323eef19e813950735fd72140f7d3e690aefc11",
+    "profileCandidateExampleSha256": "1b30d2d13fd5fd879ec6947eb02265099cb507463178ef250c27e5fba2759b40",
+    "legacySnapshotExampleSha256": "4f4d8fe76537d5a5df3bc99a457c2079d27c168a5a8e765a873834a8b5878422"
+  },
+  "testSuite": {
+    "total": 102,
+    "suites": 12,
+    "failed": 0,
+    "newTests": [
+      "explicit_candidate_command_runs_the_bounded_candidate_and_preserves_legacy",
+      "candidate_command_refuses_controls_profile_envelopes_and_unsupported_domains",
+      "candidate_command_preserves_identity_for_equivalent_accepted_inputs"
+    ]
+  },
+  "crossTarget": {
+    "identityExact": true,
+    "nativeDigest": "80c447b8426ef64fa93509dbc07e75bba1859c01bbdfa586f0e7da8b9ffdb1b4",
+    "wasmDigest": "80c447b8426ef64fa93509dbc07e75bba1859c01bbdfa586f0e7da8b9ffdb1b4",
+    "numericLeaves": 14958,
+    "eventTimeLeaves": 5,
+    "worstContinuousRatio": 1.0547118733938987e-15,
+    "worstContinuousPath": "curves.points[5].staticMomentCgBodyNm[0]",
+    "worstEventTimeAbsS": 0,
+    "diffCount": 0,
+    "approvedBound": "continuous abs <= 1e-9*max(abs(native),1); event time abs <= 1e-9 s",
+    "refusalTextMatch": "all six request-level negatives matched; missing-request and unknown-command behavior covered in Rust tests and the WASM worker"
+  },
+  "parentPreservation": {
+    "representationDeltaKeys": [
+      "schemaId",
+      "commands",
+      "scopeNote"
+    ],
+    "nativeContentEqualExceptDeltaKeys": true,
+    "profileContentEqualExceptDeltaKeys": true,
+    "contentIdentityEqualNative": true,
+    "contentIdentityEqualProfile": true,
+    "legacyByteIdentical": true
+  },
+  "checkers": {
+    "candidateIdentity": {
+      "status": "pass",
+      "cliInvocations": 5,
+      "nativeDigest": "80c447b8426ef64fa93509dbc07e75bba1859c01bbdfa586f0e7da8b9ffdb1b4",
+      "profileDigest": "5e07b4b7cbfbee2e56a17d34e4c2707543a34f41b38cddc7d5534e3518524769"
+    },
+    "profileCandidate": {
+      "status": "pass",
+      "checks": 9
+    }
+  },
+  "outputs": {
+    "nativeEnvelopeBytes": 591180,
+    "profileReportBytes": 777511,
+    "policy": "all committed macro samples and all requested curve points; no decimation; no response-size cap added",
+    "risk": "long horizons or tiny time steps can grow output; the shared driver guards are not a response budget"
+  },
+  "failures": [
+    {
+      "attempt": "first release wasm build",
+      "error": "error[E0425]: cannot find function `parse_profile_with_input` in module `environment_diagnostic`; item configured out for wasm32",
+      "resolution": "kept profile evaluation and replay native-helper-only; shared only observation_json; environment_diagnostic.rs unchanged"
+    }
+  ],
+  "limitations": [
+    "engine API only; no GUI/project/default/ensemble/persistence selection",
+    "profile envelope remains helper-only and undispatched",
+    "RMP06 local axial startup/source qualification remains open",
+    "Node worker proof is not the app-bundled worker; no browser/CSP/UI run",
+    "no output-size cap added",
+    "contentIdentity is not an executable/artifact identity or physical qualification",
+    "no acceptance-register/manifest/TASKS/handoff edits; no PASS promotion"
+  ],
+  "coordinatorCorrections": {
+    "reason": "Author checker-script pins did not match committed script bytes. Coordinator hashed both lane and merged files and reran both current checkers successfully; no claim that the original pins identify the final scripts.",
+    "originalIdentityCheckerSha256": "dd4e59940dfa1d2ae7a67bbeb8a929c10168b762631cbead9d33be0462065903",
+    "originalProfileCheckerSha256": "02f94e795318984ec34f683d8ebdde805caad5a2ed39147e9163302b4f815be2",
+    "independentVerification": "COORDINATOR-EVIDENCE.json"
+  },
+  "externalEvidence": "../evidence-rmp07-candidate-runtime/"
+}

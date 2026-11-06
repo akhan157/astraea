@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP15",
+  "subpacket": "RMP15b retained recorded flight events (project 1.9.0)",
+  "baseSha": "df94473b129172105d9e52d15b34b12fe4d89445",
+  "sourceSha": "65ef81ef45b84a4b0f4cfe110fd8a3ca866f84db",
+  "status": "bounded software increment accepted (ACCEPT, nonblocking follow-ups applied); parent partial",
+  "sourceInventory": "SOURCE-INVENTORY.json",
+  "lease": "released after source commit; test-only extension recorded in ASSIGNMENT",
+  "review": {
+    "initial": "ACCEPT, 9 nonblocking notes; 3 applied post-review",
+    "boundary": "no-tools supplied-text review"
+  },
+  "routing": {
+    "author": "anthropic/claude-opus-5-5 (omp takeover)",
+    "reviewer": "explicit opencode-go/mimo-v2.6-pro / medium / no-tools"
+  },
+  "verification": {
+    "beforeFix": "5fail/61pass + missing module (one vacuous pre-fix pass disclosed)",
+    "fullSrc": "121 files/1512 tests",
+    "affectedFinal": "64 files/737 tests",
+    "typeScript": "clean",
+    "build": "Vite pass; WASM b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b unchanged",
+    "browserSmoke": "run \u2192 save to browser \u2192 reload \u2192 open saved project: identical 7 event rows"
+  },
+  "checks": [
+    {
+      "id": "RMP15-C01",
+      "status": "in_progress",
+      "observed": "saved flight cases retain exact event timeline through write/read and browser-slot save/reopen; old documents keep absence; older-schema injection refuses",
+      "remaining": "telemetry/trajectory retention, trace export of events, new provider/import/environment archives"
+    }
+  ],
+  "relatedEvidence": [
+    "../RMP15-saved-run-landing/EVIDENCE.json"
+  ],
+  "artifactAvailability": {
+    "portable": "assignment/result/review/source inventory/code/tests",
+    "externalLocalOnly": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp15-saved-run-events/"
+  },
+  "nonClaims": [
+    "any PASS",
+    "event physics/clock/accuracy change or qualification",
+    "browser journey/usability/native/team/release acceptance"
+  ],
+  "next": "saved telemetry retention contract or export-trace events; no push",
+  "artifactHashes": {
+    "portable": {
+      "ASSIGNMENT.md": "fd032f9d9b570f594fc0d57755ab1a16bb84b1d2b7363fbc5231e758ba87bcb0",
+      "RESULT.md": "0de7de6f317e1653faa86e83f62363e1a00d098a0aaf90eacffad427f22fe331",
+      "REVIEW.md": "466d639b67d98c7542e878c89562e78644d36d76ca12b95a1078c8a14794c150",
+      "SOURCE-INVENTORY.json": "e0ed800ed089b27e6f758bd5b326b8e18648f55bfb9e59ad6b32d700a39fa735",
+      "RAW-ARTIFACTS.json": "f1ec24a36573c85cd8d6830761fee4a5ebadc86f2e8da556fae6f18dab42ed70"
+    },
+    "scope": "author-hashed integrity/availability"
+  }
+}

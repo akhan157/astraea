@@ -1,0 +1,29 @@
+{
+  "status": "pass",
+  "scope": "synthetic native direct-axial arithmetic/boundary only, not trajectory or physical qualification",
+  "checks": [
+    "independent component/closure/normalization/force sum",
+    "cross-section-square",
+    "cross-section-rounded",
+    "cross-section-airfoil",
+    "cross-section-doubleWedge",
+    "powered base factor only",
+    "nose+base+friction+edge Sref invariance",
+    "every fin set counted once",
+    "zero-speed coefficients null and forces zero",
+    "nonzero low Re refuses",
+    "power coverage refuses",
+    "strict profile units",
+    "strict profile extrapolationPolicy",
+    "expired profile refuses",
+    "MSL coverage refuses",
+    "Mach support refuses",
+    "unknown nested field refuses",
+    "positive sweep quotient underflow refuses",
+    "low Mach positive vs structural zero: rounded",
+    "low Mach positive vs structural zero: airfoil",
+    "low Mach positive vs structural zero: square",
+    "low Mach positive vs structural zero: doubleWedge"
+  ],
+  "count": 22
+}

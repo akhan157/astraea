@@ -1,0 +1,169 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP07",
+  "subpacket": "RMP07c archived assumptions and exact input differences",
+  "baseSha": "dc3d890b668b6aba9498150890de4d202090a1bf",
+  "sourceSha": "51e9603cc763a3b1329ace7e5eff8c17153fa94f",
+  "owner": "coordinator/author in intended branch/worktree, exclusive lease released",
+  "modelRouting": {
+    "author": "installed OpenAI gpt-6.1-sol/high",
+    "reviewer": "independent serial read-only Codex installed same model/high",
+    "meaning": "independent authorship reasoning, not multimodel scientific consensus",
+    "usage": "provider cost/quota/reset not supplied"
+  },
+  "effectiveInputs": [
+    "Existing shipped synthetic browser preset in isolated context",
+    "Existing project-main-1.0.0 parser fixture, synthetic curve/option/weather DTO changes only",
+    "Legacy selection only, exact invocation identity separate from legacy freshness key"
+  ],
+  "sourceHashes": {
+    "src/application/runComparison.ts": "480e99cd08274394cfa8e96d944e1d1de6ad92dd0c00cd64f6dd8ad27607a5e1",
+    "src/application/runComparison.test.ts": "f9331f1b1e96e3a1bf91c83ea1484f8bd1d79212a2470848c9c6f4deaf764b77",
+    "src/console/stages/SavedRuns.tsx": "2ae32bd121a1025f3540f6a714ba7e40ff28bd19fa4e22d9ca72ba70a64c05c9",
+    "src/console/stages/SavedRuns.test.tsx": "47f361b8bfdd57abeb80f6010d1c10656c23f322124db4b132cd4036ba65fd94",
+    "scripts/check-project-model-browser.mjs": "7c24091a12ae20a5b9d8a137dba9db1587cda55de761bee015ccb89a0a99a601",
+    "src/application/runInputs.ts": "4d81436369b395ec679a245501f8c386a85b50b069f68960a079270c9a6b59b8",
+    "src/formats/projectJson.ts": "459c569a7d00ac60deb4f541657f4e7aa68ed9e3da301877a0bd1525c0e3ed13"
+  },
+  "runtimeHashes": {
+    "src/engine/astraea_engine.wasm": "b971b222d7e3df8c10ff268a3a540effc847adc209b6e52b8d5a0b2b08898337",
+    "dist/app/index.html": "3deb4f5e281f897add1bee070dcd1b3307a2cba816b60adac23cd8e29e68bb35",
+    "dist/_headers": "f3b60d83b88ef73e438b0802b55923c8538525e70e7e6680971b6020c7312963",
+    "dist/assets/app-CPoILeuJ.js": "29fc35efcdb89dde6ffb74801fefcbd45752e8cce017f7d65af7b4a098def8f6",
+    "dist/assets/worker-DpjNkr35.js": "f4aace0904d3aa6e8b5f4e3fcda59dde0c40b4f7377786bbff52c11758907de3",
+    "dist/assets/astraea_engine-CpFHqCb8.wasm": "b971b222d7e3df8c10ff268a3a540effc847adc209b6e52b8d5a0b2b08898337"
+  },
+  "logHashes": {
+    "focused-first.log": "42c04e4c51742926491194e8d834ad9e6eccf50a2d3374a23a00f8818ac1e15b",
+    "tsc-first.log": "b3d1122faebaa048b0daa2371e99c5b07e02d5d49b4c69a293f3e61003552ea1",
+    "affected-final.log": "1a144b9e7daf42b2ab3ed2bbb34ebac453a45a1d33ebaa1f5f9d8e99b2bfc224",
+    "tsc-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "site-final.log": "715452f1f0a2c6b59d197fca3e01059405b0fb70e2630e6a3332e7fb3649b5a2",
+    "browser-first.log": "39579cb94abbf246c5a96f6269dac67eb710e2df9e112d79431ef138e4a25faa",
+    "browser-final.log": "d99a1bfea322b400cb49ff638d261548a39c835da79cb7568118d585d1d0f232"
+  },
+  "checks": [
+    {
+      "id": "RMP07-C07",
+      "status": "in_progress",
+      "commandOrMechanism": "253 affected tests/16 files; TS; Vite build; real Chromium/CSP synthetic journey",
+      "exitCode": 0,
+      "expectedRule": "historical assumptions readable, v1 absence/summary-only unknown retained, original archives not changed; not qualified candidate results",
+      "observed": "actual archived selection/options/global legacy scale/motor/sampler shown; exact structural reports distinct from provenance/context; no implicit execute/mutation; mixed-kind deltas suppressed",
+      "evidencePath": "docs/internal/execution-runs/RMP07-run-comparison/browser-checks.json",
+      "limitation": "legacy reporting only, full candidate computational/domain/quantity qualification display open"
+    },
+    {
+      "id": "RMP07-C08",
+      "status": "in_progress",
+      "commandOrMechanism": "fresh frontend build and real browser; fetched-buffer/case/asset SHA checked",
+      "exitCode": 0,
+      "expectedRule": "newly offered local site uses identified bytes, no stale frontend evidence",
+      "observed": "new site hashes recorded; reused unchanged measured legacy WASM matches actual fetched bytes and case identity",
+      "limitation": "no candidate/native platform/numerical qualification"
+    },
+    {
+      "id": "RMP07-C02",
+      "status": "pass",
+      "observed": "prior accepted legacy schema/archive source unchanged, fresh affected persistence/compatibility suite and actual built journey pass",
+      "evidencePath": "docs/internal/execution-runs/RMP07-project-identity/EVIDENCE.json",
+      "sourceSha": "db169e1f6d3e2d3eca9f1c3f26904a1ff746cc3c",
+      "freshness": "prior reviewed acceptance retained, with fresh affected checks on unchanged boundary source"
+    },
+    {
+      "id": "RMP07-C01",
+      "status": "in_progress",
+      "observed": "Prior bounded native identity/legacy compatibility work retained; no full candidate content-key/calibration/persistence/migration closure in this reporting increment"
+    },
+    {
+      "id": "RMP07-C03",
+      "status": "in_progress",
+      "observed": "Prior bounded native identity/legacy compatibility work retained; no full candidate content-key/calibration/persistence/migration closure in this reporting increment"
+    },
+    {
+      "id": "RMP07-C05",
+      "status": "in_progress",
+      "observed": "Prior bounded native identity/legacy compatibility work retained; no full candidate content-key/calibration/persistence/migration closure in this reporting increment"
+    },
+    {
+      "id": "RMP07-C06",
+      "status": "in_progress",
+      "observed": "Prior bounded native identity/legacy compatibility work retained; no full candidate content-key/calibration/persistence/migration closure in this reporting increment"
+    },
+    {
+      "id": "RMP07-C04",
+      "status": "not_run",
+      "observed": "new candidate command/plot/load/ensemble consumer consistency not activated"
+    }
+  ],
+  "testFiles": [
+    "src/application/runComparison.test.ts",
+    "src/application/flightModel.test.ts",
+    "src/application/runInputs.test.ts",
+    "src/application/runCases.test.ts",
+    "src/application/caseResolver.test.ts",
+    "src/application/dragCalibration.test.ts",
+    "src/formats/projectJson.test.ts",
+    "src/formats/projectStorage.test.ts",
+    "src/state/projectIo.test.ts",
+    "src/state/projectBoundary.test.ts",
+    "src/state/openRunIdentity.test.ts",
+    "src/console/store.test.tsx",
+    "src/console/projectJobs.test.ts",
+    "src/console/stages/SavedRuns.test.tsx",
+    "src/engine/identity.test.ts",
+    "src/engine/engine.test.ts"
+  ],
+  "commands": [
+    "node node_modules/vitest/vitest.mjs run <16 testFiles above> --maxWorkers=2",
+    "GOMAXPROCS=2 node node_modules/typescript/bin/tsc --noEmit",
+    "RAYON_NUM_THREADS=2 UV_THREADPOOL_SIZE=2 node node_modules/vite/bin/vite.js build",
+    "RAYON_NUM_THREADS=2 UV_THREADPOOL_SIZE=2 node scripts/check-project-model-browser.mjs <new external evidence directory>"
+  ],
+  "artifactAvailability": [
+    {
+      "kind": "portable",
+      "location": "docs/internal/execution-runs/RMP07-run-comparison",
+      "contents": "assignment/result/review/evidence/browser metrics/package validation; source/tests/checker in repository"
+    },
+    {
+      "kind": "external-local-only",
+      "location": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-run-comparison",
+      "contents": "raw logs, full synthetic projects, reviewer prompt/transcript/final"
+    },
+    {
+      "kind": "generated-local-only",
+      "location": "dist/ and src/engine/astraea_engine.wasm",
+      "contents": "fresh frontend with measured unchanged legacy WASM; no Rust rebuild in this increment or publication"
+    }
+  ],
+  "review": {
+    "disposition": "approved",
+    "independentOfAuthor": true,
+    "reviewer": "separate read-only installed Codex high",
+    "rawSha256": "91b58cac2433ebe83cbd3645a9985f4c6303acb7839864ce79de8e1cb941bbc2",
+    "findings": "no material defects",
+    "optionalFollowup": "renderer row/cell omission and baseline/variant direction test; pure helper already exercises these, browser opens declaration differences"
+  },
+  "failedAttempts": [
+    "Initial typecheck: synthetic weather profile object not WindLayer[]; corrected fixture to declared DTO, no schema expansion",
+    "First actual browser: summary/caption strict-selector ambiguity; scoped to actual summary then final journey pass"
+  ],
+  "qualification": {
+    "computational": "bounded archived-report/legacy compatibility pass",
+    "physical": "unqualified",
+    "dynamic": "unknown",
+    "numerical": "unchanged; RMP12 retained provisional rail failure not rerun"
+  },
+  "remainingScope": [
+    "Candidate common provider/source/environment identities and full consumer integration",
+    "Candidate calibration retention/inactivation/migration and complete statuses",
+    "Complete physical/numerical/empirical/mission/platform/team/release gates"
+  ],
+  "nextActions": [
+    "Existing RMP12 candidate-only diagnostic-control/corner-partition experiment contract with independent pre-run review",
+    "Reuse saved-output diagnosis; upstream trajectory bias cannot be fixed by root width alone",
+    "Freeze attempts/reference/reserves before any new native call; preserve original nine-attempt failure and no default changes"
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

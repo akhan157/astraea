@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP15",
+  "subpacket": "RMP15c failure recovery status",
+  "baseSha": "c9bee6c06c2804b8c3da999a8dd418271c34dab5",
+  "sourceSha": "75c9ea4cf3b0e1267e44657ec97306b7a1c4c2c2",
+  "status": "accepted after REQUEST_CHANGES/rework/ACCEPT; RMP15-C02 pass (current legacy paths)",
+  "review": {
+    "initial": "REQUEST_CHANGES",
+    "rereview": "ACCEPT; C02 MET",
+    "boundary": "no-tools supplied text"
+  },
+  "routing": {
+    "author": "anthropic/claude-opus-5-5 (omp)",
+    "reviewer": "opencode-go/mimo-v2.6-pro medium no-tools"
+  },
+  "checks": [
+    {
+      "id": "RMP15-C02",
+      "status": "pass",
+      "observed": "all named failure families end in tested recoverable status with no data loss/stale result",
+      "scope": "current legacy model/import paths; new provider/import/environment paths must re-show"
+    }
+  ],
+  "nonClaims": [
+    "RMP15 parent closure",
+    "C01/C03/C04/C05 pass",
+    "native platform or usability acceptance"
+  ],
+  "artifactHashes": {
+    "portable": {
+      "ASSIGNMENT.md": "b712a4b389d6186f66c1c098abdd3999e76bb9fbb4c2da4faaf4b2678e62a092",
+      "RESULT.md": "1ca3099e5d755e97b0dd4e80e2e4317a6ffe735fdc37a71c99f8c2f19ce44e3b",
+      "REVIEW.md": "b17c93a8855a3052f8d4067768206f5dcb96978beb0bb5adf7005a58f0928a84",
+      "SOURCE-INVENTORY.json": "89a7e194eb8599efb45e3222e8fe23e3c50c7b0b17d40ef972f84c90a8b9eaff",
+      "RAW-ARTIFACTS.json": "1aeee37300dd54343786e02ca78af7e79eb1f8672e75f84b8cfc8b020c450f1f"
+    }
+  }
+}

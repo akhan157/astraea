@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "scalarAssertions": 5214,
+  "randomCases": 200,
+  "seed": 20261025,
+  "maxAbsoluteResidual": 3.552713678800501e-15,
+  "scope": "algebra only; no production implementation or empirical accuracy claim",
+  "scriptSha256": "b1c351b50e83e073287b2d06eb9cb9bd725c051eab4d8d156e338675e0ee4c91"
+}

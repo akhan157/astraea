@@ -1,0 +1,6 @@
+{
+  "scope": "author-hashed at a47bcb51d9225651782a6dc35e3953335b99c8df",
+  "sourceFilesSha256": {
+    "crates/astraea-core/src/six_dof.rs": "b7f4379b47109ff29fa09d3c82a8fb3f6a5884619acef552117a40ffcc335e46"
+  }
+}

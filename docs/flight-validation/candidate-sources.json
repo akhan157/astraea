@@ -1,0 +1,37 @@
+[
+  {
+    "url": "https://dofprobucket2.s3.us-east-2.amazonaws.com/SimModels/Estes_Emerald_Streak.ork",
+    "bytes": 2697,
+    "sha256": "c10b507d2fd112951a8bfcad2429130fb2fbd43beca5e5414f7131c1b0edc2ae"
+  },
+  {
+    "url": "https://dofprobucket2.s3.us-east-2.amazonaws.com/Emerald_Streak/Emerald_Streak_9MAR2017_C6-5_1.csv",
+    "bytes": 2010144,
+    "sha256": "013c6fd5d14cb8a13b4c6d84cc0aa38deac16612300a9a2ac499b8b92ae31184"
+  },
+  {
+    "url": "https://dofprobucket2.s3.us-east-2.amazonaws.com/Emerald_Streak/Emerald_Streak_9MAR2017_C6-5_2.csv",
+    "bytes": 2018053,
+    "sha256": "cbb9fb4266e7a55a559e76a8f226ca21ee135e5666271a608bdc618a9d0e3db3"
+  },
+  {
+    "url": "https://dofprobucket2.s3.us-east-2.amazonaws.com/Emerald_Streak/Emerald_Streak_9MAR2017_C6-5_3.csv",
+    "bytes": 1865318,
+    "sha256": "de70993207aef53357bd7a8c9dd4ddfd916bc6297e9d6680337cf75f5ab83e9b"
+  },
+  {
+    "url": "https://dofprobucket2.s3.us-east-2.amazonaws.com/SimModels/DDVulcanite.ork",
+    "bytes": 3206,
+    "sha256": "7ccec2654201b0da0a56243468bcf4385a3fd712dd6655fb1712ecc9526f91d4"
+  },
+  {
+    "url": "https://dofprobucket2.s3.us-east-2.amazonaws.com/DDVulcanite/2023-02-11_%28TkSpjutVul%29_20-07-29.csv",
+    "bytes": 31715,
+    "sha256": "0d43f917b3e413797b9307ebb0444a5ae1c6e37b7742d07dfa71bf9390b39748"
+  },
+  {
+    "url": "https://dofprobucket2.s3.us-east-2.amazonaws.com/Top_Shot/TopShot_14DEC2017_E12-6_1.csv",
+    "bytes": 2321295,
+    "sha256": "88fa453139709224d2252f2e4bf1c9c15196a3a1c44f76b9a0b8839b65de3b12"
+  }
+]

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "sb1-static-diagnostic/1.0.0",
+  "inputIdentity": "synthetic-command-fixture-not-empirical",
+  "vehicle": {
+    "components": [
+      {"id":"nose","name":"synthetic cone","type":"nosecone","shape":"conical","length":0.3,"baseDiameter":0.1},
+      {"id":"tube","name":"synthetic cylinder","type":"bodytube","length":1.6,"outerDiameter":0.1,"materialId":"cardboard","massOverride":1.0},
+      {"id":"fins","name":"synthetic thin trapezoidal fins","type":"trapezoidfinset","finCount":4,"rootChord":0.2,"tipChord":0.1,"span":0.08,"sweepLength":0.05,"thickness":0.001,"axialOffset":1.1}
+    ]
+  },
+  "adapterOptions": {
+    "sourceIdentity": "synthetic-cone-cylinder-one-fin-set",
+    "declarations": {
+      "provenance": "Synthetic algebra fixture assertions only; no measured geometry or flight evidence",
+      "sharpPhysicalTip": true,
+      "circularAxisymmetricBody": true,
+      "smoothSlenderProfile": true,
+      "identicalEquallySpacedThinUncantedFins": true,
+      "noOtherExternalFeaturesOrUnmodeledInterferences": true,
+      "sourceRepresentsCompleteExternalGeometry": true
+    },
+    "ogiveInterpretation": "notApplicable",
+    "transitionInterpretation": "notApplicable",
+    "aftTermination": "flatExposedBaseAtFinalStation",
+    "internalNonGeometryIds": [],
+    "quadrature": {"absoluteToleranceM3":1e-14,"relativeTolerance":1e-10,"maxPanels":4096}
+  },
+  "axial": {"ca0":0.3,"providerId":"synthetic-prescribed-CA0","inputIdentity":"synthetic-constant-0.3-not-measured"},
+  "state": {
+    "relativeVelocityAtCgBMps":{"x":1.0,"y":100.0,"z":2.0},
+    "omegaBRadps":{"x":0.0,"y":0.0,"z":0.0},
+    "mach":0.3,
+    "densityKgM3":1.2,
+    "cgPositionFromNoseBM":{"x":0.0,"y":-1.0,"z":0.0},
+    "environmentIdentity":"synthetic-prescribed-density-and-Mach-not-an-atmosphere",
+    "powerNozzleCondition":"synthetic coast condition; CA0 prescribed separately"
+  },
+  "datumPositionFromNoseBM":{"x":0.0,"y":0.0,"z":0.0},
+  "cpPolicy": {"policyId":"cp-ratio-roundoff-cancellation/1.0.0","denominatorUncertainty":{"kind":"notSupplied"}}
+}

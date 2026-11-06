@@ -1,0 +1,136 @@
+{
+  "note": "Immutable pre-fix Barrowman stability baseline (TypeScript mirror) for the P4 fin-station lane. Generated before the production edit; unaffected designs must match bit-for-bit afterward.",
+  "baseCommit": "be40032421b041b60118fbb9197b6ad1c1be2a69",
+  "designs": {
+    "alpha": {
+      "role": "unaffected: fins on the last body component (tube)",
+      "stability": {
+        "totalCna": 24.317876312553757,
+        "cp": 0.40609551106356495,
+        "staticMarginCalibers": 4.796443170553217,
+        "cg": 0.2871437204338452,
+        "totalLength": 0.476,
+        "referenceDiameter": 0.0248,
+        "contributions": [
+          {
+            "id": "alpha-nc",
+            "cna": 2,
+            "cp": 0.07689000000000001
+          },
+          {
+            "id": "alpha-fins",
+            "cna": 22.317876312553757,
+            "cp": 0.4355970197602852
+          }
+        ]
+      }
+    },
+    "nasa-sl": {
+      "role": "unaffected: fins on the last body component (booster tube)",
+      "stability": {
+        "totalCna": 13.990945166157932,
+        "cp": 2.409174961652899,
+        "staticMarginCalibers": 4.025994785931167,
+        "cg": 1.7972237541913614,
+        "totalLength": 2.9699999999999998,
+        "referenceDiameter": 0.152,
+        "contributions": [
+          {
+            "id": "nsl-nc",
+            "cna": 2,
+            "cp": 0.325
+          },
+          {
+            "id": "nsl-fins",
+            "cna": 11.990945166157932,
+            "cp": 2.7567997623291745
+          }
+        ]
+      }
+    },
+    "spaceport": {
+      "role": "affected: boattail follows the fin set; root wholly on the tube",
+      "stability": {
+        "totalCna": 12.69301912480612,
+        "cp": 2.2551736714065593,
+        "staticMarginCalibers": 4.263981471144453,
+        "cg": 1.8202475613498252,
+        "totalLength": 2.9499999999999997,
+        "referenceDiameter": 0.102,
+        "contributions": [
+          {
+            "id": "sac-nc",
+            "cna": 2,
+            "cp": 0.35
+          },
+          {
+            "id": "sac-boattail",
+            "cna": -0.511341791618608,
+            "cp": 2.873157894736842
+          },
+          {
+            "id": "sac-fins",
+            "cna": 11.20436091642473,
+            "cp": 2.6234542483660133
+          }
+        ]
+      }
+    },
+    "arcas-short": {
+      "role": "affected: root straddles tube/boattail (54.4% tube)",
+      "stability": {
+        "totalCna": 8.254317870525622,
+        "cp": 0.7687981075358781,
+        "staticMarginCalibers": 2.6856895653726607,
+        "cg": 0.6153109488748305,
+        "totalLength": 1.0401299999999998,
+        "referenceDiameter": 0.05715,
+        "contributions": [
+          {
+            "id": "arcas-nose",
+            "cna": 2,
+            "cp": 0.12546584
+          },
+          {
+            "id": "arcas-boattail",
+            "cna": -1.1111111111111112,
+            "cp": 1.0156105333333332
+          },
+          {
+            "id": "arcas-fins",
+            "cna": 7.365428981636733,
+            "cp": 0.9807206673252923
+          }
+        ]
+      }
+    },
+    "arcas-long": {
+      "role": "affected: root straddles tube/boattail (54.4% tube)",
+      "stability": {
+        "totalCna": 8.254317870525622,
+        "cp": 1.0103309560231506,
+        "staticMarginCalibers": 4.026303597415613,
+        "cg": 0.7802277054308483,
+        "totalLength": 1.3589,
+        "referenceDiameter": 0.05715,
+        "contributions": [
+          {
+            "id": "arcas-nose",
+            "cna": 2,
+            "cp": 0.12546584
+          },
+          {
+            "id": "arcas-boattail",
+            "cna": -1.1111111111111112,
+            "cp": 1.3343805333333334
+          },
+          {
+            "id": "arcas-fins",
+            "cna": 7.365428981636733,
+            "cp": 1.2994906673252922
+          }
+        ]
+      }
+    }
+  }
+}

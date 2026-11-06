@@ -1,0 +1,26 @@
+-- 
+rMoment reference center 
+t
+--lA
+I 
+r 
+-
+2. Id 
+A 7  
+Short model 
+[Moment 
+reference center 
+.65d
+16.63 d 
+p 
+m­
+-4.7 
+I d 
+d 
+T I 'I.OOd 
+i.78d-
+Long model 
+(a) General arrangement of short and long models. 
+Figure 1.- Model geometric characteristics. 
+All dimensions are i n  terms of centerbody diameter d, 5.72 cm (2.25 in.). 
+W 

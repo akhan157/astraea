@@ -1,0 +1,128 @@
+{
+  "lane": "spaceport-landing",
+  "status": "implementation complete, awaiting coordinator review",
+  "self_accepted": false,
+  "branch": "spaceport-landing",
+  "worktree": "/home/ak/.t3/worktrees/astraeat3/t3-b4f7a9d6",
+  "pin": "edd943d378165f8af7c5bd06a6287c4fc07d9fb7",
+  "commits": {
+    "gate1_record": "0072d560afdcee34a7a736136d1f98dd189b20e4",
+    "implementation": "0757ad0"
+  },
+  "approval": "Coordinator 2026-11-06: Gate 1 approved; owner chose variant B (18 in drogue Cd 1.2, 60 in main Cd 1.5) following NASA SL conventions. Owner told the example's defaults shift (apogee 5126.5 -> 5013.5 m, landing 184.3 -> 7.92 m/s, drift 1152 -> 491 m).",
+  "change": {
+    "preset": {
+      "file": "src/state/presets.ts",
+      "lines": "204-227",
+      "components_added": [
+        { "id": "sac-drogue", "name": "Drogue Parachute (Apogee)", "type": "parachute", "diameter_m": 0.46, "cd": 1.2, "mass_kg": 0.12, "axialOffset_m": 0.20, "materialId": "cardboard" },
+        { "id": "sac-main", "name": "Main Parachute (60 in)", "type": "parachute", "diameter_m": 1.524, "cd": 1.5, "mass_kg": 0.55, "axialOffset_m": 0.85, "materialId": "cardboard" }
+      ],
+      "order_note": "component order decides role: first parachute = apogee drogue, second = main (crates/astraea-engine/src/models.rs:800-818)"
+    },
+    "fixture": {
+      "file": "crates/astraea-engine/tests/fixtures/spaceport-vehicle.json",
+      "lines": "48-66",
+      "why": "the Rust-side vehicle fixture mirrors the shipped preset; it already mirrored NASA SL's two chutes, and Spaceport had drifted only because the preset declared none. Existing values untouched, nothing reordered.",
+      "downstream": "read by src/aero/p4Baseline.test.ts:59 and crates/astraea-engine/tests/p4_fin_station.rs; the pre-fix baselines p4-stability-baseline.json and p4-stability-baseline-ts.json are byte-untouched and those tests pass unchanged because parachutes carry no normal force (spaceport CP 2.2670761386797285 and total CNa 13.115727536343547 are identical before and after)."
+    },
+    "regression_test": {
+      "file": "src/console/data/spaceportRecovery.test.ts",
+      "lines": 78,
+      "asserts": [
+        "exactly two parachutes, first sac-drogue 0.46 m Cd 1.2, second sac-main 1.524 m Cd 1.5, main larger than drogue",
+        "a shipped-WASM flight through the Console runFlight adapter emits apogee_drogue and main",
+        "landing speed <= LANDING_SPEED_GATE (10.67 m/s)",
+        "landing_speed gate status === 'pass'"
+      ]
+    },
+    "no_engine_change": "no crates/ source edited; only the test fixture above"
+  },
+  "pinned_values_updated": {
+    "numeric_spaceport_pins_found": 0,
+    "grep": "grep -rn '5126|5,126|184\\.3|4\\.38|1,152' src scripts --include=*.ts --include=*.tsx --include=*.mjs -> only NASA SL body-tube masses 4.38 (aeroBreakdown/appearance/framing fixtures), unrelated",
+    "updated": [
+      {
+        "file": "crates/astraea-engine/tests/fixtures/spaceport-vehicle.json",
+        "line": "48-66",
+        "old": "4 components (sac-nc, sac-bt1, sac-boattail, sac-fins)",
+        "new": "4 components + sac-drogue + sac-main",
+        "kind": "vehicle spec, not a numeric pin; no existing value changed"
+      }
+    ],
+    "tripwire": "src/aero/p4Baseline.test.ts:59 went red when the preset changed and green after the fixture was reconciled; the assertion was not edited",
+    "non_spaceport_pins_moved": 0
+  },
+  "measurements": {
+    "artifact": {
+      "path": "src/engine/astraea_engine.wasm",
+      "sha256": "26343b7af66cca215ec222a4552b3e75c1d65fcd22c67e7fb5cf5838e76d97af",
+      "note": "engine bytes unchanged by this lane; same artifact Gate 1 measured"
+    },
+    "before": { "apogee_m": 5126.493416277487, "maxMach": 1.6778846675052446, "landing_mps": 184.29646601334207, "drift_m": 1152.4970601293069, "landing_ke_j": 119728.0660729871, "margin_cal": 4.380672326763757, "events": ["Ignition & Rail Guidance", "Launch Rail Departure", "Motor Burnout", "Ground Touchdown"] },
+    "after": { "apogee_m": 5013.51, "maxMach": 1.5736, "landing_mps": 7.9, "drift_m": 491.3, "landing_ke_j": 241, "margin_cal": 4.8166, "cg_m": 1.7758, "cp_m": 2.2671, "dry_mass_kg": 5.45, "liftoff_mass_kg": 10.57, "flight_s": 225.88, "validity": "PASS", "touchdownNominal": true },
+    "after_events": [
+      { "name": "Apogee & Drogue Deployment", "time_s": 28.18, "altitude_m": 5013.5, "speed_mps": 19.28 },
+      { "name": "Main Parachute Deployment", "time_s": 185.14, "altitude_m": 300.0, "speed_mps": 27.11 },
+      { "name": "Ground Touchdown", "time_s": 225.88, "altitude_m": 0.0, "speed_mps": 7.9 }
+    ],
+    "told_vs_measured": "the owner was told 7.92 m/s, which came from the Gate 1 counterfactual's 1.52 m main; the approved 60 in main is exactly 1.524 m, giving 7.900 m/s. Apogee and drift match what was reported.",
+    "gates": {
+      "landing_speed": "pass (<= 10.67 m/s)",
+      "validity": "pass (PASS)",
+      "rail_exit": "pass (45.69 m/s >= 15)",
+      "envelope": "pass (Mach 1.57 within 0-4)",
+      "geometry_static_margin": "fail at 4.82 cal (> 3 cal screening band); also failed at 4.38 before this change, unchanged disposition"
+    }
+  },
+  "rendered_result": {
+    "method": "playwright DOM text probe of the built dist under the production CSP; no image read",
+    "probe": "probe-recovery-stage.mjs (run with repo root as cwd after pnpm build)",
+    "log": "recovery-stage-dom-after.json",
+    "observed": {
+      "apogeeLabel": "Apogee (committed run) 5,014 m, Modeled",
+      "landing_speed": "7.9 m/s",
+      "landing_energy": "241 J",
+      "drift": "491 m",
+      "main_opens_at": "300 m",
+      "gate_icon": "Pass",
+      "gate_reason": "Touchdown is at or below the certification limit. The Tripoli Level 1 certification limit is 35 ft/s (10.67 m/s)...",
+      "descent_event_rows": 3,
+      "parachute_rows": ["Drogue Parachute (Apogee) 460mm 1.20 0.120kg", "Main Parachute (60 in) 1,524mm 1.50 0.550kg"],
+      "page_errors": 0
+    },
+    "known_non_change": "the bay strip says '0 placed' for both chutes because neither declares a packed length; identical to the NASA SL preset and the documented behaviour in src/console/evidence/RecoveryCard.test.tsx:59-60"
+  },
+  "falsifier": {
+    "how": "git stash push -- src/state/presets.ts (new test kept), rerun the test file, restore",
+    "result": "2 failed - 'expected [] to have a length of 2 but got +0' and 'expected [ignition, rail_exit, ...] to include apogee_drogue'",
+    "conclusion": "the regression test is not tautological; it fails on the pre-fix preset"
+  },
+  "checks": [
+    { "command": "npx tsc --noEmit", "result": "exit 0", "log": "tsc.log" },
+    { "command": "npx vitest run --maxWorkers=2", "result": "165 test files passed, 1947 tests passed, exit 0", "log": "vitest-full.log" },
+    { "command": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 pnpm build", "result": "build:engine + tsc + vite build succeeded, exit 0 (vite built in 827 ms)", "log": "build.log" },
+    { "command": "cargo test --offline --manifest-path crates/astraea-engine/Cargo.toml --test p4_fin_station --test p4_baseline", "result": "10 tests passed (1 + 9), exit 0", "log": "not saved; output in transcript" },
+    { "command": "node probe.mjs src/engine/astraea_engine.wasm simulate_flight request-shipped-preset-after.json", "result": "apogee 5013.51 m, Mach 1.5736, landing 7.900 m/s, drift 491.3 m", "log": "wasm-flight-after.json" },
+    { "command": "node probe.mjs src/engine/astraea_engine.wasm stability request-shipped-preset-after.json", "result": "margin 4.8166 cal", "log": "wasm-stability-after.json" },
+    { "command": "pnpm test:browser", "result": "intermittent: pass, fail, pass on this lane tree; fail on the untouched pin with identical assertion", "log": "test-browser-run3.log (pass), test-browser-run2.log (fail), test-browser-base-run1.log (fail at pin)" }
+  ],
+  "browser_gate_finding": {
+    "status": "pre-existing intermittent failure, not caused by this lane",
+    "assertion": "scripts/preview-journeys.mjs:405 - 'the viewcube must sit inside the canvas (rect 508,198,636,326, canvas 300,150)'",
+    "reproduction_at_pin": "all lane changes stashed with git stash push -u, dist rebuilt from 0072d56, same assertion and same numbers (test-browser-base-run1.log)",
+    "runs": { "lane_run1": "pass", "lane_run2": "fail", "lane_run3": "pass", "base_run1": "fail" },
+    "diagnosis": "the check polls for data-gizmo-rect to be non-null (a value left over from the previous layout) then reads document.querySelector('main canvas').getBoundingClientRect(); after an earlier journey step the canvas can be measured at its intrinsic 300x150 before the resize applies. A standalone probe of the same path measures 956x480 with the gizmo inside, so the layout result is correct and the failure is a timing window.",
+    "not_fixed_here": "scripts/preview-journeys.mjs was not edited; a one-line wait for the canvas to match the reported viewport is a console-lane follow-up"
+  },
+  "not_done": [
+    "no no-parachute warning (owner has not decided)",
+    "no engine, physics, threshold or gate-text change",
+    "no crates/ source change (test fixture only)",
+    "no change to scripts/preview-journeys.mjs, including the flake above",
+    "no other preset, mission target or workspace default changed",
+    "no push, merge, tag, release or publish",
+    "no image opened, read or attached",
+    "no self-acceptance; coordinator review pending"
+  ]
+}

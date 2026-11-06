@@ -1,0 +1,42 @@
+{
+  "status": "pass",
+  "scope": "native input/model identity and unchanged synthetic outputs only; not numerical or empirical qualification",
+  "cliInvocations": 5,
+  "artifacts": {
+    "native_candidate_flight": "9cb5d58c74ee85f69ca26d54fe8de64fcec8124b6d1352b3377b3b763fe693dd",
+    "profile_candidate_flight": "ac91302f6e33efc3f12a6480b3b0880ae9ac69526ee679fd5d7bdc27bffdfdc4",
+    "legacy_flight_snapshot": "5350c79229c57576d3dd013f0f10a8fe018a1c8698dd8b1ef795f1eadf0609a6",
+    "replay_candidate_report": "25a2ff0b193a3effda586f68e765ba8a9adcf3978e0bd7f55d6fe3fefc80f095",
+    "checker": "da6055cfe3b0f7c503b2c4c1b0c8c7cd272d70a6798f814bbe3b9611d8416d33",
+    "native.json": "af618da23f942c5e8679337fa4ef1c1e47c411a9bb91b8edca5e1f0eade0c66f",
+    "native.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "native-replay.json": "af618da23f942c5e8679337fa4ef1c1e47c411a9bb91b8edca5e1f0eade0c66f",
+    "native-replay.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "profile.json": "c499363f9f531968b16af0d7d5a19773d5ee024e25e209668085439820e90dcf",
+    "profile.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "profile-replay.json": "b2456a3df8c55892af7d74959c5160148caff4536fb8c5be9add6023f72afda0",
+    "profile-replay.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "legacy.json": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249",
+    "legacy.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "cases": {
+    "native": {
+      "inputModelSha256": "2fa123db118f136c9f73447f1c014aad57f7c1f8ba6a8b0ac2d6c965d43bc6af",
+      "independentCanonicalAndDigest": "pass",
+      "serializedReplayIdentity": "pass",
+      "preexistingOutputsUnchanged": "pass",
+      "baselineSha256": "a8b08ccb8630e0045a01eb7270f1d4830854170bb653de27c6b866d7e2bc8751"
+    },
+    "profile": {
+      "inputModelSha256": "4bc2cb87b8b37f4dae1a1fb0233a5852f4ccebe5abd92a5d545c3d1e9ed0c3a3",
+      "independentCanonicalAndDigest": "pass",
+      "serializedReplayIdentity": "pass",
+      "preexistingOutputsUnchanged": "pass",
+      "baselineSha256": "9c7c494439573353728d1531977f464d8431c295206291c8d349877754c611a5"
+    },
+    "legacy": {
+      "byteIdentical": true,
+      "sha256": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249"
+    }
+  }
+}

@@ -1,0 +1,201 @@
+diff --git a/crates/astraea-core/src/lib.rs b/crates/astraea-core/src/lib.rs
+index e5a0f45..4a56221 100644
+--- a/crates/astraea-core/src/lib.rs
++++ b/crates/astraea-core/src/lib.rs
+@@ -16,6 +16,7 @@ pub mod aero_profiles;
+ pub mod equilibrium;
+ pub mod environment;
+ pub mod fin_planform;
++pub mod flight_provider;
+ pub mod gibbs;
+ pub mod mass;
+ pub mod thermo;
+diff --git a/crates/astraea-core/src/six_dof.rs b/crates/astraea-core/src/six_dof.rs
+index bab1da9..6ab31dd 100644
+--- a/crates/astraea-core/src/six_dof.rs
++++ b/crates/astraea-core/src/six_dof.rs
+@@ -918,7 +918,7 @@ pub fn clamp_rail_base_contact(pos: &mut Vec3, vel: &mut Vec3, rail: &Vec3) {
+ // Atmosphere / wind / motor (mirrors flightSimulator + motorDatabase)
+ // ---------------------------------------------------------------------------
+ 
+-fn atmosphere_at(altitude: f64) -> (f64, f64) {
++pub(crate) fn atmosphere_at(altitude: f64) -> (f64, f64) {
+     // returns (density kg/m^3, speedOfSound m/s), ISA-1976
+     let h = altitude.max(0.0);
+     let t0 = 288.15f64;
+@@ -941,7 +941,7 @@ fn atmosphere_at(altitude: f64) -> (f64, f64) {
+ }
+ 
+ /// Power-law wind shear: v(h) = v_surf * (h/2)^0.14, blowing TOWARD azimuth.
+-fn wind_vector_at(altitude: f64, speed_surface: f64, azimuth_deg: f64) -> Vec3 {
++pub(crate) fn wind_vector_at(altitude: f64, speed_surface: f64, azimuth_deg: f64) -> Vec3 {
+     let h = altitude.max(1.0);
+     let speed = speed_surface * (h / 2.0).powf(0.14);
+     wind_vector_for_speed(speed, azimuth_deg)
+@@ -1000,7 +1000,7 @@ pub fn estes_c6_motor() -> MotorSpec {
+     }
+ }
+ 
+-fn validate_motor_spec(motor: &MotorSpec) -> Result<(), String> {
++pub(crate) fn validate_motor_spec(motor: &MotorSpec) -> Result<(), String> {
+     let what = if motor.designation.is_empty() { "motor".to_string() } else { format!("motor '{}'", motor.designation) };
+     if !(motor.burn_time.is_finite() && motor.burn_time > 0.0) {
+         return Err(format!("motor validation: {} burnTime must be finite and positive (got {})", what, motor.burn_time));
+@@ -1042,7 +1042,7 @@ fn validate_motor_spec(motor: &MotorSpec) -> Result<(), String> {
+     Ok(())
+ }
+ 
+-fn motor_thrust_at(motor: &MotorSpec, t: f64) -> f64 {
++pub(crate) fn motor_thrust_at(motor: &MotorSpec, t: f64) -> f64 {
+     if !t.is_finite() {
+         panic!("motor query: time must be finite");
+     }
+@@ -1100,7 +1100,7 @@ fn motor_impulse_total(motor: &MotorSpec) -> f64 {
+     ci
+ }
+ 
+-fn motor_mass_flow_at(motor: &MotorSpec, t: f64) -> f64 {
++pub(crate) fn motor_mass_flow_at(motor: &MotorSpec, t: f64) -> f64 {
+     if !t.is_finite() {
+         panic!("motor query: time must be finite");
+     }
+@@ -1111,7 +1111,7 @@ fn motor_mass_flow_at(motor: &MotorSpec, t: f64) -> f64 {
+     -motor.propellant_mass * motor_thrust_at(motor, t) / total
+ }
+ 
+-fn motor_mass_at(motor: &MotorSpec, t: f64) -> (f64, f64) {
++pub(crate) fn motor_mass_at(motor: &MotorSpec, t: f64) -> (f64, f64) {
+     if !t.is_finite() {
+         panic!("motor query: time must be finite");
+     }
+@@ -1283,15 +1283,15 @@ struct FlightLoads {
+ 
+ /// Values consumed by the flight driver, independent of legacy diagnostics.
+ /// Conversion moves already computed values without new physical arithmetic.
+-struct DriverLoads {
+-    loads: Loads,
+-    airspeed: f64,
+-    mach: f64,
+-    q_inf: f64,
+-    alpha_total_deg: f64,
+-    envelope_alpha_deg: f64,
+-    drag_axial: f64,
+-    thrust: f64,
++pub(crate) struct DriverLoads {
++    pub(crate) loads: Loads,
++    pub(crate) airspeed: f64,
++    pub(crate) mach: f64,
++    pub(crate) q_inf: f64,
++    pub(crate) alpha_total_deg: f64,
++    pub(crate) envelope_alpha_deg: f64,
++    pub(crate) drag_axial: f64,
++    pub(crate) thrust: f64,
+ }
+ 
+ impl From<FlightLoads> for DriverLoads {
+@@ -1312,7 +1312,7 @@ impl From<FlightLoads> for DriverLoads {
+ /// A callback can evaluate speculative stages as well as committed-state reads.
+ /// These labels describe purpose, not scientific or committed-path validity.
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+-enum LoadPhase {
++pub(crate) enum LoadPhase {
+     EndpointProbe,
+     BurnoutRoot,
+     EventRefinement(AstraeaEvent),
+@@ -1322,19 +1322,19 @@ enum LoadPhase {
+ }
+ 
+ #[derive(Clone, Copy, Debug)]
+-struct LoadContext {
++pub(crate) struct LoadContext {
+     // The unchanged legacy evaluator ignores purpose; native diagnostics may inspect it.
+     #[allow(dead_code)]
+-    phase: LoadPhase,
+-    time: f64,
+-    drogue_deployed: bool,
+-    main_deployed: bool,
+-    rail_bound: bool,
+-    launch_altitude_asl: f64,
+-    wind_speed_surface: f64,
+-    wind_azimuth_deg: f64,
+-    fin_cant_rad: f64,
+-    drag_cd_scale: f64,
++    pub(crate) phase: LoadPhase,
++    pub(crate) time: f64,
++    pub(crate) drogue_deployed: bool,
++    pub(crate) main_deployed: bool,
++    pub(crate) rail_bound: bool,
++    pub(crate) launch_altitude_asl: f64,
++    pub(crate) wind_speed_surface: f64,
++    pub(crate) wind_azimuth_deg: f64,
++    pub(crate) fin_cant_rad: f64,
++    pub(crate) drag_cd_scale: f64,
+ }
+ 
+ /// Native-only inspection of the actual production assembly, not a second RHS.
+@@ -1779,6 +1779,15 @@ fn simulate_flight_with_evaluator(
+     options: &SixDofOptions,
+     evaluator: &dyn Fn(LoadContext, &RigidState) -> Result<DriverLoads, String>,
+ ) -> Result<SimulationResult, String> {
++    simulate_driver(vehicle, motor, options, evaluator, None).map(|x| x.0)
++}
++
++/// A bounded native run uses the same event/integrator path, with an exact final bracket.
++pub(crate) fn simulate_driver(
++    vehicle: &Vehicle, motor: &MotorSpec, options: &SixDofOptions,
++    evaluator: &dyn Fn(LoadContext, &RigidState) -> Result<DriverLoads, String>,
++    horizon: Option<f64>,
++) -> Result<(SimulationResult, RigidState, LoadContext), String> {
+     validate_motor_spec(motor)?;
+     let rail_length = finite_opt(options.rail_length, 3.0, "railLength")?;
+     if !(rail_length > 0.0) {
+@@ -1905,7 +1914,7 @@ fn simulate_flight_with_evaluator(
+         ),
+     }];
+ 
+-    let max_sim_time = 300.0f64;
++    let max_sim_time = horizon.unwrap_or(300.0f64);
+     let mut saw_unsupported = false;
+     let mut saw_extrapolated = false;
+     let mut touchdown_tau: Option<f64> = None;
+@@ -1916,7 +1925,7 @@ fn simulate_flight_with_evaluator(
+ 
+     let tol = AdaptiveTolerances { r: 1e-3, v: 1e-2, q: 1e-5, w: 1e-3 };
+ 
+-    while t < max_sim_time {
++    while t < max_sim_time || (horizon.is_some() && t == max_sim_time) {
+         // ---- event restart engine over bracket [prev_sample.t, t] ----
+         let mut b_t = prev_sample.t;
+         let mut b_sample = prev_sample;
+@@ -2398,7 +2407,8 @@ fn simulate_flight_with_evaluator(
+         };
+         prev_event_state = event_state.clone();
+ 
+-        t += dt;
++        if horizon.is_some() && t >= max_sim_time { break; }
++        t = if horizon.is_some() { (t + dt).min(max_sim_time) } else { t + dt };
+         macro_iterations += 1;
+         if macro_iterations > MAX_MACRO_ITERATIONS {
+             return Err("simulate6DofFlight: macro-iteration cap exceeded — time step cannot resolve the horizon".to_string());
+@@ -2480,7 +2490,7 @@ fn simulate_flight_with_evaluator(
+         "PASS"
+     };
+ 
+-    Ok(SimulationResult {
++    Ok((SimulationResult {
+         apogee_altitude: max_altitude,
+         apogee_time,
+         apogee_position: apogee_pos,
+@@ -2505,7 +2515,11 @@ fn simulate_flight_with_evaluator(
+         off_nominal_excursion: off_nominal,
+         events,
+         telemetry,
+-    })
++    }, RigidState { r: pos, v: vel, q, w: sim_omega_to_kernel(omega_p, omega_q, omega_r) },
++    LoadContext { phase: LoadPhase::TouchdownSample, time: t,
++        drogue_deployed: is_drogue_deployed, main_deployed: is_main_deployed,
++        rail_bound: !event_state.has_left_rail, launch_altitude_asl,
++        wind_speed_surface, wind_azimuth_deg, fin_cant_rad, drag_cd_scale }))
+ }
+ 
+ // Helpers for the restart engine -------------------------------------------

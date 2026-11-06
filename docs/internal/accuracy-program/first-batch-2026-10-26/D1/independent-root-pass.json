@@ -1,0 +1,87 @@
+{
+  "status": "Independent second visual extraction frozen before seeing first-pass numbers; not yet reconciled",
+  "extractor": "coordinator/root",
+  "method": "manual visual pixel estimates from original-sized crops; full PDF24/27 plots and legends independently viewed; shared source rendering/crops, independent point selection/readout",
+  "source": "NASA TN D-4013 fig7(b)/(c), printed22/25 PDF24/27",
+  "selection": "short body fins-on roll0 Mach1.20 signed near-zero incidence markers; never fitted through origin",
+  "uncertainty": "Pixel bound is reading estimate, not confidence interval or source measurement precision; source uncertainty and alpha uncertainty must remain separate. Repeated-zero plot offsets checked. Review exact square positions/crop geometry in reconciliation.",
+  "firstPassValuesSeen": false,
+  "series": [
+    {
+      "crop": "d4013-M1p2-CN-crop.png",
+      "cropSha256": "32f9367ec39a45dbbc8cfdc845797d81eeb590d80b1c604562f1fac4ad6c0f24",
+      "series": "fins-on square symbols, roll0, Mach1.20",
+      "calibration": {
+        "xAtAlpha0Px": 96,
+        "xAtAlpha4DegPx": 169,
+        "yAtCoefficient0Px": 152,
+        "yAtCoefficient2Px": 80
+      },
+      "visualCoordinateReadingBoundPx": 2,
+      "pointReadings": [
+        {
+          "pixelX": 57,
+          "pixelY": 170,
+          "alphaDeg": -2.136986301369863,
+          "coefficient": -0.5
+        },
+        {
+          "pixelX": 95,
+          "pixelY": 151,
+          "alphaDeg": -0.0547945205479452,
+          "coefficient": 0.027777777777777776
+        },
+        {
+          "pixelX": 132,
+          "pixelY": 130,
+          "alphaDeg": 1.9726027397260273,
+          "coefficient": 0.6111111111111112
+        },
+        {
+          "pixelX": 170,
+          "pixelY": 110,
+          "alphaDeg": 4.054794520547945,
+          "coefficient": 1.1666666666666667
+        }
+      ]
+    },
+    {
+      "crop": "d4013-M1p2-Cm-crop.png",
+      "cropSha256": "e81991b65b1a85ace011e94f0f2aff0e54e7aa85e5368531f8356d41dec71906",
+      "series": "fins-on square symbols, roll0, Mach1.20",
+      "calibration": {
+        "xAtAlpha0Px": 89,
+        "xAtAlpha4DegPx": 160,
+        "yAtCoefficient0Px": 205,
+        "yAtCoefficient2Px": 137
+      },
+      "visualCoordinateReadingBoundPx": 2,
+      "pointReadings": [
+        {
+          "pixelX": 53,
+          "pixelY": 164,
+          "alphaDeg": -2.028169014084507,
+          "coefficient": 1.2058823529411764
+        },
+        {
+          "pixelX": 87,
+          "pixelY": 202,
+          "alphaDeg": -0.11267605633802817,
+          "coefficient": 0.08823529411764706
+        },
+        {
+          "pixelX": 124,
+          "pixelY": 241,
+          "alphaDeg": 1.971830985915493,
+          "coefficient": -1.0588235294117647
+        },
+        {
+          "pixelX": 159,
+          "pixelY": 277,
+          "alphaDeg": 3.943661971830986,
+          "coefficient": -2.1176470588235294
+        }
+      ]
+    }
+  ]
+}

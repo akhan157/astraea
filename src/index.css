@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+/**
+ * Console (workstation) theme.
+ *
+ * The Console uses two utility families beyond stock Tailwind: `font-geist*`
+ * (its sans/mono stack) and `tnum` (tabular figures for numeric columns).
+ * Both map onto the bundled fonts imported in main.tsx, so the shell keeps
+ * one font set and makes no font network request.
+ */
+@theme {
+  --font-geist: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-geist-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* The Console palette as utilities (`text-con-muted`, `bg-con-panel`, …), for
+     components that style with classes. src/console/kit/theme.ts (`C`) is the
+     source; themeTokens.test.ts fails if these drift from it. */
+  --color-con-fg: #E7E9EC;
+  --color-con-muted: #8B9199;
+  --color-con-dim: #5E646D;
+  --color-con-panel: #101215;
+  --color-con-sunken: #0D0F11;
+  --color-con-line: rgba(255, 255, 255, 0.065);
+  --color-con-accent: #6EE7F7;
+  --color-con-ok: #3DD68C;
+  --color-con-warn: #F5B544;
+  --color-con-bad: #F87185;
+}
+
+@layer base {
+  body {
+    background-color: #08090A;
+    color: #fff;
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  }
+  code, kbd, samp, pre {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Numeric columns: tabular figures so digits line up in tables and readouts. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* Recessive scrollbar for long Console panes (a Firefox counterpart to the
+   webkit rules above, which that engine ignores). */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(127, 127, 127, 0.28) transparent;
+}
+.thin-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(127, 127, 127, 0.28);
+  border-radius: 3px;
+}
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

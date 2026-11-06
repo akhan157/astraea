@@ -1,0 +1,445 @@
+{
+  "schemaVersion": "rmp07-candidate-app-evidence/1.0.0",
+  "lane": "rmp07-candidate-app",
+  "base": {
+    "sha": "101e9e7afd4de70a75f3397738a6ace868acec0d",
+    "branch": "rmp07-candidate-app",
+    "activationPinMatch": true
+  },
+  "routing": {
+    "provider": "deepseek",
+    "selector": "deepseek/deepseek-flash",
+    "catalogName": "DeepSeek V4.1 Flash 1017",
+    "thinking": "max",
+    "resolvedModelIsFallback": false,
+    "catalogCommand": "omp models deepseek --json",
+    "fallbackObserved": false,
+    "catalogVerifiedAgain": true,
+    "routeNote": "Fresh coordinating catalog resolves deepseek/deepseek-flash to DeepSeek V4.1 Flash 1017; lane system route is direct deepseek/deepseek-flash with max thinking. No provider fallback request observed. Catalog metadata is not a server-build attestation.",
+    "laneSessionMetadata": {
+      "path": "/home/ak/.omp/agent/sessions/-.paseo-worktrees-3s8t98rp-rmp07-candidate-app/2026-10-29T02-43-25-781Z_01a1858a-73d5-70bd-9b28-0535597f8959.jsonl",
+      "modelChange": {
+        "model": "deepseek/deepseek-flash",
+        "resolvedModelIsFallback": false
+      },
+      "thinkingLevelChange": {
+        "thinkingLevel": "max"
+      }
+    }
+  },
+  "sourceCommits": {
+    "contractAndSchema": "0e09a8ea41cb039276a297be6604b21cbf3152e6",
+    "consoleJourney": "aaac9e6d52eba5073b5bd7344bd2e154b1563f09",
+    "persistenceAndConsumers": "88bdd46698fd377f92238cadd1ed11ab6d50a2a0",
+    "browserHarness": "f1e480b867067111cdbf3a04e798ca2887a8eae2",
+    "mountPreservationTest": "8d1689e3e8bf378808a6e91794371d43ed3b578e",
+    "records": "this docs commit; source commits above are exact"
+  },
+  "toolchain": {
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "1.99.1 (5f94df478 2026-08-27)",
+    "node": "26.11.1",
+    "pnpm": "12.14.0"
+  },
+  "checks": [
+    {
+      "name": "typecheck",
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "result": "exit 0"
+    },
+    {
+      "name": "focused candidate contract/result/project/store",
+      "command": "node node_modules/vitest/vitest.mjs run src/application/candidate.test.ts src/application/candidateResult.test.ts src/formats/candidateProject.test.ts src/console/candidateStore.test.tsx --maxWorkers=2",
+      "result": "4 files / 23 tests passed"
+    },
+    {
+      "name": "affected regression batch",
+      "command": "node node_modules/vitest/vitest.mjs run src/formats/projectJson.test.ts src/application/runInputs.test.ts src/application/momentArmHistory.test.ts src/application/runComparison.test.ts src/application/runCases.test.ts src/console/dragCalibration.test.tsx src/console/stages/SavedRuns.test.tsx src/console/stages/buildExport.test.tsx src/console/evidence/SimFlightOverlay.test.tsx src/console/stages/recoveryResults.test.tsx src/console/store.test.tsx src/console/livePreview.test.tsx src/console/data/consoleData.test.ts src/console/data/calibrationBinding.test.ts src/application/candidate.test.ts src/application/candidateResult.test.ts src/formats/candidateProject.test.ts src/console/candidateStore.test.tsx --maxWorkers=2",
+      "result": "18 files / 308 tests passed"
+    },
+    {
+      "name": "final full suite",
+      "command": "node node_modules/vitest/vitest.mjs run --maxWorkers=2",
+      "result": "134 files / 1725 tests passed"
+    },
+    {
+      "name": "production engine build",
+      "command": "CARGO_BUILD_JOBS=2 CARGO_NET_OFFLINE=true node scripts/build-engine.mjs",
+      "result": "finished release; WASM written"
+    },
+    {
+      "name": "production site build",
+      "command": "node node_modules/vite/bin/vite.js build",
+      "result": "built; dist WASM copied"
+    }
+  ],
+  "artifacts": {
+    "engineWasm": {
+      "path": "src/engine/astraea_engine.wasm",
+      "bytes": 1827192,
+      "sha256": "da38461e247274f605b52abe06e71fad2c8eadbd76d55aa0ee31f069d0ce9ac6",
+      "distPath": "dist/assets/astraea_engine-tQCJxEIX.wasm",
+      "distSha256": "da38461e247274f605b52abe06e71fad2c8eadbd76d55aa0ee31f069d0ce9ac6",
+      "distBytes": 1827192,
+      "historicalReceiptReused": false
+    },
+    "candidateCase": {
+      "inputModelDigest": "dcf399474ad6561a948a43f53428d128cd6d3370bb096b0bafa5be323712090f",
+      "executedWasmSha256": "da38461e247274f605b52abe06e71fad2c8eadbd76d55aa0ee31f069d0ce9ac6",
+      "termination": "TimeLimit",
+      "computationalCompletion": "CompletedRequestedHorizon",
+      "landing": null,
+      "apogeeEvent": null
+    },
+    "savedProjectFile": {
+      "path": "/tmp/rmp07-candidate-evidence/candidate-project-saved.astraea.json",
+      "bytes": 273549,
+      "sha256": "dd9b7330b044b0542ce5984b2c98ce989e8da7a59385c6b02705cef8bb5b618a",
+      "candidateCases": 1
+    },
+    "postCancellationProjectFile": {
+      "path": "/tmp/rmp07-candidate-evidence/candidate-project-cancelled.astraea.json",
+      "bytes": 542813,
+      "sha256": "05a0f7d4832fb4dee0c94b7cde4cd6d999cc5243529fac8113f4d52cfe5e6778",
+      "candidateCases": 2,
+      "cancellationAppendedCandidateCase": false
+    },
+    "screenshots": [
+      "/tmp/rmp07-candidate-evidence/candidate-selected.png",
+      "/tmp/rmp07-candidate-evidence/candidate-query-curves.png",
+      "/tmp/rmp07-candidate-evidence/candidate-result.png",
+      "/tmp/rmp07-candidate-evidence/candidate-undo-redo.png",
+      "/tmp/rmp07-candidate-evidence/candidate-reopened-rerun.png",
+      "/tmp/rmp07-candidate-evidence/candidate-cancelled.png"
+    ]
+  },
+  "browserProof": {
+    "browser": "Chromium via Playwright",
+    "productionCsp": true,
+    "script": "transient .candidate-journey.mjs (removed after proof); receipts/screenshots under /tmp/rmp07-candidate-evidence/",
+    "journey": [
+      "synthetic supported geometry imported as ordinary project",
+      "explicit opt-in selection with CA0/source/declarations",
+      "actual simulate_candidate run through the production-bundled worker",
+      "candidate statuses, observed-prefix readouts, absent landing/apogee, nullable query/curve data",
+      "save project file; browser slot save/reload/open; archive display",
+      "undo/redo selection with archived candidate case retained",
+      "load saved candidate inputs without auto-run; explicit rerun",
+      "tampered candidate landing import refused without document replacement",
+      "bounded worker cancellation; no candidate case appended"
+    ],
+    "pageErrors": [],
+    "cspErrors": [],
+    "distIdentityEqualsRecordedExecutable": true,
+    "queryMatchesReferenceSample": true,
+    "curveMatchesReferenceSample": false,
+    "curveEqualityProbe": {
+      "horizonS": 1.8,
+      "referenceMach": 0.061643410537415046,
+      "curveMatchesReferenceSample": false,
+      "screenshot": "/tmp/rmp07-candidate-evidence/candidate-equality.png",
+      "screenshotSha256": "05132259b847d1e227f8ee70bc415c5e0026d7ea4c663d1530cc3608f126448c"
+    },
+    "legacyStandingSmoke": {
+      "command": "node scripts/browser-smoke.mjs",
+      "result": "exit 0; 533 m legacy baseline; all eight stages; exports/imports; cross-tab stale save refusal; 1000-run ensemble; calibration save/reopen; share bundle",
+      "firstAttempt": "failed on the harness\u2019s stale 1.7.0 schema expectation; fixed by f1e480b to 1.12.0; rerun passed"
+    }
+  },
+  "gateAmendments": [
+    "mount fields preserved; flagged mount refused by preflight; no DTO evasion",
+    "all engine-consumed physical fields and declarations preserved",
+    "nullable CP/flow/coefficients/landing/apogee preserved; zero filling absent",
+    "mandatory first/last/event/observed-prefix sample context retained before fill; over-cap refusal",
+    "one model-aware candidate output projection for live/saved/trace; legacy dictionary unchanged",
+    "behavioral tests only; no source-text/copy assertions",
+    "actual engine/Vite builds and production-CSP browser proof; new root-specific WASM identity",
+    "transient browser scaffold outside Git; previous receipt not transferred"
+  ],
+  "residuals": [
+    "no candidate ensemble, monte carlo, profile dispatch, local axial source or arbitrary query",
+    "no empirical/numerical qualification",
+    "long-horizon/tiny-step response size remains a runtime risk; no new engine cap or IO budget",
+    "one-parachute synthetic variant refused in the tested scenario; retained limitation",
+    "runtime reported curveMatchesReferenceSample false at a nonzero reference Mach while query equality was true; displayed honestly, no engine change or equality workaround",
+    "candidate/legacy result deltas withheld; archived input differences are historical",
+    "no Rust/build-engine/core/default/budget/threshold/historical-identity change"
+  ],
+  "acceptance": {
+    "authorSelfAccepted": false,
+    "registerManifestTasksHandoffEdited": false,
+    "candidateScopedEvidence": [
+      "RMP07-C01",
+      "RMP07-C04",
+      "RMP07-C05",
+      "RMP07-C06",
+      "RMP07-C07",
+      "RMP15-C01"
+    ],
+    "retainedPass": [
+      "RMP07-C02"
+    ],
+    "newReceiptPending": [
+      "RMP07-C08"
+    ]
+  },
+  "correctionRework": {
+    "status": "review-ready correction; not accepted",
+    "baseBeforeCorrection": "c240ea7c42243f102d9782e31dd48da3fb0a18fa",
+    "correctionSourceCommits": [
+      "99f2a5684841146809f84ef94c08aef9852698a3",
+      "59e5566397c3e3a1b78e768e5883cfc824be39ed",
+      "44bb481aed0a764159ec0ed11fbe2fb1e93a151a"
+    ],
+    "coordinatorReview": {
+      "path": "docs/internal/execution-runs/RMP07-candidate-app/REVIEW.md",
+      "sha256": "a8bed25297f6b1db6a23b0bd9da1269a65779be5585e83c782ed9ad190e25932",
+      "retainedVerbatim": true
+    },
+    "scope": "F1 archive relationships/context; F2 admission/cancellation; F3 recorded-vs-selected consumer attribution; F4 detached capture; F5 exact canonical freshness",
+    "checks": [
+      {
+        "name": "typecheck",
+        "command": "node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json",
+        "result": "exit 0"
+      },
+      {
+        "name": "focused candidate parser/project/store/import",
+        "command": "node node_modules/vitest/vitest.mjs run src/application/candidateResult.test.ts src/formats/candidateProject.test.ts src/console/candidateStore.test.tsx src/state/projectIo.test.ts --maxWorkers=2",
+        "result": "4 files / 83 tests passed",
+        "log": "../evidence-rmp07-candidate-app/rework-2026-10-29/rework-focused-final.log",
+        "logSha256": "4c1e4e7311fca157e9e320687ec85a7a69ab1f7095020b2320416009daa4c03b"
+      },
+      {
+        "name": "final full suite",
+        "command": "node node_modules/vitest/vitest.mjs run --maxWorkers=2",
+        "result": "134 files / 1738 tests passed, exit 0",
+        "log": "../evidence-rmp07-candidate-app/rework-2026-10-29/rework-full-suite-final.log",
+        "logSha256": "a837f782d5b5c24c2d89b932adcfdf07e855bffdc9a8dd228f134299c8dd1c40"
+      },
+      {
+        "name": "production engine/site build",
+        "command": "PATH=\"$HOME/.cargo/bin:$PATH\" pnpm build",
+        "result": "exit 0; engine + site built",
+        "log": "../evidence-rmp07-candidate-app/rework-2026-10-29/rework-build.log",
+        "logSha256": "3d013456adb4045ee31ba31675ca5f0244ec654087b5e7b576b6b6953934e265"
+      },
+      {
+        "name": "production-CSP Chromium rework",
+        "command": "node scripts/candidate-browser-journey.mjs (transient; copy retained)",
+        "result": "exit 0; no page/runtime/CSP errors",
+        "log": "../evidence-rmp07-candidate-app/rework-2026-10-29/rework-browser-journey.log",
+        "logSha256": "6319d6c67fd09b42c37643018d5f37a1dd8df5844efc34732a5417f64d88468c"
+      }
+    ],
+    "artifacts": {
+      "engineWasm": {
+        "path": "src/engine/astraea_engine.wasm",
+        "bytes": 1827192,
+        "sha256": "da38461e247274f605b52abe06e71fad2c8eadbd76d55aa0ee31f069d0ce9ac6",
+        "distPath": "dist/assets/astraea_engine-tQCJxEIX.wasm",
+        "distSha256": "da38461e247274f605b52abe06e71fad2c8eadbd76d55aa0ee31f069d0ce9ac6",
+        "distBytes": 1827192
+      },
+      "siteAsset": {
+        "path": "dist/assets/app-CmNNAPOk.js",
+        "sha256": "a3a940ea6ed8f676f4aefd416c35e200daa98c9d56a434ce4666bae59c6ac101"
+      },
+      "candidateCase": {
+        "inputModelDigest": "8f1173f6513d13cd6038e17476e9a746f1586257e2224fc4f8df9755a0e23820",
+        "executedWasmSha256": "da38461e247274f605b52abe06e71fad2c8eadbd76d55aa0ee31f069d0ce9ac6",
+        "termination": "TimeLimit",
+        "computationalCompletion": "CompletedRequestedHorizon"
+      },
+      "screenshots": [
+        {
+          "path": "../evidence-rmp07-candidate-app/rework-2026-10-29/candidate-browser-03b-candidate-hides-legacy.png",
+          "sha256": "f0ddf949171dc41fb57a07b521a1f5c04557e567ad17ed44f94a220ef8723ca6",
+          "purpose": "legacy run exists; candidate selection hides Mission target, Verify gates, sidebar Run rN"
+        },
+        {
+          "path": "../evidence-rmp07-candidate-app/rework-2026-10-29/candidate-browser-04-result.png",
+          "sha256": "4a0e354accffda91cef1ed0cde896e30d92d40e77d7b5c7af5f04ebc8e90102d",
+          "purpose": "actual candidate result"
+        },
+        {
+          "path": "../evidence-rmp07-candidate-app/rework-2026-10-29/candidate-browser-05-reopened.png",
+          "sha256": "de3b9566c9b1349d1a01b2e76b003ef48725169c5b9592ccf658092aa6f57785",
+          "purpose": "saved/reopened candidate archive"
+        },
+        {
+          "path": "../evidence-rmp07-candidate-app/rework-2026-10-29/candidate-browser-06-stale-refusal.png",
+          "sha256": "2e49e871caec6ea1ad5aed77858d56334009a0042be28657d7cae81be36c2cce",
+          "purpose": "stale declaration refusal"
+        },
+        {
+          "path": "../evidence-rmp07-candidate-app/rework-2026-10-29/candidate-browser-07-cancelled.png",
+          "sha256": "b6330460bf5572ce9d084bf7f4bfd5f478db0af8dc65f8b4a6a6dbbddc70cb24",
+          "purpose": "normal-horizon cancellation, no case appended"
+        }
+      ],
+      "transientHarness": {
+        "path": "../evidence-rmp07-candidate-app/rework-2026-10-29/candidate-journey-rework.mjs",
+        "sha256": "710a0ae5cec8e6db7355f9ffe88cde823abfb288a20a5da631703008b8a8ad4b",
+        "committed": false
+      }
+    },
+    "browserObservations": {
+      "doubleActivation": {
+        "synchronousClicks": 2,
+        "candidateWorkerPosts": 1,
+        "assertion": "exactly one"
+      },
+      "f3": "real legacy run completed before candidate opt-in; Mission target, Verify gate rows, Flight sidebar Run rN and Model result hidden; warnings present",
+      "saveReopen": "browser slot saved and opened; Saved Runs showed candidate archive and engine/input digests; Load saved inputs then explicit candidate rerun passed",
+      "staleDeclaration": "imported selection with wrong declaration SHA; UI refused and preserved the open document; run attempt produced refusal/error",
+      "cancellation": "normal bounded request (2 s horizon, 0.01 s step); test-only worker dispatch delay let the visible Cancel run control act; Cancelled, no result and no candidate case",
+      "curveMatchesReferenceSample": false,
+      "curveObservationRetainedForEngineOwner": true,
+      "malformedCandidateImport": "real malformed candidate archive import refused; open project identity preserved (projectIo regression)",
+      "applicationBuildCommit": "59e5566397c3e3a1b78e768e5883cfc824be39ed"
+    },
+    "newFailuresRetained": [
+      "first correction build failed spawnSync cargo ENOENT because shell PATH lacked $HOME/.cargo/bin; same command with PATH succeeded, no flags/source changed",
+      "interrupted final full suite at 2026-10-29T12:27:27Z left only RUN header; not counted; rerun passed 1737 tests; adding the malformed-import regression made the final count 1738",
+      "first cancellation browser attempt detached the button before click; final harness delays only candidate dispatch and uses a normal bounded request",
+      "first F3 rework screenshot exposed a legacy Flight sidebar Run rN under candidate selection; FlightInspector/LaunchInspector/ModelStatusPanel/Verify stale notice were fixed; rebuilt browser proof rerun"
+    ],
+    "residuals": [
+      "no candidate ensemble, Monte Carlo, profile dispatch, local axial source or arbitrary query",
+      "no empirical/numerical qualification",
+      "curveMatchesReferenceSample false remains an engine observation; no assertion relaxation or fixture retuning",
+      "long-request/tiny-step response-size limit remains a runtime risk; no engine cap or IO budget change",
+      "candidate/legacy result deltas withheld; archived input differences remain historical"
+    ],
+    "superseded": true,
+    "supersededBy": "supplementCorrection",
+    "retractedSchema": "1.13.0"
+  },
+  "supplementCorrection": {
+    "status": "review-ready correction; not accepted",
+    "base": "9c7982a509196263feea2de232a1a6539cb3c808",
+    "sourceCommit": "3ed90bbc6bfaec4d6f6dd12ee8484b6502e09e8d",
+    "reviewSupplement": {
+      "path": "docs/internal/execution-runs/RMP07-candidate-app/REVIEW-SUPPLEMENT.md",
+      "sha256": "b9b695a9c7c7c54cb12a379edc58f1d5141befe216204e9c75b7d4f01d30fe7d",
+      "retainedVerbatim": true
+    },
+    "schema": {
+      "current": "1.12.0",
+      "migration": "1.11.0 -> 1.12.0 identity-only",
+      "candidateFieldsOnlyAt": "1.12.0",
+      "retracted": "1.13.0 + empty 1.12 -> 1.13 step"
+    },
+    "checks": [
+      {
+        "name": "typecheck",
+        "command": "node_modules/.bin/tsc --noEmit -p tsconfig.json",
+        "result": "exit 0",
+        "log": "../evidence-rmp07-candidate-app/supplement-2026-10-29/supplement-typecheck-final.log",
+        "logSha256": "850a697fa64c5356373c76b9db696014d9cc646d643015d933a056999cb3731b"
+      },
+      {
+        "name": "focused candidate/result/schema/import tests",
+        "command": "node node_modules/vitest/vitest.mjs run src/application/candidateResult.test.ts src/formats/candidateProject.test.ts src/console/candidateStore.test.tsx src/state/projectIo.test.ts src/formats/projectJson.test.ts src/application/momentArmHistory.test.ts --maxWorkers=2",
+        "result": "6 files / 182 tests passed",
+        "log": "../evidence-rmp07-candidate-app/supplement-2026-10-29/supplement-focused.log",
+        "logSha256": "0993405a5cc1a74a3e1b38fec59a8304b2722735777c1d1139ff29165b85da67"
+      },
+      {
+        "name": "final full suite",
+        "command": "node node_modules/vitest/vitest.mjs run --maxWorkers=2",
+        "result": "134 files / 1742 tests passed, exit 0",
+        "log": "../evidence-rmp07-candidate-app/supplement-2026-10-29/supplement-full-suite.log",
+        "logSha256": "ab04d454cf7c035e34fa620a0389689afd12db38ee9c0fb8c5f4382ee48840eb"
+      },
+      {
+        "name": "production engine/site build",
+        "command": "PATH=\"$HOME/.cargo/bin:$PATH\" pnpm build",
+        "result": "exit 0",
+        "log": "../evidence-rmp07-candidate-app/supplement-2026-10-29/supplement-build.log",
+        "logSha256": "df3db8d1916705b1e1a433b5f0df444697219a2ad6cce5fa60a211be0832287b"
+      },
+      {
+        "name": "production-CSP Chromium supplement",
+        "command": "transient candidate journey under dist/_headers CSP",
+        "result": "exit 0; no page/runtime/CSP errors",
+        "log": "../evidence-rmp07-candidate-app/supplement-2026-10-29/supplement-browser-final.log",
+        "logSha256": "fc9d07d53858b2c83aa757fabc8569fe3204a3d27f46a4191b73897a4929ce0e"
+      }
+    ],
+    "artifacts": {
+      "engineWasm": {
+        "bytes": 1827192,
+        "sha256": "da38461e247274f605b52abe06e71fad2c8eadbd76d55aa0ee31f069d0ce9ac6",
+        "distSha256": "da38461e247274f605b52abe06e71fad2c8eadbd76d55aa0ee31f069d0ce9ac6"
+      },
+      "siteAsset": {
+        "path": "dist/assets/app-Cuy6nalO.js",
+        "sha256": "c9a07aa4ffbc4ae94ac69cf4a0d490bf274c9b689bc053ae7b187d592a3122cc"
+      },
+      "candidateResult": {
+        "inputModelDigest": "8f1173f6513d13cd6038e17476e9a746f1586257e2224fc4f8df9755a0e23820",
+        "executedWasmSha256": "da38461e247274f605b52abe06e71fad2c8eadbd76d55aa0ee31f069d0ce9ac6"
+      },
+      "actual1_12Receipt": {
+        "path": "../evidence-rmp07-candidate-app/supplement-2026-10-29/actual-saved-1.12.astraea.json",
+        "sha256": "dd9b7330b044b0542ce5984b2c98ce989e8da7a59385c6b02705cef8bb5b618a"
+      },
+      "negative1_12Fixtures": [
+        {
+          "name": "final-sample tamper",
+          "sha256": "23023184bd0290d731daa9f41e720f777cfa106bb10bc20f9cc2aeb6f573969d"
+        },
+        {
+          "name": "omitted-context tamper",
+          "sha256": "fbf6e06da9670bfb965d6f7dd2ceff28a7951332b2d296fb5305731b11243aa3"
+        }
+      ],
+      "screenshots": [
+        {
+          "path": "../evidence-rmp07-candidate-app/supplement-2026-10-29/candidate-browser-03c-palette-admission.png",
+          "sha256": "2aa257281bedde233be81223b888492ea21cc17597afe35499b35a2d4771be9d"
+        },
+        {
+          "path": "../evidence-rmp07-candidate-app/supplement-2026-10-29/candidate-browser-03d-negative-import.png",
+          "sha256": "d08b0c9a4c164c40a03581341b1331088d64bbe2c02a58c1e96e48d83f8632f7"
+        },
+        {
+          "path": "../evidence-rmp07-candidate-app/supplement-2026-10-29/candidate-browser-04-result.png",
+          "sha256": "4a0e354accffda91cef1ed0cde896e30d92d40e77d7b5c7af5f04ebc8e90102d"
+        },
+        {
+          "path": "../evidence-rmp07-candidate-app/supplement-2026-10-29/candidate-browser-05-reopened.png",
+          "sha256": "e4d47928ebdd6ffd4cf1d100409cf552bfa7b685e876e9093c01ff9e22c4deec"
+        },
+        {
+          "path": "../evidence-rmp07-candidate-app/supplement-2026-10-29/candidate-browser-06-stale-refusal.png",
+          "sha256": "2e49e871caec6ea1ad5aed77858d56334009a0042be28657d7cae81be36c2cce"
+        },
+        {
+          "path": "../evidence-rmp07-candidate-app/supplement-2026-10-29/candidate-browser-07-cancelled.png",
+          "sha256": "2f16862139541d5032c00c2b55fdcba2f0e8322a6322a7278d6af2f9db547546"
+        }
+      ]
+    },
+    "browserObservations": {
+      "paletteRefusal": "held one normal aggregate_mass reply; real Run Monte Carlo palette action left both Run buttons disabled and Cancel visible; exactly one aggregate_mass and one simulate_candidate dispatch",
+      "f1Imports": "actual 1.12 receipt imported; final-sample and omitted-context 1.12 negatives refused with current document preserved",
+      "f3": "real legacy run then candidate opt-in hid target/gates/sidebar",
+      "saveReopenLoadRerun": "passed",
+      "cancellation": "normal 2 s/0.01 s; Cancelled, no result/case",
+      "noPageRuntimeCspErrors": true
+    },
+    "failuresRetained": [
+      "supplement independently observed accepted final-sample/omitted-context mutations, palette admission escape and 1.12 rejection under unapproved 1.13; not rerun merely to confirm",
+      "earlier no-cargo-PATH build failure and interrupted full suite retained in prior rework records",
+      "first supplement browser attempt used stale 1.13 transient fixture and failed to find Run; regenerated approved 1.12 fixture and reran"
+    ],
+    "residuals": [
+      "curveMatchesReferenceSample=false retained for engine owner",
+      "long-request/tiny-step response limit remains runtime risk",
+      "no Rust/physics/defaults/budgets/IO/buildflag changes"
+    ]
+  }
+}

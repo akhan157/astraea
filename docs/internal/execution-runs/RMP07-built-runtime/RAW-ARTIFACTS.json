@@ -1,0 +1,33 @@
+{
+  "root": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-built-runtime",
+  "files": {
+    "build-1.log": {
+      "sha256": "9ded54777163a55475b077afd7c07a658a0a5661d977e41ca23905a0c9a16278",
+      "bytes": 5559
+    },
+    "dist-wasm.log": {
+      "sha256": "54c3188a555251c24f4cbe0baa389a8a8af1edb7b6ae5870a02ca7c83da671d2",
+      "bytes": 250
+    },
+    "head.txt": {
+      "sha256": "e88276d5c213018564f5fa4d61d79dc1d6dbb9619c7e1e699df9ac29d17dbf77",
+      "bytes": 41
+    },
+    "receipt-1.json": {
+      "sha256": "d35dabae65dcf6cc35eb67a8daf4f562b69462c6e44403b84ef582e7a8369eea",
+      "bytes": 1342
+    },
+    "review-input.md": {
+      "sha256": "22bc773244207af42e335974032f730a234b8bd29d33fb7a4db259c100b629b9",
+      "bytes": 22767
+    },
+    "review.err": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "review.md": {
+      "sha256": "bfec0df81d3d0a1c7cb33ae57749adafdd8fde87d8da30397b873bac3ea52068",
+      "bytes": 3176
+    }
+  }
+}

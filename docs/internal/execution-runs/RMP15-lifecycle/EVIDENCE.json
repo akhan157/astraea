@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP15",
+  "subpacket": "RMP15d lifecycle evidence",
+  "baseSha": "121c688fab372e75b24b67cdb92b7420940bda8a",
+  "sourceSha": "fd15420aefd72512e58c2880df231640ede7e16a",
+  "status": "accepted; RMP15-C03 pass (current legacy paths)",
+  "review": {
+    "initial": "ACCEPT; C03 MET",
+    "boundary": "no-tools supplied text"
+  },
+  "routing": {
+    "author": "anthropic/claude-opus-5-5 (omp)",
+    "reviewer": "opencode-go/mimo-v2.6-pro medium no-tools"
+  },
+  "checks": [
+    {
+      "id": "RMP15-C03",
+      "status": "pass",
+      "scope": "current legacy flight/ensemble/cancel paths; new providers must re-show"
+    }
+  ],
+  "nonClaims": [
+    "RMP15 parent closure",
+    "native platform acceptance"
+  ],
+  "artifactHashes": {
+    "portable": {
+      "ASSIGNMENT.md": "b5a841feb2aef9a7c97d52179b3ea665501636a2f31eea3c8ef8fa6c15addc59",
+      "RESULT.md": "595015077ee97d1f100aa2e4b68170de6cc4befbbefbad0d17c8e58506ce5fbc",
+      "REVIEW.md": "5d11f1ed85bd488094ad58a562e90c7a07234f2c9b7acd499a531c57555279bf",
+      "SOURCE-INVENTORY.json": "d97e7a3afb0ec8e3e337197b2cbbda49046bcc9794502343679cd89bff7f6a15",
+      "RAW-ARTIFACTS.json": "e5b21d0c171758eed417a5073449a6d2dada0e66639eceaa0423b7b8f3a324ee"
+    }
+  }
+}

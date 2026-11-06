@@ -1,0 +1,45 @@
+(fineness ratio of 18.2) was representative of the Arcas Robin meteorological rocket 
+vehicle, whereas a long model (fineness ratio of 23.8) was representative of the Arcas 
+vehicle as modified by NASA to accommodate a bioscience payload. The purpose of this 
+paper is to present the results of an investigation of the same two models conducted in 
+the Langley 8-foot transonic pressure tunnel at Mach numbers from 0.60 to 1.20, at 
+angles of attack from -3' to 21°, at roll angles of Oo, 22.5', 
+and 45O, and at fin cant 
+angles of Oo and 2'. 
+The Reynolds number was held constant at 9.8 X 106 per meter 
+(3.0 X lo6 per foot). 
+SYMBOLS 
+The aerodynamic force and moment data are referred to the body-axis system 
+with the moment reference center located at 70 percent of the body length for both the 
+short body and the long body. 
+cA 
+'A,b 
+'A,corr 
+c2 
+Cm 
+cN 
+Cn 
+CP,b 
+d 
+M 
+2 
+axial-force coefficient, Axial force 
+qs 
+base axial-force coefficient, Base axial force. 
+q s  
+axial force corrected for base axial force 
+rolling-moment coefficient, Rolling moment 
+qSd 
+pitching -moment coefficient, Pitching moment 
+qsd 
+normal-force coefficient, Normal force 
+qs 
+yawing-moment coefficient, Yawing moment 
+qSd 
+Pb - P
+base-pressure coefficient, ­
+q 
+side-force coefficient, Side force 
+qs 
+body diameter, centimeters (inches) 
+free-stream Mach number 

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "astraea-artifact-availability/1.0",
+  "packet": null,
+  "artifactId": null,
+  "kind": null,
+  "originalLocation": null,
+  "expectedSha256": null,
+  "rightsAndAllowedUse": null,
+  "exposureClass": null,
+  "currentAvailability": "uninspected",
+  "currentLocalPath": null,
+  "verification": null,
+  "custodianAndAccessAuthority": null,
+  "doNotOpenUntilAuthorized": true,
+  "note": "Set explicit synthetic/development/source/scoring/secret class. A historical hash is not an artifact. Never inspect sealed bytes to populate this record without authorization."
+}

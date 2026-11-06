@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP02",
+  "subpacket": "RMP02a-retained-source-eligibility",
+  "baseSha": "46bb995a4d83790f06d75e47f79e0211105f8f20",
+  "sourceSha": "44d74d79222392da10bc245f274250667df20eb2",
+  "owner": "coordinator; lease released after checkpoint",
+  "modelRouting": {
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "usageTelemetry": "not supplied; one independent high-effort serial reviewer"
+  },
+  "effectiveInputs": [
+    "docs/internal/execution-package/evidence/RMP02/eligibility.json"
+  ],
+  "sourceHashes": {
+    "scripts/diagnostics/check-reference-eligibility.py": "726a5e245bd65f1580a19961c900f988835e13e56ca49c37991d4ef942abc202",
+    "scripts/diagnostics/tests/test_reference_eligibility.py": "a13a94e150a4c15b0772ef98234586037a65fb06399d68716fc94ac2fa0d21e7",
+    "docs/internal/execution-package/evidence/RMP02/eligibility.json": "4ea7bf8e7bfc3db5c856f2651b9e9f094dbfb2aac2087758fb2b31f0136eb0d8",
+    "docs/internal/execution-runs/RMP02-source-eligibility/gate-result.json": "a5467b8e24a192988bda3e98ce2b7f28d0c1620a6bc649a5d6cdaf039d11eb02"
+  },
+  "runtimeHashes": {},
+  "artifactAvailability": [
+    {
+      "artifacts": "two unchanged D1 manifests / 64 listed entries",
+      "status": "present-size-and-SHA256-verified; includes shared/repeated provenance, not independent measurements"
+    },
+    {
+      "artifacts": "original public source PDFs",
+      "status": "not retained in repository; two documented historical ARCAS /tmp paths absent; 0 PDFs verified"
+    },
+    {
+      "artifacts": "raw review/test logs",
+      "status": "external sibling evidence-rmp02-source-eligibility; not committed"
+    }
+  ],
+  "checks": [
+    {
+      "id": "RMP02-C01",
+      "status": "pass",
+      "kind": "source-eligibility/custody-not-model-qualification",
+      "commandOrMechanism": "Reviewed explicit geometry feature exclusions plus frozen gate",
+      "expectedRule": "No unsupported geometry, missing independent moment/axial source or incomplete source conventions can earn native model qualification",
+      "observed": "Reviewed explicit geometry feature exclusions plus frozen gate",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP02-source-eligibility/RESULT.md",
+      "sha256": null,
+      "limitation": "Parent partial;0 physically qualified cases; no new extraction/simulation"
+    },
+    {
+      "id": "RMP02-C02",
+      "status": "blocked",
+      "kind": "source-eligibility/custody-not-model-qualification",
+      "commandOrMechanism": "Independent sign/datum/base worksheet absent",
+      "expectedRule": "No unsupported geometry, missing independent moment/axial source or incomplete source conventions can earn native model qualification",
+      "observed": "Independent sign/datum/base worksheet absent",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP02-source-eligibility/RESULT.md",
+      "sha256": null,
+      "limitation": "Parent partial;0 physically qualified cases; no new extraction/simulation"
+    },
+    {
+      "id": "RMP02-C03",
+      "status": "in_progress",
+      "kind": "source-eligibility/custody-not-model-qualification",
+      "commandOrMechanism": "Retained independent reads/custody checked; native-density source/new marker/skew audit blocked",
+      "expectedRule": "No unsupported geometry, missing independent moment/axial source or incomplete source conventions can earn native model qualification",
+      "observed": "Retained independent reads/custody checked; native-density source/new marker/skew audit blocked",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP02-source-eligibility/RESULT.md",
+      "sha256": null,
+      "limitation": "Parent partial;0 physically qualified cases; no new extraction/simulation"
+    },
+    {
+      "id": "RMP02-C04",
+      "status": "in_progress",
+      "kind": "source-eligibility/custody-not-model-qualification",
+      "commandOrMechanism": "Retained absolute bounds and nominal-zero exclusions; no new symbol inspection",
+      "expectedRule": "No unsupported geometry, missing independent moment/axial source or incomplete source conventions can earn native model qualification",
+      "observed": "Retained absolute bounds and nominal-zero exclusions; no new symbol inspection",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP02-source-eligibility/RESULT.md",
+      "sha256": null,
+      "limitation": "Parent partial;0 physically qualified cases; no new extraction/simulation"
+    },
+    {
+      "id": "RMP02-C05",
+      "status": "pass",
+      "kind": "source-eligibility/custody-not-model-qualification",
+      "commandOrMechanism": "Frozen paired availability and refusal of CP/missing moment/fake axial source",
+      "expectedRule": "No unsupported geometry, missing independent moment/axial source or incomplete source conventions can earn native model qualification",
+      "observed": "Frozen paired availability and refusal of CP/missing moment/fake axial source",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP02-source-eligibility/RESULT.md",
+      "sha256": null,
+      "limitation": "Parent partial;0 physically qualified cases; no new extraction/simulation"
+    }
+  ],
+  "executedChecks": [
+    {
+      "command": "python3 -m unittest discover -s scripts/diagnostics/tests -p test_reference_eligibility.py -v",
+      "exitCode": 0,
+      "tests": 25
+    },
+    {
+      "command": "python3 scripts/diagnostics/check-reference-eligibility.py",
+      "exitCode": 0,
+      "entriesVerified": 64,
+      "qualifiedCases": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "review": {
+    "reviewer": "separate read-only Codex/OpenAI gpt-6.1-sol/high session",
+    "independentOfAuthor": true,
+    "disposition": "approved-bounded-gate-and-explicit-exclusions",
+    "findings": [],
+    "evidencePath": "docs/internal/execution-runs/RMP02-source-eligibility/REVIEW.md"
+  },
+  "qualification": {
+    "computational": "custody/refusal logic verified; not flight software requalification",
+    "physical": "unqualified; zero eligible cases",
+    "dynamic": "not executed"
+  },
+  "failedAttempts": [
+    {
+      "command": "python3 docs/internal/execution-package/validate-package.py",
+      "observed": "Expected manifest file list differs after new evidence files; refresh deferred until review",
+      "exitCode": 1
+    }
+  ],
+  "remainingScope": [
+    "Independent sign/datum/base worksheet",
+    "Native-density source and marker/skew/extraction audit",
+    "Geometry/aerodynamic extensions or genuinely matched source; corrected-source uncertainty"
+  ],
+  "nextActions": [
+    "Continue actual source/schema availability for RMP03",
+    "Review bounded RMP04 updater proposal/new-host prerequisites"
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

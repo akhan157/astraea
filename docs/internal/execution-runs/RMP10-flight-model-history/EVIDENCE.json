@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP10",
+  "subpacket": "RMP10a sampled result-bound legacy flight-model normal moment-arm history",
+  "status": "accepted bounded software/runtime increment; parent RMP10 remains partial",
+  "baseSha": "feb3c1aa5e18263a3b7592e9186bc29a65eed791",
+  "sourceSha": "6117ea161fc5c906ce7b57ebf4bbe0ff4789fd1a",
+  "sourceState": "committed accepted source; SOURCE-INVENTORY-3.json binds37 current source/test/driver files; generated WASM rebuilt/verified locally, not in Git",
+  "lease": "RMP10a source/compute lease released after accepted source/checks/reviews; records-only package checkpoint; no task-owned process",
+  "routing": {
+    "author": "current environment openai/gpt-6.1-sol/high",
+    "reviewer": "explicit opencode-go/mimo-v2.6-pro; direction high, interface/implementation/final medium requested",
+    "implementationAndFinalBoundary": "no-tools; full current supplied source/diff/context/data review, not fresh filesystem/hash/test execution",
+    "nonClaims": "no inferred price, model superiority, scientific consensus or qualification"
+  },
+  "mechanism": "existing legacy evaluator metadata copied only from requested committed MacroSample before telemetry rounding, t<=declared motor burn time plus initial, no extra RHS or force/integrator/root/event-clock change",
+  "interface": {
+    "request": "optional boolean simulate_flight sibling reportMomentArmHistory; ordinary absent/off unchanged, console explicitly captures/requests true",
+    "responseSchema": "astraea-flight-moment-arm-history/1.0.0",
+    "sampleCap": 5000,
+    "capDisposition": "explicit requested-report error before push, no truncation or partial success",
+    "projectSchema": "1.8.0 preserving1.7 absence; archive2 actual request optional; corrupt/unknown/misplaced/new-on-old declarations refuse before replacement",
+    "attribution": "same invocation-bound outer engineIdentity plus input key; IDs are not executable checksums or accuracy evidence",
+    "zeroRetention": "raw negative-zero preserved as valid JSON -0.0 by project and both trace writers, no stored sentinel or changed nonzero values"
+  },
+  "artifactAvailability": {
+    "portable": "RESULT.md, REVIEW.md, INTERFACE.md, SOURCE-INVENTORY-1/2/3.json, BROWSER-CHECKS.json, RAW-ARTIFACTS.json, code/tests/browser driver in repository",
+    "externalLocalOnly": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-flight-model-history/",
+    "rawIndex": "RAW-ARTIFACTS.json; author hashes/availability, not scientific or cryptographic approval; final review artifacts appended after disposition"
+  },
+  "verification": {
+    "core": "191 pass; core-full-1.log, same production core afterward",
+    "engine": "98 pass; engine-full-4.log, includes6 history tests",
+    "frontend": "348 pass/27files ts-expanded-4.log after final test-only path/decode correction",
+    "typeScript": "tsc-7.log clean",
+    "realWasmPreservation": "two ordinary real-WASM calls per test execution on same synthetic input, all old result values inclsignedzero identical off/on; actual strict history parser succeeds",
+    "wasmBuild": "wasm-build-1.log, offline target-rmp10 release,2jobs; historical target-rmp01 sealed binaries unchanged",
+    "wasmSha256": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+    "previousWasmSha256": "b971b222d7e3df8c10ff268a3a540effc847adc209b6e52b8d5a0b2b08898337; retained external wasm-before.wasm",
+    "siteBuild": "build-2.log pass on current production serializer source",
+    "browser": "browser-8/metrics.json PASS; Chromium156/CSP/real worker/actual fetched-byte and case-identity match; raw history inclsignedzero, Aero point/plots, stale motor alternative, save/reopen/history, corrupt refusal, old absence, explicit replay, actual downloaded project+trace ZIP",
+    "browserCountBoundary": "final selected simulate_flight count5 =3explicitUI +2pre-existing bootstrap; ordinary uncommitted flight_summary and other commands separately counted; no claim of zero background solver work",
+    "browserFailures": "browser1-5 retained; browser6/7/8 pass progressively extended checks,24 selected simulate_flight commands overall; details/limits in RESULT.md",
+    "review": "initial source ACCEPT; later actual browser found signed-zero bug,2 red regressions then fix; final source-fix/software-runtime evidence ACCEPT, no material findings; no tools/fresh hash/test execution",
+    "signedZeroWitness": "BROWSER-SIGNED-ZERO-WITNESS.json, saved-output-only analyzer verifies exact8000000000000000 for same field in real worker/project/trace/ZIP; no new solve"
+  },
+  "checks": [
+    {
+      "id": "RMP10-C01",
+      "status": "in_progress",
+      "observed": "same-state raw legacy CG/C/J/CP/moment history with exact sampling disclosures and invocation attribution",
+      "remaining": "full unified-provider/source/mechanics/through-burnout decision qualification"
+    },
+    {
+      "id": "RMP10-C02",
+      "status": "in_progress",
+      "observed": "neutral C-weighted arm, explicit canopy N/A, original conditioned-C refusal preserved, no CP-existence stability verdict",
+      "remaining": "unavailable/ill-conditioned/free-couple/force-moment-C-J semantics across remaining providers"
+    },
+    {
+      "id": "RMP10-C06",
+      "status": "in_progress",
+      "observed": "same retained arrays/identity across Aero/SavedRuns/project/actual trace ZIP inclsignedzero",
+      "remaining": "broader peak/event/structural outputs and applicable decision/rule qualification"
+    },
+    {
+      "id": "RMP10-C07",
+      "status": "in_progress",
+      "observed": "off/on preservation, cap/failure/clock/migration/stale/late-job/replay tests; actual production WASM/UI/persistence",
+      "remaining": "broader selected event/peak/provider/cancellation regressions and qualification"
+    }
+  ],
+  "nonClaims": [
+    "complete RMP10 or C01/C02/C06/C07 PASS; C03/C04/C05 remain not_run",
+    "new CP law, dM/dalpha, dynamic stability, continuous minimum, stable through burnout, competition threshold",
+    "physical/measured/motor/material accuracy, decision-budget or collegiate scientific qualification",
+    "native/WASM broad parity, numerical convergence/reserve or default recommendation",
+    "native OS picker, installation/update/platform/team/release acceptance",
+    "candidate/model/default/key activation or change; RMP12a/b/c rerun or failure waiver",
+    "fresh reviewer filesystem/hash/test execution or independent recomputation of supplied browser metrics"
+  ],
+  "next": "continue remaining roadmap/provider/source/peak/event/mechanics contracts; scientific/team/platform/release gates stay open; no push/release",
+  "artifactHashes": {
+    "sourceInventorySha256": "3b8db46cc68e50fc4f4001513500f2e0668c13f580e71aaa85b3887bfbd15bf5",
+    "portable": {
+      "ASSIGNMENT.md": "60d5a1e4a9a36e6f31c4dca99952d87998db0227421f333ae77a0e068c1ec1d6",
+      "BROWSER-CHECKS.json": "4c0b02805bc6c5cb9cc9879ef463aaf96ec04f2bed6dc0bc3d923acb6bcee2e0",
+      "BROWSER-SIGNED-ZERO-WITNESS.json": "e7b56ff45bfd5aa1e11ef680c7e1cd33b35622bad390e041552836a48f1fa97a",
+      "CONTRACT.md": "809d085e67a298e587644e85c04116be816347388c9636c2b0d060e6ab7294b7",
+      "IMPLEMENTATION-WIP.md": "9ddc020e3d060717bbbaa6c3b8475ed22c470ef4a7d58c035c487518892b887b",
+      "INTERFACE.md": "7e1a4b19d5dacb9fc2180e5ab918178a1ac596112468014089dc9dd63edce15d",
+      "RAW-ARTIFACTS.json": "9e69268fdae1ac271c37112fb632856c866f6c14a4972eda64cb86bc9514ce39",
+      "RESULT.md": "e2308b0567fd03df0286723c21f0249296106737021a0ea1f2eb5015e4c7ad2c",
+      "REVIEW.md": "4a4c023735fe0389114c779763fdd86e7d82de6e68abb1f55a5e103ab67643b7",
+      "SOURCE-INVENTORY-1.json": "61ad53d85af09e911ee358d180d587f75b584c99eac36af57a304cf8a3114c2f",
+      "SOURCE-INVENTORY-2.json": "42a90b89f4b4cb0d2cfeea5658f4d0078c5a298a9b2c8731b3952a50600f2dff",
+      "SOURCE-INVENTORY-3.json": "3b8db46cc68e50fc4f4001513500f2e0668c13f580e71aaa85b3887bfbd15bf5",
+      "analyze-signed-zero.py": "2a62a953875303da0de2255821a61a53b5364db0ec3ee8398bf4b9299427290a",
+      "package-validation.json": "3fdb1ea9f6cee8c349b5a46c67d833e89a2b30093b6290522fc2dd2d15f3ce75"
+    }
+  }
+}

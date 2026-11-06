@@ -1,0 +1,227 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP10",
+  "subpacket": "RMP10-C06 output dictionary and UI/export consistency",
+  "status": "author-complete pending independent review; RMP10-C06 remains in_progress",
+  "baseSha": "d278d49421cdd6ecd3e390c8ce3fdd4524e4f692",
+  "sourceSha": null,
+  "sourceCommitReporting": "One local commit contains this evidence; its self-hash is supplied in the final coordinator handoff rather than embedded recursively.",
+  "owner": "Pi coding agent",
+  "modelRouting": {
+    "provider": "opencode-go",
+    "model": "kimi-k3.1-pro",
+    "effort": "high",
+    "usageTelemetry": "not supplied"
+  },
+  "lease": "Only assigned source/test/docs files changed; no sibling worktree or read-only file edits; source/compute lease returned pending review.",
+  "effectiveInputs": [
+    "Base source d278d49421cdd6ecd3e390c8ce3fdd4524e4f692 and actual native/DTO/adapter/UI symbols cited by docs/internal/output-dictionary.md",
+    "Existing synthetic flight fixtures; no measured, protected, external, or scoring data",
+    "Sealed copied WASM only for frontend import/build identity; no Cargo, rebuild, engine execution, or numerical study",
+    "Node v26.11.1; pnpm 12.14.0; Vitest 5.0.0; TypeScript 7.0.2; Vite 8.2.2"
+  ],
+  "sourceHashes": {
+    "src/console/data/recoveryResults.ts": "e4f99253e8c447ef18a8f65ff46f74e2fb8885935ae73c49a10002fb83f6c5da",
+    "src/console/data/recoveryResults.test.ts": "f32482faaaeedf024afda9f8ce543c003adba0e2513d502bab83c65b3b2f06be",
+    "src/console/stages/Build.tsx": "bda96fe2b8b1d66ff684cf32d62bb7463de83ec36d4233d1b6681cae5cd0689f",
+    "src/console/stages/recoveryResults.test.tsx": "c12e07a10ad9bdf54022c59b7c35ad33f2f62af1dfb19986164784196b4ca6cb",
+    "docs/internal/output-dictionary.md": "e939fd4c75420d90d5f896912dcb476dcb13c44b45a23c18d49066db5aec721b",
+    "docs/internal/execution-runs/RMP10-output-consistency/ASSIGNMENT.md": "889fe8a77e3f6b492e2bd54e5900d82f9efc590fa7b84c0cadbd6352fa721bcb",
+    "docs/internal/execution-runs/RMP10-output-consistency/RESULT.md": "56805274ad064e0ae50056276653b7709c968ec47f7f5f181efd2827ec384fec",
+    "docs/internal/execution-runs/RMP10-output-consistency/REVIEW.md": "564d04619634f5b441db0fd209731719976dbd3f992876ca360e003f202aede5",
+    "docs/internal/execution-runs/RMP10-output-consistency/package-validation.json": "063a3b3d608ab1bf05185045664e9066249541f4a3c4db15a7ee069b09e2b7e2"
+  },
+  "runtimeHashes": {
+    "src/engine/astraea_engine.wasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+    "dist/assets/astraea_engine-DXTV52_r.wasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b"
+  },
+  "artifactAvailability": [
+    {
+      "kind": "portable",
+      "path": "docs/internal/output-dictionary.md and docs/internal/execution-runs/RMP10-output-consistency/",
+      "availability": "in the local branch commit; source/test/dictionary and check records"
+    },
+    {
+      "kind": "external-local-raw-logs",
+      "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-output-consistency/",
+      "availability": "raw install/resource/red/green/typecheck/build/hash/package logs; not represented as committed artifacts"
+    }
+  ],
+  "checks": [
+    {
+      "id": "RMP10-C06",
+      "status": "in_progress",
+      "kind": "bounded dictionary, duplicate-formula audit, and cross-consumer software consistency",
+      "commandOrMechanism": "Source-symbol audit plus final affected Vitest, tsc, Vite-only build, diff check, and package validator listed below",
+      "expectedRule": "Same retained data/model/timebase, explicit SI unit/qualification/null semantics, recorded event interval, no invalid landing delta, and no independent export formula/rounding",
+      "observed": "Dictionary and Build projection delivered; 72 affected tests pass; open F1-F3 recorded precisely; independent review and parent acceptance remain pending",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP10-output-consistency/RESULT.md",
+      "sha256": "56805274ad064e0ae50056276653b7709c968ec47f7f5f181efd2827ec384fec",
+      "limitation": "No acceptance promotion, physical qualification, complete Saved Runs schema, native off-nominal retention, browser journey, or external-rule claim"
+    },
+    {
+      "id": "verification.red-first-output-trace",
+      "status": "failed_before_fix",
+      "kind": "regression-first",
+      "commandOrMechanism": "pnpm exec vitest run src/console/stages/recoveryResults.test.tsx --maxWorkers=1",
+      "expectedRule": "New tests fail on absent trace outputs and independently rounded/unqualified gates before implementation",
+      "observed": "8 pass / 3 fail; two absent simulation.outputs failures and gate 5.123 versus canonical 5.123456789 with missing qualification",
+      "exitCode": 1,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-output-consistency/red-corrected-readout-selector.log",
+      "sha256": "93deb1e14e2c44d6dbb4e272ca891b231cfce67299ccb6d6401a095eabfc1026",
+      "limitation": "Initial run also retained an incorrect test-only Drift selector; selector correction did not weaken product assertions"
+    },
+    {
+      "id": "verification.red-first-interval-qualification",
+      "status": "failed_before_fix",
+      "kind": "regression-first",
+      "commandOrMechanism": "pnpm exec vitest run src/console/data/recoveryResults.test.ts --maxWorkers=1",
+      "expectedRule": "Measured clock carriers cannot promote a native modeled touchdown-event interval to measured",
+      "observed": "18 pass / 1 fail; actual confidence measured, expected modeled; fixed and then 19 pass",
+      "exitCode": 1,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-output-consistency/red-descent-event-qualification.log",
+      "sha256": "75acaf32ed16dbe5370a1ac7b72dfd3b6cb4127ab09e850e5ab21cc5b6485c25",
+      "limitation": "Synthetic qualification fixture only"
+    },
+    {
+      "id": "verification.affected-vitest",
+      "status": "pass",
+      "kind": "affected frontend software tests",
+      "commandOrMechanism": "pnpm exec vitest run src/console/data/recoveryResults.test.ts src/console/stages/recoveryResults.test.tsx src/console/stages/buildExport.test.tsx src/console/stages/SavedRuns.test.tsx src/console/stages/siteAndTelemetry.test.tsx src/console/data/outputContracts.test.ts src/console/data/consoleData.test.ts --maxWorkers=1",
+      "expectedRule": "All owned regressions and affected Build/SavedRuns/output consumers retain behavior and cross-consumer equality",
+      "observed": "7 files, 72 tests passed; 19 pure + 11 rendered owned recovery cases, including 7 new cases",
+      "exitCode": 0,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-output-consistency/affected-vitest-final.log",
+      "sha256": "c99cc8e3b59cb79ab4336f630ff656fe9f4e4843d2be833c647b4b9879d289ef",
+      "limitation": "jsdom/stubbed synthetic checks, not real-WASM/browser/physical validation"
+    },
+    {
+      "id": "verification.tsc",
+      "status": "pass",
+      "kind": "TypeScript",
+      "commandOrMechanism": "pnpm exec tsc --noEmit",
+      "expectedRule": "No type errors",
+      "observed": "Exit 0; empty log",
+      "exitCode": 0,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-output-consistency/tsc-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "limitation": "Typecheck only"
+    },
+    {
+      "id": "verification.vite",
+      "status": "pass",
+      "kind": "frontend production build without engine rebuild",
+      "commandOrMechanism": "pnpm exec vite build",
+      "expectedRule": "Vite-only build succeeds with sealed WASM bytes",
+      "observed": "Exit 0; 3112 modules; source and dist WASM SHA-256 both b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+      "exitCode": 0,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-output-consistency/vite-build-final.log",
+      "sha256": "7d2ef201fb793b57e84c966afca43a350ade9f17d312d538206c2c077005720f",
+      "limitation": "No Cargo, package build script, browser journey, or newly executed engine behavior"
+    },
+    {
+      "id": "verification.git-diff-check",
+      "status": "pass",
+      "kind": "bookkeeping",
+      "commandOrMechanism": "git diff --check",
+      "expectedRule": "No whitespace errors",
+      "observed": "Exit 0; empty log",
+      "exitCode": 0,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-output-consistency/git-diff-check-committed-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "limitation": "Whitespace/bookkeeping only"
+    },
+    {
+      "id": "verification.package-validator",
+      "status": "pass",
+      "kind": "bookkeeping",
+      "commandOrMechanism": "python3 docs/internal/execution-package/validate-package.py",
+      "expectedRule": "Package integrity validator returns status pass",
+      "observed": "status pass; 18 packets; 117 acceptance checks; 29 recorded passes; 191 local links; zero dependency cycles; 46 package hashes",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP10-output-consistency/package-validation.json",
+      "sha256": "063a3b3d608ab1bf05185045664e9066249541f4a3c4db15a7ee069b09e2b7e2",
+      "limitation": "Package integrity only; no engineering/scientific/release acceptance"
+    }
+  ],
+  "review": {
+    "reviewer": null,
+    "independentOfAuthor": null,
+    "disposition": "pending independent review",
+    "findings": []
+  },
+  "auditFindings": [
+    {
+      "id": "F1",
+      "status": "open_coordinator",
+      "fileSymbols": "src/console/data/contract.ts::RunSummary/FlightRun; src/console/data/adapter.ts::toFlightRun; src/console/stages/Build.tsx::useExportCheck",
+      "expected": "Retain/export native SixDofSimulationResult.offNominalExcursion if independent inspection is required",
+      "actual": "Native/DTO flag influences validity but is dropped from FlightRun, so Build cannot export it without fabrication"
+    },
+    {
+      "id": "F2",
+      "status": "open_coordinator",
+      "fileSymbols": "src/application/runCases.ts::flightSummary; src/console/stages/SavedRuns.tsx",
+      "expected": "If Saved Runs must reproduce the complete dictionary, retain the same quantities and unit/confidence/reason",
+      "actual": "Flat summaries omit maxQ, burnoutAltitude, weathercockAngleDeg, enveloped, offNominalExcursion, sampledMaxQ, and all confidence/reason"
+    },
+    {
+      "id": "F3",
+      "status": "open_coordinator",
+      "fileSymbols": "src/console/stages/SavedRuns.tsx historical b-a/toPrecision(6) versus src/console/stages/Flight.tsx::ResultsTable and src/console/kit/Value.tsx::DeltaChip",
+      "expected": "If identical comparison presentation is required, use the same unit conversion, small-delta suppression, and qualification wording",
+      "actual": "Historical table intentionally uses stored units and six significant digits without per-value confidence; live Flight uses DeltaChip; landing availability agrees"
+    }
+  ],
+  "qualification": {
+    "computational": "Bounded synthetic UI/trace consistency checks passed; parent acceptance pending independent review and open findings",
+    "physical": "unqualified",
+    "dynamic": "unknown"
+  },
+  "failedAttempts": [
+    {
+      "log": "red-before-output-trace.log",
+      "observed": "Fresh-worktree import failure for missing astraea_engine.wasm; zero tests executed",
+      "resolution": "Copied sealed artifact and verified required SHA-256; no rebuild"
+    },
+    {
+      "log": "red-before-output-trace-with-sealed-wasm.log",
+      "observed": "8 pass / 3 fail; nominal test initially stopped on incorrect Drift selector, two product failures reached, gate divergence reached",
+      "resolution": "Corrected only the test selector to the existing aria-label; retained the red run"
+    },
+    {
+      "log": "red-corrected-readout-selector.log",
+      "observed": "8 pass / 3 fail for intended absent outputs and gate rounding/qualification reasons",
+      "resolution": "Implemented shared output projection and canonical gate export"
+    },
+    {
+      "log": "red-descent-event-qualification.log",
+      "observed": "18 pass / 1 fail; measured clock carriers incorrectly promoted interval to measured",
+      "resolution": "Included modeled native touchdown event in weakest-basis calculation; green log has 19 pass"
+    },
+    {
+      "log": "git-diff-check-committed.log",
+      "observed": "Committed-diff check exit 2: eight Markdown hard-break trailing spaces in the previously untracked dictionary; initial working-tree check had not included that file",
+      "resolution": "Removed whitespace only, updated evidence hashes/chronology, and amended the same single commit; final committed-diff log is clean"
+    }
+  ],
+  "remainingScope": [
+    "Independent coordinator/MiMo review and any focused rework",
+    "F1 native off-nominal retention decision in sibling-owned contract/adapter",
+    "F2 Saved Runs archive/qualification scope decision in sibling-owned schema/application/UI",
+    "F3 historical versus live delta presentation decision in sibling-owned Saved Runs",
+    "Continuous peak evidence, complete guide/contact/per-section recovery qualification, numerical/physical reserves, team/platform/release acceptance, and any applicable external rule qualification"
+  ],
+  "nextActions": [
+    "Coordinator reviews the one local branch commit, exact source/log identities, and F1-F3; do not treat package validation as acceptance",
+    "Run focused rework only within a reconfirmed lease; preserve all red logs and sealed WASM identity"
+  ],
+  "nonClaims": [
+    "No RMP10-C06 or parent acceptance PASS marked by author",
+    "No physics/default/model/threshold/schema/engine/WASM change",
+    "No continuous peak, physical accuracy, competition compliance, browser, native, team, or release qualification",
+    "No push, merge, deployment, publication, payment, outreach, automation restart, RMP12 rerun, or protected outcome access"
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

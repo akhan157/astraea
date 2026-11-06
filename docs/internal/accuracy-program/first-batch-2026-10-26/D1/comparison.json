@@ -1,0 +1,166 @@
+{
+  "base_commit": "00e768b",
+  "status": "two visual extraction passes compared; not full source-packet acceptance",
+  "first_reader_frozen_sha256": "a285b667b7ddfc041db451afcd474680117d71786bdd623fd02869aa3b5847ae",
+  "independent_root_frozen_sha256": "869920c401a34982e475c6657320e993c91c6b3c75be04603553ab4869493f94",
+  "comparisons": [
+    {
+      "point_id": "d4013-cn-m1p20-alpha-2",
+      "nominal_alpha_deg": -2,
+      "first": {
+        "alpha_deg": -2.0132,
+        "coefficient": -0.5,
+        "pixel_xy": [
+          57,
+          170
+        ]
+      },
+      "independent_root": {
+        "pixelX": 57,
+        "pixelY": 170,
+        "alphaDeg": -2.136986301369863,
+        "coefficient": -0.5
+      },
+      "coefficient_difference_root_minus_first": 0.0,
+      "alpha_difference_root_minus_first_deg": -0.12378630136986324,
+      "alpha_reading_intervals_overlap": true,
+      "coefficient_reading_intervals_overlap": true,
+      "disposition": "readers agree within explicit reading bounds; retain both, no statistical averaging",
+      "independence_limit": "independent marker/calibration reading; shared PDF, rasterizer and crop, same underlying experiment"
+    },
+    {
+      "point_id": "d4013-cn-m1p20-alpha0",
+      "nominal_alpha_deg": 0,
+      "first": {
+        "alpha_deg": 0.0,
+        "coefficient": 0.0,
+        "pixel_xy": [
+          95,
+          152
+        ]
+      },
+      "independent_root": {
+        "pixelX": 95,
+        "pixelY": 151,
+        "alphaDeg": -0.0547945205479452,
+        "coefficient": 0.027777777777777776
+      },
+      "coefficient_difference_root_minus_first": 0.027777777777777776,
+      "alpha_difference_root_minus_first_deg": -0.0547945205479452,
+      "alpha_reading_intervals_overlap": true,
+      "coefficient_reading_intervals_overlap": true,
+      "disposition": "exclude first zero as baseline-intersection reading; retain root nearzero provisionally, no forced origin",
+      "independence_limit": "independent marker/calibration reading; shared PDF, rasterizer and crop, same underlying experiment"
+    },
+    {
+      "point_id": "d4013-cn-m1p20-alpha2",
+      "nominal_alpha_deg": 2,
+      "first": {
+        "alpha_deg": 1.9603,
+        "coefficient": 0.6111,
+        "pixel_xy": [
+          132,
+          130
+        ]
+      },
+      "independent_root": {
+        "pixelX": 132,
+        "pixelY": 130,
+        "alphaDeg": 1.9726027397260273,
+        "coefficient": 0.6111111111111112
+      },
+      "coefficient_difference_root_minus_first": 1.1111111111183902e-05,
+      "alpha_difference_root_minus_first_deg": 0.012302739726027356,
+      "alpha_reading_intervals_overlap": true,
+      "coefficient_reading_intervals_overlap": true,
+      "disposition": "readers agree within explicit reading bounds; retain both, no statistical averaging",
+      "independence_limit": "independent marker/calibration reading; shared PDF, rasterizer and crop, same underlying experiment"
+    },
+    {
+      "point_id": "d4013-cm-m1p20-alpha-2",
+      "nominal_alpha_deg": -2,
+      "first": {
+        "alpha_deg": -1.863,
+        "coefficient": 1.194,
+        "pixel_xy": [
+          53,
+          164
+        ]
+      },
+      "independent_root": {
+        "pixelX": 53,
+        "pixelY": 164,
+        "alphaDeg": -2.028169014084507,
+        "coefficient": 1.2058823529411764
+      },
+      "coefficient_difference_root_minus_first": 0.011882352941176455,
+      "alpha_difference_root_minus_first_deg": -0.16516901408450702,
+      "alpha_reading_intervals_overlap": true,
+      "coefficient_reading_intervals_overlap": true,
+      "disposition": "readers agree within explicit reading bounds; retain both, no statistical averaging",
+      "independence_limit": "independent marker/calibration reading; shared PDF, rasterizer and crop, same underlying experiment"
+    },
+    {
+      "point_id": "d4013-cm-m1p20-alpha0",
+      "nominal_alpha_deg": 0,
+      "first": {
+        "alpha_deg": 0.0,
+        "coefficient": 0.0,
+        "pixel_xy": [
+          87,
+          204
+        ]
+      },
+      "independent_root": {
+        "pixelX": 87,
+        "pixelY": 202,
+        "alphaDeg": -0.11267605633802817,
+        "coefficient": 0.08823529411764706
+      },
+      "coefficient_difference_root_minus_first": 0.08823529411764706,
+      "alpha_difference_root_minus_first_deg": -0.11267605633802817,
+      "alpha_reading_intervals_overlap": true,
+      "coefficient_reading_intervals_overlap": true,
+      "disposition": "exclude first zero as baseline-intersection reading; retain root nearzero provisionally, no forced origin",
+      "independence_limit": "independent marker/calibration reading; shared PDF, rasterizer and crop, same underlying experiment"
+    },
+    {
+      "point_id": "d4013-cm-m1p20-alpha2",
+      "nominal_alpha_deg": 2,
+      "first": {
+        "alpha_deg": 2.0274,
+        "coefficient": -1.1045,
+        "pixel_xy": [
+          124,
+          241
+        ]
+      },
+      "independent_root": {
+        "pixelX": 124,
+        "pixelY": 241,
+        "alphaDeg": 1.971830985915493,
+        "coefficient": -1.0588235294117647
+      },
+      "coefficient_difference_root_minus_first": 0.04567647058823532,
+      "alpha_difference_root_minus_first_deg": -0.055569014084507096,
+      "alpha_reading_intervals_overlap": true,
+      "coefficient_reading_intervals_overlap": true,
+      "disposition": "readers agree within explicit reading bounds; retain both, no statistical averaging",
+      "independence_limit": "independent marker/calibration reading; shared PDF, rasterizer and crop, same underlying experiment"
+    }
+  ],
+  "point_count": 6,
+  "all_reading_intervals_overlap": true,
+  "exclusions": [
+    "First-reader nominal-zero baseline intersections are not established measured marker centers; exclude those two from any fit/scoring",
+    "Independent root alpha~4 points are outside this frozen [-2,0,2] batch and retained only in unchanged reader artifact"
+  ],
+  "no_fitting_no_model_residuals": true,
+  "remaining": [
+    "D4013 CA/raw/corrected/base extraction",
+    "D4014 paired extraction and roll-convention mapping",
+    "full geometry transcription and representation review",
+    "local scan-skew/anchor check",
+    "final independent source/convention review"
+  ]
+}

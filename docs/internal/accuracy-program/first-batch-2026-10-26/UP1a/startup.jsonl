@@ -1,0 +1,10 @@
+{"event":"native_run","elapsed_ms":0}
+{"event":"native_setup","elapsed_ms":69}
+{"event":"native_window_build_started","elapsed_ms":70}
+{"event":"native_window_built","elapsed_ms":238}
+{"event":"native_page_load_started","elapsed_ms":500}
+{"event":"native_page_load_finished","elapsed_ms":612}
+{"event":"document_init","elapsed_ms":732}
+{"event":"dom_content_loaded","elapsed_ms":1005}
+{"event":"window_load","elapsed_ms":2530}
+{"event":"root_present_5s","elapsed_ms":5618}

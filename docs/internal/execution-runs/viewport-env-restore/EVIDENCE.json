@@ -1,0 +1,176 @@
+{
+  "lane": "viewport-env-restore",
+  "base_sha": "738f8e31689eecc631efc098408e08efdab6e636",
+  "pin": "738f8e3",
+  "branch": "viewport-env-restore",
+  "author": "opencode-go/deepseek-v4.1-flash",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "self_accepted": false,
+  "commits": [
+    {
+      "sha": "271ac12",
+      "subject": "feat(viewport): restore the radial backdrop, original grid and bottom-right viewcube"
+    },
+    {
+      "sha": "12322d0",
+      "subject": "test(browser): assert the viewcube position, its click and the absent shadow rig"
+    }
+  ],
+  "checks": [
+    {
+      "command": "npx tsc --noEmit",
+      "exit": 0
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console/viewport/",
+      "exit": 0,
+      "files": 8,
+      "tests": 56
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2",
+      "exit": 0,
+      "files": 162,
+      "tests": 1931
+    },
+    {
+      "command": "PATH=$HOME/.cargo/bin:$PATH CARGO_BUILD_JOBS=2 pnpm build",
+      "exit": 0,
+      "note": "vite build 878 ms; build:engine + tsc green"
+    },
+    {
+      "command": "ASTRAEA_BROWSER=chromium pnpm test:browser",
+      "exit": 0,
+      "browser": "chromium + SwiftShader",
+      "surface": "built dist under the production CSP"
+    }
+  ],
+  "browser_assertions": {
+    "auto_frame": "0.800 @ 1600x1000 and 0.800 @ 1280x800",
+    "viewcube_rect_1280x800": [508, 198, 636, 326],
+    "viewcube_rect_1600x1000": [828, 352, 956, 480],
+    "viewcube_size": 128,
+    "viewcube_margin": 64,
+    "shadow_probes_found": 0,
+    "cube_click": {
+      "target_offset_from_centre": [18, -5],
+      "orbit_version": [0, 8],
+      "camera_turned_deg": 46.3,
+      "requirement_deg": 10
+    },
+    "flight_pose_inside_free_region": true,
+    "free_region_1280x800_px": 229.5,
+    "rocket_1280x800_px": 173.2,
+    "free_region_1600x1000_px": 479.6,
+    "rocket_1600x1000_px": 345.3
+  },
+  "predictions_vs_measured": [
+    {
+      "size": "1280x800",
+      "predicted_region_px": 229.5,
+      "measured_region_px": 229.5,
+      "predicted_rocket_px": 172.9,
+      "measured_rocket_px": 173.2,
+      "delta_px": 0.3
+    },
+    {
+      "size": "1600x1000",
+      "predicted_region_px": 479.6,
+      "measured_region_px": 479.6,
+      "predicted_rocket_px": 357.8,
+      "measured_rocket_px": 345.3,
+      "delta_px": -12.5,
+      "explanation": "Not the viewcube: the free region is unshrunk at both sizes (full 636 px width at 1280x800, full canvas [0,0,956,479.6] at 1600x1000), so the fitted envelope never intersects the reserved rect. On the same build and size a canonical ISO snap measures 357.8 px. The probe's fitted pitch is 12.85 deg at an ISO snap, 17.86 deg after the 1280x800 resize and 6.57 deg after the 1600x1000 resize: the pre-existing keep-current-direction rule derives the next direction from camera.position - target after the previous fit moved the target (direction.copy(current), untouched by this lane). All thresholds pass with margin (345.3 >= 281, 173.2 >= 120)."
+    }
+  ],
+  "probe": {
+    "path": "~/.paseo/worktrees/3s8t98rp/evidence-viewport-env-restore/probe.jsonl",
+    "port": 0,
+    "port_4173_untouched": true,
+    "page_errors": [],
+    "samples": [
+      {
+        "tag": "flight-mount@1600x1000",
+        "canvas": [956, 480],
+        "region": [0, 0, 956, 479.6],
+        "gizmo": [828, 352, 956, 480],
+        "fraction": "0.8000",
+        "pitch_deg": 12.84,
+        "distance": "6.7248"
+      },
+      {
+        "tag": "resize@1280",
+        "canvas": [636, 270],
+        "region": [0, 41.5, 636, 269.5],
+        "fraction": "0.6775",
+        "pitch_deg": 12.84
+      },
+      {
+        "tag": "after-four-scrubs@1280",
+        "canvas": [636, 326],
+        "region": [0, 41.5, 636, 271],
+        "gizmo": [508, 198, 636, 326],
+        "fraction": "0.5634",
+        "pitch_deg": 17.85,
+        "distance": "9.4038"
+      },
+      {
+        "tag": "journey-1600x1000",
+        "canvas": [956, 480],
+        "region": [0, 0, 956, 479.6],
+        "gizmo": [828, 352, 956, 480],
+        "fraction": "0.8000",
+        "pitch_deg": 6.56,
+        "distance": "6.7207"
+      },
+      {
+        "tag": "iso-snap@1600x1000",
+        "canvas": [956, 480],
+        "region": [0, 0, 956, 479.6],
+        "fraction": "0.8000",
+        "pitch_deg": 12.85,
+        "distance": "6.7248",
+        "bbox": [413.9, 64.5, 556.6, 422.3],
+        "bbox_height_px": 357.8
+      },
+      {
+        "tag": "after-cube-click",
+        "orbit": [1, 45.31],
+        "camera_dir_unchanged": true
+      }
+    ]
+  },
+  "scope": {
+    "files_changed": [
+      "CHANGELOG.md",
+      "scripts/preview-journeys.mjs",
+      "src/console/viewport/Vehicle3D.tsx",
+      "src/console/viewport/Viewport.tsx",
+      "src/console/viewport/framing.test.ts",
+      "src/console/viewport/overlays.test.ts",
+      "src/console/viewport/overlays.ts"
+    ],
+    "engine_physics_schema_preset_export_changes": 0,
+    "framing_ts_changes": 0,
+    "other_journey_lines_changed": 0
+  },
+  "deviations": [
+    {
+      "item": "viewcubeRect placement",
+      "gate1": "128x128 box inset a further 64 px: [w-192, h-192, w-64, h-64]",
+      "implemented": "128x128 box centred on the cube: [w-128, h-128, w, h]",
+      "reason": "drei draws a 60 px cube whose corner-on silhouette reaches 30*sqrt(2) = 42.4 px from the centre at (w-64, h-64). The inset box would cover only the left/top 64 px of the cube and leave its right/bottom half over the free region, where a posed rocket could reach. The centred box leaves 21.6 px of slack on every side and still measures 128x128 at the 64 px margin.",
+      "requires_coordinator_acceptance": true
+    }
+  ],
+  "not_done": [
+    "No image or pixel inspection: verification is DOM attributes, JSON and printed numbers only.",
+    "No push, merge, release, tag or publish.",
+    "No subagents.",
+    "Coordinator visual check on the built surface is still required."
+  ],
+  "evidence": {
+    "directory": "~/.paseo/worktrees/3s8t98rp/evidence-viewport-env-restore/",
+    "files": ["GATE1.md", "browser.log", "probe.jsonl"]
+  }
+}

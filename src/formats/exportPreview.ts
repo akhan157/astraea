@@ -1,0 +1,368 @@
+/**
+ * Astraea Export Omission Previews (adapter matrix row 6, S7)
+ *
+ * Pure describers behind the InteropExportPanel download triggers for
+ * RKT (exportRkt), ENG (exportToEng), KML (exportKml), STEP (exportStep),
+ * and STL (exportStlBinary). Each describes, BEFORE any bytes are emitted,
+ * exactly what the target format drops or refuses:
+ *
+ * - `refused`: inputs the exporter would throw on (fail-closed). A
+ *   non-empty refusal list means `canExport` is false and the trigger must
+ *   not download.
+ * - `omissions`: lossy-but-exportable notes — fields the format cannot
+ *   carry, so the user confirms the subset before downloading.
+ *
+ * The preview mirrors the exporter's own validation (RKT subset scan,
+ * ENG validateMotorSpec gate, STEP/STL tessellation attempt) so the
+ * preview and the download cannot disagree; the panel still surfaces
+ * exporter errors fail-closed at confirm time.
+ *
+ * KML snapshots carry the selected native run's content identity, freshness
+ * and recorded telemetry. Structure is validated again at download time.
+ * Every export freezes its reviewed inputs; live views qualify independently.
+ */
+
+import type { RocketVehicle } from '../core/types';
+import type { MotorSpec } from '../propulsion/motorDatabase';
+import { validateMotorSpec } from '../propulsion/motorDatabase';
+import { tessellateVehicle } from './stepExport';
+import { rktOverrideRefusals } from './rktExport';
+
+export interface OmissionPreview {
+  title: string;
+  filename: string;
+  /** Blockers: the exporter would throw on these. Non-empty => no download. */
+  refused: string[];
+  /** Lossy-but-exportable notes the user confirms before downloading. */
+  omissions: string[];
+  canExport: boolean;
+}
+
+export interface KmlExportInputs {
+  landings: Array<{ x: number; y: number }>;
+  apogeeTrack: Array<{ x: number; y: number; z: number }>;
+}
+
+/** Frozen native-run identity and telemetry for a reviewed KML export. */
+export interface KmlRunSnapshot {
+  /** S1 snapshot key the run was resolved under. */
+  runKey: string;
+  /** Freshness at review time; the export never reads a later live run. */
+  freshness: 'current' | 'stale';
+  telemetry: readonly unknown[];
+}
+
+/** File slug shared with the panel's existing triggers. */
+export function slugify(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, '-') || 'vehicle';
+}
+
+function preview(
+  title: string,
+  filename: string,
+  refused: string[],
+  omissions: string[],
+): OmissionPreview {
+  return { title, filename, refused, omissions, canExport: refused.length === 0 };
+}
+
+/**
+ * RockSim subset preview: reject unsupported fin shapes and attachment layouts.
+ * The importer finds fin, parachute and mass nodes nested under body tubes.
+ */
+export function describeRktPreview(vehicle: RocketVehicle): OmissionPreview {
+  const refused: string[] = [];
+  const omissions: string[] = [];
+  let attachedTubeSeen = false;
+  let vonKarman = 0;
+  for (const comp of vehicle.components) {
+    refused.push(...rktOverrideRefusals(comp));
+    // Captured up front: every union member carries both, and the default
+    // branch below narrows comp to never, where member access proves nothing.
+    const compName: string = comp.name;
+    const compKind: string = comp.type;
+    switch (comp.type) {
+      case 'nosecone':
+        attachedTubeSeen = false;
+        if (comp.shape === 'vonkarman') vonKarman++;
+        break;
+      case 'bodytube':
+        attachedTubeSeen = true;
+        break;
+      case 'transition':
+        attachedTubeSeen = false;
+        break;
+      case 'trapezoidfinset':
+      case 'masscomponent':
+      case 'parachute':
+        if (!attachedTubeSeen) {
+          refused.push(
+            `"${comp.name}" (${comp.type}) has no preceding body tube: ` +
+              'fin sets, parachutes, and mass components attach under a tube ' +
+              'in RockSim and cannot be exported standalone.',
+          );
+        }
+        break;
+      case 'freeformfinset':
+        refused.push(
+          `"${comp.name}" (freeformfinset) is refused: the RockSim subset has no ` +
+            'free-form fin-set node, and approximating the outline as a trapezoid ' +
+            'would change its mass and aerodynamics — export fails closed. ' +
+            'OpenRocket (.ork), STL, STEP and SVG carry the true outline.',
+        );
+        break;
+      case 'ellipticalfinset':
+        refused.push(
+          `"${comp.name}" (ellipticalfinset) is refused: RockSim has no ` +
+            'elliptical fin-set node and the importer would read it back ' +
+            'as a trapezoid fin set — export fails closed instead of silently lossy.',
+        );
+        break;
+      default:
+        refused.push(
+          `"${compName}" carries an unsupported component type (${compKind}) ` +
+            'with no RockSim representation.',
+        );
+        break;
+    }
+  }
+  omissions.push('Component ids, materials, and colors are not serialized. Material-derived masses are recomputed on import; ' +
+    'explicit mass-object and parachute masses are carried. Mass/CG overrides are refused.');
+  omissions.push(
+    'Fin-set, parachute, and mass-component axial stations are carried only as ' +
+      'tube attachment — exact axial offsets, fin cross-sections, wall thickness, ' +
+      'and hollow interiors are not serialized.',
+  );
+  omissions.push('All components land in a single Stage3Parts block (no staging).');
+  if (vonKarman > 0) {
+    omissions.push(
+      `${vonKarman} von K\u00e1rm\u00e1n nosecone${vonKarman === 1 ? '' : 's'} export as ogive ` +
+        '(ShapeCode 1): RockSim has no von K\u00e1rm\u00e1n code.',
+    );
+  }
+  return preview('RockSim (.rkt)', `${slugify(vehicle.name)}.rkt`, refused, omissions);
+}
+
+/**
+ * RASP (.eng) motor preview. The record is validateMotorSpec-gated first —
+ * an invalid record is refused, never a file the parser would reject.
+ * Lossy notes: bare-number designation tokens cannot occupy the RASP name
+ * column and are dropped; id/manufacturer/impulse-class/burn-time/dry-mass
+ * are not serialized; the header impulse columns are informational (the
+ * parser ignores them — the tabulated curve is the only authority).
+ */
+export function describeEngPreview(motor: MotorSpec): OmissionPreview {
+  const filename = `${motor && motor.id ? motor.id : 'motor'}.eng`;
+  try {
+    validateMotorSpec(motor);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return preview('RASP motor (.eng)', filename, [message], []);
+  }
+  const droppedTokens = motor.designation
+    .trim()
+    .split(/\s+/)
+    .filter((t) => /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(t));
+  const omissions: string[] = [
+    'Motor id, manufacturer, impulse class, burn time, and dry mass are not serialized.',
+    'Header total-impulse / average-thrust / peak-thrust columns are informational only ' +
+      '— the tabulated thrust curve is the sole authority on re-import.',
+  ];
+  if (droppedTokens.length > 0) {
+    omissions.push(
+      `Bare-number designation token${droppedTokens.length === 1 ? '' : 's'} ` +
+        `"${droppedTokens.join(' ')}" ${droppedTokens.length === 1 ? 'is' : 'are'} dropped: ` +
+        'the RASP name column cannot carry numbers without shifting the geometry/mass columns.',
+    );
+  }
+  return preview('RASP motor (.eng)', filename, [], omissions);
+}
+
+/**
+ * RockSim (.rse) motor preview. Same validateMotorSpec gate as the .eng
+ * trigger — an invalid record is refused, never a file the parser rejects.
+ *
+ * Lossy notes are stated per record, not generically: the RSE document
+ * carries manufacturer, code, diameter, length, initial weight, propellant
+ * weight, and the thrust curve, and re-import recomputes every impulse
+ * metric from the curve. The re-import designation is computed here so the
+ * preview names the exact string that comes back (manufacturer-prefixed
+ * designations round-trip verbatim; others gain the manufacturer prefix).
+ */
+export function describeRsePreview(motor: MotorSpec): OmissionPreview {
+  const filename = `${motor && motor.id ? motor.id : 'motor'}.rse`;
+  try {
+    validateMotorSpec(motor);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return preview('RockSim motor (.rse)', filename, [message], []);
+  }
+  const manufacturer = motor.manufacturer.trim() || 'Unknown';
+  const designation = motor.designation.trim() || 'Unnamed Motor';
+  const carriesPrefix =
+    manufacturer !== 'Unknown' &&
+    designation.toLowerCase().startsWith(manufacturer.toLowerCase() + ' ');
+  const code = carriesPrefix
+    ? designation.slice(manufacturer.length + 1).trim() || designation
+    : designation;
+  const reimported = [manufacturer !== 'Unknown' ? manufacturer : null, code]
+    .filter((s): s is string => !!s)
+    .join(' ')
+    .trim() || 'Unnamed Motor';
+  const omissions: string[] = [
+    'Motor id, impulse class, average thrust, peak thrust, and burn time are not ' +
+      'serialized; every impulse metric is recomputed from the thrust curve on re-import.',
+    'Geometry is written in millimetres and masses in grams (exact unit round-trip).',
+  ];
+  omissions.push(
+    carriesPrefix
+      ? `Designation "${designation}" round-trips exactly as <manufacturer> "${manufacturer}" + <code> "${code}".`
+      : `Designation "${designation}" re-imports as "${reimported}": the code element cannot ` +
+          `carry a separate manufacturer, so the "${manufacturer}" prefix is added on read.`,
+  );
+  return preview('RockSim motor (.rse)', filename, [], omissions);
+}
+
+/**
+ * Waiver-containment (.kml) preview from a recorded native trajectory.
+ * Missing telemetry is refused; stale snapshots are explicitly disclosed.
+ */
+export function describeKmlPreview(run: KmlRunSnapshot | null, slug: string): OmissionPreview {
+  const filename = `${slug}-containment.kml`;
+  if (!run) {
+    return preview('Waiver containment (.kml)', filename, [
+      'No committed run yet — run Flight Sim first; the KML landing cloud ' +
+        'and flight path are serialized from committed trajectory telemetry.',
+    ], []);
+  }
+  if (run.telemetry.length === 0) {
+    return preview('Waiver containment (.kml)', filename, [
+      `Run "${run.runKey}" carries no recorded telemetry payload; there is nothing to serialize.`,
+    ], []);
+  }
+  const omissions: string[] = [
+    'Coordinates are the simulation local ENU frame (metres from the pad), not ' +
+      'georeferenced — the consumer must apply a georeferencing transform before globe use.',
+    'Single committed trajectory only (touchdown point + flight path), not a Monte Carlo dispersion cloud.',
+    'Exports freeze at click time: this file serializes the run snapshot exactly as ' +
+      'committed under its runKey, not a re-evaluation of current inputs.',
+  ];
+  if (run.freshness === 'stale') {
+    omissions.push(
+      `Run "${run.runKey}" is STALE (inputs changed after it committed): the export is a ` +
+        'frozen snapshot of that run at click time, and live views re-evaluate current ' +
+        'inputs with a freshness marker.',
+    );
+  }
+  return preview('Waiver containment (.kml)', filename, [], omissions);
+}
+
+/** Guard: a published payload point must carry a finite position triple. */
+function isPublishedTrackPoint(p: unknown): p is { position: { x: number; y: number; z: number } } {
+  if (typeof p !== 'object' || p === null || !('position' in p)) return false;
+  const pos = p.position;
+  if (typeof pos !== 'object' || pos === null) return false;
+  if (!('x' in pos) || !('y' in pos) || !('z' in pos)) return false;
+  return (
+    typeof pos.x === 'number' &&
+    typeof pos.y === 'number' &&
+    typeof pos.z === 'number' &&
+    Number.isFinite(pos.x) &&
+    Number.isFinite(pos.y) &&
+    Number.isFinite(pos.z)
+  );
+}
+
+/**
+ * Resolves the KML inputs from a committed run snapshot (touchdown + track).
+ * Fail-closed on the payload channel the S2 projection leaves empty today:
+ * no points, or a structurally invalid point, throws instead of emitting a
+ * fabricated track.
+ */
+export function buildKmlInputs(run: KmlRunSnapshot): KmlExportInputs {
+  const telemetry = run.telemetry;
+  if (telemetry.length === 0) {
+    throw new Error('buildKmlInputs: committed run carries no telemetry points');
+  }
+  const positions = telemetry.map((p, i) => {
+    if (!isPublishedTrackPoint(p)) {
+      throw new TypeError(
+        `buildKmlInputs: telemetry point ${i} is not a published track point ` +
+          '(finite position.x/y/z required)',
+      );
+    }
+    return p.position;
+  });
+  const last = positions[positions.length - 1];
+  const landings = [{ x: last.x, y: last.y }];
+  return { landings, apogeeTrack: positions };
+}
+
+function describeMeshPreview(
+  vehicle: RocketVehicle,
+  title: string,
+  extension: string,
+): OmissionPreview {
+  const filename = `${slugify(vehicle.name)}.${extension}`;
+  const skipped: string[] = [];
+  for (const comp of vehicle.components) {
+    if (comp.type === 'masscomponent' || comp.type === 'parachute') skipped.push(comp.name);
+  }
+  let solidCount = 0;
+  try {
+    solidCount = tessellateVehicle(vehicle).solids.length;
+  } catch (err) {
+    // The tessellator is the authority: its refusal is the preview refusal,
+    // so preview and download cannot disagree.
+    const message = err instanceof Error ? err.message : String(err);
+    return preview(title, filename, [message], []);
+  }
+  const omissions: string[] = [
+    `Outer mold line only: ${solidCount} faceted solid${solidCount === 1 ? '' : 's'}; ` +
+      'hollow interiors, wall thickness, body-tube inner diameter, motor mounts, ' +
+      'and fin cross-section shaping are not modeled.',
+    'Faceted planar approximation — no BREP curves beyond straight facets.',
+  ];
+  if (skipped.length > 0) {
+    omissions.push(
+      `Skipped internal hardware (not outer-mold-line geometry): ${skipped.map((n) => `"${n}"`).join(', ')}.`,
+    );
+  }
+  return preview(title, filename, [], omissions);
+}
+
+/**
+ * STEP (AP203 OML solid-model) preview. OML-only: internal payload and
+ * recovery hardware are skipped; the tessellator's own refusal (no axial
+ * body, fin set before any tube, degenerate geometry) blocks the download.
+ */
+export function describeStepPreview(vehicle: RocketVehicle): OmissionPreview {
+  const base = describeMeshPreview(vehicle, 'STEP solid model (.step)', 'step');
+  if (!base.canExport) return base;
+  return {
+    ...base,
+    omissions: [
+      ...base.omissions,
+      'SI metre LENGTH_UNIT declared, so hosts (FreeCAD, SolidWorks) open at true scale; ' +
+        'solid ids are deterministic — repeat exports are byte-identical.',
+    ],
+  };
+}
+
+/**
+ * Binary STL preview. Same OML mesh as STEP, plus the STL convention:
+ * no unit declaration (SI metres by header text and documentation) and
+ * facet normals recomputed from the stored winding.
+ */
+export function describeStlPreview(vehicle: RocketVehicle): OmissionPreview {
+  const base = describeMeshPreview(vehicle, 'Binary STL (.stl)', 'stl');
+  if (!base.canExport) return base;
+  return {
+    ...base,
+    omissions: [
+      ...base.omissions,
+      'STL carries no unit declaration: coordinates are SI metres by convention ' +
+        '(noted in the 80-byte header); facet normals are recomputed from winding.',
+    ],
+  };
+}

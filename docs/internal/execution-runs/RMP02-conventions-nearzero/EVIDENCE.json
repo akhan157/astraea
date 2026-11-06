@@ -1,0 +1,294 @@
+{
+  "schema": "rmp02-conventions-nearzero-evidence/1.1.0",
+  "lane": "RMP02-C02/C04 conventions and near-zero floor",
+  "base_commit": "82c595d",
+  "branch": "rmp02-c02-c04-conventions",
+  "worktree": "/home/ak/.paseo/worktrees/3s8t98rp/rmp02-c02-c04-conventions",
+  "author_identity": "Pi coding agent <pi@localhost>",
+  "review_history": {
+    "coordinator": {
+      "reviewer": "openai-codex/gpt-6.1-sol",
+      "reviewed_commit": "e55401c",
+      "disposition": "REQUEST_CHANGES",
+      "record": "docs/internal/execution-runs/RMP02-conventions-nearzero/REVIEW.md"
+    },
+    "mimo": {
+      "status": "failed",
+      "http_status": 402,
+      "message": "Upstream request failed: Insufficient account funds",
+      "output": null,
+      "verdict": null,
+      "evidence": [
+        {
+          "name": "review-input.md",
+          "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/review-input.md",
+          "bytes": 123097,
+          "sha256": "2f541bc7c8202898dc9110be6ebac69d492dbe853871179dcba330b90f35ed62"
+        },
+        {
+          "name": "review.err",
+          "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/review.err",
+          "bytes": 93,
+          "sha256": "a9f4e859aeb9068dd778f01d36ae98a9e4d00f11db678f544290bb886311c7c0"
+        },
+        {
+          "name": "review.md",
+          "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/review.md",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    "author_response": "REVIEW.md appended; rework commit on this branch"
+  },
+  "rework": {
+    "checker_schema": "rmp02-d1-conventions-check/2.0.0",
+    "blockers_addressed": [
+      "removed source/Rust/OCR/prose pinning gates and their tests; custody hashes and manifest attestation only",
+      "removed invented source-eligibility tolerances; discrepancies reported as arithmetic",
+      "labelled artificial normal/pitch coordinates; retained moments start at recorded D-4013 datum",
+      "added independent P0 7.2 known-value full-cross fixture plus per-row full-cross check; round trips are consistency only"
+    ],
+    "preserved": [
+      "frozen records",
+      "original checker/unittest logs",
+      "failed-review evidence",
+      "review history"
+    ]
+  },
+  "review_status": "accepted-bounded-computational-scope-only; C02 blocked, C04 open, zero qualified cases",
+  "coordinator_final": {
+    "reviewed_rework_commit": "ca239e7",
+    "reviewer": "openai-codex/gpt-6.1-sol; author-independent coordinator",
+    "disposition": "ACCEPT for integration only; no C02/C04 acceptance promotion",
+    "correction": "Deleted implementation-detail absence test and two incidental wording assertions",
+    "checker_exit": 0,
+    "unittest_exit": 0,
+    "unittest_count": 57,
+    "lane_test_count": 23,
+    "logs": [
+      {
+        "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/checker-coordinator-final.log",
+        "bytes": 34355,
+        "sha256": "e11a470d86fda0578d4391d3abbac63bd50976eb89c2197718f7796925eb21dc"
+      },
+      {
+        "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/unittest-coordinator-final.log",
+        "bytes": 7663,
+        "sha256": "3d4223da7f05c4358a2567c7767cdadb9ee5362ff44f3adf61855b7c697f542f"
+      }
+    ]
+  },
+  "self_record": "docs/internal/execution-runs/RMP02-conventions-nearzero/EVIDENCE.json (hash omitted: self-reference)",
+  "files": [
+    {
+      "path": "docs/internal/execution-runs/RMP02-conventions-nearzero/ASSIGNMENT.md",
+      "role": "preserved assignment, unchanged",
+      "bytes": 6211,
+      "sha256": "cedd8a700ef68450ec338f84316612c2baea5b43836f84aa082414c92218198f"
+    },
+    {
+      "path": "docs/internal/execution-runs/RMP02-conventions-nearzero/RESULT.md",
+      "role": "result and dispositions",
+      "bytes": 8830,
+      "sha256": "0be2ef0c77e13dfe62a34b533771459e0efaca5ff621f65d21014dc6049cd2de"
+    },
+    {
+      "path": "docs/internal/execution-runs/RMP02-conventions-nearzero/REVIEW.md",
+      "role": "coordinator review/rework/acceptance history; MiMo failure with no verdict",
+      "bytes": 8870,
+      "sha256": "41bd8149d4d8ddb68b677d605d0eeb91c826c9d179ddd9ca3e74f26d5740ada8"
+    },
+    {
+      "path": "docs/internal/execution-package/evidence/RMP02/conventions-worksheet.md",
+      "role": "C02/C04 worksheet",
+      "bytes": 20878,
+      "sha256": "f768f3169608c7eca0933711b96c1a42a6d863625cd5199ca21af688bd93328d"
+    },
+    {
+      "path": "scripts/diagnostics/check-d1-conventions.py",
+      "role": "executable convention/near-zero guard, schema 2.0.0",
+      "bytes": 32357,
+      "sha256": "f43cf9bebd7fa91140053d09e7b1bec10ddbc20e0411119cdca915fcc20665d3"
+    },
+    {
+      "path": "scripts/diagnostics/tests/test_d1_conventions.py",
+      "role": "23 behavioral and fault-injection tests after coordinator correction",
+      "bytes": 11344,
+      "sha256": "d5094ace6b8adb0d59c9b5c5d403a9e45bcabd5d06cdb4a4bb8e2358c3fbdd7b"
+    }
+  ],
+  "external_logs": [
+    {
+      "name": "checker.log",
+      "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/checker.log",
+      "role": "pre-review original",
+      "bytes": 32509,
+      "sha256": "3b2cb78ba785b95aa9802e0c3f2dfec499455726b218a37d8512c0c878900b86",
+      "command": "python3 scripts/diagnostics/check-d1-conventions.py",
+      "exit": 0
+    },
+    {
+      "name": "unittest.log",
+      "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/unittest.log",
+      "role": "pre-review original",
+      "bytes": 8825,
+      "sha256": "4f38c40aa21dda2c27ba3655427f39a4fec7d541263609ea8710ea08b5ef9d84",
+      "command": "python3 -m unittest discover -s scripts/diagnostics/tests -p \"test_*.py\" -v",
+      "exit": 0
+    },
+    {
+      "name": "diff-check.log",
+      "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/diff-check.log",
+      "role": "pre-review original",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "command": "git diff --check",
+      "exit": 0
+    },
+    {
+      "name": "diff-check-cached.log",
+      "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/diff-check-cached.log",
+      "role": "pre-review original",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "command": "git diff --cached --check",
+      "exit": 0
+    },
+    {
+      "name": "checker-rework.log",
+      "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/checker-rework.log",
+      "role": "rework current",
+      "bytes": 34355,
+      "sha256": "e11a470d86fda0578d4391d3abbac63bd50976eb89c2197718f7796925eb21dc",
+      "command": "python3 scripts/diagnostics/check-d1-conventions.py",
+      "exit": 0
+    },
+    {
+      "name": "unittest-rework.log",
+      "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/unittest-rework.log",
+      "role": "rework current",
+      "bytes": 7797,
+      "sha256": "5ca2f1dbc3db3578cebe775df46e1fba4199919b78fec671c4451f2c56b5a370",
+      "command": "python3 -m unittest discover -s scripts/diagnostics/tests -p \"test_*.py\" -v",
+      "exit": 0
+    },
+    {
+      "name": "diff-check-rework.log",
+      "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/diff-check-rework.log",
+      "role": "rework current",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "command": "git diff --check",
+      "exit": 0
+    },
+    {
+      "name": "diff-check-cached-rework.log",
+      "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp02-conventions-nearzero/diff-check-cached-rework.log",
+      "role": "rework current",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "command": "git diff --cached --check",
+      "exit": 0
+    }
+  ],
+  "records_consumed": {
+    "normalized": {
+      "path": "docs/internal/accuracy-program/first-batch-2026-10-26/D1/normalized-reading-points.json",
+      "bytes": 16331,
+      "sha256": "5c34746879d629a6e13aee65f1666ce459c77c19eab51e2781426024c7b51f1a",
+      "manifest_attested": true
+    },
+    "first_comparison": {
+      "path": "docs/internal/accuracy-program/first-batch-2026-10-26/D1/comparison.json",
+      "bytes": 6266,
+      "sha256": "786864415f882061ed8ea2e686feeb91048f8b56e403169be1725734260ec1ed",
+      "manifest_attested": true
+    },
+    "first_subset": {
+      "path": "docs/internal/accuracy-program/first-batch-2026-10-26/D1/frozen-subset.json",
+      "bytes": 9399,
+      "sha256": "478e9157b7691d8201bb6c08c16e0a713124ca08d8b7c1033510a57571ccf534",
+      "manifest_attested": true
+    },
+    "sb1_comparison": {
+      "path": "docs/internal/accuracy-program/sb1-foundation-2026-10-26/D1/comparison.json",
+      "bytes": 8902,
+      "sha256": "3bdfb1e29513629fb9fdc08e6e1bec3d1a90b34518e5d54c3778dedb7ca13496",
+      "manifest_attested": true
+    },
+    "sb1_subset": {
+      "path": "docs/internal/accuracy-program/sb1-foundation-2026-10-26/D1/frozen-subset.json",
+      "bytes": 2012,
+      "sha256": "857a78c8d8c730acae8b488c4ab1bd4fe37056e0c42db64376288f7be89e1b3d",
+      "manifest_attested": true
+    }
+  },
+  "verification": {
+    "checker_exit": 0,
+    "checker_status": "computational-invariance-verified-signs-open",
+    "qualified_cases": 0,
+    "records_consumed_counts": {
+      "normalized_points": 6,
+      "first_batch_comparisons": 6,
+      "sb1_comparison_pairs": 4,
+      "sb1_excluded_nearzero_targets": 2,
+      "sb1_reader_coefficients": 8
+    },
+    "reference_invariance_rows": 28,
+    "datum_translation_rows": 14,
+    "nearzero_rows": 22,
+    "live_refusals": [
+      "direct D4013/D4014 Cm merge",
+      "raw CA bound as corrected uncertainty",
+      "raw/base axial merge without sign",
+      "relative residual at zero-enclosing interval",
+      "C_m/C_N ratio with zero-enclosing C_N"
+    ],
+    "p0_fixture_expected": [
+      3.0,
+      0.0,
+      -2.0
+    ],
+    "p0_fixture_computed": [
+      3.0,
+      0.0,
+      -2.0
+    ],
+    "d4013_forward_fixture": 1.7166666666666666,
+    "unittest_tests": 57,
+    "unittest_status": "OK",
+    "git_diff_check": 0,
+    "git_diff_cached_check": 0
+  },
+  "dispositions": {
+    "C02": "blocked: conversion algebra verified, but source sign/datum/base reconstruction remains untranscribed",
+    "C04": "open: absolute envelope governs retained records; native-density symbol inspection still open",
+    "qualification": "unchanged: zero qualified cases, no acceptance promotion"
+  },
+  "unresolved": [
+    "source body-axis triad and positive moment sense not transcribed; P0-to-source sign transform unverified",
+    "D4014 pitch-test numeric roll mapping to the simulator is null/unreviewed",
+    "base-correction sign and corrected-CA base-pressure uncertainty term are absent from retained records",
+    "D4013 12.74d (70%) text vs 12.75d drawing label bracket retained; the 0.01d difference is reported, not resolved",
+    "D4014 25.95in datum is distinct from the D4013 70% convention; cross-source Cm translation unexecuted because D4014 Cm is unextracted",
+    "no retained D4014 numeric CN/Cm/CA values",
+    "reference area value is derived from the diameter declarations, not an independently transcribed source area",
+    "native geometry, reflex lip, finite tip and fin anchor representation open (RMP08)",
+    "scientific source-axis/base closure remains open; bounded computational integration accepted by author-independent coordinator, MiMo unavailable"
+  ],
+  "not_claimed": [
+    "scientific qualification",
+    "sign/datum/base closure",
+    "CP or derivative validity",
+    "geometry representability",
+    "model accuracy"
+  ],
+  "limitations": [
+    "0 original PDFs available; retained source pages are 144 ppi renders of embedded 300 ppi scans",
+    "D-4014 CN/Cm/CA remain frozen/unextracted; no cross-source numeric Cm translation performed",
+    "the L*Cm/CN column is a computational ratio, not a qualified CP",
+    "the Python near-zero guard mirrors the accepted 64-epsilon cancellation policy; it does not execute the Rust implementation",
+    "two retained readers share raster/crop/source; agreement is not independent physical evidence"
+  ]
+}

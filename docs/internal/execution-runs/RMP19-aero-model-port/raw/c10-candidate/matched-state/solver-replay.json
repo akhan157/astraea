@@ -1,0 +1,214 @@
+{
+  "diagnostic": "RMP19-C10 solver replay with engine CD (no acceptance claim)",
+  "flights": [
+    {
+      "name": "blister",
+      "residuals": [
+        {
+          "engine": 8301.426,
+          "metric": "apogee",
+          "relative": 0.03256978140749998,
+          "replay": 8031.050369809463
+        },
+        {
+          "engine": 949.4515,
+          "metric": "maxVelocity",
+          "relative": 0.005294623704263194,
+          "replay": 944.4245115820518
+        },
+        {
+          "engine": 21.5504,
+          "metric": "tta",
+          "relative": 0.022404024790915213,
+          "replay": 21.06758430414586
+        }
+      ]
+    },
+    {
+      "name": "dontdebatethisn5800mindia",
+      "residuals": [
+        {
+          "engine": 61981.77,
+          "metric": "apogee",
+          "relative": 0.01875547530183638,
+          "replay": 60819.272443600894
+        },
+        {
+          "engine": 3469.283,
+          "metric": "maxVelocity",
+          "relative": 0.010412553745821547,
+          "replay": 3433.158904303035
+        },
+        {
+          "engine": 55.48669,
+          "metric": "tta",
+          "relative": 0.011135063179466036,
+          "replay": 54.86884220123056
+        }
+      ]
+    },
+    {
+      "name": "kinsel-p4935-a-601-rocket",
+      "residuals": [
+        {
+          "engine": 41097.65,
+          "metric": "apogee",
+          "relative": 0.03101042442883282,
+          "replay": 39823.19443047238
+        },
+        {
+          "engine": 2088.741,
+          "metric": "maxVelocity",
+          "relative": 0.02200404301520742,
+          "replay": 2042.7802531883726
+        },
+        {
+          "engine": 49.08777,
+          "metric": "tta",
+          "relative": 0.014548342576490155,
+          "replay": 48.37362430572404
+        }
+      ]
+    },
+    {
+      "name": "proteus6",
+      "residuals": [
+        {
+          "engine": 81498.75,
+          "metric": "apogee",
+          "relative": 0.07863351059037882,
+          "replay": 75090.21717877236
+        },
+        {
+          "engine": 3062.629,
+          "metric": "maxVelocity",
+          "relative": 0.031241213103713257,
+          "replay": 2966.9487547533877
+        },
+        {
+          "engine": 68.73627,
+          "metric": "tta",
+          "relative": 0.048021622763233886,
+          "replay": 65.43544277190821
+        }
+      ]
+    },
+    {
+      "name": "qu8k",
+      "residuals": [
+        {
+          "engine": 119683.9,
+          "metric": "apogee",
+          "relative": 0.5543776320212603,
+          "replay": 53333.822926930676
+        },
+        {
+          "engine": 3752.962,
+          "metric": "maxVelocity",
+          "relative": 0.10590961544700475,
+          "replay": 3355.487237792778
+        },
+        {
+          "engine": 85.92995,
+          "metric": "tta",
+          "relative": 0.3829167325273876,
+          "replay": 53.025934319758214
+        }
+      ]
+    },
+    {
+      "name": "rabia-shortfincan",
+      "residuals": [
+        {
+          "engine": 10225.19,
+          "metric": "apogee",
+          "relative": 0.03115854963941349,
+          "replay": 9906.587909812566
+        },
+        {
+          "engine": 994.4288,
+          "metric": "maxVelocity",
+          "relative": 0.009078385069888556,
+          "replay": 985.4009924290128
+        },
+        {
+          "engine": 23.90045,
+          "metric": "tta",
+          "relative": 0.017079583807565798,
+          "replay": 23.492240261186463
+        }
+      ]
+    },
+    {
+      "name": "rabia",
+      "residuals": [
+        {
+          "engine": 12197.07,
+          "metric": "apogee",
+          "relative": 0.009499518029355433,
+          "replay": 12081.20371362969
+        },
+        {
+          "engine": 1321.267,
+          "metric": "maxVelocity",
+          "relative": 0.005316883948708978,
+          "replay": 1314.2419766957412
+        },
+        {
+          "engine": 25.23048,
+          "metric": "tta",
+          "relative": 0.004330554885874755,
+          "replay": 25.121218021563035
+        }
+      ]
+    },
+    {
+      "name": "raven",
+      "residuals": [
+        {
+          "engine": 9331.979,
+          "metric": "apogee",
+          "relative": 0.0010087044565717646,
+          "replay": 9341.392208805933
+        },
+        {
+          "engine": 1243.414,
+          "metric": "maxVelocity",
+          "relative": 0.0011182136594635572,
+          "replay": 1244.8044025191682
+        },
+        {
+          "engine": 20.85038,
+          "metric": "tta",
+          "relative": 0.0002200583971081324,
+          "replay": 20.854968301201897
+        }
+      ]
+    },
+    {
+      "name": "torrent",
+      "residuals": [
+        {
+          "engine": 13716.88,
+          "metric": "apogee",
+          "relative": 0.012028330836870011,
+          "replay": 13551.888829310354
+        },
+        {
+          "engine": 1404.335,
+          "metric": "maxVelocity",
+          "relative": 0.005353881720095388,
+          "replay": 1396.8163565146099
+        },
+        {
+          "engine": 27.13053,
+          "metric": "tta",
+          "relative": 0.0055744540696464635,
+          "replay": 26.979292106629835
+        }
+      ]
+    }
+  ],
+  "measured": 9,
+  "stagedNotApplicable": 2
+}

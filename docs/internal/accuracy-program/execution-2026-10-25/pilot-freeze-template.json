@@ -1,0 +1,54 @@
+{
+  "schema": "astraea-research-pilot-freeze-v0.1",
+  "status": "INCOMPLETE_TEMPLATE_DO_NOT_SCORE",
+  "caseId": null,
+  "vehicleFamilyId": null,
+  "independentSourceId": null,
+  "custodian": null,
+  "rightsRecordHash": null,
+  "inputManifestSha256": null,
+  "observationSchemaSha256": null,
+  "exposureLedgerSha256": null,
+  "modelCommit": null,
+  "modelId": null,
+  "engineSha256": null,
+  "uncertaintyModelSha256": null,
+  "cohortAndExclusionProtocolSha256": null,
+  "scoreProtocolSha256": null,
+  "predictionArtifactSha256": null,
+  "custodyTimestampUTC": null,
+  "prospectiveOrRetrospectivelyBlinded": null,
+  "forecastIssueTimeUTC": null,
+  "operatingEnvelope": {
+    "geometryFamilyAndMeasurementRecord": null,
+    "MachReIncidenceAndRates": null,
+    "environmentAndRecoveryConditions": null,
+    "coefficientSourceAndDomains": null
+  },
+  "decisions": [
+    {
+      "output": null,
+      "decisionAndAlternatives": null,
+      "unitsDatumAndEventDefinition": null,
+      "ruleRevisionAndConstraint": null,
+      "usableReserve": null,
+      "minimumUsefulDesignDifference": null,
+      "maximumUsefulIntervalWidth": null,
+      "riskAndConfidenceSpecification": null,
+      "inputObservationModelNumericalBudget": null,
+      "budgetRationaleAndDependenceModel": null,
+      "observationMethodAndUncertainty": null,
+      "acceptanceScoreAndStatisticalUnit": null,
+      "failureAndUnscorablePolicy": null
+    }
+  ],
+  "blockingRules": [
+    "Template is a request specification, not an implemented production schema or scorer",
+    "All fields needed for the selected claim must be completed and independently reviewed before scoring",
+    "Document an explicit justified not-applicable value rather than silently ignoring a missing field",
+    "No observation values, raw telemetry, private team identifiers or confidential site records in this manifest",
+    "No new outcome access is authorized by completing this template",
+    "A model change after outcome release makes the examined case development evidence for that model"
+  ],
+  "claimFamilyMultiplicityInterimLookAndReuseProtocolSha256": null
+}

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "1.0.0",
+  "revision": 1,
+  "vehicle": {
+    "id": "preset-estes-alpha",
+    "name": "Estes Alpha III Replica",
+    "version": "1.0",
+    "author": "Estes Industries / Astraea Preset",
+    "components": [
+      {
+        "id": "alpha-nc",
+        "name": "Ogive Nosecone",
+        "type": "nosecone",
+        "materialId": "pla_3dprint",
+        "color": "#ef4444",
+        "shape": "ogive",
+        "length": 0.165,
+        "baseDiameter": 0.0248,
+        "wallThickness": 0.0015,
+        "isHollow": true
+      },
+      {
+        "id": "alpha-bt",
+        "name": "Main Body Tube (BT-50)",
+        "type": "bodytube",
+        "materialId": "cardboard",
+        "color": "#ffffff",
+        "length": 0.311,
+        "outerDiameter": 0.0248,
+        "innerDiameter": 0.0241,
+        "isMotorMount": true
+      },
+      {
+        "id": "alpha-fins",
+        "name": "Stabilizer Fins (3-Fin)",
+        "type": "trapezoidfinset",
+        "materialId": "pla_3dprint",
+        "color": "#ef4444",
+        "finCount": 3,
+        "rootChord": 0.07,
+        "tipChord": 0.028,
+        "span": 0.051,
+        "sweepLength": 0.038,
+        "thickness": 0.002,
+        "crossSection": "rounded",
+        "axialOffset": 0.241
+      },
+      {
+        "id": "alpha-chute",
+        "name": "12\" Parachute",
+        "type": "parachute",
+        "materialId": "cardboard",
+        "diameter": 0.305,
+        "cd": 0.8,
+        "mass": 0.008,
+        "axialOffset": 0.05
+      }
+    ],
+    "notes": "Classic starter model rocket, high subsonic stability."
+  },
+  "motorRecords": [],
+  "bindings": [],
+  "cases": [],
+  "snapshots": [],
+  "evidenceRefs": []
+}

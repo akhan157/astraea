@@ -1,0 +1,274 @@
+{
+  "record_version": "1.0",
+  "research_date": "2026-10-25",
+  "planning_source_base": "761d6c3",
+  "supplements": "candidateinventory.json",
+  "document": "data-path-transonic.md",
+  "scope": "Bounded public NASA/NACA experimental CN/Cm source search inside Mach1.2\u20131.5; no digitization/model edits/simulation/flight outcome access",
+  "search": {
+    "queries": [
+      "site.ntrs.nasa.gov finned missile \"1.20\" \"1.40\" \"pitching-moment\" geometry",
+      "site.ntrs.nasa.gov \"rocket\" \"1.20\" \"1.50\" \"normal-force\" wind tunnel",
+      "site.ntrs.nasa.gov \"four\" \"fins\" \"transonic\" \"static\" missile",
+      "Pettis \"fins\" \"1.48\" NACA",
+      "missile \"1.30\" \"1.40\" stability fins",
+      "sounding rocket \"1.25\" stability",
+      "slender finned missile transonic aerodynamic characteristics 1.2 1.4",
+      "\"finned\" \"1.3\" \"1.4\" \"normal\" \"wind-tunnel\"",
+      "\"missile\" \"1.2\" \"1.4\" \"pitching\" \"Reynolds\"",
+      "\"rocket\" \"1.3\" \"1.5\" \"stability\" \"tunnel\"",
+      "\"finned\" \"1.3\" \"1.4\" \"moment\"",
+      "\"missile\" \"1.4\" \"static\" \"fins\" NASA NACA",
+      "\"missile\" \"1.3\" \"pitching-moment\" NASA",
+      "\"finned\" \"1.48\" Pettis",
+      "\"finned\" \"1.3\" \"normal-force coefficient\"",
+      "\"missile\" \"1.35\" \"normal\" wind tunnel NASA",
+      "\"missile\" \"1.4\" \"pitching\" wind-tunnel NACA",
+      "\"fins\" \"1.30\" \"1.45\" aerodynamic",
+      "\"Pettis\" \"fins\" NACA",
+      "\"NACA-RM-A52K14\"",
+      "\"Wind-Tunnel Tests\" \"Wingless Fin-Controlled Missile\"",
+      "\"Experimental and Theoretical Study\" \"Air-to-Air Missile\" \"1.4\"",
+      "\"Transonic\" \"fin\" \"1.35\" missile",
+      "\"missile\" \"1.2, 1.3\" \"moment\"",
+      "\"missile\" \"1.2 to 1.5\" \"normal\"",
+      "\"missile\" \"1.3 and 1.4\" wind tunnel",
+      "\"fins\" \"Mach\" \"1.25\" \"1.4\" NACA",
+      "\"Aerodynamic characteristics of a canard-controlled missile\" \"1.3\""
+    ],
+    "query_count": 28,
+    "domain_constraints": "NASA domain filters on queries4\u201311,19\u201323,28; query11 DTIC apps.dtic.mil; others targeted general discovery",
+    "selection": "source geometry/conditions/data availability, not prediction residuals"
+  },
+  "candidates": [
+    {
+      "id": "19930087422",
+      "report": "NACA RM A52K14",
+      "urls": {
+        "catalog": "https://ntrs.nasa.gov/citations/19930087422",
+        "pdf": "https://ntrs.nasa.gov/api/citations/19930087422/downloads/19930087422.pdf"
+      },
+      "access": {
+        "get_status": 200,
+        "bytes": 1298355,
+        "sha256": "42d7a4d54b2c03483d70d7eab09dd1d5baae9cdeb992ae7c600cdf4477152070",
+        "methods_read": true,
+        "geometry_and_selected_plot_visually_inspected": true
+      },
+      "rights": "Current NASA catalog: Public; Work of US Gov; Public Use Permitted",
+      "selected_configuration": "body-tail, four aft rectangular fixed fins, forward wings removed, bank0",
+      "geometry": {
+        "length_in": 57.31,
+        "diameter_in": 3.6,
+        "nose": "ogive; exact curvature law to qualify",
+        "cg_station_in_from_nose": 29.14,
+        "tail_chord_in": 10.94,
+        "tail_overall_span_in": 8.9,
+        "tail_one_panel_exposed_area_ft2": 0.202,
+        "tail_thickness_in": 0.23,
+        "tail_edges": "rounded leading/trailing; exact edge radius unqualified",
+        "geometry_source": "fig2 printed p10 / PDF page11"
+      },
+      "regime": {
+        "mach": [
+          1.4,
+          1.9
+        ],
+        "selected_mach": 1.4,
+        "reynolds": 1510000.0,
+        "reynolds_reference": "forward-wing chord11.31 in, retained when wing removed",
+        "nominal_aoa_deg": [
+          -8,
+          20
+        ],
+        "bank_deg": 0
+      },
+      "conventions": {
+        "normal_coefficient_label": "Cz",
+        "forces": "body-axis force/qS",
+        "S_ft2": 1.026,
+        "S_definition": "exposed area of two removed forward-wing panels; not body area",
+        "moment": "pitching moment/qSc about CG",
+        "c_in": 11.31,
+        "base": "axial corrected to free-stream static pressure at base",
+        "axes": "fig1 signs to transcribe"
+      },
+      "measurements": "Normal-force, pitching-moment and axial-force sweeps including small incidence",
+      "selected_plots": [
+        {
+          "figure": "9a",
+          "printed_page": 30,
+          "pdf_page_1based": 31,
+          "mach": 1.4,
+          "status": "visually inspected actual CN-equivalent/Cm curves"
+        }
+      ],
+      "representability": "Slender ogive cylinder plus four rectangular tail fins, plausible core geometry; exact ogive and thick rounded plate profile must be audited before quantitative native gate",
+      "missing_qualification_fields": [
+        "independent dimension/sign transcription",
+        "precise nose/edge law/native representation",
+        "measurement/processing and digitization uncertainty budget",
+        "broader same-geometry Mach sequence"
+      ],
+      "acquisition_steps": [
+        "Pin PDF hash",
+        "Transcribe figs1/2 and datum/reference dimensions",
+        "Select whole preregistered small-incidence set in fig9a",
+        "Independently digitize with uncertainty",
+        "Convert force/moment references and datum explicitly"
+      ],
+      "classification": "development_component_measurement",
+      "full_1p2_to_1p5_coverage": false,
+      "blind_flight_eligible": false,
+      "fallback": "Geometry-specific diagnostic at1.4 only; withhold continuous gap claim"
+    },
+    {
+      "id": "19770021127",
+      "report": "NASA TM X-73218",
+      "urls": {
+        "catalog": "https://ntrs.nasa.gov/citations/19770021127",
+        "pdf": "https://ntrs.nasa.gov/api/citations/19770021127/downloads/19770021127.pdf"
+      },
+      "access": {
+        "get_status": 200,
+        "bytes": 9059886,
+        "sha256": "7b2be6d38487a83c35a0f1ac274bb649135f647219b93d586aea78416eb5eb67",
+        "methods_read": true,
+        "geometry_table_and_selected_plots_visually_inspected": true
+      },
+      "rights": "NASA catalog Public; US Gov Public Use Permitted; report unclassified/unlimited",
+      "selected_configuration": "BN3C6 configuration11; semiblunt ogive body with four forward canards, all zero deflection, no tail",
+      "geometry": {
+        "diameter_cm": 12.7,
+        "sharp_nose_reference_length_cm": 132.08,
+        "nose": "N3 semiblunt three-caliber tangent ogive; physical tip offset in fig3b must be retained",
+        "C6": "large canard aft canard position, four panels; dimensions in tableI/fig3c",
+        "canard_hinge_station_cm": 38.1,
+        "moment_reference_station_cm": 66.0,
+        "geometry_sources": [
+          "tableI printed p10",
+          "fig3a printed p13",
+          "fig3b/c nose and panel drawings"
+        ]
+      },
+      "regime": {
+        "nominal_mach": [
+          0.8,
+          1.3,
+          1.75
+        ],
+        "selected_actual_mach": 1.313,
+        "reynolds_diameter": 625000,
+        "aoa_deg": [
+          0,
+          24
+        ],
+        "roll_deg": 0,
+        "D1_D2_D3_D4_deg": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "conventions": {
+        "axes": "unrolled body axes",
+        "SREF_cm2": 126.7,
+        "LREF_cm": 12.7,
+        "CN": "normal force/(q*SREF)",
+        "Cm": "pitching moment/(q*SREF*LREF) about model station66",
+        "datum": "common sharp-nose station system; not actual truncated N3 tip",
+        "symbols": "circles total body-plus-canard balance; squares panel load summations",
+        "corrections": "main balance weight tare; AoA flow-angularity and sting-deflection"
+      },
+      "measurements": "Six-component complete body-canard loads; three-component panel balances and summed panel contributions",
+      "selected_plots": [
+        {
+          "figure": "7",
+          "data_figure_page": 20,
+          "pdf_page_1based": 46,
+          "quantity": "CN",
+          "mach": 1.313,
+          "status": "visually inspected"
+        },
+        {
+          "figure": "7",
+          "data_figure_page": 23,
+          "pdf_page_1based": 49,
+          "quantity": "Cm",
+          "mach": 1.313,
+          "status": "visually inspected"
+        }
+      ],
+      "representability": "Four forward swept fins, not preferred passive aft-fin rocket; exact semiblunt nose and panel section required; do not substitute pointed nose or move fins",
+      "missing_qualification_fields": [
+        "complete drawing/panel-section transcription",
+        "original uncertainty and boundary-layer treatment qualification",
+        "native exact-shape representation",
+        "four-aft-fin data at1.3 absent"
+      ],
+      "acquisition_steps": [
+        "Pin PDF hash",
+        "Transcribe N3 and C6 exact geometry/tableI and common station origin",
+        "Prespecify small-incidence total-load CN/Cm circular symbols",
+        "Digitize independently with uncertainty",
+        "Keep summed panel data separate"
+      ],
+      "classification": "development_component_measurement_forward_fins",
+      "full_1p2_to_1p5_coverage": false,
+      "blind_flight_eligible": false,
+      "fallback": "Diagnostic forward-fin geometry check or omit if unsupported; cannot claim body-tail M1.3 coverage"
+    }
+  ],
+  "rejected_apparent_gap_sources": [
+    {
+      "id": "20050160470",
+      "report": "NASA/TM-2005-213541",
+      "urls": {
+        "catalog": "https://ntrs.nasa.gov/citations/20050160470",
+        "pdf": "https://ntrs.nasa.gov/api/citations/20050160470/downloads/20050160470.pdf"
+      },
+      "get_status": 200,
+      "bytes": 5498950,
+      "sha256": "cea5284109f2715b976bd56e02d9963b19dee9fc86594013302c82f52de1adca",
+      "reason": "Headline .6\u20134.63; actual methods .6\u20131.18 and1.7\u20134.63; skips target interval"
+    },
+    {
+      "id": "19930087011",
+      "report": "NACA RM A52C04",
+      "urls": {
+        "catalog": "https://ntrs.nasa.gov/citations/19930087011",
+        "pdf": "https://ntrs.nasa.gov/api/citations/19930087011/downloads/19930087011.pdf"
+      },
+      "get_status": 200,
+      "bytes": 28796516,
+      "sha256": "cb2e85cf4565a71a0a14d1d600ff9e9abc889dc0de00f2ef78ceed61a860717d",
+      "reason": "CN/Cm sweeps only M.7/1.7; M1.2\u20131.7 sweep is zero-incidence axial force; current catalog public-use checked"
+    },
+    {
+      "id": "19630004016",
+      "report": "NASA TM X-106",
+      "urls": {
+        "catalog": "https://ntrs.nasa.gov/citations/19630004016",
+        "pdf": "https://ntrs.nasa.gov/api/citations/19630004016/downloads/19630004016.pdf"
+      },
+      "get_status": 200,
+      "bytes": 8369984,
+      "sha256": "18674459d280be34bf45cfc343ce50e573378dcf01640ef126320cd6fef6801f",
+      "catalog_web_status": 403,
+      "reason": "M.6\u20131.4 CN/Cm is low-fineness blunt cone-cylinder/annular-flare geometry, not slender planar-finned target; not used"
+    }
+  ],
+  "critical_path": {
+    "adequate_same_geometry_full_interval_source_established": false,
+    "interior_anchor_count": 2,
+    "protected_outcomes_opened": false,
+    "new_models_digitization_or_simulations": false,
+    "remaining_dependency": "For continuous1.2\u20131.5 native-aero claim obtain qualified exact-representable3/4-aft-fin CN/Cm measurements at preregistered interior Mach/Re/transition/AoA/roll and common datum with uncertainty; qualified existing tunnel record may substitute. No booking/outreach authorized or performed.",
+    "proposed_measurement_stations_not_obtained": [
+      1.25,
+      1.35,
+      1.45
+    ]
+  }
+}

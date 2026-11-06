@@ -1,0 +1,77 @@
+{
+  "components": [
+    {
+      "id": "nsl-nc",
+      "name": "Von Karman Nosecone",
+      "type": "nosecone",
+      "materialId": "fiberglass",
+      "shape": "vonkarman",
+      "length": 0.65,
+      "baseDiameter": 0.152,
+      "wallThickness": 0.0035,
+      "isHollow": true
+    },
+    {
+      "id": "nsl-bt1",
+      "name": "Payload & Avionics Bay",
+      "type": "bodytube",
+      "materialId": "fiberglass",
+      "length": 0.75,
+      "outerDiameter": 0.152,
+      "innerDiameter": 0.145
+    },
+    {
+      "id": "nsl-trans",
+      "name": "Airframe Coupler",
+      "type": "bodytube",
+      "materialId": "aluminum",
+      "length": 0.12,
+      "outerDiameter": 0.152,
+      "innerDiameter": 0.146
+    },
+    {
+      "id": "nsl-bt2",
+      "name": "Booster & Motor Section",
+      "type": "bodytube",
+      "materialId": "fiberglass",
+      "length": 1.45,
+      "outerDiameter": 0.152,
+      "innerDiameter": 0.145,
+      "isMotorMount": true
+    },
+    {
+      "id": "nsl-fins",
+      "name": "High-Power Clipped Delta Fins",
+      "type": "trapezoidfinset",
+      "materialId": "carbonfiber",
+      "finCount": 4,
+      "rootChord": 0.32,
+      "tipChord": 0.12,
+      "span": 0.18,
+      "sweepLength": 0.18,
+      "thickness": 0.0048,
+      "crossSection": "airfoil",
+      "axialOffset": 1.10
+    },
+    {
+      "id": "nsl-drogue",
+      "name": "Drogue Parachute (Apogee)",
+      "type": "parachute",
+      "materialId": "cardboard",
+      "diameter": 0.60,
+      "cd": 1.2,
+      "mass": 0.18,
+      "axialOffset": 0.20
+    },
+    {
+      "id": "nsl-main",
+      "name": "Main Parachute (700ft AGL)",
+      "type": "parachute",
+      "materialId": "cardboard",
+      "diameter": 2.40,
+      "cd": 1.5,
+      "mass": 0.75,
+      "axialOffset": 0.85
+    }
+  ]
+}

@@ -1,0 +1,308 @@
+{
+  "sourceCommit": "1745adb7265b642c6a7ecfd12e1418b51f159bcb",
+  "wasm": {
+    "path": "/workspace/astraea/src/engine/astraea_engine.wasm",
+    "sha256": "e4ab1b9d207f791734108c6a85e480da3660603a66fdb97101f9ff033efe0985"
+  },
+  "log": {
+    "sha256": "eef176a2c3c0515e2b251e8362d1cc60a8ca2b2a27e0d9f8b7df3c25720ae18d",
+    "rows": 406,
+    "first": {
+      "timeS": 2.2,
+      "altitudeM": 118.04,
+      "velocityMs": 75.38
+    },
+    "last": {
+      "timeS": 7.442,
+      "altitudeM": 291.735,
+      "velocityMs": 1.77
+    },
+    "timeUnit": {
+      "unit": "ms",
+      "basis": "header"
+    },
+    "altitudeUnit": {
+      "unit": "m",
+      "basis": "header"
+    }
+  },
+  "modelInputs": {
+    "designMassKg": 0.037836287840496426,
+    "casingMassKg": 0.0123,
+    "coastMassKg": 0.050136287840496424,
+    "refAreaM2": 0.0005067074790974977,
+    "referenceDiameterM": 0.0254
+  },
+  "fit": {
+    "scale": 0.8831673845333089,
+    "fittedCd": 0.49102301182108626,
+    "modelCd": 0.5559795576922907,
+    "rmseN": 0.12475131827782485,
+    "log": {
+      "method": "velocity-column",
+      "halfWidthS": 0.1,
+      "burnoutS": 2.2,
+      "apogeeS": 7.442,
+      "windowStartS": 2.305,
+      "windowEndS": 7.2780000000000005,
+      "maxSpeedMs": 72.78705205504107,
+      "minSpeedMs": 5.00498152300031,
+      "candidates": 398,
+      "used": 385,
+      "excluded": {
+        "lowSpeed": 13
+      },
+      "nonPositiveKept": 62,
+      "cd": 0.49102301182108626
+    },
+    "model": {
+      "method": "velocity-column",
+      "halfWidthS": 0.24999999999999994,
+      "burnoutS": 1.85,
+      "apogeeS": 7.99,
+      "windowStartS": 2.1,
+      "windowEndS": 7.45,
+      "maxSpeedMs": 102.2013698630137,
+      "minSpeedMs": 5.259999999999999,
+      "candidates": 59,
+      "used": 54,
+      "excluded": {
+        "lowSpeed": 5
+      },
+      "nonPositiveKept": 2,
+      "cd": 0.5559795576922907
+    }
+  },
+  "massCancellation": [
+    {
+      "massKg": 0.035,
+      "scale": 0.8831673845333096
+    },
+    {
+      "massKg": 0.047,
+      "scale": 0.8831673845333081
+    },
+    {
+      "massKg": 0.0499,
+      "scale": 0.8831673845333113
+    }
+  ],
+  "sameCoastWindowAt47g": {
+    "method": "velocity-column",
+    "halfWidthS": 0.1,
+    "burnoutS": 2.2,
+    "apogeeS": 7.442,
+    "windowStartS": 2.305,
+    "windowEndS": 7.2780000000000005,
+    "maxSpeedMs": 72.78705205504107,
+    "minSpeedMs": 5.00498152300031,
+    "candidates": 398,
+    "used": 385,
+    "excluded": {
+      "lowSpeed": 13
+    },
+    "nonPositiveKept": 62,
+    "cd": 0.46030694631823676
+  },
+  "centralDifferences": [
+    {
+      "halfSpan": 1,
+      "at47g": {
+        "cd": 0.45302984326403684,
+        "n": 393
+      },
+      "atModelMass": {
+        "cd": 0.4832603111110785,
+        "n": 393
+      },
+      "atWindowAndModelMass": {
+        "cd": 0.49032494865003917,
+        "n": 385
+      }
+    },
+    {
+      "halfSpan": 3,
+      "at47g": {
+        "cd": 0.4558155162767533,
+        "n": 391
+      },
+      "atModelMass": {
+        "cd": 0.4862318707705481,
+        "n": 391
+      },
+      "atWindowAndModelMass": {
+        "cd": 0.49084400146453755,
+        "n": 385
+      }
+    },
+    {
+      "halfSpan": 8,
+      "at47g": {
+        "cd": 0.45947268147402714,
+        "n": 386
+      },
+      "atModelMass": {
+        "cd": 0.4901330768771595,
+        "n": 386
+      },
+      "atWindowAndModelMass": {
+        "cd": 0.4901151826467955,
+        "n": 385
+      }
+    },
+    {
+      "halfSpan": 15,
+      "at47g": {
+        "cd": 0.4565158875358373,
+        "n": 376
+      },
+      "atModelMass": {
+        "cd": 0.48697897747354096,
+        "n": 376
+      },
+      "atWindowAndModelMass": {
+        "cd": 0.48697897747354096,
+        "n": 376
+      }
+    }
+  ],
+  "altitudeOnly": {
+    "method": "altitude-derivative",
+    "halfWidthS": 0.25,
+    "burnoutS": 2.2,
+    "apogeeS": 7.442,
+    "windowStartS": 2.451,
+    "windowEndS": 7.291,
+    "maxSpeedMs": 69.08368341717471,
+    "minSpeedMs": 5.067802968674118,
+    "candidates": 387,
+    "used": 375,
+    "excluded": {
+      "lowSpeed": 12
+    },
+    "nonPositiveKept": 58,
+    "cd": 0.4951783333015649
+  },
+  "modelResampledOnLogTimes": {
+    "method": "velocity-column",
+    "halfWidthS": 0.1,
+    "burnoutS": 2.2,
+    "apogeeS": 7.442,
+    "windowStartS": 2.305,
+    "windowEndS": 7.442,
+    "maxSpeedMs": 93.40449602953848,
+    "minSpeedMs": 5.372,
+    "candidates": 398,
+    "used": 398,
+    "excluded": {
+      "lowSpeed": 0
+    },
+    "nonPositiveKept": 11,
+    "cd": 0.5586324965815751
+  },
+  "baseline": {
+    "apogeeM": 371.7042160703002,
+    "apogeeS": 7.984941406249874,
+    "burnoutS": 1.86,
+    "burnoutM": 122.78021387658326,
+    "burnoutMs": 113.42907508329628,
+    "coast": {
+      "method": "velocity-column",
+      "halfWidthS": 0.24999999999999994,
+      "burnoutS": 1.85,
+      "apogeeS": 7.99,
+      "windowStartS": 2.1,
+      "windowEndS": 7.45,
+      "maxSpeedMs": 102.2013698630137,
+      "minSpeedMs": 5.259999999999999,
+      "candidates": 59,
+      "used": 54,
+      "excluded": {
+        "lowSpeed": 5
+      },
+      "nonPositiveKept": 2,
+      "cd": 0.5559795576922907
+    }
+  },
+  "calibrated": {
+    "apogeeM": 396.0586343500974,
+    "apogeeS": 8.30130859374987,
+    "burnoutS": 1.86,
+    "burnoutM": 124.26768188686474,
+    "burnoutMs": 116.00741905179329,
+    "coast": {
+      "method": "velocity-column",
+      "halfWidthS": 0.24999999999999994,
+      "burnoutS": 1.85,
+      "apogeeS": 8.3,
+      "windowStartS": 2.15,
+      "windowEndS": 7.75,
+      "maxSpeedMs": 103.24,
+      "minSpeedMs": 5.400000000000001,
+      "candidates": 58,
+      "used": 53,
+      "excluded": {
+        "lowSpeed": 5
+      },
+      "nonPositiveKept": 0,
+      "cd": 0.48825843176149547
+    }
+  },
+  "historicalScaleReplay": {
+    "scale": 0.8180010844026748,
+    "apogeeM": 411.58381016078215,
+    "apogeeS": 8.499697265624862,
+    "burnoutS": 1.86,
+    "burnoutM": 125.12079667068193,
+    "burnoutMs": 117.50439831970287,
+    "coast": {
+      "method": "velocity-column",
+      "halfWidthS": 0.2500000000000002,
+      "burnoutS": 1.85,
+      "apogeeS": 8.45,
+      "windowStartS": 2.15,
+      "windowEndS": 7.85,
+      "maxSpeedMs": 105.21065573770488,
+      "minSpeedMs": 6.400000000000001,
+      "candidates": 57,
+      "used": 52,
+      "excluded": {
+        "lowSpeed": 5
+      },
+      "nonPositiveKept": 0,
+      "cd": 0.4507060290308451
+    }
+  },
+  "coastStartConditions": [
+    {
+      "timeS": 1.887,
+      "modelM": 125.818,
+      "modelMs": 111.94999999999999,
+      "observedAtOrAfter": {
+        "timeS": 2.2,
+        "altitudeM": 118.04,
+        "velocityMs": 75.38
+      }
+    },
+    {
+      "timeS": 2.2,
+      "modelM": 158.5,
+      "modelMs": 97.6,
+      "observedAtOrAfter": {
+        "timeS": 2.2,
+        "altitudeM": 118.04,
+        "velocityMs": 75.38
+      }
+    },
+    {
+      "timeS": 2.305,
+      "modelM": 168.56000000000003,
+      "modelMs": 93.31499999999998,
+      "observedAtOrAfter": {
+        "timeS": 2.305,
+        "altitudeM": 125.816,
+        "velocityMs": 72.81
+      }
+    }
+  ]
+}

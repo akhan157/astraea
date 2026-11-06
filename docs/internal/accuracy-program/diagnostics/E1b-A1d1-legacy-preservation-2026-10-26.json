@@ -1,0 +1,27 @@
+{
+  "status": "pass",
+  "base": "1e4779a",
+  "responseBytes": 1969393,
+  "responseSha256": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249",
+  "beforeAfterByteIdentical": true,
+  "unchangedFunctions": {
+    "compute_flight_loads": {
+      "byteIdentical": true,
+      "sha256": "6b75ea54211b9ab466d012a77479fb39524e771a18c69112311a5b70a195b474"
+    },
+    "diagnose_flight_loads": {
+      "byteIdentical": true,
+      "sha256": "6f0e2258fa8aec94d5f74cc9a6320460e4c054c46a2b175c8711490822943632"
+    },
+    "normal_slope_at_mach": {
+      "byteIdentical": true,
+      "sha256": "7f85659d2eef455c8018fafddd9f6ebbce3ae35455b0ce0740a98f8a9c75dcf4"
+    },
+    "integrate_rigid_adaptive": {
+      "byteIdentical": true,
+      "sha256": "eb4577d03c4c82c40ef440b610f502fda20e6b9b2fdc7b96e41224b95fda74cd"
+    }
+  },
+  "scope": "one matched longstanding synthetic fixture before/after refactor; no new observed outcomes, empirical or numerical convergence study",
+  "standaloneBeforeAfterFlightCalls": 2
+}

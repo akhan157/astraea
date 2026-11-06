@@ -1,0 +1,192 @@
+{
+  "cases": [
+    {
+      "closed": true,
+      "currentVersion": "1.0.0",
+      "deferred": true,
+      "events": [],
+      "name": "defer",
+      "offered": true,
+      "resolved": false,
+      "version": "1.0.1"
+    },
+    {
+      "closed": true,
+      "currentVersion": "1.0.0",
+      "events": [
+        {
+          "data": {
+            "contentLength": 65536
+          },
+          "event": "Started"
+        },
+        {
+          "data": {
+            "chunkLength": 8037
+          },
+          "event": "Progress"
+        },
+        {
+          "data": {
+            "chunkLength": 16384
+          },
+          "event": "Progress"
+        },
+        {
+          "data": {
+            "chunkLength": 32768
+          },
+          "event": "Progress"
+        },
+        {
+          "data": {
+            "chunkLength": 8347
+          },
+          "event": "Progress"
+        },
+        {
+          "event": "Finished"
+        }
+      ],
+      "name": "valid",
+      "offered": true,
+      "resolved": true,
+      "version": "1.0.1"
+    },
+    {
+      "closed": true,
+      "currentVersion": "1.0.0",
+      "error": "The signature verification failed",
+      "events": [
+        {
+          "data": {
+            "contentLength": 65536
+          },
+          "event": "Started"
+        },
+        {
+          "data": {
+            "chunkLength": 8037
+          },
+          "event": "Progress"
+        },
+        {
+          "data": {
+            "chunkLength": 16384
+          },
+          "event": "Progress"
+        },
+        {
+          "data": {
+            "chunkLength": 32768
+          },
+          "event": "Progress"
+        },
+        {
+          "data": {
+            "chunkLength": 8347
+          },
+          "event": "Progress"
+        },
+        {
+          "event": "Finished"
+        }
+      ],
+      "name": "bad-signature",
+      "offered": true,
+      "resolved": false,
+      "version": "1.0.1"
+    },
+    {
+      "closed": true,
+      "currentVersion": "1.0.0",
+      "error": "The signature verification failed",
+      "events": [
+        {
+          "data": {
+            "contentLength": 65536
+          },
+          "event": "Started"
+        },
+        {
+          "data": {
+            "chunkLength": 8037
+          },
+          "event": "Progress"
+        },
+        {
+          "data": {
+            "chunkLength": 16384
+          },
+          "event": "Progress"
+        },
+        {
+          "data": {
+            "chunkLength": 32768
+          },
+          "event": "Progress"
+        },
+        {
+          "data": {
+            "chunkLength": 8347
+          },
+          "event": "Progress"
+        },
+        {
+          "event": "Finished"
+        }
+      ],
+      "name": "tampered",
+      "offered": true,
+      "resolved": false,
+      "version": "1.0.1"
+    },
+    {
+      "closed": true,
+      "currentVersion": "1.0.0",
+      "error": "The update was signed for version 1.0.1 but the update endpoint announced version 1.0.2. The endpoint response may have been tampered with to force installing a different release.",
+      "events": [
+        {
+          "data": {
+            "contentLength": 65536
+          },
+          "event": "Started"
+        },
+        {
+          "data": {
+            "chunkLength": 8037
+          },
+          "event": "Progress"
+        },
+        {
+          "data": {
+            "chunkLength": 16384
+          },
+          "event": "Progress"
+        },
+        {
+          "data": {
+            "chunkLength": 32768
+          },
+          "event": "Progress"
+        },
+        {
+          "data": {
+            "chunkLength": 8347
+          },
+          "event": "Progress"
+        },
+        {
+          "event": "Finished"
+        }
+      ],
+      "name": "version-mismatch",
+      "offered": true,
+      "resolved": false,
+      "version": "1.0.2"
+    }
+  ],
+  "fixture": "UP1c",
+  "globals": true,
+  "ok": true
+}

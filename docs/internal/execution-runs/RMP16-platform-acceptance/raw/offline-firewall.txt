@@ -1,0 +1,14 @@
+rule added at 2026-10-30T04:54:27.8926528+00:00
+
+
+DisplayName           : astraea-offline
+Enabled               : True
+Direction             : Outbound
+Action                : Block
+PolicyStoreSourceType : Local
+
+
+
+
+rule removed at 2026-10-30T04:55:34.0098150+00:00
+remaining rules: 0

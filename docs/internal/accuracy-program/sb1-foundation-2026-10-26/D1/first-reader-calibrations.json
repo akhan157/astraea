@@ -1,0 +1,86 @@
+{
+  "status": "first_reader_provisional",
+  "reader_id": "D1-subsonic-first-reader",
+  "calibrations": [
+    {
+      "id": "d4013-cn-m0p60",
+      "quantity": "CN",
+      "source_page": 24,
+      "crop_box_pixels": [
+        310,
+        260,
+        560,
+        445
+      ],
+      "image": "d4013-M0p60-CN-crop.png",
+      "coordinate_system": "native 2px/PDFpoint crop, top-left(0,0), x right, y down; inspect4x images are not coordinate basis",
+      "x_anchors": [
+        {
+          "pixel": 91.5,
+          "value": 0
+        },
+        {
+          "pixel": 166.0,
+          "value": 4
+        }
+      ],
+      "y_anchors": [
+        {
+          "pixel": 102.0,
+          "value": 0
+        },
+        {
+          "pixel": 29.69999999999999,
+          "value": 2
+        }
+      ],
+      "local_zero": "M0.60 local zero only; repeated lower Mach zeros excluded",
+      "pixel_pick_bound_xy": [
+        3,
+        3
+      ],
+      "calibration_anchor_bound_px": 2,
+      "calibration_note": "Independent linear x/y transform on local panel. Small scan skew is not fitted; +/-2px bounded allowance includes local skew/anchor choice. Needs independent audit. Worst-case sum 5px used, no quadrature."
+    },
+    {
+      "id": "d4013-cm-m0p60",
+      "quantity": "Cm",
+      "source_page": 25,
+      "crop_box_pixels": [
+        325,
+        465,
+        550,
+        615
+      ],
+      "image": "d4013-M0p60-Cm-crop.png",
+      "coordinate_system": "native 2px/PDFpoint crop, top-left(0,0), x right, y down; inspect4x images are not coordinate basis",
+      "x_anchors": [
+        {
+          "pixel": 80.5,
+          "value": 0
+        },
+        {
+          "pixel": 149.3,
+          "value": 4
+        }
+      ],
+      "y_anchors": [
+        {
+          "pixel": 78.39999999999998,
+          "value": 0
+        },
+        {
+          "pixel": 142.79999999999995,
+          "value": -2
+        }
+      ],
+      "local_zero": "M0.60 local zero only; repeated lower Mach zeros excluded",
+      "pixel_pick_bound_xy": [
+        3,
+        3
+      ],
+      "calibration_anchor_bound_px": 2,
+      "calibration_note": "Independent linear x/y transform on local panel. Small scan skew is not fitted; +/-2px bounded allowance includes local skew/anchor choice. Needs independent audit. Worst-case sum 5px used, no quadrature."
+    }
+  ]
+}

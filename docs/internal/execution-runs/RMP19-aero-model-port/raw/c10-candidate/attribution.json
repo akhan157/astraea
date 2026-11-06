@@ -1,0 +1,403 @@
+{
+  "diagnostic": "RMP19-C10 residual attribution (no acceptance claim)",
+  "flights": [
+    {
+      "metrics": [
+        {
+          "bothExplainedFraction": -0.40882020526602725,
+          "hybridMinusLegacyRelative": -0.05223155351392331,
+          "hybridResidual": 0.06729175257004112,
+          "hybridWithBoth": 0.09480198066843605,
+          "hybridWithNozzle": 0.06820064491565173,
+          "hybridWithSite": 0.09370490881157267,
+          "legacyResidual": 0.015060199056117813,
+          "legacyWithBothResidual": 0.04055596544801817,
+          "metric": "apogee",
+          "nozzleExplainedFraction": -0.013506742073102892,
+          "siteExplainedFraction": -0.39251699105383264
+        },
+        {
+          "bothExplainedFraction": -1.0455385715828192,
+          "hybridMinusLegacyRelative": 0.00043708684941767004,
+          "hybridResidual": 0.003236640544634415,
+          "hybridWithBoth": 0.006620673076398519,
+          "hybridWithNozzle": 0.0039882807079339,
+          "hybridWithSite": 0.005823366632724224,
+          "legacyResidual": 0.003673727394052085,
+          "legacyWithBothResidual": 0.006282554609123854,
+          "metric": "maxVelocity",
+          "nozzleExplainedFraction": -0.23222849523575512,
+          "siteExplainedFraction": -0.7992009160170687
+        },
+        {
+          "bothExplainedFraction": -0.3765788561658695,
+          "hybridMinusLegacyRelative": -0.03207126574665819,
+          "hybridResidual": 0.042752699965665046,
+          "hybridWithBoth": 0.0588524628167378,
+          "hybridWithNozzle": 0.043121255167535816,
+          "hybridWithSite": 0.05840258864009105,
+          "legacyResidual": 0.010681434219006856,
+          "legacyWithBothResidual": 0.026205229187495335,
+          "metric": "tta",
+          "nozzleExplainedFraction": -0.008620629858857068,
+          "siteExplainedFraction": -0.36605614819636006
+        }
+      ],
+      "name": "blister"
+    },
+    {
+      "metrics": [
+        {
+          "bothExplainedFraction": 0.7387944863532957,
+          "hybridMinusLegacyRelative": 0.09786654320027113,
+          "hybridResidual": 0.14505489909528724,
+          "hybridWithBoth": 0.03788913942515537,
+          "hybridWithNozzle": 0.11369426132647688,
+          "hybridWithSite": 0.07261379628203109,
+          "legacyResidual": 0.24292144229555837,
+          "legacyWithBothResidual": 0.17991917131377705,
+          "metric": "apogee",
+          "nozzleExplainedFraction": 0.21619840463443712,
+          "siteExplainedFraction": 0.4994047306576612
+        },
+        {
+          "bothExplainedFraction": 0.6089557390562793,
+          "hybridMinusLegacyRelative": -0.003952769131165462,
+          "hybridResidual": 0.03880449459176721,
+          "hybridWithBoth": 0.015174274908932217,
+          "hybridWithNozzle": 0.021012562997768807,
+          "hybridWithSite": 0.032393481069847095,
+          "legacyResidual": 0.034851725460601744,
+          "legacyWithBothResidual": 0.027933919077902516,
+          "metric": "maxVelocity",
+          "nozzleExplainedFraction": 0.4585018251409761,
+          "siteExplainedFraction": 0.16521316897347962
+        },
+        {
+          "bothExplainedFraction": 0.7721019451713108,
+          "hybridMinusLegacyRelative": 0.07403574710064206,
+          "hybridResidual": 0.09465255662136265,
+          "hybridWithBoth": 0.021571133538570916,
+          "hybridWithNozzle": 0.0761607256545302,
+          "hybridWithSite": 0.04194698657668715,
+          "legacyResidual": 0.16868830372200472,
+          "legacyWithBothResidual": 0.12083909850556701,
+          "metric": "tta",
+          "nozzleExplainedFraction": 0.1953653617704704,
+          "siteExplainedFraction": 0.5568319750253856
+        }
+      ],
+      "name": "dontdebatethisn5800mindia"
+    },
+    {
+      "metrics": [
+        {
+          "bothExplainedFraction": -0.44451577794870456,
+          "hybridMinusLegacyRelative": -0.016422694935586235,
+          "hybridResidual": 0.29287364519161924,
+          "hybridWithBoth": 0.42306060142464474,
+          "hybridWithNozzle": 0.3240387697247436,
+          "hybridWithSite": 0.3904446386115901,
+          "legacyResidual": 0.276450950256033,
+          "legacyWithBothResidual": 0.37173941240056996,
+          "metric": "apogee",
+          "nozzleExplainedFraction": -0.10641150217778686,
+          "siteExplainedFraction": -0.33315047298343575
+        },
+        {
+          "bothExplainedFraction": -0.301180017486647,
+          "hybridMinusLegacyRelative": 0.02809358500685194,
+          "hybridResidual": 0.13923116213432304,
+          "hybridWithBoth": 0.18116480598062465,
+          "hybridWithNozzle": 0.15887179557769787,
+          "hybridWithSite": 0.16283203914194253,
+          "legacyResidual": 0.16732474714117498,
+          "legacyWithBothResidual": 0.1899879941793911,
+          "metric": "maxVelocity",
+          "nozzleExplainedFraction": -0.14106492499449624,
+          "siteExplainedFraction": -0.16950858303438257
+        },
+        {
+          "bothExplainedFraction": -0.46471823312024246,
+          "hybridMinusLegacyRelative": -0.01835769079402297,
+          "hybridResidual": 0.14686119858136001,
+          "hybridWithBoth": 0.2151102753000107,
+          "hybridWithNozzle": 0.161040217020974,
+          "hybridWithSite": 0.20039657534346364,
+          "legacyResidual": 0.12850350778733705,
+          "legacyWithBothResidual": 0.18160775473920845,
+          "metric": "tta",
+          "nozzleExplainedFraction": -0.09654707013547169,
+          "siteExplainedFraction": -0.36453043608006114
+        }
+      ],
+      "name": "kinsel-p4935-a-601-rocket"
+    },
+    {
+      "metrics": [
+        {
+          "bothExplainedFraction": 0.1593089843755053,
+          "hybridMinusLegacyRelative": 0.11617905729700997,
+          "hybridResidual": 0.078383644594413,
+          "hybridWithBoth": 0.0658964257824265,
+          "hybridWithNozzle": 0.009105703075254495,
+          "hybridWithSite": 0.00629457080425969,
+          "legacyResidual": 0.19456270189142297,
+          "legacyWithBothResidual": 0.12712236569969967,
+          "metric": "apogee",
+          "nozzleExplainedFraction": 0.8838315936650958,
+          "siteExplainedFraction": 0.9196953543455372
+        },
+        {
+          "bothExplainedFraction": 0.8429395111222818,
+          "hybridMinusLegacyRelative": 0.0139967270768011,
+          "hybridResidual": 0.046828788435139775,
+          "hybridWithBoth": 0.0073549524051742905,
+          "hybridWithNozzle": 0.016852749498949056,
+          "hybridWithSite": 0.03616602887061718,
+          "legacyResidual": 0.060825515511940875,
+          "legacyWithBothResidual": 0.049390400591462644,
+          "metric": "maxVelocity",
+          "nozzleExplainedFraction": 0.640119890731511,
+          "siteExplainedFraction": 0.2276966780656957
+        },
+        {
+          "bothExplainedFraction": 0.012205688847214898,
+          "hybridMinusLegacyRelative": 0.08053628171744348,
+          "hybridResidual": 0.044063971759637895,
+          "hybridWithBoth": 0.04352614063096729,
+          "hybridWithNozzle": 0.004262541450458196,
+          "hybridWithSite": 0.00337943231611616,
+          "legacyResidual": 0.12460025347708138,
+          "legacyWithBothResidual": 0.07711228572677652,
+          "metric": "tta",
+          "nozzleExplainedFraction": 0.9032647017452332,
+          "siteExplainedFraction": 0.9233062254453493
+        }
+      ],
+      "name": "proteus6"
+    },
+    {
+      "metrics": [
+        {
+          "bothExplainedFraction": -3.223295716686955,
+          "hybridMinusLegacyRelative": 0.5687424069960825,
+          "hybridResidual": 0.05576761996739458,
+          "hybridWithBoth": 0.23552315053812342,
+          "hybridWithNozzle": 0.15572896131247596,
+          "hybridWithSite": 0.13557253361741303,
+          "legacyResidual": 0.624510026963477,
+          "legacyWithBothResidual": 0.5867879971473258,
+          "metric": "apogee",
+          "nozzleExplainedFraction": -1.7924620308975956,
+          "siteExplainedFraction": -1.4310259913669916
+        },
+        {
+          "bothExplainedFraction": 0.7611950822059954,
+          "hybridMinusLegacyRelative": 0.10987853178382263,
+          "hybridResidual": 0.02852409398230187,
+          "hybridWithBoth": 0.006811693918592056,
+          "hybridWithNozzle": 0.00035103677462676106,
+          "hybridWithSite": 0.019782110846648257,
+          "legacyResidual": 0.1384026257661245,
+          "legacyWithBothResidual": 0.09988142370569204,
+          "metric": "maxVelocity",
+          "nozzleExplainedFraction": 0.9876933242877209,
+          "siteExplainedFraction": 0.3064771537030303
+        },
+        {
+          "bothExplainedFraction": -2.5419199495872604,
+          "hybridMinusLegacyRelative": 0.4021095014648552,
+          "hybridResidual": 0.03765920418222495,
+          "hybridWithBoth": 0.13338588657860256,
+          "hybridWithNozzle": 0.09033441826670345,
+          "hybridWithSite": 0.08310741665208024,
+          "legacyResidual": 0.43976870564708015,
+          "legacyWithBothResidual": 0.40689600738420306,
+          "metric": "tta",
+          "nozzleExplainedFraction": -1.3987341269771458,
+          "siteExplainedFraction": -1.2068288073731184
+        }
+      ],
+      "name": "qu8k"
+    },
+    {
+      "metrics": [
+        {
+          "bothExplainedFraction": -1.3174930182731797,
+          "hybridMinusLegacyRelative": -0.02668630529475603,
+          "hybridResidual": 0.035243663999410556,
+          "hybridWithBoth": 0.08167694525699977,
+          "hybridWithNozzle": 0.03603223222117589,
+          "hybridWithSite": 0.08057637011158783,
+          "legacyResidual": 0.008557358704654527,
+          "legacyWithBothResidual": 0.05120519547600259,
+          "metric": "apogee",
+          "nozzleExplainedFraction": -0.022374751438400967,
+          "siteExplainedFraction": -1.2862654153363695
+        },
+        {
+          "bothExplainedFraction": -1.1552571659112563,
+          "hybridMinusLegacyRelative": 0.003917846375623748,
+          "hybridResidual": 0.008056969619047628,
+          "hybridWithBoth": 0.017364841506981685,
+          "hybridWithNozzle": 0.00888030937912705,
+          "hybridWithSite": 0.016368653109521836,
+          "legacyResidual": 0.011974815994671376,
+          "legacyWithBothResidual": 0.020257559250569854,
+          "metric": "maxVelocity",
+          "nozzleExplainedFraction": -0.1021897560756528,
+          "siteExplainedFraction": -1.0316141034992123
+        },
+        {
+          "bothExplainedFraction": -1.1290241886429038,
+          "hybridMinusLegacyRelative": -0.019338616406084516,
+          "hybridResidual": 0.024655190139305606,
+          "hybridWithBoth": 0.05249149618217164,
+          "hybridWithNozzle": 0.024956891095215924,
+          "hybridWithSite": 0.052052360708394155,
+          "legacyResidual": 0.005316573733221091,
+          "legacyWithBothResidual": 0.03176523328630801,
+          "metric": "tta",
+          "nozzleExplainedFraction": -0.012236813190474764,
+          "siteExplainedFraction": -1.1112131123017237
+        }
+      ],
+      "name": "rabia-shortfincan"
+    },
+    {
+      "metrics": [
+        {
+          "bothExplainedFraction": -0.5740576974493822,
+          "hybridMinusLegacyRelative": -0.029824754887293928,
+          "hybridResidual": 0.06840964861702083,
+          "hybridWithBoth": 0.10768073398542911,
+          "hybridWithNozzle": 0.07023822592636152,
+          "hybridWithSite": 0.10606925218168839,
+          "legacyResidual": 0.0385848937297269,
+          "legacyWithBothResidual": 0.07473470360399544,
+          "metric": "apogee",
+          "nozzleExplainedFraction": -0.026729815841880035,
+          "siteExplainedFraction": -0.5505013448541172
+        },
+        {
+          "bothExplainedFraction": -0.42687859198799744,
+          "hybridMinusLegacyRelative": 0.005396610829562661,
+          "hybridResidual": 0.01805917162539115,
+          "hybridWithBoth": 0.02576824538130772,
+          "hybridWithNozzle": 0.01950311206472492,
+          "hybridWithSite": 0.024561860005357355,
+          "legacyResidual": 0.023455782454953812,
+          "legacyWithBothResidual": 0.028976238900565283,
+          "metric": "maxVelocity",
+          "nozzleExplainedFraction": -0.07995607269735405,
+          "siteExplainedFraction": -0.36007678064388293
+        },
+        {
+          "bothExplainedFraction": -0.4905822019091525,
+          "hybridMinusLegacyRelative": -0.024318853144391327,
+          "hybridResidual": 0.0485916945668879,
+          "hybridWithBoth": 0.07242991508200877,
+          "hybridWithNozzle": 0.04929262660678891,
+          "hybridWithSite": 0.07181134904793314,
+          "legacyResidual": 0.024272841422496576,
+          "legacyWithBothResidual": 0.046953366689769994,
+          "metric": "tta",
+          "nozzleExplainedFraction": -0.014424935087130041,
+          "siteExplainedFraction": -0.477852330280079
+        }
+      ],
+      "name": "rabia"
+    },
+    {
+      "metrics": [
+        {
+          "bothExplainedFraction": -0.4872676152621188,
+          "hybridMinusLegacyRelative": -0.015677621464050384,
+          "hybridResidual": 0.17345102721098793,
+          "hybridWithBoth": 0.2579680956048509,
+          "hybridWithNozzle": 0.17345102721098793,
+          "hybridWithSite": 0.2579680956048509,
+          "legacyResidual": 0.15777340574693755,
+          "legacyWithBothResidual": 0.23662090805046773,
+          "metric": "apogee",
+          "nozzleExplainedFraction": 0.0,
+          "siteExplainedFraction": -0.4872676152621188
+        },
+        {
+          "bothExplainedFraction": -0.30056636498853584,
+          "hybridMinusLegacyRelative": 0.00742279172683423,
+          "hybridResidual": 0.0451652195460499,
+          "hybridWithBoth": 0.058740365408915286,
+          "hybridWithNozzle": 0.0451652195460499,
+          "hybridWithSite": 0.058740365408915286,
+          "legacyResidual": 0.05258801127288413,
+          "legacyWithBothResidual": 0.06335530755171427,
+          "metric": "maxVelocity",
+          "nozzleExplainedFraction": 0.0,
+          "siteExplainedFraction": -0.30056636498853584
+        },
+        {
+          "bothExplainedFraction": -0.48861601192481163,
+          "hybridMinusLegacyRelative": -0.01570291480980049,
+          "hybridResidual": 0.10053276330755927,
+          "hybridWithBoth": 0.1496546811826799,
+          "hybridWithNozzle": 0.10053276330755927,
+          "hybridWithSite": 0.1496546811826799,
+          "legacyResidual": 0.08482984849775878,
+          "legacyWithBothResidual": 0.1318995999836245,
+          "metric": "tta",
+          "nozzleExplainedFraction": 0.0,
+          "siteExplainedFraction": -0.48861601192481163
+        }
+      ],
+      "name": "raven"
+    },
+    {
+      "metrics": [
+        {
+          "bothExplainedFraction": -3.572467787651439,
+          "hybridMinusLegacyRelative": 0.04420176545444106,
+          "hybridResidual": 0.008172904615313073,
+          "hybridWithBoth": 0.0373703430850668,
+          "hybridWithNozzle": 0.005930254063873634,
+          "hybridWithSite": 0.0352006506596316,
+          "legacyResidual": 0.05237467006975413,
+          "legacyWithBothResidual": 0.014383883952337173,
+          "metric": "apogee",
+          "nozzleExplainedFraction": 0.27440067601394996,
+          "siteExplainedFraction": -3.306993941135479
+        },
+        {
+          "bothExplainedFraction": -3.005869819059191,
+          "hybridMinusLegacyRelative": 0.01415852932070875,
+          "hybridResidual": 0.003227486430587844,
+          "hybridWithBoth": 0.012928890483714919,
+          "hybridWithNozzle": 0.005268416177952537,
+          "hybridWithSite": 0.011113302916247516,
+          "legacyResidual": 0.017386015751296596,
+          "legacyWithBothResidual": 0.02299954753198945,
+          "metric": "maxVelocity",
+          "nozzleExplainedFraction": -0.6323588932929967,
+          "siteExplainedFraction": -2.443330639882311
+        },
+        {
+          "bothExplainedFraction": -8.547872172821737,
+          "hybridMinusLegacyRelative": 0.036734950164762685,
+          "hybridResidual": 0.003197153565109421,
+          "hybridWithBoth": 0.03052601355654605,
+          "hybridWithNozzle": 0.004058656476051214,
+          "hybridWithSite": 0.029688537246740695,
+          "legacyResidual": 0.039932103729872104,
+          "legacyWithBothResidual": 0.015439962737625863,
+          "metric": "tta",
+          "nozzleExplainedFraction": -0.26945934669619426,
+          "siteExplainedFraction": -8.285927823652917
+        }
+      ],
+      "name": "torrent"
+    }
+  ],
+  "measured": 9,
+  "stagedNotApplicable": 2
+}

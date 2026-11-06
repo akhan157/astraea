@@ -1,0 +1,11 @@
+{
+  "scope": "author-hashed at fd15420aefd72512e58c2880df231640ede7e16a",
+  "sourceFilesSha256": {
+    "src/console/projectJobs.test.ts": "6dff8708ce042af89ccaf86fdbb5fe7dd65357ce55d6517633f72625f0452f9a"
+  },
+  "readonlyFilesSha256": {
+    "src/console/store.ts": "65b079743f6cd5e6fef2738feeff717d94c46c5e4e27feb30afe979492a1cebc",
+    "src/state/analysis.ts": "edf80d4d44bbc7f13cc6c2c67f90d930effdc64441ccb9bbe2cd73336f00bfe2",
+    "src/state/project.ts": "0f99ec0456c741961f7fd937ec3078fa37f7f9544149f6d44329f3f7bdcb7c0f"
+  }
+}

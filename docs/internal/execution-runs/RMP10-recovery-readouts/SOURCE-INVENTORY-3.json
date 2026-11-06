@@ -1,0 +1,23 @@
+{
+  "kind": "author-hashed source inventory, not independent verification or scientific seal",
+  "baseSha": "59700ee85c4c832784b37f6e8ddca4a351390584",
+  "sourceFilesSha256": {
+    "src/console/stages/Recovery.tsx": "5f32d5a40a94de6cd464bcb90faa482e593dcb5e70b2058ea306f29e823b98b2",
+    "src/console/stages/Flight.tsx": "b241f51de8e12a7bcfd2b547badcf917509279bcdaa8cb4eb613b4a220a220df",
+    "src/console/data/recoveryResults.ts": "91ae9f74592a2d8b998a3e8356dfe43315c4aed8c795294d6be278f3d5ed85c4",
+    "src/console/data/recoveryResults.test.ts": "a1c54c0a1247d3199b5a6a0fe2836c7f69d1556ac04bd3607303f2972933a118",
+    "src/console/stages/recoveryResults.test.tsx": "b1b763df60fb6d70acd8d272b23e8c502ee046b85f1038d9e56bef62d83aaa99"
+  },
+  "readOnlyFilesSha256": {
+    "crates/astraea-core/src/six_dof.rs": "4cca84bf35ae281c614d194d8f68d90a2dbe485469e710eadd26f0d3d66c9b09",
+    "crates/astraea-engine/src/models.rs": "1af9dd36709531cb377f05e7c58e224d90b5b6b896c09ba4ab0b770779732df6",
+    "src/console/data/adapter.ts": "753683b777d7b4789f8cb981d8c7a2329ca872cfa8f70c909092289b1e8f597d",
+    "src/console/data/contract.ts": "663d19a0fa246bd2aea34ba998b1fb7a4c7da5b3f67f036b8fa3618e96614572",
+    "src/engine/astraea_engine.wasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b"
+  },
+  "readOnlyTestFilesSha256": {
+    "src/console/stages/siteAndTelemetry.test.tsx": "434dada35af60b04949e433003328d719f055f824fa6ef6db2c27a688a62690b"
+  },
+  "previousSnapshotSha256": "cec3fd914eff04bf426eb6019fb28e6c1b101affc42b8c8b91e00197422a4206",
+  "afterRereview": "coordinator implemented nonblocking tooltip copy + one UI isolation test; no helper/physics/guard change"
+}

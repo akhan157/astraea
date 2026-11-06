@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "e1b-skin-friction-diagnostic/1.0.0",
+  "inputIdentity": "e1b-synthetic-local-friction-v1",
+  "modelId": "local-state-inherited-turbulent-friction/1.0.0",
+  "source": {
+    "identity": "inherited-friction-synthetic-check-v1",
+    "geometryIdentity": "synthetic-geometry-v1",
+    "conditionIdentity": "synthetic-condition-v1",
+    "description": "Implementation-only arbitrary surfaces, no rocket shape or empirical validation."
+  },
+  "geometry": {
+    "identity": "synthetic-geometry-v1",
+    "referenceAreaM2": 0.01,
+    "surfaces": [
+      {
+        "identity": "synthetic-body",
+        "lengthM": 2.0,
+        "roughnessM": 5e-06,
+        "wettedAreaM2": 0.6,
+        "formFactor": 1.0
+      },
+      {
+        "identity": "synthetic-fin",
+        "lengthM": 0.25,
+        "roughnessM": 1e-06,
+        "wettedAreaM2": 0.08,
+        "formFactor": 1.1
+      }
+    ]
+  },
+  "conditionIdentity": "synthetic-condition-v1",
+  "environment": {
+    "schemaVersion": "e1a-environment-diagnostic/1.0.0",
+    "inputIdentity": "e1a-synthetic-interpolation-request-v1",
+    "profile": {
+      "source": {
+        "identity": "e1a-synthetic-table-v1",
+        "evidenceClass": "synthetic",
+        "description": "Arbitrary implementation fixture, not weather or a launch profile; pressure and temperature are supplied independently."
+      },
+      "location": {
+        "identity": "synthetic-coordinate-origin",
+        "latitudeDeg": 0.0,
+        "longitudeDeg": 0.0,
+        "horizontalDatumIdentity": "synthetic-coordinates-no-geodetic-survey"
+      },
+      "altitudeDatum": "geometricMsl",
+      "verticalDatumIdentity": "synthetic-MSL-no-geoid-model",
+      "issueTimeUtcUnixS": 1792965600,
+      "validity": {
+        "fromUtcUnixS": 1792965600,
+        "untilUtcUnixS": 1792969200
+      },
+      "units": {
+        "altitude": "m",
+        "pressure": "Pa",
+        "temperature": "K",
+        "wind": "m/s",
+        "time": "UTC Unix seconds"
+      },
+      "interpolationPolicy": "logPressureLinearTemperatureWind",
+      "extrapolationPolicy": "reject",
+      "closureId": "dry-ideal-air-sutherland/1.0.0",
+      "knots": [
+        {
+          "altitudeM": 0.0,
+          "pressurePa": 100000.0,
+          "temperatureK": 300.0,
+          "windTowardEnuMps": {
+            "east": 2.0,
+            "north": -4.0,
+            "up": 1.0
+          }
+        },
+        {
+          "altitudeM": 1000.0,
+          "pressurePa": 25000.0,
+          "temperatureK": 200.0,
+          "windTowardEnuMps": {
+            "east": 6.0,
+            "north": 8.0,
+            "up": -3.0
+          }
+        }
+      ]
+    },
+    "query": {
+      "altitudeM": 500.0,
+      "altitudeDatum": "geometricMsl",
+      "timeUtcUnixS": 1792967400,
+      "groundVelocityEnuMps": {
+        "east": 34.0,
+        "north": 42.0,
+        "up": -1.0
+      }
+    },
+    "surfaces": [
+      {
+        "identity": "synthetic-body",
+        "lengthM": 2.0,
+        "roughnessM": 5e-06
+      },
+      {
+        "identity": "synthetic-fin",
+        "lengthM": 0.25,
+        "roughnessM": 1e-06
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "status": "pass",
+  "packets": 18,
+  "acceptanceChecks": 117,
+  "recordedPassedChecks": 24,
+  "localLinks": 176,
+  "dependencyCycles": 0,
+  "packageHashes": 46,
+  "acceptedSourceSnapshotChecked": false,
+  "scope": "package integrity only; no engineering/scientific/release test executed"
+}

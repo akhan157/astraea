@@ -1,0 +1,273 @@
+{
+  "record_version": "0.1",
+  "access_date": "2026-10-24",
+  "base_commit": "1745adb7265b642c6a7ecfd12e1418b51f159bcb",
+  "purpose": "A1/A2 reference research, not holdout scoring",
+  "artifacts": [
+    {
+      "id": "irec-rules-2027-p1",
+      "url": "https://www.esrarocket.org/s/2027-IREC-RR-REV-P1-tcda.pdf",
+      "bytes": 657482,
+      "sha256": "a2661d1b22953a59e6fb77aab24fd258857fc0365817d656d852fcde0110b6d2",
+      "access_date": "2026-10-24",
+      "cache_path_ephemeral": "/tmp/astraea-accuracy-research/irec-rules-2027-p1.pdf",
+      "version": "2027 REV P1, effective 2026-10-15",
+      "authority": "Official ESRA R&R",
+      "examined_scope": "Competition mission/category requirements; not flight outcomes",
+      "rights_note": "Copyright ESRA; link/summary/hash retained; PDF not redistributed"
+    },
+    {
+      "id": "irec-dteg-2027-p1",
+      "url": "https://www.esrarocket.org/s/2027-IREC-DTEG-REV-P1.pdf",
+      "bytes": 1028380,
+      "sha256": "76d4edba987cae10a959aa930e537d411b8819673a89b0ff4a97c5b95d007728",
+      "access_date": "2026-10-24",
+      "cache_path_ephemeral": "/tmp/astraea-accuracy-research/irec-dteg-2027-p1.pdf",
+      "version": "2027 REV P1, effective 2026-10-15",
+      "authority": "Official ESRA DTEG",
+      "examined_scope": "Vehicle design/review requirements; not accuracy tolerances",
+      "rights_note": "Copyright ESRA; link/summary/hash retained; PDF not redistributed"
+    },
+    {
+      "id": "rasaero-manual",
+      "url": "https://www.rasaero.com/dloads/RASAero%20II%20Users%20Manual.pdf",
+      "bytes": 14427876,
+      "sha256": "f43769678ddef8bbffb48f0bd1c6dbcd1e4a50f8659d6db8e968e9d20b4e6709",
+      "access_date": "2026-10-24",
+      "cache_path_ephemeral": "/tmp/astraea-accuracy-research/rasaero-manual.pdf",
+      "version": "1.0.2.0, copyright 2019",
+      "authority": "Official developer manual",
+      "examined_scope": "Methods and required inputs; selected method sections inspected",
+      "rights_note": "Copyright Charles E. Rogers; no redistributed PDF or executable"
+    },
+    {
+      "id": "rasaero-arcas",
+      "url": "https://www.rasaero.com/dloads/RASAero%20II%20Comparisons%20with%20ARCAS%20CP%20and%20CD%20Data.pdf",
+      "bytes": 1316021,
+      "sha256": "3d2dd9e9b3ed8c6521eed525baffa6e3c5f4fcd90274cd9a1115ba51ed3fd512",
+      "access_date": "2026-10-24",
+      "cache_path_ephemeral": "/tmp/astraea-accuracy-research/rasaero-arcas.pdf",
+      "version": "No software build or revision identified in inspected slides",
+      "authority": "Official developer ARCAS comparison",
+      "examined_scope": "Published wind-tunnel CP/drag overlays and reconstruction assumptions",
+      "rights_note": "Copyright developer slides; original NASA measurement rights separate"
+    },
+    {
+      "id": "openrocket-tech-13.05",
+      "url": "https://github.com/openrocket/openrocket/releases/download/OpenRocket_technical_documentation-v13.05/OpenRocket_technical_documentation-v13.05.pdf",
+      "bytes": 1202222,
+      "sha256": "cc6fd3291ade76ee044ffd40ff285cf814c7496b97d1ff7b35222d8f2d23cf8c",
+      "access_date": "2026-10-24",
+      "cache_path_ephemeral": "/tmp/astraea-accuracy-research/openrocket-tech-13.05.pdf",
+      "version": "13.05 technical documentation, official page date 2013-05-10",
+      "authority": "Official method documentation",
+      "examined_scope": "Historical methods, chapter 6 flight/tunnel examples and limitations",
+      "rights_note": "CC BY-SA per official documentation page; original thesis license differs"
+    },
+    {
+      "id": "rasaero-altitude",
+      "url": "https://www.rasaero.com/comparisons-alt.htm",
+      "bytes": 21556,
+      "sha256": "cc4a529cdfdf394d53c87fb1d11ae117c00f0d6dac7976ad4e2b87d3b2762967",
+      "access_date": "2026-10-24",
+      "cache_path_ephemeral": "/tmp/astraea-accuracy-research/rasaero-altitude.html",
+      "version": "Mutable HTML, exact hash frozen; page footer copyright 2023",
+      "authority": "Official developer altitude comparison",
+      "examined_scope": "36 published per-flight aggregate outcomes examined; no raw telemetry",
+      "rights_note": "Copyright Charles E. Rogers, all rights reserved; store summaries/derived audit only"
+    },
+    {
+      "id": "nasa-2027-handbook",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/08/g-739882-2027-sli-handbook-508-aug5.pdf",
+      "bytes": 4354317,
+      "sha256": "91c2c045278f49bc8b4475c34ef1f397c24281cbcdc7bc92609f55bb38e79822",
+      "access_date": "2026-10-24",
+      "cache_path_ephemeral": "/tmp/astraea-accuracy-research/nasa-2027-handbook.pdf",
+      "version": "2027 Student Launch Handbook & RFP, URL issued August 2026",
+      "authority": "Official NASA handbook",
+      "examined_scope": "USLI clauses; later school division distinguished; no flight outcomes",
+      "rights_note": "US government publication; inspect third-party figures before redistributing"
+    }
+  ],
+  "web_records": [
+    {
+      "id": "esra-index",
+      "url": "https://www.esrarocket.org/documents-and-forms",
+      "examined_scope": "Current official index; linked 2027 REV P1; some unrelated future update labels",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "esra-legacy-index",
+      "url": "https://www.soundingrocket.org/irec-documents--forms.html",
+      "examined_scope": "Search/index excerpt still advertises 2025 v1.6; not used as governing current revision",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "rasaero-home",
+      "url": "https://www.rasaero.com/home.htm",
+      "examined_scope": "Official model-range/version/accuracy claims; developer assertions",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "rasaero-tunnel-index",
+      "url": "https://www.rasaero.com/comparisons.htm",
+      "examined_scope": "Official index of tunnel, ballistic/free-flight and sounding-rocket references",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "naca-a53d02-catalog",
+      "url": "https://ntrs.nasa.gov/citations/19930087740",
+      "examined_scope": "Primary NASA catalog: report identity/regime; US-government public-use notice; full curves not redigitized",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "nasa-r100-catalog",
+      "url": "https://ntrs.nasa.gov/citations/19630004995",
+      "examined_scope": "Primary NASA catalog: free-flight zero-lift drag collection; public-use notice",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "nasa-d4013-excerpt",
+      "url": "https://ntrs.nasa.gov/api/citations/19670020050/downloads/19670020050.pdf",
+      "examined_scope": "Primary report search excerpt, not full new extraction audit",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "nasa-d4014-mirror-excerpt",
+      "url": "https://www.rasaero.com/dloads/ARCAS%20NASA%20TN%20D-4014.pdf",
+      "examined_scope": "Primary report hosted by developer; search excerpt only",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "rocketpy-current-index",
+      "url": "https://docs.rocketpy.org/en/latest/index.html",
+      "examined_scope": "Docs identify 1.13.0; mutable latest URL",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "rocketpy-rocket-inputs",
+      "url": "https://docs.rocketpy.org/en/latest/user/rocket/rocket_usage.html",
+      "examined_scope": "1.13.0 inputs and external drag-table provenance",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "rocketpy-validation-v1",
+      "url": "https://docs.rocketpy.org/en/v1.0.0/index.html",
+      "examined_scope": "Published Bella Lui/NDRT summary outcomes inspected; historical version",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "rocketpy-environment",
+      "url": "https://docs.rocketpy.org/en/latest/user/environment/1-atm-models/index.html",
+      "examined_scope": "1.13.0 atmosphere/profile categories; no weather-file downloads",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "rocketpy-comparator",
+      "url": "https://docs.rocketpy.org/en/latest/user/flight_comparator.html",
+      "examined_scope": "1.13.0 synthetic comparison example; method capability, not real-flight outcomes",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "rocketpy-paper",
+      "url": "https://ascelibrary.org/doi/10.1061/%28ASCE%29AS.1943-5525.0001331",
+      "examined_scope": "2021 publisher abstract/search excerpts only; full-text request HTTP403",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "rocketpy-author-repo",
+      "url": "https://github.com/RocketPy-Team/RocketPaper",
+      "examined_scope": "Root/README and example directory names only; raw data/notebooks not opened; MIT advertised",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "rocketpy-current-repo",
+      "url": "https://github.com/RocketPy-Team/RocketPy",
+      "examined_scope": "Root metadata/README; MIT advertised; no installation or current-code audit",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "rocketpy-marketing",
+      "url": "https://rocketpy-team.github.io/",
+      "examined_scope": "October2026 marketing under-1% apogee claim; no universal bound established",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "openrocket-doc-index",
+      "url": "https://openrocket.info/documentation.html",
+      "examined_scope": "Official 13.05 documentation link/date/license; no current binary audit",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    },
+    {
+      "id": "nasa-student-launch-index",
+      "url": "https://www.nasa.gov/learning-resources/nasa-student-launch/",
+      "examined_scope": "Official current 2027 handbook link; no outreach",
+      "access_date": "2026-10-24",
+      "snapshot_sha256": null
+    }
+  ],
+  "exposure": [
+    {
+      "group": "RASAero official published altitude table",
+      "scope": "All 36 aggregate per-flight comparison rows and notes; case labels in rasaero-table-audit.json",
+      "raw_outcome_files_opened": false,
+      "disposition": "Exposed reference/development evidence, never fresh blind evidence for this model-development team"
+    },
+    {
+      "group": "RocketPy official published validation summaries",
+      "scope": "Bella Lui Kaltbrunn and NDRT apogee/time/maximum-speed table; author repository root/README names Valetudo variants; current marketing and search snippets",
+      "raw_outcome_files_opened": false,
+      "disposition": "Published summary outcomes exposed. No future blind status asserted for these example missions"
+    },
+    {
+      "group": "OpenRocket historical chapter 6 examples",
+      "scope": "Published small-rocket B4-4/C6-3 and rolling-rocket examples, Haisunaataa hybrid reconstruction and ARCAS tunnel comparisons",
+      "raw_outcome_files_opened": false,
+      "disposition": "Exposed historical development/reference examples; no unseen validation claim"
+    },
+    {
+      "group": "Existing Astraea baseline evidence",
+      "scope": "docs/accuracy.md, docs/road-to-1.0.md, project-status opening, physical contract, lane brief and local output/source contracts",
+      "raw_outcome_files_opened": false,
+      "disposition": "Previously exposed development/validation summaries retain their historical status; no new scoring"
+    },
+    {
+      "group": "Broad web search snippets",
+      "scope": "Search results included flight-database Zenodo records 19976139/20531977 and unrelated public example results; no database page or dataset downloaded/opened",
+      "raw_outcome_files_opened": false,
+      "disposition": "Discovery-only snippets; no statistical use. Prospective custodian must qualify any proposed data and assess this exposure before assigning blindness"
+    }
+  ],
+  "protection": "No fresh raw flight dataset, CSV, notebook telemetry or sealed outcome was opened. Public summary exposure is still exposure. Independent custodian must review dataset overlap before any blind claim.",
+  "local_cache_note": "Original PDFs/HTML were inspected in /tmp/astraea-accuracy-research and are not redistributed in this commit. Hashes permit drift checks; cache is ephemeral. Stable source URLs retained without signed download parameters.",
+  "access_failures": [
+    "ASCE publisher full text: HTTP403; no circumventing paywall",
+    "Web reader RASAero manual: exceeded size limit; official PDF downloaded with authorized shell network",
+    "Web reader OpenRocket release PDF: restricted-URL fetch error; official release downloaded with authorized shell network"
+  ],
+  "network": "Managed environment status observed connected/enforced unrestricted policy, no credentials/outbound identities. Shell requests used with_additional_permissions network enabled. No outreach or remote write.",
+  "uncertainties": [
+    "No independent current reference-runtime reproduction",
+    "No current OpenRocket implementation audit beyond historical published methods",
+    "RocketPy example calibration/sensor-processing provenance not established without separately allocated development-data review",
+    "No permissions inferred for third-party raw flight records from repository license alone"
+  ]
+}

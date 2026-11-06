@@ -1,0 +1,104 @@
+{
+  "scientific_source_base": "1745adb7265b642c6a7ecfd12e1418b51f159bcb",
+  "wasm_sha256": "e4ab1b9d207f791734108c6a85e480da3660603a66fdb97101f9ff033efe0985",
+  "input_manifest": [
+    {
+      "path": "/workspace/astraea-data/cosmic-cargo-2986.csv",
+      "sha256": "adce6e39cf0fa9919c0349c83725ffe431b44a8b03db5ccbb71d6a7aad4066b8",
+      "bytes": 977003
+    },
+    {
+      "path": "/workspace/astraea-data/dofpro/G69_30JUN2017_G69N-P_1_FIP.csv",
+      "sha256": "9fa2c518448d18b553d0cb2e17b443e92a7fcf3beeacf95e1c90749f42d8da51",
+      "bytes": 3851425
+    },
+    {
+      "path": "/workspace/astraea-data/dofpro/TopShot_14DEC2017_E12-6_1.csv",
+      "sha256": "88fa453139709224d2252f2e4bf1c9c15196a3a1c44f76b9a0b8839b65de3b12",
+      "bytes": 2321295
+    },
+    {
+      "path": "/workspace/astraea-data/dofpro/Estes_Top_Shot_Avionics.ork",
+      "sha256": "73dc1ea9479b3464e3920e905cfc6e2ff9e10ed01fb681ae823fb8144e4d14f8",
+      "bytes": 2550
+    },
+    {
+      "path": "/workspace/astraea-data/motors/Estes_E12_5f4294d20002e900000007ad.rasp",
+      "sha256": "63f972703ce557f58584cd411b2349f55c3bd949ac44cb9422d472c31a226c30",
+      "bytes": 545
+    },
+    {
+      "path": "/workspace/astraea-data/dofpro/20210417_Adventurer_J510W_1_Raven.csv",
+      "sha256": "3b04634b092fdde87b2a67f8394a4b869f3fa6938f5f5394f292d7c92529c0c0",
+      "bytes": 7161276
+    },
+    {
+      "path": "/workspace/astraea-data/dofpro/ClassAdventurer.ork",
+      "sha256": "6308a287f48d2b3483c65a239f49747d86f6ac72ded8903f36a70ca7eb5e4d1d",
+      "bytes": 4092
+    },
+    {
+      "path": "/workspace/astraea-data/motors/AeroTech_J510W_5f4294d20002e900000006d2.rasp",
+      "sha256": "8534e030098e3285239f8f75e7b750477ceff730b768981505e2ec3c47073f5e",
+      "bytes": 270
+    }
+  ],
+  "artifact_manifest": [
+    {
+      "path": "adventurer-j510w-2021-04-17.json",
+      "sha256": "b1cbeaab73e737693d042da40e6241ae075ecaf19cee9470f852620c8f1fef24",
+      "bytes": 182760
+    },
+    {
+      "path": "adventurer-j510w-2021-04-17.md",
+      "sha256": "c42f61080ee064143d756aaa7770511dc7c45eb73559069304c6ea538327dc4d",
+      "bytes": 4037
+    },
+    {
+      "path": "benchmark.log",
+      "sha256": "06c1b339e2897f09a79321ce2f3702f53a6398af75b0ec2bb95faa5de44b0e87",
+      "bytes": 1954
+    },
+    {
+      "path": "cosmic-cargo-2986.json",
+      "sha256": "10ca35e7237d88f1ffbdcba48272a672c814b95f5df74f5c52aada9d297fd412",
+      "bytes": 1518294
+    },
+    {
+      "path": "cosmic-cargo-2986.md",
+      "sha256": "cc84a9bc784a6f204fc1e00f2a70bb7ab42c79c3a33b259195789c0e0c953085",
+      "bytes": 2486
+    },
+    {
+      "path": "execution.json",
+      "sha256": "22c961ef7f7823b6c28115dffed59151148d890888e6101b404722cc450111a7",
+      "bytes": 668
+    },
+    {
+      "path": "ledger-comparison.json",
+      "sha256": "15dcd7aa6c2ce81d3c54871df6a4f2b8e3e354f5720f4b52a2a3291ac81305fb",
+      "bytes": 5103
+    },
+    {
+      "path": "mini-dx3-g69n-2017-06-30.json",
+      "sha256": "8ace7ffb159e89dae534048f32e9356090fd5d437d1bf1bf1abac6f957d7e5f3",
+      "bytes": 114999
+    },
+    {
+      "path": "mini-dx3-g69n-2017-06-30.md",
+      "sha256": "48b11b1c29d887f9d132bbc4edda6b40345edb1a3e35c9be940a0a5423a99188",
+      "bytes": 2542
+    },
+    {
+      "path": "top-shot-e12-2017-12-14.json",
+      "sha256": "ae55839b80b56c290232d539763efb99ba936b5fee19fcf3681c3728ade19a25",
+      "bytes": 66292
+    },
+    {
+      "path": "top-shot-e12-2017-12-14.md",
+      "sha256": "2c6595057e9d5bb2d497485365c7cf70e0549e90077ca8c5d76ce735ed1fc2a1",
+      "bytes": 3992
+    }
+  ],
+  "scope": "Four declared development cases only; no reserved holdouts; uncalibrated unchanged baseline; no tuning or recalibration."
+}

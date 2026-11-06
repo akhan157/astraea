@@ -1,0 +1,18 @@
+# Verification recipe for the managed workspace mounts recorded in the delivery review.
+FROM debian:trixie-slim@sha256:62bd423aeee912639ca8ee681c2b762cb3e25137e0a92b20be455898a9f034ad
+
+# Keep the session CA out of image layers. Debian apt verifies signed metadata;
+# any HTTPS transport uses the mounted session trust bundle.
+RUN --mount=type=secret,id=proxy_ca,required=true \
+    apt-get -o Acquire::https::CaInfo=/run/secrets/proxy_ca update && \
+    apt-get -o Acquire::https::CaInfo=/run/secrets/proxy_ca install -y --no-install-recommends \
+      ca-certificates build-essential pkg-config libwebkit2gtk-4.1-dev \
+      libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev \
+      xvfb xauth dbus-x11 && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV PATH=/opt/node/bin:/workspace/.toolchains/pnpm/node_modules/.bin:/workspace/.toolchains/cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENV CARGO_HOME=/workspace/.toolchains/cargo
+ENV RUSTUP_HOME=/workspace/.toolchains/rustup
+ENV CARGO_BUILD_JOBS=2
+WORKDIR /workspace/astraea

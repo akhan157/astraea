@@ -1,0 +1,166 @@
+{
+  "result": "PASS native updater bridge/HTTP204 only",
+  "sourceCommit": "00e768b2d2dcfc9913b2a9428040a67fd42d3d58",
+  "sourceStatus": "clean",
+  "source": [
+    {
+      "path": "src-tauri/tauri.conf.json",
+      "sha256": "5d66919814f5211d839db98c610c3ceaafcd6fd3841b9078da2cba93f27f9168"
+    },
+    {
+      "path": "src-tauri/src/lib.rs",
+      "sha256": "8bbeb25d5810f2d086a357058a36b47eae26649d822a666b603929db46f0f866"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "sha256": "8b299a8ce0a04e3abe1da68991c752dda1684d0ca4a922b046f1e0cbacde0b6e"
+    },
+    {
+      "path": "src-tauri/capabilities/default.json",
+      "sha256": "38ed15daa9d574dc4405c8a4493f3aad76e8350e815704bb8ecb3f3d3295cf1b"
+    },
+    {
+      "path": "src/desktop/updates.ts",
+      "sha256": "47d3cbe459aa8c0c2cb2fa9cef10208acd615f7b59b5ad1777502c5b7f60b343"
+    },
+    {
+      "path": "src/desktop/UpdateBanner.tsx",
+      "sha256": "ae233724dc91102f87393dd699139b7757d839f979857ee653621f2d119d3c24"
+    }
+  ],
+  "image": "sha256:9c6c230e1d815013fa34fcb6b9174d9a6f9e2a9ec68920b93f345e547c723174",
+  "limits": {
+    "network": "none",
+    "cpus": 1,
+    "memory": "4g"
+  },
+  "preservedOriginal": {
+    "inode": 548602,
+    "bytes": 261264720,
+    "sha256": "d5938bc6a5ee9201695cd67f5f3702b28eccf9641d6eef51d463b5f08873ccfd"
+  },
+  "bridgeBinary": {
+    "bytes": 261264728,
+    "sha256": "7351a37bdefa74cdcadf3bef85bd4193c7c1894bde17c08a9da80b8a091cb391"
+  },
+  "frontendFiles": 75,
+  "frontendUnchanged": true,
+  "buildExit": 0,
+  "runtimeHarnessExit": 0,
+  "execution": {
+    "startedAt": "2026-10-26T04:20:08.042714+00:00",
+    "stoppedAt": "2026-10-26T04:20:14.136741+00:00",
+    "pid": 7,
+    "ready": true,
+    "exitBeforeControlledStop": null,
+    "wrapperExitCode": -15,
+    "controlledStop": "SIGTERM process group",
+    "forcedKill": false,
+    "requestCount": 1,
+    "exact204Count": 1,
+    "otherRequests": [],
+    "scope": "native check transport only; controlled stop is not app completion"
+  },
+  "files": [
+    {
+      "path": "RESULT.md",
+      "bytes": 1810,
+      "sha256": "eb02818c8ba3b05847a56a0b32f9a73461316b721542de37075f07c332a119fb"
+    },
+    {
+      "path": "app.log",
+      "bytes": 510,
+      "sha256": "3e348a9bff610026f4244d50f5ca49f9abf0dcff47d9501a910def822fc5ecf2"
+    },
+    {
+      "path": "bridge-config.json",
+      "bytes": 275,
+      "sha256": "4b2ac3740c13c3de440c18c63b769bf59f799ad3b7ed3a5b791b0babedf71355"
+    },
+    {
+      "path": "bridge204-debug",
+      "bytes": 261264728,
+      "sha256": "7351a37bdefa74cdcadf3bef85bd4193c7c1894bde17c08a9da80b8a091cb391"
+    },
+    {
+      "path": "build.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "build.log",
+      "bytes": 355,
+      "sha256": "fbfb4ede8cef3d6e8b40dbb0118900b27050e08d6fd03c1d67d17ba81808e669"
+    },
+    {
+      "path": "build.sh",
+      "bytes": 502,
+      "sha256": "d34a44a8a4b5bb9a5cca0d8b2967a358f76e9c8bdee8056f522984a1b964c6ce"
+    },
+    {
+      "path": "exit-control.json",
+      "bytes": 411,
+      "sha256": "949e5d377e3ab6639e18b136ce34d7b98c739280a92fff029b228401d993d608"
+    },
+    {
+      "path": "frontend-files-after.json",
+      "bytes": 12749,
+      "sha256": "7c19a709240bcdeaf8856f15522588956cf00e6b7b183584e72e74fecb98f3ea"
+    },
+    {
+      "path": "frontend-files-before.json",
+      "bytes": 12749,
+      "sha256": "7c19a709240bcdeaf8856f15522588956cf00e6b7b183584e72e74fecb98f3ea"
+    },
+    {
+      "path": "original-verified-debug",
+      "bytes": 261264720,
+      "sha256": "d5938bc6a5ee9201695cd67f5f3702b28eccf9641d6eef51d463b5f08873ccfd"
+    },
+    {
+      "path": "preserved-after.json",
+      "bytes": 124,
+      "sha256": "f91899870b0c92cb635a4af7dc5be7d4e784b81ed9d03daff3b4d392e758f943"
+    },
+    {
+      "path": "preserved-before.json",
+      "bytes": 124,
+      "sha256": "f91899870b0c92cb635a4af7dc5be7d4e784b81ed9d03daff3b4d392e758f943"
+    },
+    {
+      "path": "request-trace.jsonl",
+      "bytes": 276,
+      "sha256": "f5c86148084b808c567c7f290c71dd51d3d0ecef04c1530ad11767ef0a3973d5"
+    },
+    {
+      "path": "run-build.sh",
+      "bytes": 1250,
+      "sha256": "2e34c38efcc41eb32e8b8fb15da30091c052a3c6aa229545f5b2b8116f800f91"
+    },
+    {
+      "path": "run-runtime.sh",
+      "bytes": 1269,
+      "sha256": "93ded08af21120615aef53df8b111fc92c5f17edf7491454252cbf834c5ff6e9"
+    },
+    {
+      "path": "runtime.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "runtime.log",
+      "bytes": 385,
+      "sha256": "5e9038674327cf781316d0857128b9c311e47d33a75441c383865539fde0fcfe"
+    },
+    {
+      "path": "startup.jsonl",
+      "bytes": 473,
+      "sha256": "56ef3d5bfc08dceaa3913af7268c0db9f702858cb79330470e3879619d4c063d"
+    },
+    {
+      "path": "updater-bridge204.py",
+      "bytes": 2913,
+      "sha256": "43cc167d9ae4ebf1c2376801982362ced779d9262babaa6eda6c3b6046728821"
+    }
+  ]
+}

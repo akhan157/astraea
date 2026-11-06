@@ -1,0 +1,42 @@
+{
+  "status": "pass",
+  "scope": "Synthetic application/observer/persistence/runtime-byte integrity only; NOT physical accuracy, numerical reserve/convergence, native-WASM full parity, team/platform/release qualification",
+  "browser": "156.0.8078.4",
+  "wasmSha256": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+  "fetchedWasmSha256": [
+    "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+    "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b"
+  ],
+  "schemaVersion": "1.8.0",
+  "observedCommand": "simulate_flight",
+  "explicitUiSimulateFlightCalls": 3,
+  "existingBootstrapSimulateFlightCalls": 2,
+  "totalSimulateFlightCalls": 5,
+  "otherCommandsIncludeUncommittedPreview": true,
+  "initialPageCommandCounts": {
+    "stability": 2,
+    "simulate_flight": 3,
+    "flight_summary": 3,
+    "solve_chamber": 1,
+    "nozzle_performance": 2
+  },
+  "reloadedPageCommandCounts": {
+    "stability": 2,
+    "simulate_flight": 2,
+    "flight_summary": 2
+  },
+  "checks": [
+    "Actual requested native result retained bit-for-bit through strict parser/archive, selected-point plots/readout and sampling disclosures",
+    "Actual browser-downloaded project/trace ZIP retains exact history including signed zero and same invocation identity",
+    "Meaningful motor/mass alternative; stale baseline retains original samples/identity and explicit variant run updates trace without rewriting baseline",
+    "Save/reload/Open restores historical plots without implicit rerun; unknown history import refuses before project/case replacement",
+    "Genuine old-format absence remains unavailable; explicit saved-input rerun reproduces history on exact same engine, never backfills old cases"
+  ],
+  "baselineSamples": 186,
+  "variantSamples": 186,
+  "baselineInitialCgM": 0.3387755306208039,
+  "variantInitialCgM": 0.34808890019054595,
+  "runtimeErrors": [],
+  "cspViolations": [],
+  "externalRequests": []
+}

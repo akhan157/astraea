@@ -1,0 +1,73 @@
+{
+  "name": "astraea",
+  "version": "0.10.0",
+  "description": "Unified Open-Source Rocket Engineering Environment",
+  "type": "module",
+  "scripts": {
+    "build:engine": "node scripts/build-engine.mjs",
+    "dev": "pnpm build:engine && vite",
+    "build": "pnpm build:engine && tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "test": "pnpm build:engine && vitest run",
+    "test:watch": "vitest",
+    "test:browser": "node scripts/browser-smoke.mjs",
+    "test:arcas-runtime": "cargo build --manifest-path crates/astraea-core/Cargo.toml --example arcas_aero && vitest run --config scripts/arcas-runtime.vitest.config.mjs",
+    "benchmark:arcas": "vitest run --config scripts/arcas-empirical.vitest.config.mjs --reporter=verbose",
+    "validate:mini-dx3": "vitest run --config scripts/flight-validation.vitest.config.mjs --reporter=verbose",
+    "benchmark:flight": "node scripts/run-development-benchmark.mjs",
+    "fixtures:telemetry": "vitest run --config scripts/telemetry-fixtures.vitest.config.mjs",
+    "fixtures:freeform": "vitest run --config scripts/freeform-fixtures.vitest.config.mjs",
+    "validate:round2": "vitest run --config scripts/flight-validation.vitest.config.mjs --reporter=verbose src/validation/round2/round2-validation.ts"
+  },
+  "keywords": [
+    "rocketry",
+    "aerospace",
+    "simulation",
+    "openrocket",
+    "threejs",
+    "rocketpy"
+  ],
+  "author": "Adnan Khan",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/space-grotesk": "^5.3.0",
+    "@react-three/drei": "^10.7.6",
+    "@react-three/fiber": "^9.3.0",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "fast-xml-parser": "^5.11.1",
+    "jszip": "^3.10.1",
+    "lucide-react": "^1.43.0",
+    "motion": "^12.23.12",
+    "radix-ui": "^1.4.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
+    "three": "^0.185.1",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@tauri-apps/cli": "^2.12.3",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@types/three": "^0.185.4",
+    "@vitejs/plugin-react": "^6.1.1",
+    "fake-indexeddb": "^6.2.6",
+    "jsdom": "^30.0.1",
+    "playwright": "^1.64.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0"
+  }
+}

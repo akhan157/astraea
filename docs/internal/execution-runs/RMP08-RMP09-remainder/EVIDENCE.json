@@ -1,0 +1,251 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP08/RMP09",
+  "subpacket": "remainder: RMP08 C01/C03/C04/C08 and RMP09 C02/C03/C04/C05/C07",
+  "baseSha": "58945a4d3d1fe85ee03f45cca5f963f7afc90f10",
+  "sourceSha": "758825d234678fdbf0411741ef4f59176d60ba91",
+  "owner": "OMP author (openrouter/deepseek/deepseek-v4.1-flash-1017, max)",
+  "modelRouting": {
+    "provider": "openrouter",
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "effort": "max",
+    "reviewer": "coordinator owns independent review; none in lane",
+    "usageTelemetry": "not supplied"
+  },
+  "effectiveInputs": [
+    "docs/internal/execution-package/packets/RMP08.md",
+    "docs/internal/execution-package/packets/RMP09.md",
+    "docs/internal/execution-package/acceptance-register.json (all nine not_run/pending at base)",
+    "docs/internal/execution-runs/RMP08-equations-rates/RESULT.md, REVIEW.md, EQUATION-VERIFICATION.md",
+    "docs/internal/execution-runs/RMP09-domain-legacy/RESULT.md, SOURCE-DOMAIN-LEDGER.md",
+    "docs/internal/execution-runs/RMP09-mechanics-invariants/RESULT.md",
+    "docs/internal/execution-runs/RMP10-recovery-readouts/RESULT.md",
+    "docs/internal/accuracy-program/first-batch-2026-10-26/P0-contract.md",
+    "docs/internal/accuracy-program/diagnostics/A1b-reference-eligibility-2026-10-26.md",
+    "docs/internal/accuracy-program/execution-2026-10-25/model-path.md",
+    "src/validation/arcas/measured-arcas.ts",
+    "src/propulsion/motorDatabase.ts",
+    "crates/astraea-engine/tests/fixtures/native-candidate-request.json"
+  ],
+  "sourceHashes": {
+    "crates/astraea-core/src/six_dof.rs": "46bca2ddf79f6592902b1ebe5181e7657c385a9f7a06478f1e77a5e982355972",
+    "crates/astraea-core/src/aero_coefficients.rs": "73da11e497e2d234012f5903579ef74b407db2d87feead55bda1b6e68b19403c",
+    "crates/astraea-core/src/flight_provider.rs": "72d4e541707a025dd634a55ca5b58803d440b82f0354a79e810285278325727f",
+    "crates/astraea-core/src/aero.rs": "59139c6ea16ab28e4bddc21585674c5622743522f4c63609be68249973f460f5",
+    "src/propulsion/motorDatabase.ts": "1773e9a092e52fbaeec2a8792bd932002806c26393a8cf5b96d09f52bbfab9a3",
+    "crates/astraea-engine/tests/fixtures/native-candidate-request.json": "ea853d96452372c9b662b9111cb56bd6ea510990adc16e24afdf691cac375a50"
+  },
+  "runtimeHashes": {
+    "cargo": "1.99.1 (5f94df478 2026-08-27)",
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargoTargetDir": "/home/ak/.paseo/worktrees/3s8t98rp/target-rmp08-rmp09",
+    "engineOrWasm": "not built or invoked"
+  },
+  "artifactAvailability": [
+    "Focused, full and mutation logs are available in /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-rmp09-remainder/ (inventoried, not committed).",
+    "The seven recovery tests and four check notes are committed in the worktree.",
+    "No large, raw or restricted artifact was added to Git."
+  ],
+  "checks": [
+    {
+      "id": "RMP09-C04-focused",
+      "status": "pass",
+      "kind": "native core unit tests through the public recovery FSM",
+      "commandOrMechanism": "cd /home/ak/.paseo/worktrees/3s8t98rp/rmp08-rmp09-remainder && export PATH=\"$HOME/.cargo/bin:$PATH\" && CARGO_TARGET_DIR=/home/ak/.paseo/worktrees/3s8t98rp/target-rmp08-rmp09 cargo test --offline -j2 --manifest-path crates/astraea-core/Cargo.toml --lib recovery_ -- --test-threads=2",
+      "expectedRule": "single-body drogue/main ordering, main-at-apogee, delayed/low crossing, failed trigger forced at touchdown, seeded is_main_deployed and seeded is_apogee_reached are honoured; each event identity/count/order is asserted, not an incidental time value",
+      "observed": "7 passed; 0 failed; 212 filtered out; finished in 0.00s",
+      "exitCode": 0,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-rmp09-remainder/core-recovery-focused.log",
+      "sha256": "53908eef9bc071f3ea556d9866ecacb2b34c5c07cf8e0c061a5c36111fc26d64",
+      "limitation": "Synthetic declared configurations only; trigger latency, independent/suspended sections, inflation/opening shock, terrain and actual vehicle configuration are not modelled."
+    },
+    {
+      "id": "RMP09-C04-core-full",
+      "status": "pass",
+      "kind": "native core regression suite",
+      "commandOrMechanism": "cd /home/ak/.paseo/worktrees/3s8t98rp/rmp08-rmp09-remainder && export PATH=\"$HOME/.cargo/bin:$PATH\" && CARGO_TARGET_DIR=/home/ak/.paseo/worktrees/3s8t98rp/target-rmp08-rmp09 cargo test --offline -j2 --manifest-path crates/astraea-core/Cargo.toml --lib -- --test-threads=2",
+      "expectedRule": "no pre-existing astraea-core test regressed after the additions-only test commit",
+      "observed": "219 passed; 0 failed; 0 ignored; 0 filtered out; finished in 12.30s",
+      "exitCode": 0,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-rmp09-remainder/core-lib-full.log",
+      "sha256": "63eea067ba7ae701c5294c48e584611fe31766ca94299ff4b814f14099777417",
+      "limitation": "Core unit tests only; no engine/WASM/frontend, no physical or dynamic qualification."
+    },
+    {
+      "id": "RMP09-C04-mutation-a",
+      "status": "expected_failure_reverted",
+      "kind": "guard mutation",
+      "commandOrMechanism": "cd /home/ak/.paseo/worktrees/3s8t98rp/rmp08-rmp09-remainder && export PATH=\"$HOME/.cargo/bin:$PATH\" && CARGO_TARGET_DIR=/home/ak/.paseo/worktrees/3s8t98rp/target-rmp08-rmp09 cargo test --offline -j2 --manifest-path crates/astraea-core/Cargo.toml --lib recovery_sequence_seeded_main_deployed_suppresses_duplicate_deploy -- --test-threads=2",
+      "expectedRule": "removing `!s.is_main_deployed` from the main-crossing guard must emit a duplicate MainDeploy and fail the seeded-main test",
+      "observed": "FAILED. 0 passed; 1 failed; 218 filtered out. `assertion left == right failed: already deployed must not emit a second event; left: 1, right: 0` at test line 4051. Mutation was reverted with `git checkout -- crates/astraea-core/src/six_dof.rs`; no tracked mutation remained (only the pre-existing untracked dispatch file); git status --short otherwise clean.",
+      "exitCode": null,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-rmp09-remainder/mutation-a-remove-main-deployed-guard.log",
+      "sha256": "7e6490553a0b1f695e7b1c9c46cf9791aa784f74fa16b23dcea796cd3d58ca96",
+      "limitation": "Mutation applied only in the working tree and reverted; anchor six_dof.rs:906."
+    },
+    {
+      "id": "RMP09-C04-mutation-b",
+      "status": "expected_failure_reverted",
+      "kind": "guard mutation",
+      "commandOrMechanism": "cd /home/ak/.paseo/worktrees/3s8t98rp/rmp08-rmp09-remainder && export PATH=\"$HOME/.cargo/bin:$PATH\" && CARGO_TARGET_DIR=/home/ak/.paseo/worktrees/3s8t98rp/target-rmp08-rmp09 cargo test --offline -j2 --manifest-path crates/astraea-core/Cargo.toml --lib recovery_sequence_main_cannot_deploy_before_apogee -- --test-threads=2",
+      "expectedRule": "removing the `s.is_apogee_reached` gate must permit a main deployment before apogee and fail the ordering test",
+      "observed": "FAILED. 0 passed; 1 failed; 218 filtered out. `assertion left == right failed: main cannot deploy before the apogee/drogue event; left: 1, right: 0` at test line 4073. Mutation reverted; no tracked mutation remained (only the pre-existing untracked dispatch file); git status --short otherwise clean.",
+      "exitCode": null,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-rmp09-remainder/mutation-b-remove-apogee-gate.log",
+      "sha256": "e861b75013b446b774e6ca1ce5a4de043eef48ec986ddc46c3ccf05115696b47",
+      "limitation": "Mutation applied only in the working tree and reverted; anchor six_dof.rs:906."
+    },
+    {
+      "id": "RMP09-C04-mutation-c",
+      "status": "expected_failure_reverted",
+      "kind": "guard mutation",
+      "commandOrMechanism": "cd /home/ak/.paseo/worktrees/3s8t98rp/rmp08-rmp09-remainder && export PATH=\"$HOME/.cargo/bin:$PATH\" && CARGO_TARGET_DIR=/home/ak/.paseo/worktrees/3s8t98rp/target-rmp08-rmp09 cargo test --offline -j2 --manifest-path crates/astraea-core/Cargo.toml --lib recovery_sequence_failed_main_trigger_is_forced_at_touchdown -- --test-threads=2",
+      "expectedRule": "disabling the touchdown forced-main block must leave a failed trigger without a main deployment and fail the test",
+      "observed": "FAILED. 0 passed; 1 failed; 218 filtered out. `assertion left == right failed: the failed trigger must force the main at touchdown; left: 0, right: 1` at test line 4039. Mutation reverted; no tracked mutation remained (only the pre-existing untracked dispatch file); git status --short otherwise clean.",
+      "exitCode": null,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-rmp09-remainder/mutation-c-remove-touchdown-forced-main.log",
+      "sha256": "58557b9f8c34e2e5d302de3caa661252b4a4a156e4849a5c86771094f842b3a3",
+      "limitation": "Mutation applied only in the working tree and reverted; anchor six_dof.rs:936."
+    },
+    {
+      "id": "RMP08-C04-audit",
+      "status": "documented_no_executable",
+      "kind": "source and call-graph audit",
+      "commandOrMechanism": "Read P0-contract.md:121, flight_provider.rs (imports/header and boundary tests), aero_coefficients.rs:269-272/378, aero.rs:1582/1610/1809/1950; no new test or code was authorised or added.",
+      "expectedRule": "candidate has no automatic blend/fallback across the Mach/incidence gap; unsupported states are refused; any legacy transonic blend is disclosed, source-labelled and not routed into the candidate",
+      "observed": "Candidate imports only aero_coefficients and refuses Mach >= 0.8 and incidence > 5 degrees; existing boundary tests at flight_provider.rs:1786 cover the consumer-visible refusal. Legacy aero.rs transonic terms are explicitly labelled unvalidated project fits and are legacy-only.",
+      "exitCode": null,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/rmp08-rmp09-remainder/docs/internal/execution-runs/RMP08-RMP09-remainder/RMP08-C04-REGIME-AUDIT.md",
+      "sha256": null,
+      "limitation": "Docs-only audit; no new executable evidence. Candidate-scope only. Legacy transonic drag/CP blends remain unqualified; no transonic accuracy claim."
+    },
+    {
+      "id": "RMP09-C02-record",
+      "status": "documented_blocked",
+      "kind": "source/provenance record",
+      "commandOrMechanism": "sha256sum src/propulsion/motorDatabase.ts crates/astraea-engine/tests/fixtures/native-candidate-request.json; read motorDatabase.ts:52-99, native_candidate.rs:5-6, six_dof.rs:695-702/859-870/1082-1102/1147-1200, models.rs:618-666, output-dictionary.md:21, model-path.md:53; stdlib trapezoid integration of the committed curves.",
+      "expectedRule": "actual thrust curve, mounting/pressure assumptions and ignition/liftoff/burnout conventions are recorded without aligning the outcome",
+      "observed": "Certified record: 25 points, integral 8.8172 N-s vs declared 8.8, end 1.86 s, provenance motorId 5f4294d20002310000000015 / simfileId 69eb2379c7d63000021d8c29. Identified provenance defect: native fixture (22 points, integral 8.733 N-s, 7.004/11.094 N at 0.139/0.192) is called the certified Estes C6 record in native_candidate.rs while differing from motorDatabase.ts. No file was edited.",
+      "exitCode": null,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/rmp08-rmp09-remainder/docs/internal/execution-runs/RMP08-RMP09-remainder/RMP09-C02-MOTOR-TIMEBASE.md",
+      "sha256": null,
+      "limitation": "Record-level only. No claim that the shipped app uses the certified curve; no flown motor lot/mounting/pressure record; native fixture discrepancy is for coordinator/owner decision."
+    },
+    {
+      "id": "RMP09-C03-guide-gap",
+      "status": "blocked_external",
+      "kind": "source gap note",
+      "commandOrMechanism": "Read six_dof.rs:844-856, flight_provider.rs:141, output-dictionary.md:42, collegiate-mission-and-decision-matrix.md:34; no model change.",
+      "expectedRule": "effective button/guide travel defines first rotational freedom and the speed observation uses the same event/datum",
+      "observed": "Release is full declared rail_length; no forward/rear button positions or effective travel exist. Output dictionary and mission matrix explicitly leave first rotational freedom unresolved. No pass claimed.",
+      "exitCode": null,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/rmp08-rmp09-remainder/docs/internal/execution-runs/RMP08-RMP09-remainder/RMP09-C03-GUIDE-GAP.md",
+      "sha256": null,
+      "limitation": "Needs measured guide/button geometry and a model change; external."
+    },
+    {
+      "id": "RMP09-C05-section-energy-gap",
+      "status": "blocked_external",
+      "kind": "source gap note",
+      "commandOrMechanism": "Read six_dof.rs:1950/2886, models.rs:836/956-957, RMP09 domain ledger, RMP10-recovery-readouts/RESULT.md:119; no model change.",
+      "expectedRule": "per-section suspended mass, descent/landing state and energy; whole-vehicle number is not per-section proof",
+      "observed": "Only whole-vehicle landing_kinetic_energy/landing_mass exist; no per-section mass/suspension/energy model. No pass claimed.",
+      "exitCode": null,
+      "evidencePath": "/home/ak/.paseo/worktrees/3s8t98rp/rmp08-rmp09-remainder/docs/internal/execution-runs/RMP08-RMP09-remainder/RMP09-C05-SECTION-ENERGY-GAP.md",
+      "sha256": null,
+      "limitation": "Needs team section masses/CdA/arrangement and a declared energy definition; external."
+    },
+    {
+      "id": "RMP08-C01-source-match",
+      "status": "blocked_external",
+      "kind": "source eligibility",
+      "commandOrMechanism": "Read packets/RMP08.md C01, RMP02-source-eligibility/RESULT.md, A1b-reference-eligibility-2026-10-26.md; no new source access.",
+      "expectedRule": "actual source geometry/features/axes/refs/Re/roll/power/base conventions fit; substitutions disclosed, not called exact",
+      "observed": "RMP02 records 0 original PDFs verified and 0 qualified cases; A1b documents unrepresentable ogive/boattail/reflex-lip/fin-anchor features. Downloads are prohibited. No pass claimed.",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-package/packets/RMP08.md",
+      "sha256": null,
+      "limitation": "Needs the actual retained source artifact and geometry/convention ledger; external."
+    },
+    {
+      "id": "RMP08-C03-joint-force-moment",
+      "status": "blocked_external",
+      "kind": "measured-data availability",
+      "commandOrMechanism": "Read measured-arcas.ts, P0-contract.md:123, model-path.md:41, RMP02 result and RMP08-arcas REVIEW; no new scoring or download.",
+      "expectedRule": "CN/CA/Cm trends and residuals assessed together with source uncertainty; CP-only pass rejected",
+      "observed": "Committed ARCAS extract has CAcorr at alpha~0 and CP only; no CN or independent Cm. P0/model-path require CN(alpha)+Cm(alpha) together. The existing ARCAS per-band CA/CP report is CP-side only, deliberately red, with no approved CP budget and no register promotion. No pass claimed.",
+      "exitCode": null,
+      "evidencePath": "src/validation/arcas/measured-arcas.ts",
+      "sha256": null,
+      "limitation": "Needs independent CN/Cm series from the original reports or another eligible source; external."
+    },
+    {
+      "id": "RMP08-C08-independent-acceptance",
+      "status": "external_process",
+      "kind": "review gate",
+      "commandOrMechanism": "Read packets/RMP08.md C08, DECISIONS.md and CONTROL-LOOP.md; no self-acceptance.",
+      "expectedRule": "author-independent material scientific review accepts selected scope before any default/primary claim or qualification extension",
+      "observed": "No default/primary claim exists to review. Author cannot self-accept; a second DeepSeek context is not different-family review. Coordinator/independent reviewer owns this.",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-package/CONTROL-LOOP.md",
+      "sha256": null,
+      "limitation": "Process gate; no executable local check."
+    },
+    {
+      "id": "RMP09-C07-measurement-comparison",
+      "status": "blocked_external",
+      "kind": "measured comparison",
+      "commandOrMechanism": "Read packets/RMP09.md C07, DECISIONS.md, RMP09-mechanics-invariants/RESULT.md; no data or budgets supplied.",
+      "expectedRule": "eligible measured mass/CG, guide speed/timing and recovery observations with uncertainty meet predeclared output budgets",
+      "observed": "No measured vehicle inputs/observations and no approved budgets. RMP09a records measured comparison blocked on team measurements. No pass claimed.",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP09-mechanics-invariants/RESULT.md",
+      "sha256": null,
+      "limitation": "Needs team measurements and owner/team-approved budgets; external."
+    }
+  ],
+  "review": {
+    "reviewer": "coordinator (be115c77-6ca9-430f-ad6f-b89911a71dc4)",
+    "independentOfAuthor": true,
+    "disposition": "pending",
+    "findings": []
+  },
+  "qualification": {
+    "computational": "RMP09-C04 pass bounded to the single-body FSM; RMP08-C04 candidate source audit; RMP09-C02 provenance record",
+    "physical": "unqualified",
+    "dynamic": "unknown"
+  },
+  "failedAttempts": [
+    {
+      "attempt": "Mutation A: remove `!s.is_main_deployed` from six_dof.rs:906",
+      "observed": "seeded-main test FAILED with duplicate MainDeploy (left 1, right 0); reverted and git status clean",
+      "retainedLog": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-rmp09-remainder/mutation-a-remove-main-deployed-guard.log"
+    },
+    {
+      "attempt": "Mutation B: remove `s.is_apogee_reached` from six_dof.rs:906",
+      "observed": "pre-apogee ordering test FAILED with main before apogee (left 1, right 0); reverted and git status clean",
+      "retainedLog": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-rmp09-remainder/mutation-b-remove-apogee-gate.log"
+    },
+    {
+      "attempt": "Mutation C: disable touchdown forced-main block at six_dof.rs:936",
+      "observed": "failed-trigger test FAILED with no forced main (left 0, right 1); reverted and git status clean",
+      "retainedLog": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-rmp09-remainder/mutation-c-remove-touchdown-forced-main.log"
+    }
+  ],
+  "remainingScope": [
+    "RMP08-C01: actual retained source artifact and geometry/convention ledger (RMP02 precondition; 0 qualified cases; downloads prohibited).",
+    "RMP08-C03: independent CN(alpha)/Cm(alpha) data; CAcorr+CP-only extract cannot pass.",
+    "RMP08-C08: author-independent acceptance before any default/primary claim.",
+    "RMP09-C02: actual flown motor lot/mounting/pressure record and the fixture provenance decision; the committed application curve is recorded only.",
+    "RMP09-C03: measured guide/button geometry, effective travel and first-rotational-freedom speed observation.",
+    "RMP09-C05: section masses/CdA/arrangement, suspended states and a declared per-section energy definition.",
+    "RMP09-C07: eligible measured mass/CG, guide/recovery observations and owner/team-approved budgets.",
+    "RMP09-C04: trigger latency and independent/suspended sections remain unmodelled; actual vehicle configuration external."
+  ],
+  "nextActions": [
+    "Coordinator reviews the test commit, mutation logs and records; decides bounded RMP09-C04 disposition and register treatment.",
+    "Record the certified-vs-fixture motor provenance defect for coordinator/owner decision; do not edit the fixture.",
+    "Park the external remainder; no acquisition, scoring, download or model change without authorization."
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

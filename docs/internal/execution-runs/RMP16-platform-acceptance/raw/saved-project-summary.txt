@@ -1,0 +1,13 @@
+host copy file: /tmp/win-journey.astraea
+bytes: 4793827
+sha256: 2b3fc04a182214c9494c6e3f0565ef15254b178f73eb0f571fdb39bfabedb695
+schemaVersion: 1.12.0
+revision: 1
+vehicle: NASA Student Launch Target Vehicle
+components: 7
+motorRecords: 2
+cases: 1
+case keys: ['createdAt', 'engineIdentity', 'events', 'flightOutputs', 'id', 'inputs', 'kind', 'momentArmHistory', 'motorRecordId', 'summary', 'telemetry']
+case kind: flight
+case flightOutputs present: True
+top-level keys: ['bindings', 'cases', 'evidenceRefs', 'flightModel', 'ledger', 'mission', 'motorRecords', 'revision', 'schemaVersion', 'snapshots', 'vehicle', 'workspace']

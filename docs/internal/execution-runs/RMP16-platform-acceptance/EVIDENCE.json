@@ -1,0 +1,307 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP16",
+  "subpacket": "RMP16-C01 artifact identity, RMP16-C02 startup diagnosis, RMP16-C03 installed journeys (partial), RMP16-C05 uninstall (partial)",
+  "sourceSha": "0b5828b14dd9990543736fbd103a02d8d30695d0",
+  "baseSha": "0b5828b14dd9990543736fbd103a02d8d30695d0",
+  "owner": "coordinator (this session) on a disposable QEMU Windows 11 guest; no author lane used",
+  "modelRouting": {
+    "author": "coordinator only; no subagent authored this run",
+    "reviewer": "independent reviewer agent RMP16Review (fresh context, read-only) reviewed the raw artifacts; verdict recorded in REVIEW.md; it rejected the first draft's save/offline/uninstall/MSI claims until receipts were attached, and those corrections are in this file"
+  },
+  "scope": {
+    "in": "NSIS and MSI install/uninstall, offline launch with a recorded firewall block, native dialog save/open, in-app slot save and its survival across uninstall/reinstall, one real simulation run, startup instrumentation, WebGL context-loss/fallback/restore, artifact identity on a Windows 11 x64 guest",
+    "out": "signed upgrade apply/recovery (RMP16-C04, owner signing/feed authority), hardware-GPU driver reset, macOS, accessibility, migration/recovery flows, production code signing"
+  },
+  "machine": {
+    "guestOs": "Microsoft Windows 11 Enterprise Evaluation 10.0.26100 build 26100",
+    "arch": "AMD64",
+    "vcpu": 2,
+    "ramGb": 3.9,
+    "webview2": "156.0.4314.50",
+    "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+    "node": "v22.20.0",
+    "pnpm": "12.14.0",
+    "vsBuildTools": "17.14.37827.9",
+    "raw": "raw/machine.json"
+  },
+  "sourceReconciliation": {
+    "method": "every path in `git ls-files` at the source commit hashed on the host from `git show HEAD:` and on the guest from the working tree; both manifests compared after trimming CRLF",
+    "trackedFiles": 1181,
+    "identical": 1180,
+    "differing": [
+      "src-tauri/gen/schemas/windows-schema.json \u2014 a generated file refreshed by the Windows build. The committed copy is 117,263 B; the guest's regenerated copy is 407,362 B and equals the committed desktop-schema.json/linux-schema.json content. Attribution: build-regenerated generated artifact, not authored source; the committed copy is stale relative to the other generated schemas."
+    ],
+    "commitManifestSha256": "fae8b891acf90649a087e62071b413860ae20036de059a12fe15f47a1000815f",
+    "guestManifestSha256": "5e98537418d3aebb6476250d2c1472e61b0dfaadcf560776b44309b18e36d5ad",
+    "diff": "raw/source-manifest-diff.txt (diff is stored as guest\u2192commit; the guest manifest is CRLF so normalize line endings before diffing)"
+  },
+  "build": {
+    "command": "powershell -NoProfile -ExecutionPolicy Bypass -File C:\\astraea-build.ps1",
+    "script": "raw/build-script.ps1",
+    "steps": [
+      "node scripts/build-engine.mjs (WASM engine)",
+      "node node_modules/typescript/bin/tsc",
+      "node node_modules/vite/bin/vite.js build",
+      "node node_modules/@tauri-apps/cli/tauri.js build --ci (release, MSI + NSIS, updater artifacts)"
+    ],
+    "transcriptScope": "raw/build-transcript.log is the PowerShell transcript tail (VS/link paths, fixture pubkey, four bundle hashes). It does not enumerate the earlier frontend/WASM steps or a locked toolchain; the build script is attached and the artifact chain is separately anchored by the source manifest, the bundle hashes and the install manifest.",
+    "updaterSigning": "ephemeral fixture key generated in the guest (C:\\keys\\fixture.key), never the production key; fixture pubkey key id AE852B5B80C0C890, production pubkey in tauri.conf.json is 6E9A273894277E80",
+    "artifacts": {
+      "nsisSetup": {
+        "path": "src-tauri/target/release/bundle/nsis/Astraea Workstation_0.9.0_x64-setup.exe",
+        "bytes": 5444343,
+        "sha256": "8829782960d8f0c1489afc2935f7efce34cb803edd213bd92e75f95fe0f4a4f0"
+      },
+      "msi": {
+        "path": "src-tauri/target/release/bundle/msi/Astraea Workstation_0.9.0_x64_en-US.msi",
+        "bytes": 6901760,
+        "sha256": "d3e4aaab72a1e6f69712326bb60b069bf8cfd036c89aca8c255b504b1a909c85"
+      },
+      "buildTreeExe": {
+        "path": "src-tauri/target/release/astraea-workstation.exe",
+        "bytes": 16525312,
+        "sha256": "8d40a51ae2f78f2f708d387605cbba459a41072dadd47b94891a20f771f17af0",
+        "raw": "raw/build-tree-exe.txt"
+      }
+    },
+    "transcript": "raw/build-transcript.log",
+    "hashes": "raw/bundle-hashes.txt"
+  },
+  "installManifests": {
+    "nsis": {
+      "installerExit": 0,
+      "dir": "C:\\Users\\ak\\AppData\\Local\\Astraea Workstation",
+      "installedExe": {
+        "bytes": 16525312,
+        "sha256": "356948cb3ab56de5a2fd28068aa5b1aa66404a2952a14b4c6d264593e505d20d"
+      },
+      "uninstaller": {
+        "bytes": 79303,
+        "sha256": "89f7424aae1a39c000d323d1bfaa9debbf2e926e47ce6a3f302a813af38b2208"
+      },
+      "registry": {
+        "DisplayName": "Astraea Workstation",
+        "DisplayVersion": "0.9.0",
+        "InstallLocation": "C:\\Users\\ak\\AppData\\Local\\Astraea Workstation"
+      },
+      "uninstall": {
+        "exit": 0,
+        "dirExistsAfter": false,
+        "registryEntriesAfter": 0
+      },
+      "receipts": {
+        "cycle": "raw/nsis-cycle.txt",
+        "files": "raw/nsis-installed-files.txt",
+        "installTranscript": "raw/install-transcript.log"
+      }
+    },
+    "msi": {
+      "installerExit": 0,
+      "dir": "C:\\Program Files\\Astraea Workstation",
+      "productCode": "{E52C63AF-3564-4985-AF7D-B26CA43F2329}",
+      "registry": {
+        "DisplayName": "Astraea Workstation",
+        "DisplayVersion": "0.9.0"
+      },
+      "uninstall": {
+        "exit": 0,
+        "dirExistsAfter": false,
+        "registryEntriesAfter": 0
+      },
+      "receipts": {
+        "cycle": "raw/msi-cycle.txt",
+        "files": "raw/msi-installed-files.txt",
+        "installLog": "raw/msi-install.log",
+        "uninstallLog": "raw/msi-uninstall.log"
+      }
+    },
+    "installedVsBuildExeDifference": {
+      "bytesDiffering": 3,
+      "firstDifferingByte1Based": 13306323,
+      "detail": "the NSIS bundler rewrites its own `__TAURI_BUNDLE_TYPE_VAR_UNK` marker to `__TAURI_BUNDLE_TYPE_VAR_NSS` inside the packaged copy; the build-tree copy carries the pre-bundle marker. No other byte differs.",
+      "raw": "raw/exe-byte-diff.txt"
+    }
+  },
+  "startupDiagnosis": {
+    "interactiveLaunch": {
+      "exitReceipt": "the interactive launch's exit 0 is a session observation, not a raw file; the raw exit receipt is the offline relaunch (raw/offline-exit2.txt)",
+      "smoke": "raw/smoke-interactive.json",
+      "trace": "raw/startup-trace-interactive.jsonl",
+      "stagesMs": {
+        "native_run": 0,
+        "native_setup": 5,
+        "native_window_build_started": 5,
+        "native_window_built": 421,
+        "native_page_load_started": 446,
+        "native_page_load_finished": 702,
+        "document_init": 861,
+        "dom_content_loaded": 1043,
+        "window_load": 1495,
+        "root_present_5s": 5552
+      },
+      "report": {
+        "ok": true,
+        "validity": "PASS",
+        "engine": "wasm-worker, poolStarted true",
+        "apogeeM": 533.0760350112048,
+        "flightDurationS": 67.85318210601588,
+        "maxMach": 0.29117949481819017,
+        "railExitSpeedMps": 18.89868968377279,
+        "railExitTimeS": 0.4841355514526369,
+        "terminationReason": "touchdown",
+        "pageErrors": [],
+        "failures": [],
+        "webgl": "ANGLE (Microsoft, Microsoft Basic Render Driver, Direct3D11)"
+      },
+      "cspBasis": "no CSP event appears in the instrumented trace and the smoke records zero page errors; this is the absence of recorded violations, not a separate CSP count",
+      "teardownStderr": "raw/stderr-interactive.txt contains 'Failed to unregister class Chrome_WidgetWin_0. Error = 1412' \u2014 Chromium's benign class-unregister message at process exit, recorded so it is not mistaken for a page error",
+      "exitCodeSessionRecord": 0
+    },
+    "nonInteractiveLaunch": {
+      "observation": "the same installed binary started from the SSH session (a service, non-interactive window station) panicked in the setup hook",
+      "result": "WebView2 WindowsError HRESULT 0x80070578 (Invalid window handle) at tauri-2.12.4/src/app.rs:1444",
+      "classification": "session observation: WebView2 requires an interactive desktop; the same binary starts cleanly on the interactive desktop. No raw file records the session id, so this is stated as an observation, not a proven session-0 attribution.",
+      "log": "raw/stderr-noninteractive-launch.txt"
+    },
+    "historicalSymptom": {
+      "reported": "2026-10-24 diagnosis: the 2f28c65 NSIS package installed but its initial native WebView was blank; no VM/session was available then",
+      "reproductionAttempted": false,
+      "retainedGap": "the preserved 2f28c65 package and the machine/session where the blank WebView was observed are not available; skipping the reproduction is recorded rather than claiming it failed",
+      "noGuessedFix": true
+    }
+  },
+  "journeys": [
+    {
+      "id": "install-nsis",
+      "result": "pass",
+      "detail": "silent NSIS install exit 0; installed exe, uninstaller and registry entry present",
+      "receipts": [
+        "raw/nsis-cycle.txt",
+        "raw/nsis-installed-files.txt",
+        "raw/install-transcript.log"
+      ]
+    },
+    {
+      "id": "install-msi",
+      "result": "pass",
+      "detail": "silent MSI install exit 0 into C:\\Program Files\\Astraea Workstation; product code {E52C63AF-3564-4985-AF7D-B26CA43F2329}; registry 0.9.0",
+      "receipts": [
+        "raw/msi-cycle.txt",
+        "raw/msi-installed-files.txt",
+        "raw/msi-install.log"
+      ]
+    },
+    {
+      "id": "offline-launch",
+      "result": "pass",
+      "detail": "an enabled outbound block rule (DisplayName astraea-offline, Direction Outbound, Action Block) was active during the launch; the rule was removed afterwards (0 remaining). The rule's application filter was not captured, so the claim is 'an outbound block rule was active', not 'scoped to the exe'. App relaunch exit 0 with identical numeric results.",
+      "receipts": [
+        "raw/offline-firewall.txt",
+        "raw/offline-exit2.txt",
+        "raw/smoke-offline2.json",
+        "raw/trace-offline2.json",
+        "raw/offline-stderr.txt"
+      ]
+    },
+    {
+      "id": "save-to-slot",
+      "result": "pass",
+      "detail": "Project \u2192 Save to this browser; menu status 'Saved locally (revision 1)', 'Local slot: local revision 1'",
+      "receipts": [
+        "raw/screen-w20-slot-status.jpg"
+      ]
+    },
+    {
+      "id": "save-project-file",
+      "result": "pass",
+      "detail": "native Save As dialog, path typed as C:\\smoke\\win-journey.astraea; the app wrote 4,793,827 bytes, sha256 2b3fc04a182214c9494c6e3f0565ef15254b178f73eb0f571fdb39bfabedb695; schemaVersion 1.12.0, vehicle 'NASA Student Launch Target Vehicle', 7 components, 2 motor records, revision 1, 1 case (kind flight) with flightOutputs and telemetry",
+      "receipts": [
+        "raw/screen-w25-typed-save-path.jpg",
+        "raw/saved-project.txt",
+        "raw/saved-project-summary.txt",
+        "raw/screen-w22.jpg"
+      ]
+    },
+    {
+      "id": "reopen-after-fresh-launch",
+      "result": "pass",
+      "detail": "app closed and relaunched; Project \u2192 Open project file\u2026 \u2192 the same file name; banner 'Imported win-journey.astraea', status 'Opened project \"NASA Student Launch Target Vehicle\" (revision 1)'; the stored flight case is retained as history and not re-run (designed behaviour)",
+      "receipts": [
+        "raw/screen-w29.jpg"
+      ]
+    },
+    {
+      "id": "run-simulation",
+      "result": "pass",
+      "detail": "a simulation run triggered in the installed app on the reopened project: 'Committed \u00b7 r1', 'Current \u00b7 Valid run', apogee 533 m, Max Mach 0.29, rail exit 18.9 m/s, drift 59 m, gates 5/1",
+      "receipts": [
+        "raw/screen-w30.jpg"
+      ]
+    },
+    {
+      "id": "uninstall-nsis",
+      "result": "pass",
+      "detail": "uninstall.exe /S exit 0; install directory removed; no Astraea uninstall registry entry remains",
+      "receipts": [
+        "raw/nsis-cycle.txt"
+      ]
+    },
+    {
+      "id": "uninstall-msi",
+      "result": "pass",
+      "detail": "msiexec /x exit 0; C:\\Program Files\\Astraea Workstation removed; no registry entries remain",
+      "receipts": [
+        "raw/msi-cycle.txt",
+        "raw/msi-uninstall.log"
+      ]
+    },
+    {
+      "id": "signed-upgrade",
+      "result": "blocked",
+      "detail": "requires an owner-authorized signed B artifact and the production feed/key (RMP16-C04); not attempted and not simulated with the fixture key"
+    },
+    {
+      "id": "renderer-context-loss",
+      "result": "pass",
+      "detail": "a WebGL context loss was forced in the installed app through its own DevTools endpoint (test-only launch; the endpoint was not present on later launches); the viewport replaced the canvas with the labeled fallback '3D viewport unavailable \u2014 editing preserved' while the parts tree and metrics stayed live, and clicking 'Restore viewport' remounted the canvas (fallback absent, canvas present). No edit or export was performed while the fallback was displayed.",
+      "receipts": [
+        "raw/webgl-loss.json",
+        "raw/screen-w32.jpg",
+        "raw/screen-w33.jpg"
+      ]
+    },
+    {
+      "id": "user-data-policy",
+      "result": "pass",
+      "detail": "policy declared in DATA-POLICY.md before the check; on the NSIS-installed package, uninstall exit 0 removed the program directory and registry entry, left the user project file byte-identical (sha256 2b3fc04a\u2026), kept the app profile directory present (the %LOCALAPPDATA%\\com.astraea.workstation path is the declared policy, not a value printed by the receipt), and after reinstall the local slot opened as revision 1",
+      "receipts": [
+        "DATA-POLICY.md",
+        "raw/retention-cycle.txt",
+        "raw/screen-w35.jpg"
+      ]
+    }
+  ],
+  "screenshots": [
+    "raw/screen-w16.jpg \u2014 installed app, fixture project, Valid run",
+    "raw/screen-w20-slot-status.jpg \u2014 Project menu after 'Save to this browser': local revision 1",
+    "raw/screen-w22.jpg \u2014 native Save As dialog (default name shown)",
+    "raw/screen-w25-typed-save-path.jpg \u2014 Save As with C:\\smoke\\win-journey.astraea typed in the File name field",
+    "raw/screen-w29.jpg \u2014 reopened project status after a fresh launch",
+    "raw/screen-w30.jpg \u2014 simulation result in the installed app",
+    "raw/screen-w32.jpg \u2014 forced WebGL loss: '3D viewport unavailable \u2014 editing preserved' with live tree/metrics",
+    "raw/screen-w33.jpg \u2014 after 'Restore viewport': the 3D view is back",
+    "raw/screen-w35.jpg \u2014 local slot still opens as revision 1 after uninstall + reinstall"
+  ],
+  "limitations": [
+    "One Windows 11 x64 guest (QEMU), software WebGL only; no hardware GPU, no macOS, no second machine.",
+    "The package is unsigned (no code-signing certificate) and its updater artifacts are signed with an ephemeral fixture key; it is not a release candidate.",
+    "The build transcript is thin (see build.transcriptScope); the artifact chain is anchored by the source manifest, bundle hashes and install manifests instead.",
+    "The historical 2f28c65 blank-WebView reproduction was not attempted because that package and the observation machine are unavailable.",
+    "The build script attached as raw/build-script.ps1 had its ephemeral fixture-key password redacted; the fixture private key itself was never copied off the guest.",
+    "The context loss was forced with WEBGL_lose_context in software WebGL; a hardware driver reset/GPU process crash was not tested.",
+    "The signed-upgrade leg remains unexercised (owner signing/feed authority).",
+    "raw/webgl-loss.json is a summary of the CDP steps, not a raw CDP/tunnel transcript; the screenshots corroborate the fallback and restore."
+  ]
+}

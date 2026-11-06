@@ -1,0 +1,12 @@
+{
+  "status": "pass",
+  "packets": 18,
+  "acceptanceChecks": 117,
+  "recordedPassedChecks": 0,
+  "localLinks": 135,
+  "dependencyCycles": 0,
+  "packageHashes": 41,
+  "acceptedSourceSnapshotChecked": true,
+  "scope": "package integrity only; no engineering/scientific/release test executed",
+  "reviewNote": "Read-only documentation cross-review; CP-reconstruction ambiguity removed. One initial validator failure for missing explicit negative-case section marker was corrected before passing validation. Immutable unified-diff context whitespace is preserved under a patch-data-only attribute; no Rust source whitespace rule changed."
+}

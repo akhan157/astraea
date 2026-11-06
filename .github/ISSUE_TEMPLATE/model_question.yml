@@ -1,0 +1,35 @@
+name: Simulation vs. real flight
+description: A prediction disagrees with a real flight or a trusted reference.
+labels: [model]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Compare an uncalibrated prediction when evaluating the model. If calibration was applied, say so.
+        Only attach files you intend to share. Projects and flight bundles can include launch coordinates; agree a private transfer before sending private data.
+  - type: input
+    id: version
+    attributes:
+      label: App version or source commit
+      placeholder: "0.10.0 or commit SHA"
+    validations:
+      required: true
+  - type: textarea
+    id: comparison
+    attributes:
+      label: What disagrees, and by how much?
+      description: e.g. predicted apogee 534 m, altimeter recorded 480 m.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Include measured liftoff mass, motor, geometry/project, launch date, wind, rail and site altitude if known. State missing inputs rather than estimating them to match the outcome.
+    validations:
+      required: true
+  - type: textarea
+    id: reference
+    attributes:
+      label: Reference
+      description: If you compared against another tool or published data, say which and how.

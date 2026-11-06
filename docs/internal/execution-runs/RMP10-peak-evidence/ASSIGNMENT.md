@@ -1,0 +1,23 @@
+# RMP10-C03 assignment — peak evidence
+
+- **Packet / acceptance:** RMP10-C03, peak evidence. This increment covers only the bounded native display-sample max-Q adapter claim, independent synthetic analytic/refinement evidence, sample bookkeeping, and a read-only consumer-claim audit.
+- **Base SHA:** `d278d49421cdd6ecd3e390c8ce3fdd4524e4f692`.
+- **Owner:** Pi coding agent; engineering author, bounded single-agent lane. No subdelegation.
+- **Branch / worktree:** `rmp10-c03-peak-evidence` at `/home/ak/.paseo/worktrees/3s8t98rp/rmp10-c03-peak-evidence`. The worktree was clean at assignment; other worktrees remain untouched.
+- **Exact lease:**
+  - `src/console/data/adapter.ts`: only max-Q/sampledMaxQ construction, its reason string, and confidence level.
+  - `src/console/data/contract.ts`: only RunSummary.maxQ and sampledMaxQ documentation.
+  - Create `src/console/data/peakEvidence.test.ts` (additional test files only if genuinely needed).
+  - Create this run directory: `ASSIGNMENT.md`, `RESULT.md`, `REVIEW.md`, `EVIDENCE.json`, and `package-validation.json`.
+- **Dependencies / concurrent owners:** No source dependency on sibling lanes. Do not edit acceptance registers, packets, UI stages/evidence, application, formats, simulation/dynamics/aero or engine files. Existing consumers are read-only audit targets.
+- **Sealed boundary / invariants:** No Cargo, WASM rebuild, RMP12 study, protected outcome, physics/default/schema/threshold change, external contact, push, merge, release, deployment, or paid service. TypeScript simulation modules remain read-only fixtures/oracles. Shipped production compute and sealed WASM bytes remain unchanged.
+- **Required decisions/readings:** RMP10 packet, roadmap RMP10 section, START-HERE, CONTROL-LOOP, CHECKS, DECISIONS, current adapter/contract and existing output-contract tests. Native telemetry/decimation source will be inspected read-only to reproduce its display-retention rule in independent synthetic fixtures.
+- **Scope / ordered increment:** Record this lease; characterize the exact native display sampling rule; write red-first analytic/refinement and claim/bookkeeping regression tests; make only the smallest justified adapter/comment correction; rerun affected tests, typecheck, Vite build, diff and package validation; document evidence and remaining scope; make one local commit.
+- **Acceptance mechanism:** Closed-form unimodal dynamic-pressure histories will be sampled using the native display-retention rule and compared with their analytic continuous maxima and with independently refined grids. Exact-hit, between-sample undershoot, narrow-peak aliasing, and refinement cases will establish what the retained peak does and does not support. Tests will reject any reason/comment that asserts a continuous maximum, continuous bound, or unsupported numeric resolution. Invalid/nonfinite/negative q and timestamp cases will verify counts, gap availability, confidence and absent max-Q.
+- **Verification plan:** Preserve red logs before fixes; run focused Vitest with `--maxWorkers=1`, relevant existing adapter/output-contract tests, `pnpm exec tsc --noEmit`, `pnpm exec vite build`, `git diff --check`, and `python3 docs/internal/execution-package/validate-package.py`. Raw logs go outside Git in the evidence directory. Install with `pnpm install --frozen-lockfile` once and revert any tooling-only lockfile append.
+- **Independent review:** Coordinator-run serial independent review follows this author increment. This lane does not run a reviewer or mark the acceptance register pass; `REVIEW.md` remains “pending independent review.”
+- **Resources:** Current available RAM was 8.3 GiB at assignment. Recheck before heavy commands. One test/build job at a time; Vitest `--maxWorkers=1`; no compiler auto-detection.
+- **Evidence:** `/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-peak-evidence/` contains raw setup/red/green/typecheck/build/diff/validator logs and hashes. Tracked run records identify availability and exact commands; raw logs are not represented as committed.
+- **Stop / escalation:** Stop on any need to change physics, sampling policy, schemas, sealed binaries, other leases, or a core ambiguous decision. Preserve failed attempts and do not weaken assertions for green.
+- **Successor / remaining boundary:** This increment cannot qualify continuous-time peak magnitude/timing, physical accuracy, structural decisions, a numeric resolution budget, or engine/native event extraction. Those remain explicitly open unless independently supported elsewhere.
+- **Authority:** Local reversible engineering and one local branch commit only.

@@ -1,0 +1,18 @@
+{
+  "adoption": "design only; production unchanged",
+  "reviewedTechnicalCandidateSha256": "ff1748c5458193662f2afbd07e79a7c3cc6428d2f1b2723a12501544e0f0975a",
+  "adoptedStatusAnnotatedFileSha256": "4121764cdacc33a9491dda86f67e01d0032aff33a069f4349a9d3744e3b506b5",
+  "independentReviewSha256": "c52d7118395cb92b9264ce2651f2c2f5885d6f6c073d28ece0b6030a28e8963a",
+  "externalEvidenceRoot": "/workspace/astraea-plan/evidence/accuracy-first-batch-20261025",
+  "sourceDocument": {
+    "url": "https://openrocket.sourceforge.net/techdoc.pdf",
+    "sha256": "cc6fd3291ade76ee044ffd40ff285cf814c7496b97d1ff7b35222d8f2d23cf8c",
+    "distribution": "retained externally; not copied into product repository"
+  },
+  "checks": {
+    "D1artifactHashes": 31,
+    "D1schemaValidPoints": 6,
+    "UP1aArtifactHashes": 20,
+    "wholeFlightN1": "COMPLETE 20/20 counted native attempts, four defaults parity pass; sealed provenance and limitations retained"
+  }
+}

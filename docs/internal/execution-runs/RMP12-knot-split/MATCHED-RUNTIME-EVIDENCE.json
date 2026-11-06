@@ -1,0 +1,93 @@
+{
+  "schema": "astraea-matched-runtime-evidence/1.0.0",
+  "sourceCommit": "49070710b6c5fb5070b3b42da0ed9bc9cec4a9b7",
+  "integrationCommit": "c5ac1a1",
+  "wasmSha256": "cf57158b84bdc92861fc56530c2fedb2e13d290e2d1212d90015fbce5746f508",
+  "nativeSha256": "141a7990ddf0ba626ab57dbcd41ba074306496202e1acb4d9f013e572d72e210",
+  "command": "simulate_flight",
+  "precision": "abs(native-wasm) <= 1e-9 * max(abs(native),1)",
+  "cases": [
+    {
+      "case": "astraea-wind0",
+      "numericFieldsWithinPrecision": 130039,
+      "maximumScaledError": 2.636513972425489e-16,
+      "maximumScaledErrorPath": "reply.ok.events.2.altitude",
+      "eulerDisplayDisagreements": 0,
+      "eulerFields": {},
+      "maxSingularNumerator": 0,
+      "events": 6,
+      "telemetryPoints": 5000
+    },
+    {
+      "case": "astraea-wind3",
+      "numericFieldsWithinPrecision": 125030,
+      "maximumScaledError": 1.4420542125498787e-14,
+      "maximumScaledErrorPath": "reply.ok.telemetry.4999.angleOfAttackDeg",
+      "eulerDisplayDisagreements": 5009,
+      "eulerFields": {
+        "rollDeg": 4975,
+        "yawDeg": 34
+      },
+      "maxSingularNumerator": 3.2751579226442118e-15,
+      "events": 6,
+      "telemetryPoints": 5000
+    }
+  ],
+  "failedAttempts": [
+    {
+      "attempt": "native-wasm",
+      "observed": "native child status null, stdout truncated near default 1 MiB capture size; no parity result",
+      "cause": "[INFERENCE] spawnSync default maxBuffer; harness corrected to 32 MiB without changing numeric assertions"
+    },
+    {
+      "attempt": "native-wasm-2",
+      "observed": "strict comparison failed at wind3 telemetry[18].rollDeg: native -172.9 versus WASM -176.4",
+      "resolution": "Preserved complete replies; analyzed them without re-executing either scenario. No assertion/tolerance or production change."
+    }
+  ],
+  "qualification": "bounded parity of non-singular fields for two frozen synthetic requests; strict all-field parity fails for Euler display at singularity; C04 remains in_progress",
+  "existingEulerRule": "crates/astraea-engine/tests/telemetry_parity.rs:28-32; mismatched roll/yaw is nonauthoritative when corresponding quaternion atan2 numerator is <=1e-9",
+  "externalEvidence": "../evidence-rmp12-knot-split/native-wasm-2",
+  "artifacts": {
+    "astraea-wind0.input.json": {
+      "bytes": 1998,
+      "sha256": "d1580ad785fe34433008ec1ba74d992ac522792463a7b8e72ce1f261961b3777"
+    },
+    "astraea-wind0.native.stdout": {
+      "bytes": 1969401,
+      "sha256": "1c1e0f4129db92948613b303592a9a91ca8f86a758705461b98f2cfd9c352353"
+    },
+    "astraea-wind0.native.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "astraea-wind0.process.json": {
+      "bytes": 35,
+      "sha256": "4240860b443c7ae8262fa2380e6d5eafa2e28ba635e647eb7664ab270732a4e6"
+    },
+    "astraea-wind0.wasm.stdout": {
+      "bytes": 1969398,
+      "sha256": "0a3bba81dbc3b646e0977a34521d0f584bcd180f12f4e859fa08b4ba9b04c89f"
+    },
+    "astraea-wind3.input.json": {
+      "bytes": 1998,
+      "sha256": "ac42afc1d570c38de7e73b66c55bbeb80753aefb27a9058ea4b574554f1efda2"
+    },
+    "astraea-wind3.native.stdout": {
+      "bytes": 2188115,
+      "sha256": "24eb7db4b8d24b4861243aa0192fe632da726eefd8ece72d719cc9816de76bb0"
+    },
+    "astraea-wind3.native.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "astraea-wind3.process.json": {
+      "bytes": 35,
+      "sha256": "4240860b443c7ae8262fa2380e6d5eafa2e28ba635e647eb7664ab270732a4e6"
+    },
+    "astraea-wind3.wasm.stdout": {
+      "bytes": 2187874,
+      "sha256": "b9ed0cbe6a374729b65463e8cf38a864d6c7f6e91940111c90f6691536e737e0"
+    }
+  }
+}

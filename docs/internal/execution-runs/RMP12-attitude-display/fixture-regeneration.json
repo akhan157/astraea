@@ -1,0 +1,62 @@
+{
+  "fixture": "crates/astraea-engine/tests/fixtures/telemetry-parity.json",
+  "lockCosEps": 1e-08,
+  "cases": {
+    "astraea/wind0": {
+      "rows": 8138,
+      "terminalRow": 8137,
+      "lockRows": 8138,
+      "changed": {
+        "pitchDeg": 0,
+        "rollDeg": 0,
+        "yawDeg": 0
+      },
+      "nonterminalChanged": {
+        "pitchDeg": 0,
+        "rollDeg": 0,
+        "yawDeg": 0
+      },
+      "terminalChanged": {
+        "pitchDeg": 0,
+        "rollDeg": 0,
+        "yawDeg": 0
+      },
+      "maxDeltaDeg": {
+        "pitchDeg": 0.0,
+        "rollDeg": 0.0,
+        "yawDeg": 0.0
+      }
+    },
+    "astraea/wind3": {
+      "rows": 7931,
+      "terminalRow": 7930,
+      "lockRows": 21,
+      "changed": {
+        "pitchDeg": 7910,
+        "rollDeg": 7871,
+        "yawDeg": 7910
+      },
+      "nonterminalChanged": {
+        "pitchDeg": 7909,
+        "rollDeg": 7870,
+        "yawDeg": 7909
+      },
+      "terminalChanged": {
+        "pitchDeg": 1,
+        "rollDeg": 1,
+        "yawDeg": 1
+      },
+      "maxDeltaDeg": {
+        "pitchDeg": 180.0,
+        "rollDeg": 180.0,
+        "yawDeg": 90.00000000000023
+      }
+    }
+  },
+  "oldSha256": "7639cd7ed21792de5e6a40b4568b252610384f9988a8f66201d19a852e38f631",
+  "newSha256": "5a8064c4cb3aa66d3188d26ba56c546947a1b6a8f5b4ec2b4998991ee3cc411f",
+  "bytes": {
+    "old": 2324960,
+    "new": 2318941
+  }
+}

@@ -1,0 +1,322 @@
+{
+  "schema": "astraea-lane-evidence/1.0.0",
+  "lane": "rmp12-attitude-display",
+  "worktree": "/home/ak/.paseo/worktrees/3s8t98rp/rmp12-attitude-display",
+  "branch": "rmp12-attitude-display",
+  "pin": "0f6f08eed60a06946d11306371dca1841a3f2e26",
+  "route": {
+    "selector": "deepseek/deepseek-flash",
+    "provider": "deepseek",
+    "catalogEntry": "DeepSeek-V4.1-Flash",
+    "baseUrl": "https://api.deepseek.com",
+    "fallbackChains": "empty in ~/.omp/agent/config.yml",
+    "effort": "lane dispatch declares max; global config default is high and is not the lane setting"
+  },
+  "status": "implementation complete; independent review pending; not self-accepted",
+  "commits": [
+    {
+      "sha": "e37f3034cd354fdf0c6eba1d608cd0157184df85",
+      "scope": "core conversion attitude-euler/1.0.0 + focused tests"
+    },
+    {
+      "sha": "92a59a9bd3661e44b397bab43ec2ece7a82f741f",
+      "scope": "TS mirror, exported helper, comments, shared vectors"
+    },
+    {
+      "sha": "45154c245260358dffb41c8c96452556bae0ec71",
+      "scope": "independent Euler fixture regeneration + scoped parity exemption"
+    },
+    {
+      "sha": "e2b31ba1caf76385c98be125091df15b61507661",
+      "scope": "changelog + output-dictionary disclosure"
+    }
+  ],
+  "changedFiles": [
+    "crates/astraea-core/src/six_dof.rs",
+    "src/sim/sixDofSimulator.ts",
+    "src/sim/attitudePresentation.test.ts",
+    "crates/astraea-engine/tests/telemetry_parity.rs",
+    "crates/astraea-engine/tests/fixtures/telemetry-parity.json",
+    "docs/internal/engineering-changelog.md",
+    "docs/internal/output-dictionary.md"
+  ],
+  "convention": {
+    "identity": "attitude-euler/1.0.0",
+    "rotation": "R_NB = Rz(yaw) * Rx(pitch) * Ry(roll) (intrinsic yaw->pitch->roll)",
+    "pitch": "asin(2(wx+yz)) \u2014 nose elevation",
+    "roll": "atan2(2(wy-zx), 1-2(x^2+y^2)) \u2014 right-handed about +Y",
+    "yaw": "atan2(2(wz-xy), 1-2(x^2+z^2)) \u2014 right-handed about +Z; launch azimuth a reads yaw=-a",
+    "qMinusQ": "bit-identical output",
+    "lockGauge": "at |pitch|=90 the roll/yaw split is a gauge: roll:=0, pitch:=+/-90, yaw carries the combined z-rotation (yaw+roll at +90, yaw-roll at -90); |cos pitch| <= 1e-8 triggers the branch",
+    "nonAuthoritative": "q is canonical; the triple is presentation data"
+  },
+  "independentDerivation": {
+    "scripts": [
+      "docs/internal/execution-runs/RMP12-attitude-display/derive_attitude.py",
+      "docs/internal/execution-runs/RMP12-attitude-display/regenerate_euler_columns.py"
+    ],
+    "fixtureRegeneration": {
+      "script": "regenerate_euler_columns.py",
+      "doesNotCall": "Rust or TS code under test",
+      "oldSha256": "7639cd7ed21792de5e6a40b4568b252610384f9988a8f66201d19a852e38f631",
+      "newSha256": "5a8064c4cb3aa66d3188d26ba56c546947a1b6a8f5b4ec2b4998991ee3cc411f",
+      "bytes": {
+        "old": 2324960,
+        "new": 2318941
+      },
+      "nonEulerBytesPreserved": "asserted by field-comparing both parsed documents; only the three Euler tokens and the generatedBy provenance string differ",
+      "cases": {
+        "astraea/wind0": {
+          "rows": 8138,
+          "changed": {
+            "pitchDeg": 0,
+            "rollDeg": 0,
+            "yawDeg": 0
+          },
+          "maxDeltaDeg": {
+            "pitchDeg": 0.0,
+            "rollDeg": 0.0,
+            "yawDeg": 0.0
+          }
+        },
+        "astraea/wind3": {
+          "rows": 7931,
+          "changed": {
+            "pitchDeg": 7910,
+            "rollDeg": 7871,
+            "yawDeg": 7910
+          },
+          "nonterminalChanged": {
+            "pitchDeg": 7909,
+            "rollDeg": 7870,
+            "yawDeg": 7909
+          },
+          "terminalChanged": {
+            "pitchDeg": 1,
+            "rollDeg": 1,
+            "yawDeg": 1
+          },
+          "maxDeltaDeg": {
+            "pitchDeg": 180.0,
+            "rollDeg": 180.0,
+            "yawDeg": 90.0
+          },
+          "terminalBefore": [
+            90,
+            155.77225468204585,
+            -179.9999999999998
+          ],
+          "terminalAfter": [
+            -18.188865213612637,
+            -90.00000000000007,
+            90
+          ]
+        }
+      },
+      "receipt": "docs/internal/execution-runs/RMP12-attitude-display/fixture-regeneration.json"
+    },
+    "retainedQuaternionRecomputation": {
+      "source": "../evidence-rmp12-knot-split/native-wasm-2",
+      "noRerun": true,
+      "oldShippedFailingFields": 5009,
+      "oldShippedFields": {
+        "rollDeg": 4975,
+        "yawDeg": 34
+      },
+      "correctedFailingFields": 0,
+      "correctedMaxUnroundedDifferenceDeg": {
+        "pitchDeg": 1.5e-12,
+        "rollDeg": 4e-11,
+        "yawDeg": 3.8e-11
+      },
+      "wind0": "0 failing fields"
+    }
+  },
+  "checks": [
+    {
+      "command": "cargo test --offline -j 2 --manifest-path crates/astraea-core/Cargo.toml --lib -- --test-threads=2",
+      "cwd": "worktree",
+      "env": {
+        "CARGO_TARGET_DIR": ".target-rmp12",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "result": "230 passed, 0 failed",
+      "includes": "attitude_presentation_tests: 7 passed"
+    },
+    {
+      "command": "cargo test --offline --locked -j 2 --manifest-path crates/astraea-engine/Cargo.toml --tests -- --test-threads=2",
+      "cwd": "worktree",
+      "env": {
+        "CARGO_TARGET_DIR": ".target-rmp12",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "result": "102 passed in 11 suites, 0 failed",
+      "includes": "telemetry_parity: 2 passed; lock_exempted_angles asserted 0"
+    },
+    {
+      "command": "node node_modules/vitest/vitest.mjs run src/sim/attitudePresentation.test.ts src/sim/sixDofSimulator.test.ts --maxWorkers=2",
+      "cwd": "worktree",
+      "result": "20 passed in 2 files"
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "cwd": "worktree",
+      "result": "exit 0"
+    }
+  ],
+  "parityContract": {
+    "fields": "all 26 telemetry fields plus the reply structure/non-number fields",
+    "tolerance": "abs(native-fixture) <= 1e-9 * max(abs(fixture),1); abs <= 1e-9 near zero",
+    "pitch": "strict",
+    "rollYaw": "modulo-360 at the same bound",
+    "onlyExemption": "rollDeg/yawDeg disagreement when |cos pitch| <= 1e-6 in either row (gimbal-lock split; conditioning band, not a display tolerance)",
+    "fixtureExemptionsUsed": 0,
+    "fullPrecisionCoverage": "core attitude_presentation_tests and TS attitudePresentation.test.ts"
+  },
+  "matchedRuntime": {
+    "harness": "../evidence-rmp12-attitude-display/native-wasm.mjs",
+    "harnessSha256": "76d0db4d00152c39bf5b146b35f3ef511de0577d779395efa0e8bab31f897398",
+    "summary": "../evidence-rmp12-attitude-display/native-wasm/summary.json",
+    "summarySha256": "6cc902f0f3fc6682b5dfedfb9d5a929230f8daed3a7b57d6753273eb75f883c8",
+    "command": "simulate_flight",
+    "wasm": {
+      "path": "src/engine/astraea_engine.wasm",
+      "sha256": "be0aa3641ef91a8859f6c5daaba1d01a735098c10a02bb9839ae0689e4964bdc",
+      "bytes": 1827400,
+      "build": "node scripts/build-engine.mjs (unchanged flags), CARGO_BUILD_JOBS=2, lane target dir"
+    },
+    "native": {
+      "path": ".target-rmp12/debug/examples/legacy_flight_snapshot",
+      "sha256": "70562e37054c66f1bb16842ae02653287e84329f185c1edec9f96a3ba283f59e",
+      "bytes": 25374224
+    },
+    "fixtureSha256": "5a8064c4cb3aa66d3188d26ba56c546947a1b6a8f5b4ec2b4998991ee3cc411f",
+    "cases": {
+      "astraea/wind0": {
+        "nonEulerNumericFields": 115039,
+        "eulerFields": 15000,
+        "maxScaledNativeWasm": 2.6365139724254883e-16,
+        "lockExemptions": 0,
+        "newVsRetainedExcludingEuler": {
+          "numbers": 115039,
+          "exact": true,
+          "maxScaled": 0
+        },
+        "stdoutHashes": {
+          "native": "1c1e0f4129db92948613b303592a9a91ca8f86a758705461b98f2cfd9c352353",
+          "wasm": "0a3bba81dbc3b646e0977a34521d0f584bcd180f12f4e859fa08b4ba9b04c89f",
+          "note": "byte-identical to the retained replies because no Euler value changed"
+        }
+      },
+      "astraea/wind3": {
+        "nonEulerNumericFields": 115039,
+        "eulerFields": 15000,
+        "maxScaledNativeWasm": 1.4420542125498995e-14,
+        "lockExemptions": 0,
+        "newVsRetainedExcludingEuler": {
+          "numbers": 115039,
+          "exact": true,
+          "maxScaled": 0
+        },
+        "stdoutHashes": {
+          "native": "9d54d6d57151fd3b60969cc2d6bbafff29c6aca0373ca6f901b50b9b044e4286",
+          "wasm": "52f51b09e44456b9fb89c30bfca62b8450a3963bf01a02ca04dfaa983a913e5a"
+        },
+        "telemetry18": {
+          "retained": {
+            "native": [
+              90,
+              -172.9,
+              0
+            ],
+            "wasm": [
+              90,
+              -176.4,
+              0
+            ]
+          },
+          "corrected": {
+            "native": [
+              82.2,
+              90,
+              -90
+            ],
+            "wasm": [
+              82.2,
+              90,
+              -90
+            ]
+          }
+        }
+      }
+    },
+    "untouchedProof": "new native and WASM replies equal the retained replies exactly on every non-Euler number (115,039 per case); wind0 stdout bytes are identical",
+    "artifactIdentityNote": "historical WASM cf57158b\u2026 is not this build; no cross-root byte identity is claimed"
+  },
+  "retainedReceipts": {
+    "RMP12-knot-split/MATCHED-RUNTIME-EVIDENCE.json": {
+      "eulerBytes": "historical; valid only for the retained reply bytes and engine identity cf57158b\u2026/141a7990\u2026",
+      "nonEulerBytes": "valid for the same bytes (quaternions, trajectory, events, loads, hashes, field counts)"
+    },
+    "fixturePreRegeneration": "valid as the 2026-10-16 TS-oracle record for its bytes; superseded as an Euler expectation",
+    "savedTelemetryArchives": "byte-preserved; engineIdentity is the boundary; never recomputed"
+  },
+  "migration": {
+    "form": "disclosure-only; no schema bump (project schema 1.12.0), no new field",
+    "disclosures": [
+      "docs/internal/engineering-changelog.md",
+      "docs/internal/output-dictionary.md"
+    ],
+    "oldArchives": "byte-preserved, never recomputed",
+    "authoritativeAttitude": "q"
+  },
+  "readOnlyUntouched": [
+    "crates/astraea-engine/src/flight_provider.rs",
+    "crates/astraea-engine/src/native_candidate.rs",
+    "physics/integrator/event/quaternion/load code outside quaternion_to_euler_deg",
+    "numeric tolerances and policy identities",
+    "models.rs / telemetry.rs / v8_math.rs",
+    "project schema and savedTelemetry/projectJson/exportPreview/reportJson/savedFlightOutputs/runCases",
+    "src/console/** and src/io/**",
+    "TS fixtures with literal Euler values",
+    "package.json, Cargo manifests/locks",
+    "execution package register/manifest/packet index/TASKS/handoff/CHECKS",
+    "RMP12-knot-split records and external evidence",
+    "rmp13 ensemble/sampler and rmp18 beta/notices surfaces"
+  ],
+  "notDone": [
+    "no push/merge/tag/release/deploy/publication",
+    "no register/manifest/TASKS/handoff edit",
+    "no chart, beta claim or sampler copy change",
+    "no numerical-budget or physical-qualification claim; C02/C04 remain in_progress"
+  ],
+  "failedAttempts": [
+    {
+      "attempt": "first core lock test",
+      "observed": "yaw -130 vs 230 failed the test helper",
+      "cause": "test helper angle_gap used % (sign of dividend) instead of rem_euclid at the \u00b1180 wrap",
+      "resolution": "fixed the test helper only; production unchanged; suite then passed"
+    },
+    {
+      "attempt": "regenerator dry run",
+      "observed": "index assertion and rounding-boundary assertion failed",
+      "resolution": "fixed the tooling before any file write; final run asserts no round-half tie"
+    }
+  ],
+  "externalEvidence": {
+    "root": "../evidence-rmp12-attitude-display/",
+    "trust": "outside Git; not committed",
+    "files": {
+      "native-wasm.mjs": "76d0db4d00152c39bf5b146b35f3ef511de0577d779395efa0e8bab31f897398",
+      "native-wasm/summary.json": "6cc902f0f3fc6682b5dfedfb9d5a929230f8daed3a7b57d6753273eb75f883c8",
+      "native-wasm/astraea-wind0.input.json": "d1580ad785fe34433008ec1ba74d992ac522792463a7b8e72ce1f261961b3777",
+      "native-wasm/astraea-wind3.input.json": "ac42afc1d570c38de7e73b66c55bbeb80753aefb27a9058ea4b574554f1efda2",
+      "native-wasm/astraea-wind0.native.stdout": "1c1e0f4129db92948613b303592a9a91ca8f86a758705461b98f2cfd9c352353",
+      "native-wasm/astraea-wind3.native.stdout": "9d54d6d57151fd3b60969cc2d6bbafff29c6aca0373ca6f901b50b9b044e4286",
+      "native-wasm/astraea-wind0.wasm.stdout": "0a3bba81dbc3b646e0977a34521d0f584bcd180f12f4e859fa08b4ba9b04c89f",
+      "native-wasm/astraea-wind3.wasm.stdout": "52f51b09e44456b9fb89c30bfca62b8450a3963bf01a02ca04dfaa983a913e5a"
+    }
+  },
+  "noSelfAcceptance": true,
+  "recordsNote": "lane-record commit SHA is intentionally not self-referenced; the four implementation commits are listed."
+}

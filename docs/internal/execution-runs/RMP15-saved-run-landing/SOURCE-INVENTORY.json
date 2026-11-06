@@ -1,0 +1,15 @@
+{
+  "scope": "author-hashed current source/test/read-only files at source commit 041a8fcd71964f9fa876bbab6a7bc132a4d6e22a; not an independent seal",
+  "sourceFilesSha256": {
+    "src/application/runCases.ts": "acac6d58e72e042f8ec77d27b2f0d3303a572a12a6593ffee72a92d75fae2be0",
+    "src/application/runCases.test.ts": "202b429c5f853868cd77c3405a4d0d5feee75be142e7b64c74c87cae82e2a9d2",
+    "src/console/stages/SavedRuns.tsx": "63c0aa5c9344d344d50b3e2d34c6de213709248c15477345188c2f709a087c3a",
+    "src/console/stages/SavedRuns.test.tsx": "c0c16638ab0672fa22ea8be79a824626f636c4bc12519a57211c7ccb0f2c38a9"
+  },
+  "readonlyFilesSha256": {
+    "src/console/data/recoveryResults.ts": "91ae9f74592a2d8b998a3e8356dfe43315c4aed8c795294d6be278f3d5ed85c4",
+    "src/formats/projectJson.ts": "28aeb265de80dd84b4d11f595cbadc238da8e44be9b43643b6942ff63e2e73f6",
+    "src/console/data/adapter.ts": "753683b777d7b4789f8cb981d8c7a2329ca872cfa8f70c909092289b1e8f597d",
+    "src/engine/astraea_engine.wasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b"
+  }
+}

@@ -1,0 +1,262 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP10",
+  "subpacket": "RMP10-C06 qualified output archive (F1/F2/F3 + parser rework + archive resource budget)",
+  "baseSha": "80296584103f247614120235e3fc4c3ee08203fb",
+  "reworkBaseSha": "e337a24cd638b01e5114a03c09cadbf401c2170e",
+  "sourceSha": "f082b675d09753e3e0926898fc1381e97d42650d",
+  "owner": "Pi coding agent (openrouter/deepseek/deepseek-v4.1-flash-1017, high)",
+  "modelRouting": {
+    "model": "openrouter/deepseek/deepseek-v4.1-flash-1017",
+    "effort": "high",
+    "usageTelemetry": "not supplied",
+    "subagents": "none"
+  },
+  "effectiveInputs": [
+    "repository instructions and docs/internal/execution-package/{CONTROL-LOOP,CHECKS,DECISIONS}.md, packets RMP10/RMP15",
+    "prior RMP10-output-consistency RESULT/REVIEW and docs/internal/output-dictionary.md",
+    "coordinator REQUEST_CHANGES on 0585080: canonical-unit enforcement and canonical landing-availability consistency",
+    "coordinator probe evidence /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-qualified-output-archive/coordinator-parser-before.json (not present in the author worktree; cited from the request)"
+  ],
+  "sourceHashes": {
+    "src/application/flightLanding.ts": "e7f9fb729b31385cf696e88b93800d8624ef77778e8c2acd868838b713cde514",
+    "src/application/savedFlightOutputs.ts": "8f63478012d3bc14232258c51d7dd6a625b235b4a9edafacf50f3b8f1ae7d6b0",
+    "src/application/runCases.ts": "100d34f9718c7036cd9f1e11ee6ee5545e5ec903811b85966f7507d52ecce8ae",
+    "src/console/data/contract.ts": "095455988d9cefdb0dccb136b089c398936c5974813d7d01f3b7be131c84f078",
+    "src/console/data/adapter.ts": "365f21d70470e5d4045454ae5c33c4b9da271929cf6a3556e42b796956438995",
+    "src/console/data/recoveryResults.ts": "a800bb09c4833b2ef3d7847024c9ff70f6ddca6e61d7981d57ee048f3403eac0",
+    "src/console/stages/SavedRuns.tsx": "71496524233515d5ab4a032f0d27ffecc53af488efe97bdd4e527904abf94ec8",
+    "src/console/stages/Build.tsx": "4211b6f6c2bf30109fc39b25e35ebe8b85075ffaba18d803f6a60f25e7fe62d9",
+    "src/console/stages/Flight.tsx": "de15d86bfe0bd334df554915dd5acb09e9a6e258ba34d1b4822027d07ddca1ac",
+    "src/console/stages/Recovery.tsx": "38518486e4726390e935b8a08049c6e3b07d97a323c8d925376a4bcad731d926",
+    "src/formats/projectJson.ts": "c57040de01a93e9fae5337f7e0bdc9cd1219f1d335236eac7295a36c61fb9a6c",
+    "src/io/files.ts": "d28f05574c9a5deacb82c6a8910914edf5c47184777d3ea12561eaf0841af689",
+    "src/state/projectIo.ts": "c7733858338f7c3287504b7ba6b4612ad5cd1c872e379961bd52140fb78b2e03",
+    "src/io/largeProject.fixture.ts": "257c164eeba7ff3da0da8a14437d2aec3da54856b170d3ced9992803344c0d37"
+  },
+  "runtimeHashes": {
+    "src/engine/astraea_engine.wasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+    "dist/assets/astraea_engine-DXTV52_r.wasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+    "note": "Copied sealed artifact from target-rmp10; never rebuilt; no native behavior claim."
+  },
+  "artifactAvailability": [
+    "Evidence logs live outside git at /home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-qualified-output-archive/",
+    "red-before-fix-base.log: throwaway probe at base 8029658 (original F1/F2 mismatch)",
+    "red-before-rework.log: throwaway probe at 0585080 (unit mismatch, timeout availability, false delta, trusted landing)",
+    "focused-rework.log, affected-rework.log, tsc-rework.log, vite-build-rework.log, wasm-sha256.log",
+    "real-file-probe.json + red-real-file-8mb-gate.log: supplied 9,584,081-byte project parsed/round-tripped exactly but refused by the old 8 MiB gate",
+    "green-real-file-64mb-gate.log: same actual bytes pass the native gate and import as 2 cases after the split",
+    "final-budget-vitest.log, tsc-budget.log, vite-build-budget.log, budget-tests.log/budget-tests-2.log (rework verification)"
+  ],
+  "checks": [
+    {
+      "id": "F1-console",
+      "status": "pass",
+      "kind": "focused-vitest",
+      "commandOrMechanism": "src/console/data/outputContracts.test.ts",
+      "expectedRule": "toFlightRun copies native offNominalExcursion",
+      "observed": "pass",
+      "exitCode": 0,
+      "evidencePath": "focused-rework.log",
+      "sha256": null,
+      "limitation": "unit seam, not native WASM execution"
+    },
+    {
+      "id": "F1-trace",
+      "status": "pass",
+      "kind": "focused-vitest",
+      "commandOrMechanism": "src/console/stages/recoveryResults.test.tsx",
+      "expectedRule": "Build trace exports the retained flag",
+      "observed": "pass",
+      "exitCode": 0,
+      "evidencePath": "focused-rework.log",
+      "sha256": null,
+      "limitation": "stubbed engine seam"
+    },
+    {
+      "id": "F2-parser",
+      "status": "pass",
+      "kind": "focused-vitest",
+      "commandOrMechanism": "src/application/savedFlightOutputs.test.ts",
+      "expectedRule": "exact keys, canonical units per id, availability invariants, landing-flag consistency, peak bounds, revision preservation",
+      "observed": "11 cases pass",
+      "exitCode": 0,
+      "evidencePath": "focused-rework.log",
+      "sha256": null,
+      "limitation": "software contract only"
+    },
+    {
+      "id": "F2-archive",
+      "status": "pass",
+      "kind": "focused-vitest",
+      "commandOrMechanism": "src/application/runCases.test.ts + src/formats/projectJson.test.ts",
+      "expectedRule": "generated dictionary units match shared metadata; save-open-save exact; 1.10 identity migration; older-schema injection refused",
+      "observed": "pass",
+      "exitCode": 0,
+      "evidencePath": "focused-rework.log",
+      "sha256": null,
+      "limitation": "synthetic fixtures"
+    },
+    {
+      "id": "F3-units",
+      "status": "pass",
+      "kind": "focused-vitest",
+      "commandOrMechanism": "src/console/stages/SavedRuns.test.tsx",
+      "expectedRule": "in-memory unlike/non-canonical units show stored values and withhold the delta",
+      "observed": "pass",
+      "exitCode": 0,
+      "evidencePath": "focused-rework.log",
+      "sha256": null,
+      "limitation": "jsdom; no built-browser journey by author"
+    },
+    {
+      "id": "F3-availability",
+      "status": "pass",
+      "kind": "focused-vitest",
+      "commandOrMechanism": "src/console/stages/SavedRuns.test.tsx",
+      "expectedRule": "timeout/non-nominal flags override an available canonical landing entry at the UI boundary; nominal zero stays available",
+      "observed": "pass",
+      "exitCode": 0,
+      "evidencePath": "focused-rework.log",
+      "sha256": null,
+      "limitation": "jsdom"
+    },
+    {
+      "id": "red-before-rework",
+      "status": "pass",
+      "kind": "throwaway-probe",
+      "commandOrMechanism": "scratch worktree at 0585080 running the four new behaviors",
+      "expectedRule": "pre-rework code must fail all four",
+      "observed": "4 failed / 4",
+      "exitCode": 1,
+      "evidencePath": "red-before-rework.log",
+      "sha256": null,
+      "limitation": "probe not committed; worktree removed"
+    },
+    {
+      "id": "affected",
+      "status": "pass",
+      "kind": "broad-vitest",
+      "commandOrMechanism": "node node_modules/vitest/vitest.mjs run src/console src/application src/formats src/io src/state/projectIo.test.ts src/state/projectBoundary.test.ts --maxWorkers=1",
+      "expectedRule": "existing consumers remain correct",
+      "observed": "65 files / 819 tests pass (includes size-heavy budget cases at --maxWorkers=1)",
+      "exitCode": 0,
+      "evidencePath": "final-budget-vitest.log",
+      "sha256": null,
+      "limitation": "not the full native/browser suite"
+    },
+    {
+      "id": "typecheck",
+      "status": "pass",
+      "kind": "tsc",
+      "commandOrMechanism": "node node_modules/typescript/bin/tsc --noEmit",
+      "expectedRule": "no type errors",
+      "observed": "exit 0, empty log",
+      "exitCode": 0,
+      "evidencePath": "tsc-budget.log",
+      "sha256": null,
+      "limitation": null
+    },
+    {
+      "id": "vite-build",
+      "status": "pass",
+      "kind": "vite",
+      "commandOrMechanism": "node node_modules/vite/bin/vite.js build",
+      "expectedRule": "frontend bundles with the sealed WASM",
+      "observed": "exit 0; 3115 modules; served WASM hash unchanged",
+      "exitCode": 0,
+      "evidencePath": "vite-build-budget.log",
+      "sha256": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+      "limitation": "no browser acceptance run"
+    },
+    {
+      "id": "budget-policy",
+      "status": "pass",
+      "kind": "focused-vitest",
+      "commandOrMechanism": "src/io/io.test.ts",
+      "expectedRule": "8 MiB foreign budget unchanged; 64 MiB native budget on exact UTF-8 boundary; native >8 MiB accepted",
+      "observed": "pass",
+      "exitCode": 0,
+      "evidencePath": "final-budget-vitest.log",
+      "sha256": null,
+      "limitation": "unit-level gate, no real file read"
+    },
+    {
+      "id": "budget-import",
+      "status": "pass",
+      "kind": "focused-vitest",
+      "commandOrMechanism": "src/state/projectIo.test.ts",
+      "expectedRule": "generated valid >8 MiB (<64 MiB) project imports with all telemetry; >64 MiB file save refuses before picker/download with unchanged state",
+      "observed": "pass",
+      "exitCode": 0,
+      "evidencePath": "final-budget-vitest.log",
+      "sha256": null,
+      "limitation": "generated equivalent, not the supplied bytes"
+    },
+    {
+      "id": "budget-export",
+      "status": "pass",
+      "kind": "focused-vitest",
+      "commandOrMechanism": "src/console/stages/buildExport.test.tsx",
+      "expectedRule": "Build project export over budget refuses before any ZIP/download write",
+      "observed": "pass",
+      "exitCode": 0,
+      "evidencePath": "final-budget-vitest.log",
+      "sha256": null,
+      "limitation": "jsdom"
+    },
+    {
+      "id": "real-file-red-green",
+      "status": "pass",
+      "kind": "throwaway-probe",
+      "commandOrMechanism": "actual supplied browser-project.astraea.json through describeImport/importProjectFile",
+      "expectedRule": "old gate refuses; new gate accepts and imports 2 cases; save-open-save exact",
+      "observed": "red refused / green imported",
+      "exitCode": 0,
+      "evidencePath": "real-file-probe.json + green-real-file-64mb-gate.log",
+      "sha256": null,
+      "limitation": "probe not committed; deterministic generated equivalent committed"
+    }
+  ],
+  "review": {
+    "reviewer": "openai-codex/gpt-6.1-sol coordinating session",
+    "independentOfAuthor": true,
+    "disposition": "ACCEPT bounded software consistency; RMP10-C06 remains in_progress",
+    "findings": [
+      "non-canonical stored unit accepted",
+      "canonical landing availability ignored archived timeout/non-nominal flags"
+    ]
+  },
+  "coordinatorVerification": {
+    "parser": "coordinator-parser-after.json: incompatible units, timeout/non-nominal availability and peak cap refused; nominal available zero preserved",
+    "references": "LSP: 19 landingAvailability references",
+    "browser": "browser-final.json: built Chromium under production CSP; actual 9584081-byte project save/open/save byte-exact; synthetic zero/unavailable and legacy archive presentations",
+    "zip": "browser-final-zip-proof.json: actual downloaded ZIP; 3 flights, project 14374307 bytes, output dictionary/offNominalExcursion/inputKey match trace",
+    "zipSha256": "e6bee5aa78bbacfed85a94d4d38eed567a7af7b5420669902b03359990c44c2d",
+    "flightCalls": 2,
+    "browserRuntimeErrors": 0,
+    "runtimeCleanup": "browser and preview stopped",
+    "limits": "Software consumer/archive consistency only; manufactured fixtures are not flight measurements; over-budget no-write covered by author tests, not a browser claim"
+  },
+  "qualification": {
+    "computational": "software consistency only",
+    "physical": "unqualified",
+    "dynamic": "unknown"
+  },
+  "failedAttempts": [
+    "Coordinator review on 0585080 found a non-canonical stored unit was accepted and a timeout/non-nominal record could advertise an available canonical landing; both fixed here with failing-before probe evidence.",
+    "Pre-rework unit/availability fixture assumptions made some synthetic summaries use 'm' for speeds; fixtures now use producer units.",
+    "Saved Runs first failed without TooltipProvider; it now supplies the provider the Workstation supplies, keeping ResultValue reuse.",
+    "Coordinator browser run found a 9,584,081-byte project saved by the app but refused on open by the global 8 MiB import gate; fixed with the approved 64 MiB native / 8 MiB foreign budget split.",
+    "First over-budget fixtures used 17 generated runs (66.1 MB) and landed just under 64 MiB; tests now use 18 runs (~70 MB) so the gate is actually exercised."
+  ],
+  "remainingScope": [
+    "RMP10-C03 peak evidence, C04 complete event/guide qualification, physical measurement/qualification, RMP12 budgets and competition rules remain open.",
+    "Coordinator browser acceptance completed for the bounded archive/trace/units/old-case journeys; exact source and external proof recorded above.",
+    "No acceptance-register status promoted; RMP10-C06 remains in_progress for the broader output/rule/qualification scope."
+  ],
+  "nextActions": [
+    "Coordinator: integrate reviewed source, preserve remaining scientific scope, then repair reproduced calibration applicability."
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

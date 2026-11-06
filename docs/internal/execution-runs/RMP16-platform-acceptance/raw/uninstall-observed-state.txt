@@ -1,0 +1,2 @@
+installed now: False
+uninstall entries now: 0

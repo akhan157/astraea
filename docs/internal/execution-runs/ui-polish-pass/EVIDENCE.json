@@ -1,0 +1,231 @@
+{
+  "lane": "ui-polish-pass",
+  "base": "f8e10959e44a396c52d62b8d45cbdeb01aadbf33",
+  "assignment_commit": "0f5330a36c36318747157fdd0fc468a69413e7c6",
+  "implementation_commits": [
+    "25bd216ac8996ccfa4ac9623fde5061bb6ce4eab",
+    "042bd30ca84e8b51f93fb708c0b8845211640698",
+    "be54572f7e98362e5262c6c2c96a78402281ba3a",
+    "7b030ddd8177c8b6bcc111929816df59121cd9cb",
+    "78a549438d2fe3319313d2ef76b4464a9a432d51"
+  ],
+  "report_commit": "this commit (RESULT.md + EVIDENCE.json)",
+  "evidence_dir": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-ui-polish-pass",
+  "files": {
+    "production": [
+      "index.html",
+      "vite.config.ts",
+      "src/console/kit/Controls.tsx",
+      "src/console/kit/Disclosure.tsx",
+      "src/console/kit/Fields.tsx",
+      "src/console/kit/Status.tsx",
+      "src/console/shell/ComparePanel.tsx",
+      "src/console/shell/Shell.tsx",
+      "src/console/evidence/AltimetryCard.tsx",
+      "src/console/evidence/CalibrationCard.tsx",
+      "src/console/evidence/CalibrationReview.tsx",
+      "src/console/evidence/ModelStatusPanel.tsx",
+      "src/console/evidence/MomentArmHistoryPanel.tsx",
+      "src/console/evidence/ProjectLedger.tsx",
+      "src/console/evidence/RecoveryCard.tsx",
+      "src/console/evidence/ShareFlightCard.tsx",
+      "src/console/evidence/SimFlightOverlay.tsx",
+      "src/console/stages/Aero.tsx",
+      "src/console/stages/AeroControls.tsx",
+      "src/console/stages/Airframe.tsx",
+      "src/console/stages/Build.tsx",
+      "src/console/stages/Candidate.tsx",
+      "src/console/stages/Flight.tsx",
+      "src/console/stages/FlightTimeline.tsx",
+      "src/console/stages/Mission.tsx",
+      "src/console/stages/SavedRuns.tsx",
+      "src/console/stages/SiteEditor.tsx",
+      "src/console/stages/common.tsx",
+      "src/console/stages/aeroBreakdownText.ts"
+    ],
+    "tests": [
+      "src/console/kit/controls.test.tsx",
+      "src/console/stages/aeroBreakdown.test.tsx",
+      "src/console/stages/aeroBreakdownText.test.ts",
+      "src/console/stages/flightInspector.test.tsx",
+      "src/console/stages/missionSite.test.tsx",
+      "vite.config.test.ts",
+      "scripts/preview-journeys.mjs"
+    ],
+    "docs": [
+      "CHANGELOG.md",
+      "docs/internal/execution-runs/ui-polish-pass/RESULT.md",
+      "docs/internal/execution-runs/ui-polish-pass/EVIDENCE.json"
+    ],
+    "images": [
+      "public/landing/airframe.webp",
+      "public/landing/flight.webp",
+      "public/landing/hero.webp",
+      "public/landing/montecarlo.webp",
+      "public/landing/motor.webp",
+      "public/landing/verify.webp"
+    ]
+  },
+  "commands": [
+    {
+      "command": "npx tsc --noEmit",
+      "result": "exit 0, no diagnostics",
+      "log": "gate2-after/tsc.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console",
+      "result": "49 test files passed, 393 tests passed",
+      "log": "gate2-after/vitest-console.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2",
+      "result": "150 test files passed, 1820 tests passed",
+      "log": "gate2-after/vitest-full.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 vite.config.test.ts --reporter=verbose",
+      "result": "1 file, 1 test passed; verbose output names vite.config.test.ts > landing page version > injects the package.json version at build time",
+      "log": "gate2-after/version-test-verbose.log"
+    },
+    {
+      "command": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 pnpm build",
+      "result": "exit 0; dist/index.html contains Free · Beta 0.10.0 · Browser, Windows, macOS and Linux",
+      "log": "gate2-after/build-final.log"
+    },
+    {
+      "command": "pnpm test:browser",
+      "result": "exit 0; Chromium smoke, all existing journeys and the new themed-controls/layout/version assertions passed",
+      "log": "gate2-after/test-browser.log"
+    },
+    {
+      "command": "node after-probe.mjs",
+      "result": "exit 0; measurements and screenshots; zero console/CSP errors",
+      "log": "gate2-after/after-probe.log",
+      "json": "gate2-after/after-probe.json"
+    },
+    {
+      "command": "node scripts/capture-screenshots.mjs",
+      "result": "exit 0; captured airframe, hero, motor, flight, verify, montecarlo",
+      "log": "gate2-after/capture-screenshots.log"
+    },
+    {
+      "command": "node base-probe.mjs",
+      "result": "exit 0; recorded base defects in JSON (probe records rather than asserts)",
+      "log": "gate2-base/base-probe.log",
+      "json": "gate2-base/base-probe.json"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console/stages/aeroBreakdown.test.tsx",
+      "result": "base f8e1095 exit 1: rendered 0 parts carry no lift ()",
+      "log": "gate2-base/unit-aero.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console/stages/aeroBreakdownText.test.ts",
+      "result": "base f8e1095 exit 1: aeroBreakdownText module absent",
+      "log": "gate2-base/unit-aero-text.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console/stages/missionSite.test.tsx",
+      "result": "base f8e1095 exit 1: Elevation0m, no Not set",
+      "log": "gate2-base/unit-mission.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console/stages/flightInspector.test.tsx",
+      "result": "base f8e1095 exit 1: 3 editable launch-setup inputs",
+      "log": "gate2-base/unit-flight.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 src/console/kit/controls.test.tsx",
+      "result": "base f8e1095 exit 1: ./Controls and ./Disclosure absent",
+      "log": "gate2-base/unit-controls.log"
+    },
+    {
+      "command": "npx vitest run --maxWorkers=2 vite.config.test.ts",
+      "result": "base f8e1095 exit 1: index.html has no %APP_VERSION%",
+      "log": "gate2-base/unit-version.log"
+    }
+  ],
+  "base_falsifier_failures": {
+    "item1": "Aero rendered '0 parts carry no lift ().' and five 'CNα N/A · CP N/A' rows",
+    "item2": "Raw controls per stage: Airframe ranges 4; Flight checkboxes 9/details 1/ranges 1; Recovery selects 2/ranges 4; Verify selects 2/details 2/checkboxes 2/ranges 1; Build selects 2/details 8/ranges 1",
+    "item3": "Site input 578×36 px; form 222.75 px high; Apply 37.5 px high",
+    "item4": "Mission site card showed Elevation 0 m and no Not set",
+    "item5": "Flight inspector exposed three editable launch-setup inputs",
+    "item8_1280": "Run rect y=-1.25 h=45.5; Compare h=43; stage subtitle 381/306; four mass names clipped",
+    "item9": "Gate reasons scrolled 733/391 and 1755/324; Results basis had single-line truncation",
+    "item10": "Landing eyebrow Beta 0.9; no %APP_VERSION%; version test failed"
+  },
+  "built_surface": {
+    "screenshots": "gate2-after/screenshots/ (all eight stages at 1600×1000, 1280×800, 1024×768; 1280 Mission form; 1280 Flight Results; 800×600 header; landing)",
+    "sizes": {
+      "1600x1000": {
+        "header_scrollWidth": 1600,
+        "innerWidth": 1600,
+        "top_bar_height": 44,
+        "stage_header_height": 42,
+        "run": { "x": 1326, "y": 8.125, "width": 192, "height": 26.75, "visible_fraction": 1.0 },
+        "compare_height": 26.5,
+        "subtitle": { "scrollWidth": 381, "clientWidth": 381 },
+        "mass_names_clipped": 0,
+        "unthemed_controls": 0
+      },
+      "1280x800": {
+        "header_scrollWidth": 1280,
+        "innerWidth": 1280,
+        "top_bar_height": 44,
+        "stage_header_height": 56,
+        "run": { "x": 1065, "y": 8.125, "width": 133, "height": 26.75, "visible_fraction": 1.0 },
+        "compare_height": 26.5,
+        "subtitle": { "scrollWidth": 604, "clientWidth": 604 },
+        "mass_names_clipped": 0,
+        "unthemed_controls": 0
+      },
+      "1024x768": {
+        "header_scrollWidth": 1024,
+        "innerWidth": 1024,
+        "top_bar_height": 44,
+        "stage_header_height": 56,
+        "run": { "x": 809, "y": 8.125, "width": 133, "height": 26.75, "visible_fraction": 1.0 },
+        "compare_height": 26.5,
+        "subtitle": { "scrollWidth": 673, "clientWidth": 673 },
+        "mass_names_clipped": 0,
+        "unthemed_controls": 0
+      },
+      "800x600": {
+        "header_scrollWidth": 800,
+        "innerWidth": 800,
+        "top_bar_height": 44,
+        "stage_header_height": 56,
+        "run": { "x": 585, "y": 8.125, "width": 133, "height": 26.75, "visible_fraction": 1.0 },
+        "compare_height": 26.5,
+        "subtitle": { "scrollWidth": 704, "clientWidth": 704 },
+        "mass_names_clipped": 0,
+        "unthemed_controls": 0
+      }
+    },
+    "aero": {
+      "zero_parts_sentence": false,
+      "cna_na_rows": 0,
+      "non_lifting_wording": [
+        "Body tubes Payload & Avionics Bay, Airframe Coupler, Booster & Motor Section are not modelled as lifting surfaces in this subsonic rollup, so the engine reports no CNα or CP for them. They still move the CG.",
+        "Parachutes Drogue Parachute (Apogee), Main Parachute (700ft AGL) are not modelled as lifting surfaces in this subsonic rollup, so the engine reports no CNα or CP for them. They still move the CG."
+      ]
+    },
+    "verify_recovery_gate_reasons": { "verify_count": 5, "recovery_count": 1, "clipped": 0 },
+    "flight_results_basis": { "count": 13, "clipped": 0 },
+    "flight_launch_summary": { "present": true, "inputs": 0, "edit_in_mission_button": true },
+    "site": {
+      "card": "Elevation Not set; sea level standard day assumed; Set launch site",
+      "input_width": 118,
+      "form_height": 120.25,
+      "apply_button_height": 23.25
+    },
+    "landing_eyebrow": "Free · Beta 0.10.0 · Browser, Windows, macOS and Linux",
+    "console_or_csp_errors": []
+  },
+  "out_of_scope": [
+    "items 6-7 (3D look, empty inspector)",
+    "engine, schema, presets, gates, thresholds, exports",
+    "drawer breakpoints and native select popup policy (approved choices)"
+  ]
+}

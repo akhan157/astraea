@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP07",
+  "subpacket": "RMP07e model & evidence status panel",
+  "baseSha": "3a40d80f1237baf00c186a982bca6ac722eb6a06",
+  "owner": "coordinator/author in intended branch/worktree; exclusive lane lease; released at completion",
+  "modelRouting": {
+    "author": "prior author session recorded mimo-v2.6-pro/high; provider attribution not independently established in this record",
+    "reviewer": "fresh ephemeral no-history read-only pi session (tools=read), same installed model/high",
+    "meaning": "independent authorship reasoning, not multi-model consensus or qualification"
+  },
+  "scope": {
+    "in": "read-only status panel + shared beta-claim constant + Build wiring + Workstation constant use",
+    "out": "new claims, computed gates, candidate status exposure, physics/identity/schema changes, qualification language"
+  },
+  "sourceHashes": {
+    "src/console/evidenceClaims.ts": "88558ed1008eab749a33387e89c625c65e4398da765fe07bb1739cfb9267da9e",
+    "src/console/evidence/ModelStatusPanel.tsx": "38cdea1f72326a0d85b04dc4871aeb34ae0250b80bed841fa1a1e5097ebd4cda",
+    "src/console/evidence/ModelStatusPanel.test.tsx": "3b90ea2895ac9400b1d266677b45b5ff56519abe92cb67f3f723dac142e765e0",
+    "src/console/stages/Build.tsx": "817381f021437f6735f07ae809c7d703577095aea055eb54dc3deda195a46b53",
+    "src/console/Workstation.tsx": "0df8fdfc032b67e3c421094c8224c87f1e77cfcf18a0eaf44f2f89b219f637cd"
+  },
+  "artifactAvailability": [
+    {
+      "kind": "portable",
+      "location": "docs/internal/execution-runs/RMP07-model-status/ (REVIEW, RESULT, EVIDENCE); source/tests in repository"
+    },
+    {
+      "kind": "external-local-only",
+      "location": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-calibration-binding",
+      "contents": "status review prompts/reviews and focused/affected/build logs (shared external dir with RMP07d)"
+    }
+  ],
+  "checks": [
+    {
+      "id": "RMP07-C07",
+      "status": "in_progress",
+      "observed": "model IDs/engine attribution/calibration binding/validation scope visible for the legacy product path with no qualified/validated wording; candidate provider status exposure remains open",
+      "mechanismStatus": "accepted"
+    },
+    {
+      "id": "RMP07-C08",
+      "status": "in_progress retained",
+      "observed": "panel shows result-vs-current engine identity honestly; no claim against changed assets"
+    }
+  ],
+  "testEvidence": {
+    "focused": "5/5 panel tests (claim literal pin, provenance wording pins, 4 calibration states, 4 attribution strings + seeded branch selection/tone)",
+    "affected": "284/284 across 19 files",
+    "typescript": "clean",
+    "viteBuild": "pass"
+  },
+  "review": {
+    "disposition": "ACCEPT after one focused rework",
+    "round1": "REQUEST_CHANGES: unsupported 'Explicitly selected' provenance claim; attribution branches untested; claim wording unpinned",
+    "round2": "ACCEPT; two one-line test strengthenings adopted post-acceptance (tone asserts for unknown seeds; M1 wording pins)",
+    "rawHashes": {
+      "status-review.md": "032fc0738d1edc8a40ab2e162beaf817da95632ef3407aeb11386f95d0f60f1d",
+      "status-rereview.md": "2e2ec2be3b51a77858a127f8e936a067800f95570e088fd8742dbca6da6e5cb2"
+    }
+  },
+  "honestLimitations": [
+    "'same' engine-attribution branch unreachable through the test stub (test-mode identity has null checksum); documented in test and pinned purely",
+    "claim wording extracted verbatim; reviewer could not git-diff base in read-only session but found substantive consistency with docs/accuracy.md"
+  ],
+  "remainingScope": [
+    "RMP07-C04 consumer consistency",
+    "migration difference reports",
+    "candidate provider status surface at candidate activation",
+    "scientific/mission/platform/release gates"
+  ],
+  "nextActions": [
+    "RMP07 consumer consistency or reviewed knot-split regime experiment; no default change"
+  ]
+}

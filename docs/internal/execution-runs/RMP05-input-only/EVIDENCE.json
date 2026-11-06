@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP05",
+  "subpacket": "RMP05a-input-only-preparation",
+  "baseSha": "bdcea0bf57be5407f6b61f4655f6ee59775c99b5",
+  "sourceSha": "507dabf72b73a38a873d6aea3bc49449a82202bf",
+  "owner": "coordinator; local preparation lease released",
+  "modelRouting": {
+    "model": "current coordinator; no independent case reviewer assigned for nonexistent data",
+    "effort": "ordinary structural review",
+    "usageTelemetry": "not supplied"
+  },
+  "effectiveInputs": [
+    "docs/internal/execution-package/evidence/RMP05/input-only-request.json"
+  ],
+  "sourceHashes": {
+    "docs/internal/execution-package/evidence/RMP05/input-only-request.json": "d7401d8fb5162a4789015acb8b87ab2aa8e73a9e3da720c107520991a491d17d",
+    "docs/internal/execution-package/evidence/RMP05/README.md": "3bdcca0bb0b37e4043cc92ca50e07aa0d6d60dee3d2b6981e07ce17e27b18021",
+    "docs/internal/accuracy-program/execution-2026-10-25/pilot-freeze-template.json": "14689e0b2d6a7d1501e45665bade41e807ed82e850b6569c6922f1ccb0382164",
+    "docs/internal/accuracy-program/collegiate-mission-and-decision-matrix.md": "332f27e6c9e73ad060a5f9d19123de01577032c44a516ffbcf599dc1cf6227f8",
+    "docs/internal/accuracy-program/collegiate-accuracy-spec-proposed.md": "4ffa49cf3585df8b45608bb587b3affbb0d2832be73200e9851c76fc7723508d",
+    "docs/internal/accuracy-program/sources-and-exposure.json": "1d8c8badef7b6367ff9cb409ede12c6fbd4c430399c94a2d58df800ced7b8860"
+  },
+  "runtimeHashes": {},
+  "artifactAvailability": [
+    {
+      "artifact": "input-only request,blank decisions and gap/custody plan",
+      "status": "present;0 actual cases/0 agreed budgets/0 rights signoffs"
+    },
+    {
+      "artifact": "actual as-flown input package/permissions/custodian",
+      "status": "not supplied"
+    },
+    {
+      "artifact": "raw outcomes",
+      "status": "not requested,opened or authorized"
+    }
+  ],
+  "checks": [
+    {
+      "id": "RMP05-C01",
+      "status": "in_progress",
+      "kind": "incomplete-form-not-scientific-qualification",
+      "commandOrMechanism": "Field-to-source/gap form prepared;actual inputs absent",
+      "observed": "Field-to-source/gap form prepared;actual inputs absent",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP05-input-only/RESULT.md",
+      "limitation": "No scientific check pass; actual independent eligibility/owner agreement pending"
+    },
+    {
+      "id": "RMP05-C02",
+      "status": "blocked",
+      "kind": "incomplete-form-not-scientific-qualification",
+      "commandOrMechanism": "Rights/custodian/independent eligibility unreviewed",
+      "observed": "Rights/custodian/independent eligibility unreviewed",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP05-input-only/RESULT.md",
+      "limitation": "No scientific check pass; actual independent eligibility/owner agreement pending"
+    },
+    {
+      "id": "RMP05-C03",
+      "status": "blocked",
+      "kind": "incomplete-form-not-scientific-qualification",
+      "commandOrMechanism": "Actual mission/decision owner and agreed budgets absent;all NULL",
+      "observed": "Actual mission/decision owner and agreed budgets absent;all NULL",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP05-input-only/RESULT.md",
+      "limitation": "No scientific check pass; actual independent eligibility/owner agreement pending"
+    },
+    {
+      "id": "RMP05-C04",
+      "status": "in_progress",
+      "kind": "incomplete-form-not-scientific-qualification",
+      "commandOrMechanism": "Existing exposure policy and proposed graph types retained;selected case graph absent",
+      "observed": "Existing exposure policy and proposed graph types retained;selected case graph absent",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP05-input-only/RESULT.md",
+      "limitation": "No scientific check pass; actual independent eligibility/owner agreement pending"
+    },
+    {
+      "id": "RMP05-C05",
+      "status": "blocked",
+      "kind": "incomplete-form-not-scientific-qualification",
+      "commandOrMechanism": "No actual eligible inputs/signoffs/agreed budgets;not ready",
+      "observed": "No actual eligible inputs/signoffs/agreed budgets;not ready",
+      "exitCode": null,
+      "evidencePath": "docs/internal/execution-runs/RMP05-input-only/RESULT.md",
+      "limitation": "No scientific check pass; actual independent eligibility/owner agreement pending"
+    }
+  ],
+  "executedChecks": [
+    {
+      "command": "python3 -m json.tool docs/internal/execution-package/evidence/RMP05/input-only-request.json >/dev/null",
+      "exitCode": 0
+    },
+    {
+      "commandOrMechanism": "Focused standard-library assertions on exact input-only path: incomplete/not-ready,all budgets/signoffs NULL,0 selected cases,no outcome values/requests",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP05-input-only/structural-result.json"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "review": {
+    "reviewer": "coordinator structural review only",
+    "independentOfAuthor": false,
+    "disposition": "incomplete-form-preparation-checked;actual-independent-case-review-pending",
+    "findings": []
+  },
+  "qualification": {
+    "computational": "form integrity only;not a simulator/scoring schema",
+    "physical": "unqualified;no case",
+    "dynamic": "not executed"
+  },
+  "failedAttempts": [],
+  "remainingScope": [
+    "Field-to-source/gap form prepared;actual inputs absent",
+    "Rights/custodian/independent eligibility unreviewed",
+    "Actual mission/decision owner and agreed budgets absent;all NULL",
+    "Existing exposure policy and proposed graph types retained;selected case graph absent",
+    "No actual eligible inputs/signoffs/agreed budgets;not ready"
+  ],
+  "nextActions": [
+    "Ask responsible owner/team for mission/priority outputs,permitted input-only package/custodian and decision error/risk budgets",
+    "Keep outcomes sealed;no outreach/scoring or inferred permission"
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

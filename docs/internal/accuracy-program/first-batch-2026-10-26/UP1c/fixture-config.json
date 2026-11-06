@@ -1,0 +1,20 @@
+{
+  "identifier": "com.astraea.fixture.updater-verify",
+  "version": "1.0.0",
+  "build": {
+    "beforeBuildCommand": ""
+  },
+  "bundle": {
+    "active": false,
+    "createUpdaterArtifacts": false
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFGNzk5QkY4QkYyNEJENTAKUldSUXZTUy8rSnQ1SCtHaHNyRDRPV1pSOSs1L09EbTE3TGtFUWpYMXpmNVV2bVpCMWEyTDJibjkK",
+      "endpoints": [
+        "http://127.0.0.1:18750/feed"
+      ],
+      "requireSignedVersion": true
+    }
+  }
+}

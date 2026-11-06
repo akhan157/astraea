@@ -1,0 +1,113 @@
+{
+  "lane": "rmp18-rights-security",
+  "pin": "0f6f08eed60a06946d11306371dca1841a3f2e26",
+  "route": {
+    "selector": "deepseek/deepseek-flash",
+    "catalog_name": "DeepSeek V4.1 Flash 1017",
+    "thinking": "max",
+    "fallback": "none configured (retry.fallbackChains {}; task.agentModelOverrides {})"
+  },
+  "commits": [
+    "165a3a943cbcd482008e73247222da704795c357",
+    "7e96b2a27a92a74fa5182fc15799a2ad2a9bd076",
+    "d1c7fc120e12713d5f2e50759898d9edee7c9c36"
+  ],
+  "changes": {
+    "native": {
+      "file": "src-tauri/src/lib.rs",
+      "sha256": "1a193b53d1df55330a9f964f3cbf9b7e8b6912892abe491b1d5c09f00f277776",
+      "removed": ["fn log_download", "OpenOptions", "std::io::Write", "SystemTime", "UNIX_EPOCH", "DownloadEvent"],
+      "kept": ["on_download(|_webview, _event| true)", "PermissionKind::AutomaticDownloads => Allow", "privacy comment"],
+      "grep_symbols": "no matches for log_download/astraea-download/OpenOptions/DownloadEvent/SystemTime/UNIX_EPOCH"
+    },
+    "notices": {
+      "file": "public/third-party-notices.txt",
+      "bytes": 300310,
+      "sha256": "9f56d3cf4ed4f7335bdf17644552464e5a43cf9d5c8d3a4c598fafc7e1b8cd86",
+      "generator": "scripts/third-party-notices.mjs",
+      "js_packages_resolved": 153,
+      "js_distinct_texts": 70,
+      "font_texts": 2,
+      "wasm_crates": 21,
+      "wasm_distinct_texts": 14,
+      "unresolved_js_packages": [
+        "@mediapipe/tasks-vision@0.10.17",
+        "@nodable/entities@3.0.0",
+        "@react-three/fiber@9.8.2",
+        "draco3d@1.5.8",
+        "isarray@1.0.0",
+        "maath@0.10.8",
+        "react-remove-scroll-bar@2.3.8",
+        "stats-gl@2.4.2"
+      ],
+      "determinism": "two runs identical sha256; no timestamps/absolute paths/machine or user names",
+      "stale_check": "exit 0 on committed file; exit 1 with first differing line after deliberate append; restored"
+    },
+    "claims": {
+      "file": "src/console/evidenceClaims.ts",
+      "text": "Legacy model only. Apogee tested blind on one small subsonic rocket: predictions ran 6–10% high. That evidence does not cover the experimental candidate model. Other vehicles and supersonic flight are untested. Not flight approval.",
+      "surfaces": ["src/console/Workstation.tsx banner", "src/console/evidence/ModelStatusPanel.tsx validation row", "index.html landing notice", "docs/accuracy.md scope sentence"],
+      "deleted_test": "src/console/evidence/ModelStatusPanel.test.tsx 'restates the exact shared evidence claim with its accuracy link' block + unused import"
+    }
+  },
+  "build": {
+    "command": "node node_modules/vite/bin/vite.js build",
+    "engine_rebuild": false,
+    "src_wasm_sha256": "13da44d5a70af2bd4e8feee082f49277a4ce92e07fed97743d4d3aedf0022328",
+    "dist_wasm_sha256": "13da44d5a70af2bd4e8feee082f49277a4ce92e07fed97743d4d3aedf0022328",
+    "dist_index_sha256": "a5c37c6ed12cf938ae3e0e21c185afcf862270aa6fa14fc6f10abb1bc3c05d9c",
+    "dist_app_js_sha256": "dfb4c8a931f63e4880ebda2324b783ee8d9c6db249e0d1c22b6a073956b6a63f",
+    "dist_notices_sha256": "9f56d3cf4ed4f7335bdf17644552464e5a43cf9d5c8d3a4c598fafc7e1b8cd86"
+  },
+  "checks": [
+    {"command": "node node_modules/typescript/bin/tsc --noEmit", "exit": 0},
+    {"command": "node node_modules/vitest/vitest.mjs run src/console/evidence/ModelStatusPanel.test.tsx src/console/stageRendering.test.tsx --maxWorkers=1", "exit": 0, "result": "2 files, 5 tests passed"},
+    {"command": "node node_modules/vite/bin/vite.js build", "exit": 0},
+    {"command": "node scripts/third-party-notices.mjs --check", "exit": 0},
+    {"command": "node scripts/browser-smoke.mjs", "exit": 1, "result": "engine/WebAssembly run under production CSP passed (533 m); landing disclosure journey passed; aborted at pre-existing selector preview-journeys.mjs:40"},
+    {"command": "throwaway Playwright probe against dist with production CSP", "exit": 0, "result": "notices 200 text/plain; banner and panel scoped; candidate project native-candidate-static-rate/1.0.0 same claim; two links; zero page errors; zero CSP violations"}
+  ],
+  "failures_retained": [
+    {
+      "id": "browser-palette-selector",
+      "pre_existing": true,
+      "detail": "preview-journeys.mjs:40 expects accessible name /Search, or type/; Shell.tsx:63 aria-label is 'Command palette  Ctrl+K' (bc24da7 vs locator ac9cec7). Not modified by this lane.",
+      "evidence": "external browser-suite-failure.log"
+    },
+    {
+      "id": "candidate-form-refusal",
+      "detail": "default NASA Student Launch preset cannot enable the candidate model: nose profile 'vonkarman' unsupported and flagged motor mount refused by the accepted adapter.",
+      "evidence": "external probe-form-refusal.json, import-debug.png"
+    }
+  ],
+  "native_proof": {
+    "repro": {
+      "kind": "extracted-source proof, not installed-Tauri acceptance",
+      "source_lines": "src-tauri/src/lib.rs:23-32 at pin 0f6f08e",
+      "extracted_sha256": "974ed8fac5cf619a10f0243e7de032f6169e462887a7573718759dca07eed25b",
+      "rustc": "1.99.1",
+      "observed": {
+        "predictable_temp_file": "mode 644, 336 bytes, URL and full paths in content",
+        "symlink_followed": true,
+        "victim_bytes_before": 19,
+        "victim_bytes_after": 355,
+        "growth": "2000 calls -> 324000 bytes, no cap"
+      },
+      "isolation": "disposable /tmp root with per-case TMPDIR; real diagnostic path never created"
+    },
+    "after_fix": {
+      "rustfmt": "unavailable (component not installed; cannot install offline)",
+      "parse_check": "rustc --emit=metadata -> 17 unresolved-crate errors only, no syntax errors; native-parse.txt",
+      "typecheck": "impossible offline: 0 of 473 Tauri crates cached; release build owner must compile",
+      "runtime": "none claimed"
+    }
+  },
+  "limitations": [
+    "No legal review or sign-off; unresolved rights retain named owners and reopening conditions.",
+    "8 JS packages have no installed licence text; native closure, NASA CEA data, manufacturer thrust curves and landing-image provenance remain unverified.",
+    "Notice file covers the production dependency closure (superset of any tree-shaken bundle).",
+    "Vite-only build; engine WASM and source were not rebuilt.",
+    "No capability/CSP/dependency/lock/updater/schema/register/TASKS/handoff/historical-evidence change; rmp13 ensemble/sampler untouched."
+  ],
+  "external_evidence": "~/.paseo/worktrees/3s8t98rp/evidence-rmp18-rights-security/"
+}

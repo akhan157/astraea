@@ -1,0 +1,24 @@
+{
+  "status": "pass",
+  "scope": "saved-output-only negative-zero retention witness, not physical qualification or new solve",
+  "caseId": "flight-2026-10-27T12:54:43.833Z-3",
+  "engineIdentity": {
+    "kind": "production-rust-wasm",
+    "sha256": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b"
+  },
+  "historyFieldPath": "points[0].dampingMomentBodyNm.x",
+  "binary64BigEndianHex": {
+    "actualWorkerReply": "8000000000000000",
+    "savedVariantProject": "8000000000000000",
+    "inspectorTrace": "8000000000000000",
+    "downloadedZipProject": "8000000000000000",
+    "downloadedZipTrace": "8000000000000000"
+  },
+  "inputSha256": {
+    "before-reload-worker-observations.json": "966a6e64be9ae290ecf6ad28738bc3b7283fbf849758c3d199b977ba71b854ac",
+    "variant-project.json": "da959ec560c583e02febcc860af092f414011d80b05bb2bd96b835fe7bec4ab5",
+    "variant-trace.json": "4f5fb5affaed7a705387846270d58dcc78fef0b7f7919f94a63bdec45d22a76b",
+    "variant-export.zip": "2b2ac01e6f792d59fe42f8d2035e963d97d638ef9cd3ca235ac44bd4015a1f70",
+    "metrics.json": "4c0b02805bc6c5cb9cc9879ef463aaf96ec04f2bed6dc0bc3d923acb6bcee2e0"
+  }
+}

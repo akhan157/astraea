@@ -1,0 +1,11 @@
+before uninstall:
+  program dir: True
+  profile dir: True
+  project file sha: 2B3FC04A182214C9494C6E3F0565EF15254B178F73EB0F571FDB39BFABEDB695
+uninstall exit: 0
+after uninstall:
+  program dir: False
+  profile dir: True
+  project file exists: True
+  project file sha: 2B3FC04A182214C9494C6E3F0565EF15254B178F73EB0F571FDB39BFABEDB695
+  registry entries: 0

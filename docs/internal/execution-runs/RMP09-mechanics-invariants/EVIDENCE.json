@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP09",
+  "subpacket": "RMP09a legacy mechanics invariants",
+  "baseSha": "822db11563c2eeef7362ce5be6e70d62e6bdf7ce",
+  "sourceSha": "a47bcb51d9225651782a6dc35e3953335b99c8df",
+  "status": "accepted; RMP09-C01 pass (legacy model, declared inputs)",
+  "review": {
+    "initial": "ACCEPT; C01 MET",
+    "boundary": "no-tools supplied text"
+  },
+  "routing": {
+    "author": "anthropic/claude-opus-5-5 (omp)",
+    "reviewer": "opencode-go/mimo-v2.6-pro medium no-tools"
+  },
+  "checks": [
+    {
+      "id": "RMP09-C01",
+      "status": "pass",
+      "scope": "legacy-primitive-mass-inertia/1.0.0 with declared inputs; new mechanics models must re-show; measured comparison is C07"
+    }
+  ],
+  "nonClaims": [
+    "measured mass/CG/inertia accuracy (C07)",
+    "new mechanics model",
+    "physics change"
+  ],
+  "artifactHashes": {
+    "portable": {
+      "ASSIGNMENT.md": "18602e5a99afac12ce7195656eff5c9554ba3c96f782307527e0e800aef4fd89",
+      "RESULT.md": "845f7715b5a6e6d1f79bc10a133bc78957798aa495644ff04e4be00c3a6064a2",
+      "REVIEW.md": "ff05ce50c9d09189a05dfc00bc41c059bd219fbcb57ce198dd72a403403dc9ed",
+      "SOURCE-INVENTORY.json": "710ecd4e9dc68b11afe4f9326bacdac3e1afdaf659b53e818e9387777b3208a8",
+      "RAW-ARTIFACTS.json": "d1cb80f7fd34a0d04d7267bbe6eda9894369e5776eab4aeaa49362282b770c5f"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP12",
+  "subpacket": "RMP12d ensemble determinism",
+  "baseSha": "486683159e2fb35cfa8708a0d9beb4ecc6ae93af",
+  "sourceSha": "0263c20f6c1a131af050446caa29129e144b92ca",
+  "status": "accepted; RMP12-C05 pass (current legacy per-run-v2 path)",
+  "review": {
+    "initial": "ACCEPT; C05 MET",
+    "boundary": "no-tools supplied text"
+  },
+  "routing": {
+    "author": "anthropic/claude-opus-5-5 (omp)",
+    "reviewer": "opencode-go/mimo-v2.6-pro medium no-tools"
+  },
+  "checks": [
+    {
+      "id": "RMP12-C05",
+      "status": "pass",
+      "scope": "current legacy per-run-v2 ensemble on shipped WASM; per-host bit identity; new providers must re-show"
+    }
+  ],
+  "nonClaims": [
+    "RMP12 study rerun",
+    "numerical budget or accuracy",
+    "cross-platform bit identity",
+    "RMP12-C02/C03/C04/C06 change"
+  ],
+  "artifactHashes": {
+    "portable": {
+      "ASSIGNMENT.md": "4d1f3aec51fe18f799e1b2361365ac3c9b4f2df047f3aa08d4d21e0fde141d12",
+      "RESULT.md": "bc5fee3a3a915f94676043d3b06df1785a77f6444248430cfef86970850886e6",
+      "REVIEW.md": "ae2bf3834ade7bacfacdc95f3f12f721bd1f85e365a31af32b0aa91d05e139c8",
+      "SOURCE-INVENTORY.json": "07586bad8ed7284f82452dade7b92d2a30a96c2e5cc9831afde9523fd0151926",
+      "RAW-ARTIFACTS.json": "ccb8b29100acb931306798cdbabd7864d5217ec2c58bb996c07a8a0189f35619"
+    }
+  }
+}

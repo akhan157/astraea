@@ -1,0 +1,33 @@
+[package]
+name = "astraea-workstation"
+version = "0.10.0"
+description = "Astraea rocket engineering workstation (Tauri desktop shell; the engine runs as WebAssembly in the app)"
+edition = "2021"
+license = "Apache-2.0"
+
+[lib]
+name = "astraea_workstation_lib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "astraea-workstation"
+path = "src/main.rs"
+
+[features]
+# Opt-in debug-only loopback verification harness; absent from normal builds.
+default = []
+updater-fixture = []
+
+[dependencies]
+serde_json = "1"
+# `custom-protocol` is not forced here: tauri-macros decides dev mode at compile
+# time from it, so forcing it made dev builds serve ../dist instead of devUrl.
+# `cargo tauri build` enables it for release builds.
+tauri = { version = "2.11.5", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-process = "2"
+tauri-plugin-updater = "2"
+
+[build-dependencies]
+tauri-build = { version = "2.6.3", features = [] }

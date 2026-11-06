@@ -1,0 +1,142 @@
+{
+  "lane": "beta-aero-layout",
+  "status": "implementation complete, awaiting coordinator review",
+  "self_accepted": false,
+  "branch": "beta-aero-layout",
+  "pin": "52979f12e2683c352c63d756b9d40e752a01abd0",
+  "commits": {
+    "gate1_record": "b2494d61eb8775328a8024197789a827dffc323a",
+    "implementation": "65711b6ca2a71c00250370be8ed26b602bbae1df",
+    "tests": "428605cc980605459653a501a928b92b9cbad388",
+    "browser_assertion": "9a7e7d9dcfa6070936a434c48103bfb2eb6ea394",
+    "test_corrections": "7c510cfa9b9b819ee0789bc09f7544e095c8c0dd",
+    "report": "this commit (RESULT.md + EVIDENCE.json)"
+  },
+  "approval": "Coordinator Gate 1 approval: option A with amendments 1-6 (all affected surfaces, bounded/coalesced cache, failure path, three-preset parity, option E upstream follow-up, full verification).",
+  "diagnosis": {
+    "root_cause": "The built-up aero model publishes totals but no labelled component breakdown (aero_provider.rs:121-133 clears contributions; models.rs:1377-1398 sets breakdownUnavailable and empty contributions). The TS adapter built layout parts only from contributions (adapter.ts:241), so layoutFrom fell back to length 1 with zero parts.",
+    "at_pin": {
+      "legacy": { "contributions": 7, "layoutLength": 2.9699999999999998, "parts": 7, "cg": 1.7972237541913614, "cp": 2.409174961652899 },
+      "beta": { "contributions": 0, "layoutLength": 1, "parts": 0, "cg": 1.7972237541913614, "cp": 2.4181789584971094, "margin": 4.085231607274658 },
+      "browser_default": { "legacyLength": "2.9699999999999998", "betaLength": "1", "restoredLength": "2.9699999999999998", "legacyCp": "2.409174961652899", "betaCp": "2.4181789584971094" }
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/console/hooks.ts",
+      "src/console/viewport/Vehicle3D.tsx",
+      "src/console/viewport/Viewport.tsx"
+    ],
+    "geometry_source": "native aggregate_mass rollup (VehicleMassRollup: axialStart/axialEnd/globalCG/mass, totalLength, referenceDiameter)",
+    "trigger": "stability result has parts.length === 0 (provider path); legacy results never trigger a second call",
+    "cache": "rides the existing content-keyed stability entry; key = contentKeyOf(vehicle)|aeroModelKey(model); bounded by STABILITY_CACHE_LIMIT = 48 with the existing LRU eviction that skips loading and rendered keys",
+    "coalescing": "chained to the stability dispatch, so one aggregate_mass per landed provider result; inherits leading+trailing 120 ms and one-call-in-flight",
+    "failure_path": "aggregate_mass rejection recorded as geometryError; stability stays ready; the last ready layout is kept, or the honest empty state on a fresh load; no fake shape",
+    "layout": "layoutFrom(stability) and layoutFromGeometry(rollup) share layoutFromParts; same max(axialEnd)/1 m fallback and refR",
+    "markers": "still snapshot.breakdown (selected model); beta CP 2.4181789584971094 is never replaced by legacy 2.409174961652899",
+    "motor": "motorAftStation(vehicle, layout) exported and used by Motor: mount end -> layout end -> null (no body tube)",
+    "probe_attribute": "data-layout-parts (part count) added beside the existing viewport probe attributes",
+    "no_engine_changes": "no crates/ edits; git diff 52979f1..HEAD -- crates src/engine is empty"
+  },
+  "affected_surfaces_and_tests": [
+    { "surface": "3D viewport", "test": "src/console/viewport/betaSurfaces.test.tsx", "assertion": "data-layout-parts=7, length 2.97, state ready, markers present, CG 1.7972237541913614, CP 2.4181789584971094 and != 2.409174961652899" },
+    { "surface": "2D drawing", "test": "src/console/viewport/betaSurfaces.test.tsx", "assertion": "L 2,970 mm dimension; >=3 body-tube rects and the nose outline as direct SVG children" },
+    { "surface": "parts tree total and row masses", "test": "src/console/viewport/betaSurfaces.test.tsx", "assertion": "header 7.00 kg; every row mass 1.00 (pin: 0.00)" },
+    { "surface": "framing, silhouette, bounds, section seams", "test": "src/console/data/geometryParity.test.ts", "assertion": "identical silhouette points, vehicleBounds and sectionJoints for geometry vs legacy layouts" },
+    { "surface": "motor station and fallback", "test": "src/console/data/geometryParity.test.ts", "assertion": "mount end from the layout; layout-end fallback with no part; null with no body tube" },
+    { "surface": "rollup parity, all presets", "test": "src/console/data/geometryParity.test.ts", "assertion": "aggregate_mass stations/CG/mass equal legacy layout parts for Estes Alpha III, NASA Student Launch, Spaceport America (stations exact, CG/mass 1e-12)" },
+    { "surface": "coalescing and failure path", "test": "src/console/viewport/betaLayout.test.tsx", "assertion": "8-step drag: stability <=2, geometry <= stability, geometry < steps; failed rollup keeps last layout; fresh failed load stays empty" }
+  ],
+  "falsifier": {
+    "test": "src/console/viewport/betaLayout.test.tsx (first case)",
+    "at_pin": {
+      "worktree": "/tmp/opencode/beta-aero-pin at 52979f1 (removed after the run)",
+      "wasm": "src/engine/astraea_engine.wasm sha256 1248b7bf872a70a959f8419e89056081c93c6aca79e2f5fb5f2d7eae665c1f7b; crates/ and src/engine/ unchanged since the pin",
+      "command": "node_modules/.bin/vitest run src/console/viewport/betaLayout.test.tsx -t \"lays out the vehicle from model-independent geometry\" --maxWorkers=2",
+      "result": "exit 1 — AssertionError: expected 1 to be close to 2.97",
+      "log": "falsifier-at-pin.log"
+    },
+    "after": {
+      "command": "node_modules/.bin/vitest run src/console/viewport/betaLayout.test.tsx -t \"lays out the vehicle from model-independent geometry\" --maxWorkers=2",
+      "result": "exit 0 — 1 passed, 4 skipped",
+      "log": "falsifier-after.log"
+    },
+    "browser_assertion": {
+      "file": "scripts/preview-journeys.mjs",
+      "flow": "default NASA preset, Aero -> Aerodynamic inputs: wait legacy CP 2.409174961652899, tick beta, wait beta CP 2.4181789584971094, assert length ~2.97, parts 7, CG unchanged, CP != legacy; untick and assert restore",
+      "at_pin_failure": "data-layout-length 1 after ticking beta; data-layout-parts did not exist",
+      "after": "Preview acceptance passed: beta aero model: full rocket stays laid out; CP stays the model's own (test-browser.log line 6)"
+    }
+  },
+  "verification": {
+    "full_vitest": {
+      "command": "npx vitest run --maxWorkers=2",
+      "commit": "7c510cfa9b9b819ee0789bc09f7544e095c8c0dd",
+      "result": "exit 0 — 159 files passed, 1892 tests passed, 157.55 s",
+      "log": "full-vitest.log"
+    },
+    "build": {
+      "command": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 pnpm build",
+      "commit": "7c510cfa9b9b819ee0789bc09f7544e095c8c0dd",
+      "result": "exit 0 — built in 845 ms; dist emitted",
+      "log": "build.log"
+    },
+    "browser": {
+      "command": "pnpm test:browser",
+      "commit": "7c510cfa9b9b819ee0789bc09f7544e095c8c0dd",
+      "result": "exit 0 — 36 preview acceptance lines, all journeys passed, zero console/page errors enforced by the harness",
+      "beta_line": "Preview acceptance passed: beta aero model: full rocket stays laid out; CP stays the model's own",
+      "log": "test-browser.log"
+    },
+    "images": "none read or written; assertions used DOM attributes, JSON and printed numbers only"
+  },
+  "upstream_follow_up_option_E": {
+    "implemented": false,
+    "items": [
+      "Add per-component axial extents (id, axialStart, axialEnd, cg, mass) to the provider stability DTO from the existing rollup, making a provider result self-sufficient and removing the second aggregate_mass call.",
+      "Share one rollup implementation between stability (crates/astraea-core/src/aero.rs:662 private copy) and aggregate_mass (crates/astraea-core/src/mass.rs:570); the three-preset parity test then guards one source instead of two."
+    ],
+    "reason_not_done": "Brief forbids crates/ edits in this lane; recorded for the engine backlog."
+  },
+  "deliberately_not_done": [
+    "No changes to the Aero breakdown rows or its unavailable wording; beta rows stay empty and honest.",
+    "No marker substitution: beta CG/CP are the provider's own totals.",
+    "No retry of a failed geometry rollup until the entry is evicted or the vehicle changes (same policy as stability errors).",
+    "No acceptance-register or manifest change; this lane has no register row."
+  ],
+  "limitations": [
+    "During a model switch the last ready snapshot keeps its own breakdown markers until the new result lands (established keep-last behaviour); on a failed rollup the last good shape+markers pairing stays.",
+    "One aggregate_mass call is made per landed provider stability result even when no viewport is mounted; it is cheap, cached and coalesced with stability."
+  ],
+  "files": {
+    "production": [
+      "src/console/hooks.ts",
+      "src/console/viewport/Vehicle3D.tsx",
+      "src/console/viewport/Viewport.tsx"
+    ],
+    "tests": [
+      "src/console/data/geometryParity.test.ts",
+      "src/console/viewport/betaLayout.test.tsx",
+      "src/console/viewport/betaSurfaces.test.tsx"
+    ],
+    "scripts": ["scripts/preview-journeys.mjs"],
+    "docs": [
+      "docs/internal/execution-runs/beta-aero-layout/RESULT.md",
+      "docs/internal/execution-runs/beta-aero-layout/EVIDENCE.json"
+    ]
+  },
+  "evidence_dir": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-beta-aero-layout",
+  "evidence_files": [
+    "gate1-probe.json",
+    "gate1-station-parity.json",
+    "gate1-browser.json",
+    "gate1-browser-default.json",
+    "falsifier-base.log",
+    "falsifier-at-pin.log",
+    "falsifier-after.log",
+    "full-vitest.log",
+    "build.log",
+    "test-browser.log"
+  ],
+  "stop_state": "clean tree at the report commit; no push, merge, tag, release or publish; awaiting coordinator review."
+}

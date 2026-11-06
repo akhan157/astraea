@@ -1,0 +1,249 @@
+{
+  "lane": "RMP13-scenario-provenance",
+  "branch": "rmp13-scenario-provenance",
+  "worktree": "/home/ak/.paseo/worktrees/3s8t98rp/rmp13-scenario-provenance",
+  "base": "0f6f08eed60a06946d11306371dca1841a3f2e26",
+  "sourceHead": "d05c9e5e7b8e0bb1c5a78644cd7a7f3645b0ce1d",
+  "sourceHeadNote": "last source/docs commit (C4); the C5 records commit follows it on the same branch",
+  "commits": [
+    {
+      "id": "774b2f209e98f8b1c6d4c458f9cc06ba03b40f08",
+      "label": "C1",
+      "subject": "RMP13-C01: delete ungrounded per-class impulse-sigma module and repair inventories"
+    },
+    {
+      "id": "5b105922f3ba893137004e3de9bf1dbaf2a989cc",
+      "label": "C2",
+      "subject": "RMP13-C01: state the impulse sigma as a declared scenario scale"
+    },
+    {
+      "id": "9a833988f9b860fe1bd6033443c59b391a300eae",
+      "label": "C3",
+      "subject": "RMP13-C01/C05: present ensemble sensitivity as sample fractions"
+    },
+    {
+      "id": "d05c9e5e7b8e0bb1c5a78644cd7a7f3645b0ce1d",
+      "label": "C4",
+      "subject": "RMP13-C01/C05: record the cleanup and qualify the public accuracy line"
+    }
+  ],
+  "routing": {
+    "selector": "deepseek/deepseek-flash",
+    "catalogName": "DeepSeek V4.1 Flash 1017",
+    "catalogVerifiedWith": "omp models deepseek --json",
+    "effort": "max",
+    "effortBasis": "lane activation record; catalog supports low/high/max",
+    "fallback": "no proxy or alternate selector used; resolvedModelIsFallback not observable from inside the session"
+  },
+  "environment": {
+    "node": "v26.11.1",
+    "cores": 8,
+    "memoryAvailableAtHeavyStep": "8.7 GiB",
+    "maxParallelTestWorkers": 2,
+    "engineBuild": "not run (gate amendment 1)",
+    "browser": "not run in this lane (coordinator post-merge step)"
+  },
+  "changes": [
+    {
+      "path": "src/sim/motorVariance.ts",
+      "action": "deleted",
+      "reason": "class-independent 6.7 % certification sigma ceiling presented as an invented per-class +/-6-10 % band with an assumed Gaussian family; no runtime consumer"
+    },
+    {
+      "path": "src/sim/motorVariance.test.ts",
+      "action": "deleted",
+      "cases": 8,
+      "reason": "own-only suite for the deleted module; wording-shaped assertions fell with it instead of being re-pinned"
+    },
+    {
+      "path": "src/sim/monteCarlo.ts",
+      "sha256": "603041b63fab62672f062acc0ee4445f7ac2e87d746fd32023297e53663a2a3a",
+      "action": "comments only",
+      "reason": "impulse sigma is a declared scenario scale, each non-zero sigma an independent draw"
+    },
+    {
+      "path": "src/console/stages/Flight.tsx",
+      "sha256": "8604dc24556b9020c6453d7802a4cf3393df4363963afa272ebbeba95dde23fe",
+      "action": "presentation",
+      "reason": "'Sample 50/90/99% radius' labels and a two-paragraph scenario note; no internal field names in user copy"
+    },
+    {
+      "path": "src/console/kit/Charts.tsx",
+      "sha256": "9cf1b16ee594f4fad12061d587e6887d99e5908662d76a85b924ca20a43d148b",
+      "action": "legend wording",
+      "reason": "'<fraction> of samples within <distance>'"
+    },
+    {
+      "path": "src/console/stages/SavedRuns.test.tsx",
+      "sha256": "07545033af2d4638e7f7407c292c1e8d49a61589d544200f90d1aa3bd98fe488",
+      "action": "test-only wording-pin deletion",
+      "reason": "removed getByText/queryByText('50% within'); no assertion added on the new copy; behavioural ledger/state assertions untouched"
+    },
+    {
+      "path": "scripts/emit-benchmark-metadata.cjs",
+      "sha256": "95c86bfaae2253a4353780a1286f16bcb6b823408c84a69bea1e5c6beb0745c1",
+      "action": "closed inventory reduced explicitly",
+      "reason": "removed src/sim/motorVariance.ts from HASHED_REQUIRED_FILES and src/sim/motorVariance.test.ts from HASHED_REQUIRED_FILES + FIXED_TEST_FILE_INVENTORY; guard stays closed for all remaining suites"
+    },
+    {
+      "path": "scripts/emit-benchmark-metadata.test.cjs",
+      "sha256": "693de6c0848ef7649e10c059f132f4a1927715303c7a31633fe0e5a9f51b15c3",
+      "action": "fixture listing follows the inventory",
+      "reason": "removed the deleted suite from acceptanceFiles and the deleted module from the mock source map"
+    },
+    {
+      "path": "docs/accuracy.md",
+      "sha256": "51f4b7603f585593d8ff96fdc4dd20bc303e5c9bdaff68e113e6083c746d94d1",
+      "action": "approved public sentence",
+      "reason": "Monte Carlo is scenario sensitivity over three sampled inputs with everything else fixed, not a probability/coverage forecast"
+    },
+    {
+      "path": "docs/internal/engineering-changelog.md",
+      "sha256": "69543563138e87725f97e9cf7469f4fc7721cc972cd88463293fc0c065ba318f",
+      "action": "removal entry",
+      "reason": "discloses the inventory reduction, unchanged numeric defaults and 134/1739 -> 133/1731 arithmetic"
+    }
+  ],
+  "consumerLedgerLsp": {
+    "server": "typescript-native",
+    "sigmaForImpulseClass": "definition, 2 internal uses, 5 own-test uses; no runtime consumer",
+    "defaultImpulseSigma": "definition, 3 own-test uses; no runtime consumer",
+    "describeUncertaintyDisplay": "definition, 5 own-test uses; no runtime consumer",
+    "SUPPORTED_IMPULSE_CLASSES": "definition, 6 own-test uses; no runtime consumer",
+    "nonTestReferences": [
+      "src/sim/monteCarlo.ts:52-61 and :400-403 doc comments (rewritten)",
+      "scripts/emit-benchmark-metadata.cjs:142,190,268 (inventories)",
+      "scripts/emit-benchmark-metadata.test.cjs:240,296 (fixture)"
+    ]
+  },
+  "checks": [
+    {
+      "name": "full-suite-baseline",
+      "command": "npx vitest run --maxWorkers=2",
+      "when": "before edits at pin 0f6f08e",
+      "result": "134 files / 1739 tests passed",
+      "durationSeconds": 225.71
+    },
+    {
+      "name": "full-suite-after",
+      "command": "npx vitest run --maxWorkers=2",
+      "when": "after C1-C4 plus wording-pin deletion",
+      "result": "133 files / 1731 tests passed",
+      "durationSeconds": 345.86,
+      "arithmetic": "134-1 file; 1739-8 cases; exactly the deleted suite"
+    },
+    {
+      "name": "emitter-self-test",
+      "command": "node scripts/emit-benchmark-metadata.test.cjs",
+      "result": "all 49 tests passed",
+      "notes": "run twice, before and after the final test-only edit; includes M1 inventory/cited-hash set equality and the missing-inventory-file negative case"
+    },
+    {
+      "name": "typecheck",
+      "command": "npx tsc --noEmit",
+      "result": "clean (before and after the final edit)"
+    },
+    {
+      "name": "focused-changed-consumers",
+      "command": "npx vitest run --maxWorkers=2 src/application/runCases.test.ts src/console/stages/SavedRuns.test.tsx src/console/store.test.tsx src/engine/ensembleDeterminism.test.ts src/engine/engine.test.ts src/formats/projectJson.test.ts src/sim/waiverContainment.test.ts src/sim/monteCarlo.test.ts src/console/stageRendering.test.tsx",
+      "result": "first run 1 failed / 171 passed (172) at SavedRuns.test.tsx:45 wording pin; after deletion, SavedRuns.test.tsx 20/20 and the full suite green"
+    }
+  ],
+  "numericalPreservation": {
+    "probeFile": "external only; deleted from the repository after the run",
+    "request": {
+      "vehicle": "PRESET_ESTES_ALPHA",
+      "motor": "estes_c6",
+      "options": {
+        "railLength": 3,
+        "railElevationDeg": 85,
+        "railAzimuthDeg": 0,
+        "windSpeedSurface": 3,
+        "windAzimuthDeg": 0,
+        "finCantAngleDeg": 0,
+        "mainDeployAltitudeAGL": 300
+      },
+      "sigmas": {
+        "windAzimuthDegSigma": 20,
+        "railAngleDegSigma": 1,
+        "impulsePctSigma": 3
+      },
+      "seed": 4242,
+      "runRange": [0, 8],
+      "version": "per-run-v2"
+    },
+    "executedWasm": {
+      "sha256": "13da44d5a70af2bd4e8feee082f49277a4ce92e07fed97743d4d3aedf0022328",
+      "bytes": 1827128,
+      "note": "unmodified local build artifact instantiated directly from disk; no rebuild performed and no other identity claimed"
+    },
+    "persistedDefaults": {
+      "nRuns": 100,
+      "seed": 20260927,
+      "version": "per-run-v2",
+      "windAzimuthDegSigma": 10,
+      "railAngleDegSigma": 1,
+      "impulsePctSigma": 5,
+      "digest": "5b7ab4a27b1def4f91a97c662c219f38e4b69c52bf796a356db4da324ceafc80"
+    },
+    "fullVectorDigests": {
+      "wasmChunk": "bdeca85c8ca189812100020f48b193ea1cf34bbcee05da1534586cb48b68a1cb",
+      "wasmWholeClassified": "360e1f2c41723c5cd30331f1e7de128802de028c5ef8eed00a7565c195c0d6c8",
+      "oracleChunk": "ea88933561480438bdfe04b5fa1e64b0917fd307737d46afbecdf037b11993c8",
+      "oracleWhole": "6fb72f3463f42b5f9f3a594f84dcac4f760419a7770bba782c98dcf615fb3e16"
+    },
+    "comparison": {
+      "preEditFile": "probe-pre-0f6f08e.json",
+      "postEditFiles": ["probe-post.json", "probe-final3.json"],
+      "equalFields": [
+        "digests",
+        "defaults",
+        "defaultsDigest",
+        "executedWasm",
+        "counts",
+        "landings",
+        "results"
+      ],
+      "allEqual": true,
+      "countsObserved": {
+        "requested": 8,
+        "supportedNominalTerminal": 8,
+        "unsupportedNominalTouchdown": 0,
+        "nonNominalImpact": 0,
+        "timeLimitEndpoint": 0,
+        "computationalFailure": 0
+      }
+    }
+  },
+  "failedAttempts": [
+    {
+      "attempt": "post-edit full suite",
+      "failure": "1 of 1731 tests failed: src/console/stages/SavedRuns.test.tsx:45 asserted getByText('50% within'); :57 asserted its absence",
+      "cause": "old-label wording pin (and a tautological negative after renaming); proposal inventory missed the '50% within' string",
+      "resolution": "deleted both assertions, no re-pin; SavedRuns.test.tsx 20/20; full suite green"
+    },
+    {
+      "attempt": "final preservation probe",
+      "failure": "Error: Test timed out in 20000ms after the result file had been written",
+      "cause": "repo default testTimeout on a multi-ensemble probe",
+      "resolution": "probe it(..., 120_000) and re-ran green; comparison data was identical in both runs"
+    }
+  ],
+  "notDone": [
+    "no engine build or rebuild",
+    "no production-CSP browser run, screenshot or layout claim; 1280x800 readability is the coordinator's post-merge proof",
+    "no Rust, sampler policy/RNG/order, numeric default, project schema/IO, candidate runtime, core physics or protected-input change",
+    "no register/manifest/TASKS/handoff or historical evidence edit",
+    "no new tests and no assertion added on the new copy"
+  ],
+  "externalPrerequisites": {
+    "C01": "measured impulse/wind-direction/rail-angle distributions and correlations; owner/team data custodian with RMP02-eligible provenance plus independent scientific reviewer",
+    "C02": "eligible development observations by output/regime and a predeclared model/discrepancy structure; owner/team + scientific reviewer",
+    "C04": "declared roles/splits and custodied unseen outcomes; data custodian + scoring custodian + owner authorization",
+    "C05": "independent measured flights, predeclared coverage metric and finite-sample method approved by a statistical reviewer",
+    "C06": "no new external input for the software part; sampler/ledger/cancel semantics preserved and digests identical",
+    "C07": "approved budgets/custody/freeze/team participation; decision-budget.json remains incomplete-do-not-freeze-or-score"
+  },
+  "externalEvidenceDir": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp13-scenario-provenance",
+  "acceptance": "not self-accepted; coordinator review, merge --no-ff and production-CSP browser receipt pending"
+}

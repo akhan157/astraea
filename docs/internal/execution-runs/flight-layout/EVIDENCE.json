@@ -1,0 +1,172 @@
+{
+  "lane": "flight-layout",
+  "author": {
+    "provider": "opencode-go",
+    "model": "deepseek-v4.1-flash",
+    "variant": "max",
+    "canReadImages": false
+  },
+  "status": "implementation complete; coordinator review pending; not self-accepted",
+  "base": {
+    "sha": "89376e47044dd0fa6f1a87779b0bff6d9df212bd",
+    "branch": "frontend/design (lane branch flight-layout created from it)"
+  },
+  "commits": [
+    {
+      "sha": "4a02a55",
+      "subject": "feat(flight-layout): give the Flight canvas its room back at 1280x800",
+      "files": [
+        "CHANGELOG.md",
+        "src/console/Workstation.tsx",
+        "src/console/hooks.ts",
+        "src/console/shell/RunReadiness.tsx",
+        "src/console/stages/Flight.tsx",
+        "src/console/stages/FlightTimeline.tsx",
+        "src/console/stages/common.tsx",
+        "src/console/stages/flightLayout.test.tsx"
+      ]
+    },
+    {
+      "sha": "08231c6",
+      "subject": "test(flight-layout): assert the Flight free region, dock tabs and chart panes",
+      "files": ["scripts/preview-journeys.mjs"]
+    }
+  ],
+  "logic": {
+    "dockDefault": "clamp(120, min(400, max(276, 0.38 * stageHeight)), stageHeight - 166); a stored ws.dock.flight wins; until the user drags, the default follows the stage through a ResizeObserver",
+    "dockContentFloorPx": 276,
+    "dockContentFloorWhy": "the Monte Carlo tab's five fields and Run button need a 237 px panel (236.3 px measured); 276 = 237 + 33 tab bar + slack, and the existing 1280x800 D5 journey requires all of them fully in the viewport",
+    "shortWindowQuery": "(max-height: 860px)",
+    "shortWindowChange": "flight-model chooser and whole-design readiness share one row",
+    "readoutCompactRule": "canvas w < 700 || h < 420 -> full-width strip sharing the bottom band with the scrubber; otherwise the floating card",
+    "readoutCompactWhy": "on a 636 px canvas the widest tilted pose reaches under the floating card and the camera does not refit on a pose change; the bottom band also returns ~22 px of region versus a separate top strip"
+  },
+  "measurements": {
+    "harness": "built dist/ + vite preview with the production CSP from dist/_headers, Playwright Chromium with SwiftShader, real native Wasm run, Flight stage remounted per size, free region = data-safe-region, rocket = data-rocket-bbox at 50% scrub",
+    "baseArtifact": "~/.paseo/worktrees/3s8t98rp/evidence-flight-layout/BASE-MEASUREMENTS.json",
+    "afterArtifact": "~/.paseo/worktrees/3s8t98rp/evidence-flight-layout/AFTER-MEASUREMENTS.json",
+    "sizes": [
+      {
+        "viewport": "1280x800",
+        "base": { "canvasH": 167.5, "dockH": 400, "regionH": 57.5, "rocketH": 44.0 },
+        "after": { "canvasH": 325.8, "dockH": 276, "regionH": 229.5, "rocketH": 172.9 },
+        "predictedRegionH": 261,
+        "gate": "region >= 220",
+        "pass": true
+      },
+      {
+        "viewport": "1600x1000",
+        "base": { "canvasH": 377.6, "dockH": 400, "regionH": 377.6, "rocketH": 281.7 },
+        "after": { "canvasH": 479.6, "dockH": 298, "regionH": 479.6, "rocketH": 357.8 },
+        "predictedRegionH": 481,
+        "gate": "rocket not smaller than base",
+        "pass": true
+      },
+      {
+        "viewport": "1024x768",
+        "base": { "canvasH": 161.0, "dockH": 374.5, "regionH": 51.0, "rocketH": 38.9 },
+        "after": { "canvasH": 293.8, "dockH": 276, "regionH": 197.5, "rocketH": 148.9 },
+        "predictedRegionH": 352,
+        "pass": true
+      },
+      {
+        "viewport": "800x600",
+        "base": { "canvasH": 161.0, "dockH": 206.5, "regionH": 51.0, "rocketH": 38.9 },
+        "after": { "canvasH": 161.0, "dockH": 240.8, "regionH": 106.3, "rocketH": 77.7 },
+        "predictedRegionH": 202,
+        "pass": true
+      }
+    ]
+  },
+  "falsifier": {
+    "assertion": "1280x800: the Flight free region must be at least 220 px tall",
+    "baseCommand": "git switch --detach 89376e4 && git checkout flight-layout -- scripts/preview-journeys.mjs && PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 pnpm build && pnpm test:browser",
+    "baseResult": {
+      "exit": 1,
+      "error": "AssertionError [ERR_ASSERTION]: 1280x800: the Flight free region must be at least 220 px tall (got 57.5 px)",
+      "file": "scripts/preview-journeys.mjs:353",
+      "log": "~/.paseo/worktrees/3s8t98rp/evidence-flight-layout/base-browser-falsifier.log"
+    },
+    "afterCommand": "pnpm test:browser",
+    "afterResult": {
+      "exit": 0,
+      "line": "1280x800 Flight free region 229.5 px tall; rocket 172.9 px",
+      "log": "~/.paseo/worktrees/3s8t98rp/evidence-flight-layout/after-browser.log"
+    },
+    "additionalAssertions": [
+      "1280x800: rocket bbox >= 120 px at 50% scrub (base 44.0)",
+      "1600x1000: rocket bbox >= 281 px and region >= 378 px (base numbers)",
+      "dock tab bar inside the window with all five tabs at 1280x800 and 1600x1000",
+      "Timeline keeps its 344 px (5 x 64) chart stack and scrolls instead of squashing",
+      "1280x800 Monte Carlo / Weather / Results: panel scrolls, controls rendered, unclipped and reachable, 14 result rows"
+    ]
+  },
+  "checks": [
+    { "command": "pnpm install --frozen-lockfile", "at": "89376e4", "exit": 0 },
+    { "command": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 pnpm build", "at": "08231c6", "exit": 0 },
+    { "command": "npx tsc --noEmit", "at": "08231c6", "exit": 0 },
+    { "command": "npx vitest run --maxWorkers=2", "at": "08231c6", "exit": 0, "result": "156 files, 1881 tests passed" },
+    { "command": "pnpm test:browser", "at": "08231c6", "exit": 0, "result": "42 passes, including the 5 added flight-layout assertions" },
+    { "command": "pnpm test:browser", "at": "89376e4 + new journey file", "exit": 1, "result": "expected failure of the new 220 px assertion" }
+  ],
+  "unitTests": {
+    "file": "src/console/stages/flightLayout.test.tsx",
+    "count": 7,
+    "pins": [
+      "flightDockDefault: 38% share at 1600x1000 (297), 276 px content floor at 1280x800, 400 px cap, stage clamp at 800x600 (207) and jsdom (120)",
+      "fixed defaults of other stages unchanged (Aero 320, Airframe 260)",
+      "stored ws.dock value wins over the scaled default; missing/zero/garbage values are ignored",
+      "scaled default uses the measured stage height (600 -> 150)",
+      "short window puts the chooser and readiness in one row with the same text and one chooser",
+      "tall window keeps two rows and no merged row"
+    ]
+  },
+  "deviationsFromApprovedGate1": [
+    {
+      "item": "dock default floor",
+      "approved": "clamp(200, 0.38 x stage, 400)",
+      "implemented": "clamp(120, min(400, max(276, 0.38 x stage)), stage - 166)",
+      "reason": "the existing 1280x800 journey requires every Monte Carlo control fully in the viewport; at dock 231 the panel is 198 px and the controls end at 236.3 px, so D5 failed. 276 px measured as the smallest dock with slack (panel 243 px).",
+      "evidence": "pnpm test:browser failure at 08231c6 parent state; mcfit probe over dock 120..400"
+    },
+    {
+      "item": "compact pose readout placement",
+      "approved": "full-width strip under the canvas toolbar (w < 700 || h < 420)",
+      "implemented": "full-width strip sharing the bottom band with the scrubber",
+      "reason": "with the dock at its 276 px content floor the top-strip arrangement gives 215.8 px of free region (< 220); the bottom band gives 229.5 px and keeps all six values on one visible line. Merging the readout into the toolbar row would give ~252 px but hide three of six values behind a horizontal scroll at 1280."
+    }
+  ],
+  "notDone": [
+    "no readout merge into the toolbar row",
+    "no viewport/fit/rendering change (src/console/viewport/* untouched)",
+    "no engine, schema, preset, export or caveat-text change",
+    "no change to other stages' dock defaults",
+    "no existing journey assertion edited or relaxed",
+    "no push, merge, release or publish"
+  ],
+  "limits": [
+    "visual acceptance is the coordinator's; the author cannot read images and did not open any screenshot",
+    "800x600 keeps a 161 px canvas because the dock max-height reserves the 160 px main area",
+    "after a user drag the stored height wins and the default stops tracking the window (by design)",
+    "1600x1000 dock default drops 400 -> 298 px while the canvas grows 377.6 -> 479.6 px (approved trade-off)"
+  ],
+  "artifacts": {
+    "dir": "~/.paseo/worktrees/3s8t98rp/evidence-flight-layout/",
+    "files": [
+      "BASE-MEASUREMENTS.json",
+      "AFTER-MEASUREMENTS.json",
+      "base-browser-falsifier.log",
+      "after-browser.log",
+      "GATE1-DESIGN-NOTE.md",
+      "base-flight-1280x800.png",
+      "base-flight-1600x1000.png",
+      "base-flight-1024x768.png",
+      "base-flight-800x600.png",
+      "after3-flight-1280x800.png",
+      "after3-flight-1600x1000.png",
+      "after3-flight-1024x768.png",
+      "after3-flight-800x600.png"
+    ],
+    "note": "screenshots are for the coordinator; the author never opened them"
+  }
+}

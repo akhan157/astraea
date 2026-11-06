@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP03/RMP04",
+  "subpacket": "source-schema-and-new-host-prerequisites-only",
+  "baseSha": "8b935f20e0cefabba3b09ece103a0c86c0ce5541",
+  "sourceSha": "689c1114a334ce52154dd87e28b0bb464f277135",
+  "owner": "coordinator; leases released after checkpoint",
+  "modelRouting": {
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "usageTelemetry": "not supplied; one serial read-only independent reviewer"
+  },
+  "effectiveInputs": [
+    "docs/internal/execution-runs/RMP03-RMP04-prerequisites/RESULT.md"
+  ],
+  "sourceHashes": {},
+  "runtimeHashes": {},
+  "artifactAvailability": [
+    {
+      "artifact": "actual vendor aerodynamic export in focused engine fixtures",
+      "status": "none;11 synthetic/test fixtures inspected by filename, not an actual schema"
+    },
+    {
+      "artifact": "RocketPy runtime",
+      "status": "find_spec false"
+    },
+    {
+      "artifact": "Docker images",
+      "status": "inventory exit0,empty; no container started"
+    },
+    {
+      "artifact": "WebKit2GTK4.1 development dependency",
+      "status": "pkg-config --exists exit1"
+    },
+    {
+      "artifact": "frontend dependencies/updater-plugin/AppImage helpers",
+      "status": "absent within explicitly inspected paths/PATH/cache; not a global-host claim"
+    }
+  ],
+  "checks": [
+    {
+      "id": "RMP03-C01",
+      "status": "blocked",
+      "kind": "prerequisite-only-not-parser-execution",
+      "observed": "actual source export/field schema unavailable"
+    },
+    {
+      "id": "RMP03-C02",
+      "status": "not_run",
+      "kind": "prerequisite-only-not-parser-execution",
+      "observed": "no new adapter execution"
+    },
+    {
+      "id": "RMP03-C03",
+      "status": "not_run",
+      "kind": "prerequisite-only-not-parser-execution",
+      "observed": "no new adapter execution"
+    },
+    {
+      "id": "RMP03-C04",
+      "status": "not_run",
+      "kind": "prerequisite-only-not-parser-execution",
+      "observed": "no new adapter execution"
+    },
+    {
+      "id": "RMP03-C05",
+      "status": "not_run",
+      "kind": "prerequisite-only-not-parser-execution",
+      "observed": "no new adapter execution"
+    },
+    {
+      "id": "RMP04-C01",
+      "status": "not_run",
+      "kind": "technical-plan-only-not-guard-or-apply-proof",
+      "observed": "no new guard/consent/authenticity/recovery execution"
+    },
+    {
+      "id": "RMP04-C02",
+      "status": "not_run",
+      "kind": "technical-plan-only-not-guard-or-apply-proof",
+      "observed": "no new guard/consent/authenticity/recovery execution"
+    },
+    {
+      "id": "RMP04-C03",
+      "status": "blocked",
+      "kind": "technical-plan-only-not-guard-or-apply-proof",
+      "observed": "actual offline desktop/build/AppImage prerequisites absent"
+    },
+    {
+      "id": "RMP04-C04",
+      "status": "not_run",
+      "kind": "technical-plan-only-not-guard-or-apply-proof",
+      "observed": "no new guard/consent/authenticity/recovery execution"
+    },
+    {
+      "id": "RMP04-C05",
+      "status": "not_run",
+      "kind": "technical-plan-only-not-guard-or-apply-proof",
+      "observed": "no new guard/consent/authenticity/recovery execution"
+    }
+  ],
+  "review": {
+    "reviewer": "separate Codex/OpenAI gpt-6.1-sol/high",
+    "independentOfAuthor": true,
+    "disposition": "approved-bounded-prerequisite-review-not-executable-recipe",
+    "evidencePath": "docs/internal/execution-runs/RMP03-RMP04-prerequisites/REVIEW.md",
+    "findings": []
+  },
+  "qualification": {
+    "computational": "inspection only; no parser/desktop checks executed",
+    "physical": "unqualified",
+    "dynamic": "not executed"
+  },
+  "failedAttempts": [],
+  "remainingScope": [
+    "RMP03 actual permitted export/version/rights/headers/units/basis/geometry evidence",
+    "RMP04 authorized existing offline desktop dependencies/image/plugin/frontend/bundler before guard/build/apply recipe"
+  ],
+  "nextActions": [
+    "Continue bounded synthetic native RMP12 reference experiments without production/default/WASM changes"
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

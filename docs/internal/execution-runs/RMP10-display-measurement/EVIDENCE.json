@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP10",
+  "subpacket": "display-measurement (A1-A4, A7 consumer sweep)",
+  "baseSha": "ae8c54b",
+  "sourceSha": "working tree on ae8c54b; see sourceHashes (no integration commit yet)",
+  "owner": "single worktree owner (rmp10-display-measurement); no subagent",
+  "modelRouting": {"model": null, "effort": null, "usageTelemetry": "not supplied; no subdelegation, no reviewer call"},
+  "effectiveInputs": [
+    "docs/internal/execution-package/packets/RMP10.md",
+    "docs/internal/execution-package/acceptance-register.json (RMP10-C01/C04/C07 entries)",
+    "docs/internal/execution-package/CONTROL-LOOP.md",
+    "docs/internal/execution-package/DECISIONS.md",
+    "docs/internal/execution-package/CHECKS.md",
+    "docs/internal/roadmap-to-collegiate-1.0-2026-10-26.md RMP09/RMP10 exit checks",
+    "execution-runs/RMP10-{flight-model-history,geometry-cp-support,peak-evidence,qualified-output-archive,recovery-readouts}/RESULT.md",
+    "src/console/data/{adapter,recoveryResults}.ts, src/application/{momentArmHistory,flightLanding,savedFlightOutputs}.ts, src/console/stages/{Recovery,Flight,Build,SavedRuns}.tsx, src/console/evidence/MomentArmHistoryPanel.tsx",
+    "crates/astraea-core/src/six_dof.rs:2844-2847 (read-only citation of the lumped landing energy)"
+  ],
+  "sourceHashes": {
+    "src/console/data/adapter.ts": "ea0a5308e93cb895fd5d3ec38d33cfca01f7186e79fad0ecacfcd8b0af1d16b4",
+    "src/console/data/outputContracts.test.ts": "0a5eaf2d1f8e862742c86be9ce89b9a8d68c280080438dc4ded1facd8ee0f9ce",
+    "src/console/data/recoveryResults.test.ts": "db5755b7ddd1143f1a27873d6c705e7f7027fd5801edbe4f7b963007f4320d39",
+    "src/console/stages/recoveryResults.test.tsx": "969a5d9abf2e751f65339668eeccce37586d10e589625b49b288a60650c6dd66",
+    "src/console/stages/SavedRuns.test.tsx": "d31cb67969a16f5b689e089bc98d3140eaa084756daf910e4bae4f115b5d7819",
+    "src/console/evidence/MomentArmHistoryPanel.test.tsx": "b7a3e912258b83c81ac9a9b53e42c44797f96b4b955461ebf86d53f965d70a23",
+    "src/console/stages/siteAndTelemetry.test.tsx": "3acf054bdb6601244d9e72dc49cd93196a948d8f602f0950fbfabd28713b408e"
+  },
+  "runtimeHashes": {
+    "engine": "not verified in this lane: src/engine/astraea_engine.wasm is gitignored (.gitignore:6) and absent. No restore/copy/hash/rebuild per coordinator decision. Engine identity owned by merged integration.",
+    "claimedShippedSha256": null
+  },
+  "artifactAvailability": [
+    {"path": "evidence-rmp10-display-measurement/tsc-final.log", "available": true, "inGit": false},
+    {"path": "evidence-rmp10-display-measurement/affected-final.log", "available": true, "inGit": false},
+    {"path": "evidence-rmp10-display-measurement/before-fix-a2.log", "available": true, "inGit": false},
+    {"path": "evidence-rmp10-display-measurement/affected-1.log", "available": true, "inGit": false},
+    {"path": "evidence-rmp10-display-measurement/affected-2.log", "available": true, "inGit": false},
+    {"path": "evidence-rmp10-display-measurement/affected-3.log", "available": true, "inGit": false},
+    {"path": "evidence-rmp10-display-measurement/affected-4.log", "available": true, "inGit": false},
+    {"path": "evidence-rmp10-display-measurement/vitest-absent-wasm.config.mjs", "available": true, "inGit": false, "note": "copy of the temporary repo-root harness config used for absent-WASM module resolution; deleted from the repo after the run, no engine bytes"}
+  ],
+  "checks": [
+    {"id": "A1-interval-single-source", "status": "pass", "kind": "software-source+consumer test", "commandOrMechanism": "vitest src/console/data/recoveryResults.test.ts src/console/stages/recoveryResults.test.tsx src/console/stages/SavedRuns.test.tsx", "expectedRule": "one recorded interval drives readout, trace and archive; no second interval field", "observed": "readout === trace === archive (20 s fixture / 155.7 s saved-run fixture); only apogeeToTouchdown matches /touchdown|descent/i; no interval row in Flight comparison", "exitCode": 0, "evidencePath": "evidence-rmp10-display-measurement/affected-final.log", "sha256": null, "limitation": "behavioral consumer proof only; no provenance/authenticity claim"},
+    {"id": "A1-dictionary-single-source", "status": "pass", "kind": "software test", "commandOrMechanism": "same vitest run", "expectedRule": "one canonical dictionary producer/id list shared by trace and archive", "observed": "saved.outputs deep-equals trace outputs; dictionaryRevision === OUTPUT_DICTIONARY_REVISION", "exitCode": 0, "evidencePath": "evidence-rmp10-display-measurement/affected-final.log", "sha256": null, "limitation": null},
+    {"id": "A2-landing-energy-basis", "status": "pass", "kind": "honest-label change + red/green", "commandOrMechanism": "base adapter.ts with new test (red), then fixed adapter.ts (green)", "expectedRule": "disclose lumped whole-vehicle mass basis and unsupported per-section energy; do not change the engine computation, the 20 J value or a threshold; do not present 20 J as regulation-derived", "observed": "pre-fix 2 failed (mass-basis and fail-branch scope); post-fix pass; value 14.2/25 unchanged, threshold '<= 20 J', no regulation wording", "exitCode": 0, "evidencePath": "evidence-rmp10-display-measurement/before-fix-a2.log", "sha256": null, "limitation": "label/provenance disclosure only; no physical or per-section energy qualification"},
+    {"id": "A3-guide-departure-scope", "status": "pass", "kind": "software test", "commandOrMechanism": "vitest src/console/data/outputContracts.test.ts src/console/stages/siteAndTelemetry.test.tsx", "expectedRule": "rail speed is modeled full release only; first rotational freedom and competition compliance never claimed, in both gate branches", "observed": "pass and fail gate reasons both scope the claim; manifest railTravel and guide note retain the limitation", "exitCode": 0, "evidencePath": "evidence-rmp10-display-measurement/affected-final.log", "sha256": null, "limitation": "pass branch already correct; fail branch fixed"},
+    {"id": "A4-contact-trigger", "status": "pass", "kind": "software test", "commandOrMechanism": "vitest src/console/data/outputContracts.test.ts", "expectedRule": "flat z=0 AGL contact datum and terrain-relative/tip-off unsupported scope stay visible; no altimeter-trigger claim", "observed": "ground datum and unsupportedScope disclosures preserved", "exitCode": 0, "evidencePath": "evidence-rmp10-display-measurement/affected-final.log", "sha256": null, "limitation": "engine manifest text is copied, not re-qualified"},
+    {"id": "A5-button-geometry", "status": "pass", "kind": "consumer sweep", "commandOrMechanism": "vitest src/console/stages/siteAndTelemetry.test.tsx + source sweep", "expectedRule": "no surface claims rail-button/lug geometry; guide note keeps partial-constraint/tip-off limitation", "observed": "only button/guide consumer text is Flight.tsx:229-230; assertion fails if button/lug modelling is claimed", "exitCode": 0, "evidencePath": "evidence-rmp10-display-measurement/affected-final.log", "sha256": null, "limitation": "absence check on the one consumer surface, not a global proof"},
+    {"id": "A6-burnout-claim", "status": "pass", "kind": "software test", "commandOrMechanism": "vitest src/console/evidence/MomentArmHistoryPanel.test.tsx src/console/data/outputContracts.test.ts", "expectedRule": "exact burn-time sample is not an observed burnout; history is sampled-only", "observed": "exact-sample branch states 'not an independently observed burnout'; manifest says sampled-only", "exitCode": 0, "evidencePath": "evidence-rmp10-display-measurement/affected-final.log", "sha256": null, "limitation": "already honest at base; no production change"},
+    {"id": "A7-delta-withholding", "status": "pass", "kind": "consumer regression tests", "commandOrMechanism": "vitest src/console/stages/SavedRuns.test.tsx src/console/data/recoveryResults.test.ts", "expectedRule": "no interval/landing delta is rendered or exported as numeric for unavailable interval, delayed marker, missing clock, timeout or non-nominal records; reasons preserved", "observed": "canonical table, hostile-archive case, legacy historical summary and Build trace all withhold; no leak found so no production fix", "exitCode": 0, "evidencePath": "evidence-rmp10-display-measurement/affected-final.log", "sha256": null, "limitation": "UI behavior proof only; no browser journey"},
+    {"id": "typecheck", "status": "pass", "kind": "tooling", "commandOrMechanism": "node node_modules/typescript/bin/tsc --noEmit", "expectedRule": "no type errors", "observed": "exit 0", "exitCode": 0, "evidencePath": "evidence-rmp10-display-measurement/tsc-final.log", "sha256": null, "limitation": null}
+  ],
+  "review": {"reviewer": "coordinator (not the author)", "independentOfAuthor": true, "disposition": "pending", "findings": []},
+  "qualification": {"computational": "software tests only", "physical": "unqualified", "dynamic": "unknown"},
+  "failedAttempts": [
+    "affected-1.log: 3 UI files failed to resolve ./astraea_engine.wasm?url (asset gitignored and absent); 2 real failures: fail-branch rail reason lacked scope (fixed), manifest test missing invocation identity (test-only fix).",
+    "affected-2.log: harness config outside the repo could not resolve vitest/@vitejs/plugin-react (startup error); re-created at repo root, untracked, deleted after use.",
+    "affected-3.log: 3 failures from a wrong test expectation (155.7 s recorded interval, not 20 s); expectation corrected, no product change.",
+    "before-fix-a2.log: 2 failed on base adapter.ts, proving the new label/scope assertions are failing-capable."
+  ],
+  "remainingScope": [
+    "A-items: none known after the sweep.",
+    "B external: measured guide/button geometry and button positions; first-rotational-freedom/departure-speed observation; altimeter trigger configs/delays; measured mass/CG/inertia; per-section recovery masses/CdA and opening shock; terrain/datum; vendor motor records/rights; approved accuracy/decision budgets and the 20 J basis; competition rule revision pins; engine/model additions for per-section energy and terrain-relative/delayed deployment; native OS install/relaunch acceptance.",
+    "RMP10-C01: through-burnout/unified-provider/mechanics decision qualification.",
+    "RMP10-C04: guide/contact/button/section/trigger/measurement qualification beyond the recorded interval.",
+    "RMP10-C07: broader replay/current-previous qualification beyond delayed/missing clocks."
+  ],
+  "nextActions": [
+    "Coordinator independent review of the adapter label diff and the consumer matrix.",
+    "Coordinator browser proof and register/manifest/TASKS updates.",
+    "Do not cite either recorded engine SHA from this lane."
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "supplied-aero-static-diagnostic/1.0.0",
+  "inputIdentity": "synthetic-T1a-only-not-measurements",
+  "table": {
+    "source": {
+      "identity": "synthetic-full-wrench-grid-v1",
+      "description": "Algebra fixture, not empirical aerodynamic evidence"
+    },
+    "geometryIdentity": "synthetic-off-axis-wrench-fixture",
+    "conditionsIdentity": "synthetic-fixed-condition-A",
+    "conventionId": "canonical-body-total-P0/1.0.0",
+    "velocityReference": "CG",
+    "references": {
+      "areaM2": 2.0,
+      "lengthM": 3.0,
+      "diameterM": 0.5
+    },
+    "datumPositionFromNoseBM": {
+      "x": 0.2,
+      "y": -0.4,
+      "z": 0.3
+    },
+    "fixedConditions": {
+      "betaRad": 0.0,
+      "omegaBRadps": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rollRad": 0.3,
+      "reynoldsPerMeter": 4000000.0,
+      "powerNozzleCondition": "coast; fixed open nozzle A"
+    },
+    "interpolationPolicy": "piecewise-bilinear",
+    "domainPolicy": "reject-outside-grid",
+    "machAxis": [
+      0.5,
+      2.5
+    ],
+    "alphaRadAxis": [
+      -0.2,
+      0.6
+    ],
+    "nodes": [
+      [
+        {
+          "cfB": {
+            "x": 1,
+            "y": -2,
+            "z": -3
+          },
+          "cmB": {
+            "x": 2,
+            "y": 3,
+            "z": 4
+          }
+        },
+        {
+          "cfB": {
+            "x": 3,
+            "y": -4,
+            "z": -7
+          },
+          "cmB": {
+            "x": 4,
+            "y": 7,
+            "z": 10
+          }
+        }
+      ],
+      [
+        {
+          "cfB": {
+            "x": 5,
+            "y": -6,
+            "z": -11
+          },
+          "cmB": {
+            "x": 8,
+            "y": 11,
+            "z": 14
+          }
+        },
+        {
+          "cfB": {
+            "x": 7,
+            "y": -8,
+            "z": -15
+          },
+          "cmB": {
+            "x": 14,
+            "y": 15,
+            "z": 20
+          }
+        }
+      ]
+    ]
+  },
+  "query": {
+    "sourceIdentity": "synthetic-full-wrench-grid-v1",
+    "geometryIdentity": "synthetic-off-axis-wrench-fixture",
+    "conditionsIdentity": "synthetic-fixed-condition-A",
+    "environmentIdentity": "synthetic-density-speed-assertion",
+    "fixedConditions": {
+      "betaRad": 0.0,
+      "omegaBRadps": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rollRad": 0.3,
+      "reynoldsPerMeter": 4000000.0,
+      "powerNozzleCondition": "coast; fixed open nozzle A"
+    },
+    "mach": 1.0,
+    "alphaRad": 0.2,
+    "densityKgM3": 1.2,
+    "speedMps": 10.0,
+    "targetReferences": {
+      "areaM2": 2.0,
+      "lengthM": 3.0,
+      "diameterM": 0.5
+    },
+    "targetDatumPositionFromNoseBM": {
+      "x": 0.2,
+      "y": -0.4,
+      "z": 0.3
+    },
+    "cgPositionFromNoseBM": {
+      "x": 0.1,
+      "y": -1.2,
+      "z": -0.2
+    }
+  }
+}

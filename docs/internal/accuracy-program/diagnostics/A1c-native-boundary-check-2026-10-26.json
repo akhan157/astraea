@@ -1,0 +1,62 @@
+{
+  "status": "pass",
+  "caseCount": 11,
+  "cases": [
+    {
+      "case": "mixed-incidence-skewed-datum-and-cg",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "same-loads-at-different-full-datum",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "zero-speed-with-nonzero-rates",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "denominator-interval-crosses-zero",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "unknown-physical-field-refused",
+      "status": "pass",
+      "error": "vehicle.components[0]: unknown field 'unmodeledLipM'"
+    },
+    {
+      "case": "missing-declaration-refused",
+      "status": "pass",
+      "error": "evaluate_sb1_diagnostic: missing field `sharpPhysicalTip`"
+    },
+    {
+      "case": "mach-upper-bound-refused",
+      "status": "pass",
+      "error": "unsupported_model_domain: candidate requires 0 <= Mach < 0.8"
+    },
+    {
+      "case": "tail-first-refused",
+      "status": "pass",
+      "error": "unsupported_model_domain: candidate requires forward flow and incidence <= 5 degrees"
+    },
+    {
+      "case": "excess-incidence-refused",
+      "status": "pass",
+      "error": "unsupported_model_domain: candidate requires forward flow and incidence <= 5 degrees"
+    },
+    {
+      "case": "missing-environment-identity-refused",
+      "status": "pass",
+      "error": "state.environmentIdentity: explicit nonempty identity/condition required"
+    },
+    {
+      "case": "unknown-cp-policy-refused",
+      "status": "pass",
+      "error": "unsupported explicit CP policyId"
+    }
+  ],
+  "scope": "native synthetic JSON/API verification; no trajectories or empirical observations"
+}

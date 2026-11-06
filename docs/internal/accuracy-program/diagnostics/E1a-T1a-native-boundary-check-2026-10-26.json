@@ -1,0 +1,83 @@
+{
+  "status": "pass",
+  "caseCount": 15,
+  "cases": [
+    {
+      "case": "environment-geometric-pressure-midpoint",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "expired-profile-refused",
+      "status": "pass",
+      "error": "evaluate_environment_diagnostic: query time is outside profile validity"
+    },
+    {
+      "case": "implicit-celsius-refused",
+      "status": "pass",
+      "error": "evaluate_environment_diagnostic: invalid request: unknown variant `C`, expected `K`"
+    },
+    {
+      "case": "implicit-altitude-datum-conversion-refused",
+      "status": "pass",
+      "error": "evaluate_environment_diagnostic: invalid request: unknown variant `geopotentialMsl`, expected `geometricMsl`"
+    },
+    {
+      "case": "supplied-table-full-wrench",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "reference-and-skewed-datum-invariance",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "pure-couple-with-zero-force",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "pure-couple-independent-of-cg",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "missing-independent-moment-refused",
+      "status": "pass",
+      "error": "evaluate_supplied_aero_diagnostic: invalid_input: missing field `cmB`"
+    },
+    {
+      "case": "power-condition-mismatch-refused",
+      "status": "pass",
+      "error": "unsupported_model_domain: query must exactly match source/geometry/conditions identities and fixed roll/Re/power/nozzle conditions"
+    },
+    {
+      "case": "reference-ratio-underflow-refused",
+      "status": "pass",
+      "error": "invalid_input: reference conversion overflow/underflow"
+    },
+    {
+      "case": "joint-environment-low-altitude",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "joint-environment-high-altitude",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "joint-matched-environment",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "joint-changed-Re-refused-at-same-Mach",
+      "status": "pass",
+      "error": "unsupported_model_domain: query must exactly match source/geometry/conditions identities and fixed roll/Re/power/nozzle conditions"
+    }
+  ],
+  "scope": "synthetic native JSON/API checks; no trajectories or empirical observations",
+  "jointScope": "angle supplied independently; no attitude/flight integration; source fixed Re assigned only for synthetic interface test"
+}

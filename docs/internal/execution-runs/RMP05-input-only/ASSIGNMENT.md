@@ -1,0 +1,9 @@
+# RMP05a input-only owner/custodian preparation
+
+Base `bdcea0bf57be5407f6b61f4655f6ee59775c99b5`; clean existing branch, prior RMP12 reviewer/lease finished. Read RMP05, mission matrix/proposed specification, input-only pilot template, existing exposure ledger and comparison contract. No new source/outcome acquisition or model run.
+
+Lease CREATE docs/internal/execution-package/evidence/RMP05/{README.md,input-only-request.json}; this run assignment/result/evidence; affected RMP05 brief/index/register/STATE/manifest/tracker only. Preserve historical specification/template/thresholds, private inputs, other packets and source/defaults. Current coordinator ordinary structural review only; independent actual rights/eligibility decision remains pending until a real selected case exists. No need to delegate a scientific review of nonexistent data.
+
+Deliver explicit INCOMPLETE form with original pilot freeze structure, unselected case/custodian/rights/model IDs, grouped field-to-source missing-input matrix, per-output decision records/budget allocations all NULL, rights/custody checklist, proposed dependency/exposure types and local unsent request. Preserve missing-as-blocked vs measured/nominal/estimated provenance and do not relabel public/development sources blind. Never import the RMP12 provisional numerical reserves or historical accuracy percentages as owner budgets.
+
+Structural checks only: json.tool on exact input-only path; assertions incomplete/not-ready/all numeric budgets and signoffs null/no selected cases or outcome values. No raw data globs, protected directories, validation scoring, external contact/request, runtime acquisition or push/release. No RMP05 scientific acceptance pass; C01/C04 partial form preparation, C02/C03/C05 blocked on actual responsible owner/custodian input. Stop with precise questions only for this real external-input gate, not routine permission to start code.

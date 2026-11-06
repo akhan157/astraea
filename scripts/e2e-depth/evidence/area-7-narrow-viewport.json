@@ -1,0 +1,17 @@
+{
+  "area": "7-narrow-viewport",
+  "label": "1280x800-zero-overflow-panes-present",
+  "url": "http://localhost:5190/",
+  "studio": "Propulsion & motors studio (shortcut 3)",
+  "banners": [],
+  "badges": [
+    "Viewport 1280x800: document scrollWidth==clientWidth (no horizontal overflow, no horizontal scrollbar) in all 5 studios",
+    "Left pane (Context list) + right pane (Inspector) both visible; labeled nav aria-label='Studios' with 5 tabs present; no vanishing pane",
+    "No console errors on narrow viewport"
+  ],
+  "consoleErrors": 0,
+  "overflow": {
+    "x": false,
+    "y": false
+  }
+}

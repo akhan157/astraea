@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP10",
+  "subpacket": "RMP10b recorded recovery interval / valid landing deltas",
+  "baseSha": "59700ee85c4c832784b37f6e8ddca4a351390584",
+  "sourceSha": "add2c706ba8a09f0db613f38dd79d26069ea5af2",
+  "status": "bounded software correction accepted after REQUEST_CHANGES/rework/ACCEPT; coordinator nonblocking tooltip/test follow-ups verified; parent partial",
+  "sourceInventory": "SOURCE-INVENTORY-3.json current author hashes5 source/test +5readonly +third readonly test; inventories1/2 retained, no independent seal",
+  "lease": "RMP10b source/compute lease released after accepted source/checks; records-only package checkpoint; no task-owned process",
+  "review": {
+    "initial": "REQUEST_CHANGES",
+    "rereview": "ACCEPT all six findings addressed; no material remaining",
+    "suppliedSourceSnapshot": "SOURCE-INVENTORY-2.json",
+    "finalSourceSnapshot": "SOURCE-INVENTORY-3.json",
+    "postReview": "coordinator accepted its nonblocking literal tooltip/test-isolation suggestions; main helper unchanged; final79/10 + tsc5 + Vite3",
+    "boundary": "no-tools supplied-source/data reviews, no independent filesystem/hash/test execution or physical/parent/team/release acceptance"
+  },
+  "routing": {
+    "author": "openai/gpt-6.1-sol/high current environment",
+    "reviewer": "explicit opencode-go/mimo-v2.6-pro / medium / no-tools",
+    "scope": "supplied current sources/native clauses/diff/logs only; not fresh filesystem/hash/test execution"
+  },
+  "verification": {
+    "beforeFix": "5fail/1pass, actual17/-13/30s vs correct20/N-A/20 and improper green landing-speed deltas; landing-energy assertion not independently reached pre-fix",
+    "focused": "current26pass/3 named source files; earlier23=13pure+6UI+4site, seventh timeout test post-first-fix-only; exact first-focused file hashes unavailable; rework reds3fail19pass",
+    "affected": "final79pass/10files affected-4.log,15pure helper+8UI+56existing; prior failure/78pass rework logs retained",
+    "typeScript": "final tsc-5 clean; initial tsc-1/3 test-only typing failures retained",
+    "build": "author-recorded Vite1 first fix/2 rework/3 final tooltip build pass; logs1/2 supplied to rereview,3 author follow-up; same author-hashed WASM b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b; not independently reviewer-verified",
+    "noNewCalls": "no native/WASM/browser/numerical experiment calls, no changed Rust or rerun RMP12",
+    "limits": "jsdom/rendered software checks, not actual new browser/installed native journey or physical/event accuracy"
+  },
+  "checks": [
+    {
+      "id": "RMP10-C04",
+      "status": "in_progress",
+      "observed": "recorded apogee-to-touchdown interval not delayed activation; missing/inconsistent clocks explicit unavailable",
+      "remaining": "guide/button/contact/section/trigger and measured event qualification"
+    },
+    {
+      "id": "RMP10-C06",
+      "status": "in_progress",
+      "observed": "Recovery/Results agree on nominal availability; no invalid landing change",
+      "remaining": "broader dictionary/peak/event/export/rule scope; RMP10a source/history/export evidence retained separately"
+    },
+    {
+      "id": "RMP10-C07",
+      "status": "in_progress",
+      "observed": "delayed activation, missing event, previous/current non-nominal and explicit timeout comparisons, real zero and legacy absence regressions",
+      "remaining": "broader event/peak/provider/cancellation and qualification"
+    }
+  ],
+  "relatedEvidence": [
+    "../RMP10-flight-model-history/EVIDENCE.json"
+  ],
+  "artifactAvailability": {
+    "portable": "assignment/result/source inventory/code/tests",
+    "externalLocalOnly": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-recovery-readouts/"
+  },
+  "artifactHashes": {
+    "portable": {
+      "ASSIGNMENT.md": "4ff8d42b2f9137e66499b9af5dc582b08618033e915e7754e95d4ead804cac41",
+      "RAW-ARTIFACTS.json": "b8a6ea16e3e6369f94a4f1dbf4021113f2824c3dda68302c891f442ec2e0893e",
+      "RESULT.md": "da2cb271e3fdc621930a86646560cae3ea9325ff22efc476551ea5bc89c80116",
+      "REVIEW.md": "4f125d7c2ebfb8a545629589432d0c8c1641aa1eb0571c123931167889b7a637",
+      "SOURCE-INVENTORY-2.json": "cec3fd914eff04bf426eb6019fb28e6c1b101affc42b8c8b91e00197422a4206",
+      "SOURCE-INVENTORY-3.json": "3836244a4015b693c08293412b9c9b762cdf8328dc08af3be5db5a32e199fb1a",
+      "SOURCE-INVENTORY.json": "82323e0619748f4342dab8872f28af1efc9e03c0db463c05c71cc0190dda5f17",
+      "package-validation.json": "ec47bfbb9fc89f68af2172036b0d050c03e3e84d9b79bf38ba930ab870eaff15"
+    },
+    "scope": "author-hashed integrity/availability, not scientific approval"
+  },
+  "nonClaims": [
+    "RMP10 or any new acceptance check PASS",
+    "changed physics/root/event/default/model/key/schema/archive",
+    "nominal touchdown implies parachute success or flight/rule approval",
+    "per-section landing energy, measured clock/numerical accuracy or decision reserve",
+    "new browser/engine/native/physical/team/platform/release acceptance"
+  ],
+  "next": "RMP15 complete-result preservation source contract on fresh actual base; other-consumer/event/physical gates open; no push"
+}

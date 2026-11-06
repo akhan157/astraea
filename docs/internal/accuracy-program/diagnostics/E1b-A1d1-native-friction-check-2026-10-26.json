@@ -1,0 +1,57 @@
+{
+  "status": "pass",
+  "caseCount": 10,
+  "cases": [
+    {
+      "case": "actual-local-environment-friction",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "normalization-preserves-dimensional-resistance",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "zero-speed-unavailable-cf-zero-static-resistance",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "low-Re-rejected-without-floor",
+      "status": "pass",
+      "error": "evaluate_skin_friction_diagnostic: effective Reynolds below numerical support minimum 1000; no floor applied"
+    },
+    {
+      "case": "surface-roughness-mismatch-refused",
+      "status": "pass",
+      "error": "evaluate_skin_friction_diagnostic: geometry length/roughness does not match E1 surface"
+    },
+    {
+      "case": "source-geometry-mismatch-refused",
+      "status": "pass",
+      "error": "evaluate_skin_friction_diagnostic: source geometry identity does not match request geometry"
+    },
+    {
+      "case": "misspelled-form-factor-refused",
+      "status": "pass",
+      "error": "evaluate_skin_friction_diagnostic: invalid request: unknown field `formfactor`, expected one of `identity`, `lengthM`, `roughnessM`, `wettedAreaM2`, `formFactor`"
+    },
+    {
+      "case": "environment-time-guard-preserved",
+      "status": "pass",
+      "error": "evaluate_skin_friction_diagnostic: query time is outside profile validity"
+    },
+    {
+      "case": "same-Mach-low-altitude-local-Re",
+      "status": "pass",
+      "error": null
+    },
+    {
+      "case": "same-Mach-high-altitude-local-Re",
+      "status": "pass",
+      "error": null
+    }
+  ],
+  "scope": "synthetic inherited-law/local-state/API checks only; no pressure/base/wave/total-drag or flight accuracy qualification"
+}

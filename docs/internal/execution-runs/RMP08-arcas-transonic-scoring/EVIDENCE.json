@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP08",
+  "subpacket": "ARCAS per-band transonic scoring and honest CP claims",
+  "baseSha": "2c46408 (continue-task at dispatch)",
+  "status": "bounded increment complete; retained red gate; pending independent review",
+  "review": "pending independent review",
+  "scope": "tests and reporting only; no physics, model, threshold, Rust or WASM change",
+  "thresholdProvenance": "15% CA figure is the research target already declared in arcas-benchmark.ts header; reused per band. No new accuracy budget invented. CP has no approved budget and stays report-only.",
+  "results": {
+    "perBandCA": {
+      "subsonic ARCAS-short": {"maePct": 11.2, "n": 2},
+      "subsonic ARCAS-long": {"maePct": 4.9, "n": 2},
+      "transonic ARCAS-short": {"maePct": 15.7, "n": 4, "gate": "FAIL vs inherited 15% research target"},
+      "transonic ARCAS-long": {"maePct": 13.8, "n": 3},
+      "supersonic ARCAS-short": {"status": "NOT VALIDATED"},
+      "supersonic ARCAS-long": {"status": "NOT VALIDATED"}
+    },
+    "perBandCP_pp": {
+      "subsonic ARCAS-short": {"mae": 2.5, "bias": 2.5, "n": 2},
+      "subsonic ARCAS-long": {"mae": 1.1, "bias": 1.1, "n": 1},
+      "transonic ARCAS-short": {"mae": 4.7, "bias": -1.9, "n": 4},
+      "transonic ARCAS-long": {"mae": 3.8, "bias": 1.9, "n": 3},
+      "supersonic ARCAS-short": {"mae": 5.2, "bias": 1.9, "n": 5},
+      "supersonic ARCAS-long": {"mae": 6.4, "bias": 4.7, "n": 4}
+    },
+    "priorPooled": {"CA": "MAE < 15% (pass, pooled across bands)", "CP": "n=19, MAE=4.6 pp, bias=1.7 pp"}
+  },
+  "retainedFailure": {
+    "id": "ARCAS transonic ARCAS-short CA",
+    "observed": "MAE 15.717557349012338% must be < 15%",
+    "disposition": "retained; physics not tuned to make it pass"
+  },
+  "verification": {
+    "benchmark": "1 failed / 4 passed (the retained red)",
+    "applicationSuite": "126 files / 1580 tests pass; arcas-benchmark.ts excluded from default include",
+    "tsc": "clean",
+    "diffCheck": "clean",
+    "packageValidator": "pass"
+  },
+  "nonClaims": [
+    "supersonic drag validation (no comparable base-corrected data exists)",
+    "flight accuracy from wind-tunnel comparison",
+    "any CP accuracy budget or gate",
+    "transonic fin compressibility correction (Mechanism A) — separate increment needing scientific review"
+  ],
+  "rawEvidence": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp08-arcas-transonic-scoring/"
+}

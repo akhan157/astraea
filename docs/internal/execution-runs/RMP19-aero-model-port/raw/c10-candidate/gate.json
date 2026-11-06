@@ -1,0 +1,239 @@
+{
+  "absoluteFloor": 1e-6,
+  "flights": [
+    {
+      "name": "aeropac104kstageone-two-2",
+      "reason": "staged flight; the product 6-DOF is single-stage",
+      "status": "not-applicable"
+    },
+    {
+      "name": "blister",
+      "residuals": [
+        {
+          "engine": 8301.426,
+          "metric": "apogee",
+          "ours": 8860.043504370506,
+          "relative": 0.06729175257004112
+        },
+        {
+          "engine": 949.4515,
+          "metric": "maxVelocity",
+          "ours": 952.524533220064,
+          "relative": 0.003236640544634415
+        },
+        {
+          "engine": 21.5504,
+          "metric": "tta",
+          "ours": 22.471737785340068,
+          "relative": 0.042752699965665046
+        }
+      ],
+      "status": "measured"
+    },
+    {
+      "name": "dontdebatethisn5800mindia",
+      "residuals": [
+        {
+          "engine": 61981.77,
+          "metric": "apogee",
+          "ours": 52991.010606902695,
+          "relative": 0.14505489909528724
+        },
+        {
+          "engine": 3469.283,
+          "metric": "maxVelocity",
+          "ours": 3334.65922658919,
+          "relative": 0.03880449459176721
+        },
+        {
+          "engine": 55.48669,
+          "metric": "tta",
+          "ours": 50.234732933043006,
+          "relative": 0.09465255662136265
+        }
+      ],
+      "status": "measured"
+    },
+    {
+      "name": "kinsel-p4935-a-601-rocket",
+      "residuals": [
+        {
+          "engine": 41097.65,
+          "metric": "apogee",
+          "ours": 53134.06856430935,
+          "relative": 0.29287364519161924
+        },
+        {
+          "engine": 2088.741,
+          "metric": "maxVelocity",
+          "ours": 2379.558836827608,
+          "relative": 0.13923116213432304
+        },
+        {
+          "engine": 49.08777,
+          "metric": "tta",
+          "ours": 56.296858737886126,
+          "relative": 0.14686119858136001
+        }
+      ],
+      "status": "measured"
+    },
+    {
+      "name": "proteus6",
+      "residuals": [
+        {
+          "engine": 81498.75,
+          "metric": "apogee",
+          "ours": 75110.58094511108,
+          "relative": 0.078383644594413
+        },
+        {
+          "engine": 3062.629,
+          "metric": "maxVelocity",
+          "ours": 2919.209794503676,
+          "relative": 0.046828788435139775
+        },
+        {
+          "engine": 68.73627,
+          "metric": "tta",
+          "ours": 65.70747693985716,
+          "relative": 0.044063971759637895
+        }
+      ],
+      "status": "measured"
+    },
+    {
+      "name": "qu8k",
+      "residuals": [
+        {
+          "engine": 119683.9,
+          "metric": "apogee",
+          "ours": 126358.38625141565,
+          "relative": 0.05576761996739458
+        },
+        {
+          "engine": 3752.962,
+          "metric": "maxVelocity",
+          "ours": 3645.9121591999924,
+          "relative": 0.02852409398230187
+        },
+        {
+          "engine": 85.92995,
+          "metric": "tta",
+          "ours": 89.16600353241839,
+          "relative": 0.03765920418222495
+        }
+      ],
+      "status": "measured"
+    },
+    {
+      "name": "rabia-shortfincan",
+      "residuals": [
+        {
+          "engine": 10225.19,
+          "metric": "apogee",
+          "ours": 10585.563160690133,
+          "relative": 0.035243663999410556
+        },
+        {
+          "engine": 994.4288,
+          "metric": "maxVelocity",
+          "ours": 1002.440882629906,
+          "relative": 0.008056969619047628
+        },
+        {
+          "engine": 23.90045,
+          "metric": "tta",
+          "ours": 24.489720139164966,
+          "relative": 0.024655190139305606
+        }
+      ],
+      "status": "measured"
+    },
+    {
+      "name": "rabia",
+      "residuals": [
+        {
+          "engine": 12197.07,
+          "metric": "apogee",
+          "ours": 13031.467272857206,
+          "relative": 0.06840964861702083
+        },
+        {
+          "engine": 1321.267,
+          "metric": "maxVelocity",
+          "ours": 1345.1279875159657,
+          "relative": 0.01805917162539115
+        },
+        {
+          "engine": 25.23048,
+          "metric": "tta",
+          "ours": 26.456471777935974,
+          "relative": 0.0485916945668879
+        }
+      ],
+      "status": "measured"
+    },
+    {
+      "name": "raven",
+      "residuals": [
+        {
+          "engine": 9331.979,
+          "metric": "apogee",
+          "ours": 10950.620343461367,
+          "relative": 0.17345102721098793
+        },
+        {
+          "engine": 1243.414,
+          "metric": "maxVelocity",
+          "ours": 1299.573066296632,
+          "relative": 0.0451652195460499
+        },
+        {
+          "engine": 20.85038,
+          "metric": "tta",
+          "ours": 22.94652631741267,
+          "relative": 0.10053276330755927
+        }
+      ],
+      "status": "measured"
+    },
+    {
+      "name": "torrent",
+      "residuals": [
+        {
+          "engine": 13716.88,
+          "metric": "apogee",
+          "ours": 13604.773248140304,
+          "relative": 0.008172904615313073
+        },
+        {
+          "engine": 1404.335,
+          "metric": "maxVelocity",
+          "ours": 1408.8674721564996,
+          "relative": 0.003227486430587844
+        },
+        {
+          "engine": 27.13053,
+          "metric": "tta",
+          "ours": 27.21727047071281,
+          "relative": 0.003197153565109421
+        }
+      ],
+      "status": "measured"
+    },
+    {
+      "name": "aeropac-3stage",
+      "reason": "staged flight; the product 6-DOF is single-stage",
+      "status": "not-applicable"
+    }
+  ],
+  "gate": "RMP19-C10",
+  "measured": 9,
+  "relativeTolerance": 0.005,
+  "stagedNotApplicable": 2,
+  "worst": {
+    "at": "kinsel-p4935-a-601-rocket apogee",
+    "relative": 0.29287364519161924
+  }
+}

@@ -1,0 +1,25 @@
+[package]
+name = "astraea-engine"
+version = "0.10.0"
+edition = "2021"
+description = "Astraea engine commands over astraea-core: one JSON dispatch, built natively for tests and as WebAssembly for the app"
+license = "Apache-2.0"
+
+[lib]
+name = "astraea_engine"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+astraea-core = { path = "../astraea-core" }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.150"
+# Content identities are emitted by the explicit candidate command in both
+# native and wasm32 builds.
+sha2 = "0.10.9"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

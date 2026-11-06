@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP15",
+  "subpacket": "RMP15e recorded events and terminal state in exports",
+  "baseSha": "ddd475131ced4b5ffd141cbbbca3cd72426aef61",
+  "sourceSha": null,
+  "status": "accepted after ACCEPT; no material findings; two nonblocking notes applied post-review",
+  "review": {
+    "initial": "ACCEPT (no material findings)",
+    "rereview": null,
+    "boundary": "opencode-go/mimo-v2.6-pro medium no-tools, supplied source/evidence only"
+  },
+  "routing": {
+    "author": "openai-codex/gpt-6.1-sol (goal authoring)",
+    "reviewer": "opencode-go/mimo-v2.6-pro medium no-tools"
+  },
+  "checks": [
+    {
+      "id": "RMP10-C06",
+      "status": "in_progress",
+      "observed": "export trace retains recorded events and terminal state; landing export refuses non-nominal/timeout/missing terminal evidence",
+      "remaining": "full cross-readout/plot/export dictionary and RecoveryCard duplicate-formula audit"
+    }
+  ],
+  "nonClaims": [
+    "RMP10-C06 pass",
+    "RMP15-C01 pass",
+    "georeferenced KML / globe coordinates",
+    "physics, accuracy or release qualification"
+  ],
+  "verification": {
+    "redFirst": "4 cases failed before fix at the expected disabled-button assertion",
+    "affected": "19 tests final wording-locked rerun; 48 in the broader affected run",
+    "fullSrc": "124 files / 1542 tests on the final tree",
+    "tsc": "clean",
+    "vite": "production build pass",
+    "browser": "Playwright headless Chromium built-site, real worker+WASM, 1 flight call, three-way event equality live trace / stale trace / saved case, runtime errors empty"
+  },
+  "sourceHashes": {
+    "src/console/stages/Build.tsx": "fd3cf7ed3403d5e2f77a23cd1323b506693664573abab11e44f311549c71a9ba",
+    "src/console/stages/buildExport.test.tsx": "12108fc11a724747e5ddae75cdfb5bfebf642be7fe2e46e155f540310005fcaa",
+    "CHANGELOG.md": "97950bee5d2034bee333cd205c552ba5d5c8afccd6750457949fd576dd4df287"
+  },
+  "rawArtifacts": {
+    "directory": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp15-export-events",
+    "scope": "external author-run raw evidence, not tracked raw files",
+    "sha256": {
+      "affected.log": "a3d9969c17aadf66ecb8238faa1c5ad5d379e6892fb85578c79b16456b6ed6ca",
+      "before.log": "173874f5d9a28440342a47ff4825681f2085d01d4e659785e25dffa78a8b85e8",
+      "browser-slim.json": "240ff21f045edaba28c35f1c8ff5e223b10c4d9b735455837019b68ffa63e4fa",
+      "browser.json": "15ce67578aed5411d0354f2bbbde7202b25920870183c2dc93182d2377765efd",
+      "browser.png": "293c11228a4ff9b1cd813773ca5936e0d2d5cdda7397b1af9cd753a4e8e49662",
+      "bundle.zip": "3e1ad962042fcf174dbd45b835f696e9d4f1198b3c29a5ec2fed578e4bb14c84",
+      "diff.patch": "90cab159828341aadd8b50b5317d7c3d3176dc08e2638a7cb1356d2e0607eb9d",
+      "review-input.md": "3cd6c934caf4d95672c6c0220a1a16df5699d94ad89c5c0baa5c933c7ef49a63",
+      "review.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "review.md": "e1c463fd34038891d92cd58b5d8d98814fbb1b1f749fd5ac4997e31e12eb4e2b"
+    }
+  }
+}

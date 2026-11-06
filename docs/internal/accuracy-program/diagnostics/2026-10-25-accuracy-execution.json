@@ -1,0 +1,2302 @@
+{
+  "schema": "accuracy-execution-summary-v1",
+  "evidenceDirectory": "/workspace/astraea-plan/evidence/accuracy-execution-20261025",
+  "originalResultsSha256": "692dd120e463a862a2f1e177e8ae75885f8f7507526a1c094a674123ae335f3f",
+  "provenance": {
+    "schema": "accuracy-execution-v1",
+    "engineSha256": "c1a1a177d56b73e4f5862d29098743e0bc31f51499d1c7534776b34ba2e8c4fe",
+    "sourceSha256": {
+      "src/validation/development/benchmark.ts": "2db913943e01dab1a51f981e43f69e1a0ba8a31afd4377a7e99e398a920fc36e",
+      "src/tauri/bridge.ts": "982f8d4ea45af22c4958fa6ab0df4ab4875adfd5a4a5656e35ff5a42f2f48361",
+      "src/validation/miniDx3/motors.ts": "0a989c70768901e0aa2039752945c34df8bf41cc0619da70c8033a04c19c8d69",
+      "src/evidence/cosmicCargoFixture.ts": "6b36d28117ed16e81e8ffb9e9f50a5e0fb3df9a4c97dc30726f24635ec68dc86",
+      "src/propulsion/motorDatabase.ts": "1773e9a092e52fbaeec2a8792bd932002806c26393a8cf5b96d09f52bbfab9a3",
+      "crates/astraea-engine/src/models.rs": "72a113bca897569bdd044d294544daf9dda0728b3942d231d115bf7af91b1ebb",
+      "crates/astraea-core/src/six_dof.rs": "4df2a1c5309121bd30fe19fd2ffbe83e0212290695ce989f91979778cd5a655c",
+      "scripts/diagnostics/accuracy-execution.mjs": "02dd2cff3a929914f669dc7db5f085e11cae76e8afbc8793dd2f87b9650598d9"
+    },
+    "externalInputs": [
+      {
+        "path": "cosmic-cargo-2986.csv",
+        "sha256": "adce6e39cf0fa9919c0349c83725ffe431b44a8b03db5ccbb71d6a7aad4066b8",
+        "bytes": 977003
+      },
+      {
+        "path": "dofpro/G69_30JUN2017_G69N-P_1_FIP.csv",
+        "sha256": "9fa2c518448d18b553d0cb2e17b443e92a7fcf3beeacf95e1c90749f42d8da51",
+        "bytes": 3851425
+      },
+      {
+        "path": "dofpro/TopShot_14DEC2017_E12-6_1.csv",
+        "sha256": "88fa453139709224d2252f2e4bf1c9c15196a3a1c44f76b9a0b8839b65de3b12",
+        "bytes": 2321295
+      },
+      {
+        "path": "dofpro/Estes_Top_Shot_Avionics.ork",
+        "sha256": "73dc1ea9479b3464e3920e905cfc6e2ff9e10ed01fb681ae823fb8144e4d14f8",
+        "bytes": 2550
+      },
+      {
+        "path": "motors/Estes_E12_5f4294d20002e900000007ad.rasp",
+        "sha256": "63f972703ce557f58584cd411b2349f55c3bd949ac44cb9422d472c31a226c30",
+        "bytes": 545
+      },
+      {
+        "path": "dofpro/20210417_Adventurer_J510W_1_Raven.csv",
+        "sha256": "3b04634b092fdde87b2a67f8394a4b869f3fa6938f5f5394f292d7c92529c0c0",
+        "bytes": 7161276
+      },
+      {
+        "path": "dofpro/ClassAdventurer.ork",
+        "sha256": "6308a287f48d2b3483c65a239f49747d86f6ac72ded8903f36a70ca7eb5e4d1d",
+        "bytes": 4092
+      },
+      {
+        "path": "motors/AeroTech_J510W_5f4294d20002e900000006d2.rasp",
+        "sha256": "8534e030098e3285239f8f75e7b750477ceff730b768981505e2ec3c47073f5e",
+        "bytes": 270
+      }
+    ]
+  },
+  "harnessHistory": [
+    {
+      "schema": "accuracy-execution-v1",
+      "engineSha256": "c1a1a177d56b73e4f5862d29098743e0bc31f51499d1c7534776b34ba2e8c4fe",
+      "sourceSha256": {
+        "src/validation/development/benchmark.ts": "2db913943e01dab1a51f981e43f69e1a0ba8a31afd4377a7e99e398a920fc36e",
+        "src/tauri/bridge.ts": "982f8d4ea45af22c4958fa6ab0df4ab4875adfd5a4a5656e35ff5a42f2f48361",
+        "src/validation/miniDx3/motors.ts": "0a989c70768901e0aa2039752945c34df8bf41cc0619da70c8033a04c19c8d69",
+        "src/evidence/cosmicCargoFixture.ts": "6b36d28117ed16e81e8ffb9e9f50a5e0fb3df9a4c97dc30726f24635ec68dc86",
+        "src/propulsion/motorDatabase.ts": "1773e9a092e52fbaeec2a8792bd932002806c26393a8cf5b96d09f52bbfab9a3",
+        "crates/astraea-engine/src/models.rs": "72a113bca897569bdd044d294544daf9dda0728b3942d231d115bf7af91b1ebb",
+        "crates/astraea-core/src/six_dof.rs": "4df2a1c5309121bd30fe19fd2ffbe83e0212290695ce989f91979778cd5a655c",
+        "scripts/diagnostics/accuracy-execution.mjs": "d0512be63e30c97262648cc1fceed3165bcb6f7c528a5bee66648f13914c916a"
+      },
+      "externalInputs": [
+        {
+          "path": "cosmic-cargo-2986.csv",
+          "sha256": "adce6e39cf0fa9919c0349c83725ffe431b44a8b03db5ccbb71d6a7aad4066b8",
+          "bytes": 977003
+        },
+        {
+          "path": "dofpro/G69_30JUN2017_G69N-P_1_FIP.csv",
+          "sha256": "9fa2c518448d18b553d0cb2e17b443e92a7fcf3beeacf95e1c90749f42d8da51",
+          "bytes": 3851425
+        },
+        {
+          "path": "dofpro/TopShot_14DEC2017_E12-6_1.csv",
+          "sha256": "88fa453139709224d2252f2e4bf1c9c15196a3a1c44f76b9a0b8839b65de3b12",
+          "bytes": 2321295
+        },
+        {
+          "path": "dofpro/Estes_Top_Shot_Avionics.ork",
+          "sha256": "73dc1ea9479b3464e3920e905cfc6e2ff9e10ed01fb681ae823fb8144e4d14f8",
+          "bytes": 2550
+        },
+        {
+          "path": "motors/Estes_E12_5f4294d20002e900000007ad.rasp",
+          "sha256": "63f972703ce557f58584cd411b2349f55c3bd949ac44cb9422d472c31a226c30",
+          "bytes": 545
+        },
+        {
+          "path": "dofpro/20210417_Adventurer_J510W_1_Raven.csv",
+          "sha256": "3b04634b092fdde87b2a67f8394a4b869f3fa6938f5f5394f292d7c92529c0c0",
+          "bytes": 7161276
+        },
+        {
+          "path": "dofpro/ClassAdventurer.ork",
+          "sha256": "6308a287f48d2b3483c65a239f49747d86f6ac72ded8903f36a70ca7eb5e4d1d",
+          "bytes": 4092
+        },
+        {
+          "path": "motors/AeroTech_J510W_5f4294d20002e900000006d2.rasp",
+          "sha256": "8534e030098e3285239f8f75e7b750477ceff730b768981505e2ec3c47073f5e",
+          "bytes": 270
+        }
+      ]
+    },
+    {
+      "schema": "accuracy-execution-v1",
+      "engineSha256": "c1a1a177d56b73e4f5862d29098743e0bc31f51499d1c7534776b34ba2e8c4fe",
+      "sourceSha256": {
+        "src/validation/development/benchmark.ts": "2db913943e01dab1a51f981e43f69e1a0ba8a31afd4377a7e99e398a920fc36e",
+        "src/tauri/bridge.ts": "982f8d4ea45af22c4958fa6ab0df4ab4875adfd5a4a5656e35ff5a42f2f48361",
+        "src/validation/miniDx3/motors.ts": "0a989c70768901e0aa2039752945c34df8bf41cc0619da70c8033a04c19c8d69",
+        "src/evidence/cosmicCargoFixture.ts": "6b36d28117ed16e81e8ffb9e9f50a5e0fb3df9a4c97dc30726f24635ec68dc86",
+        "src/propulsion/motorDatabase.ts": "1773e9a092e52fbaeec2a8792bd932002806c26393a8cf5b96d09f52bbfab9a3",
+        "crates/astraea-engine/src/models.rs": "72a113bca897569bdd044d294544daf9dda0728b3942d231d115bf7af91b1ebb",
+        "crates/astraea-core/src/six_dof.rs": "4df2a1c5309121bd30fe19fd2ffbe83e0212290695ce989f91979778cd5a655c",
+        "scripts/diagnostics/accuracy-execution.mjs": "02dd2cff3a929914f669dc7db5f085e11cae76e8afbc8793dd2f87b9650598d9"
+      },
+      "externalInputs": [
+        {
+          "path": "cosmic-cargo-2986.csv",
+          "sha256": "adce6e39cf0fa9919c0349c83725ffe431b44a8b03db5ccbb71d6a7aad4066b8",
+          "bytes": 977003
+        },
+        {
+          "path": "dofpro/G69_30JUN2017_G69N-P_1_FIP.csv",
+          "sha256": "9fa2c518448d18b553d0cb2e17b443e92a7fcf3beeacf95e1c90749f42d8da51",
+          "bytes": 3851425
+        },
+        {
+          "path": "dofpro/TopShot_14DEC2017_E12-6_1.csv",
+          "sha256": "88fa453139709224d2252f2e4bf1c9c15196a3a1c44f76b9a0b8839b65de3b12",
+          "bytes": 2321295
+        },
+        {
+          "path": "dofpro/Estes_Top_Shot_Avionics.ork",
+          "sha256": "73dc1ea9479b3464e3920e905cfc6e2ff9e10ed01fb681ae823fb8144e4d14f8",
+          "bytes": 2550
+        },
+        {
+          "path": "motors/Estes_E12_5f4294d20002e900000007ad.rasp",
+          "sha256": "63f972703ce557f58584cd411b2349f55c3bd949ac44cb9422d472c31a226c30",
+          "bytes": 545
+        },
+        {
+          "path": "dofpro/20210417_Adventurer_J510W_1_Raven.csv",
+          "sha256": "3b04634b092fdde87b2a67f8394a4b869f3fa6938f5f5394f292d7c92529c0c0",
+          "bytes": 7161276
+        },
+        {
+          "path": "dofpro/ClassAdventurer.ork",
+          "sha256": "6308a287f48d2b3483c65a239f49747d86f6ac72ded8903f36a70ca7eb5e4d1d",
+          "bytes": 4092
+        },
+        {
+          "path": "motors/AeroTech_J510W_5f4294d20002e900000006d2.rasp",
+          "sha256": "8534e030098e3285239f8f75e7b750477ceff730b768981505e2ec3c47073f5e",
+          "bytes": 270
+        }
+      ]
+    }
+  ],
+  "callCount": 20,
+  "resources": [
+    {
+      "exitCode": 1,
+      "elapsedSeconds": 4.860975532999873,
+      "childMaxRssKiB": 1110992,
+      "cpuAffinity": [
+        1
+      ],
+      "nodeMaxOldSpaceMiB": 1024
+    },
+    {
+      "exitCode": 0,
+      "elapsedSeconds": 5.735004775997368,
+      "childMaxRssKiB": 1021664,
+      "cpuAffinity": [
+        1
+      ],
+      "nodeMaxOldSpaceMiB": 1024
+    }
+  ],
+  "completion": {
+    "flightCalls": 20,
+    "completed": true,
+    "maxRssKiB": 1021664,
+    "engineSha256": "c1a1a177d56b73e4f5862d29098743e0bc31f51499d1c7534776b34ba2e8c4fe"
+  },
+  "runs": [
+    {
+      "caseId": "cosmic-cargo-2986",
+      "experiment": "baseline",
+      "synthetic": false,
+      "inputSha256": "1cefccbaf3ee2af590faf78a107eefe8cc1f852391080deed0aae578fee9bc86",
+      "wireSha256": "0740a42f345442372d60335b0fe289cd47942863eea30d2742e9b5fb1ef570e7",
+      "unchangedInputSha256": "1cefccbaf3ee2af590faf78a107eefe8cc1f852391080deed0aae578fee9bc86",
+      "rawSha256": "0ff50e6dbd8a0a082b71165822e0a2b38df2b201a2dc53f8a89ae41dd17c965a",
+      "changedPaths": [],
+      "wireChangedPaths": [],
+      "inputSummary": {
+        "dryMassKg": 0.037836287840496426,
+        "liftoffMassKg": 0.06093628784049643,
+        "dryCgM": 0.21817078785252447,
+        "dryCylinderInertiaKgM2": [
+          0.000003051307432896834,
+          0.00038777109208818286,
+          0.00038777109208818286
+        ],
+        "motorImpulseMetadataNs": 8.8,
+        "integratedImpulseNs": 8.817238000000001,
+        "motorBurnTimeS": 1.86
+      },
+      "metrics": {
+        "apogeeM": 371.7042160703002,
+        "apogeeTimeS": 7.984941406249874,
+        "burnoutAltitudeM": 122.78021387658326,
+        "burnoutSpeedMs": 113.42907508329628,
+        "burnoutTimeS": 1.86,
+        "railExitSpeedMs": 17.513733343384885,
+        "railExitTimeS": 0.19124023437500004,
+        "maxMach": 0.33530580062642756
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "PASS",
+        "offNominalExcursion": false,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": null,
+      "observed": {
+        "simulatedMaxMach": {
+          "value": 0.33530580062642756,
+          "unit": "Mach"
+        },
+        "measuredApogee": {
+          "value": 291.74,
+          "unit": "m AGL"
+        },
+        "simulatedApogee": {
+          "value": 371.7042160703002,
+          "unit": "m AGL"
+        },
+        "signedApogeeError": {
+          "value": 79.96421607030021,
+          "unit": "m"
+        },
+        "measuredApogeeTime": {
+          "value": 7.454,
+          "unit": "s after declared launch reference"
+        },
+        "simulatedApogeeTime": {
+          "value": 7.984941406249874,
+          "unit": "s after declared launch reference"
+        },
+        "apogeeTimeError": {
+          "value": 0.5309414062498741,
+          "unit": "s"
+        }
+      },
+      "sourceQualification": {
+        "absoluteApogee": {
+          "status": "ready",
+          "reasons": []
+        },
+        "eventTiming": {
+          "status": "ready",
+          "reasons": []
+        },
+        "altitudeCurve": {
+          "status": "ready",
+          "reasons": []
+        },
+        "observedVelocity": {
+          "status": "ready",
+          "reasons": []
+        }
+      },
+      "measurement": {
+        "time": {
+          "unit": "ms",
+          "basis": "header",
+          "source": "source header Time(ms)"
+        },
+        "altitude": {
+          "unit": "m",
+          "basis": "header",
+          "reference": "AGL",
+          "unitSource": "source altitude column header (m)",
+          "referenceSource": "Altimeter Cloud flight 2986 record; apogee is reported above launch ground level"
+        },
+        "launchReference": {
+          "timeS": 0,
+          "source": "Altimeter Cloud flight clock zero; source log includes prelaunch samples"
+        },
+        "observedApogee": {
+          "timeS": 7.454,
+          "source": "Altimeter Cloud full-log metadata: apogee time (s)"
+        },
+        "observedBurnout": {
+          "timeS": 1.887,
+          "source": "Altimeter Cloud full-log metadata: refined burnout (ms)"
+        },
+        "observedVelocity": {
+          "unit": "m/s",
+          "basis": "header",
+          "source": "source velocity column"
+        }
+      },
+      "assumptions": {
+        "known": [
+          "Altimeter Cloud flight 2986 full source log; header declares Time(ms) and Altitude(m)",
+          "recorded 10 m pad altitude",
+          "certified Estes C6-7 thrust curve"
+        ],
+        "assumed": [
+          "estimated fin planform",
+          "vehicle configuration and payload mass",
+          "0 m/s wind",
+          "0.91 m rail and recorded 88.84° rail angle"
+        ],
+        "limitations": [
+          "flown all-up mass and molded fin geometry are uncertain",
+          "launch weather was not recorded"
+        ]
+      },
+      "trajectoryPhases": {
+        "poweredCoast": {
+          "status": "ready"
+        },
+        "poweredAscent": {
+          "intervalS": [
+            0,
+            1.887
+          ],
+          "sampleCount": 736,
+          "rmseM": 15.165515176924313
+        },
+        "coastAscent": {
+          "intervalS": [
+            1.887,
+            7.454
+          ],
+          "sampleCount": 2149,
+          "rmseM": 67.30898212895414
+        },
+        "postApogeeDescent": {
+          "intervalS": [
+            7.454,
+            55.983000000000004
+          ],
+          "sampleCount": 6706,
+          "rmseM": 168.8611873161454
+        }
+      },
+      "timingDiagnostic": {
+        "observedApogeeS": 7.454,
+        "modeledApogeeS": 7.984941406249874,
+        "apogeeDeltaS": 0.5309414062498741,
+        "altitudeResidualAtObservedApogeeM": 78.57599999999996,
+        "ascentToObservedApogeeRmseM": 58.595098163944115,
+        "ascentToObservedApogeeSamples": 2885,
+        "observedBurnoutS": 1.887,
+        "modeledBurnoutS": 1.86,
+        "burnoutDeltaS": -0.026999999999999913,
+        "observedCoastIntervalS": 5.567,
+        "modeledCoastIntervalS": 6.1249414062498735,
+        "coastIntervalDeltaS": 0.5579414062498733,
+        "altitudeResidualAtObservedBurnoutM": 32.548
+      }
+    },
+    {
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "experiment": "baseline",
+      "synthetic": false,
+      "inputSha256": "c0e849e74eb3b1590210958dc4c464aa443846741e6cd556df553592bd959303",
+      "wireSha256": "5b009948bb3428a8b881d4182bd5bb3f10ae111081ce070a09e4e5d02e01b126",
+      "unchangedInputSha256": "c0e849e74eb3b1590210958dc4c464aa443846741e6cd556df553592bd959303",
+      "rawSha256": "b8f07a1ff0a1d89fca9d586a4fb331838cab27e68e8481647d1981bb7aaef257",
+      "changedPaths": [],
+      "wireChangedPaths": [],
+      "inputSummary": {
+        "dryMassKg": 0.34471,
+        "liftoffMassKg": 0.54571,
+        "dryCgM": 0.508,
+        "dryCylinderInertiaKgM2": [
+          0.000072058145480195,
+          0.02472629676199843,
+          0.02472629676199843
+        ],
+        "motorImpulseMetadataNs": 136.3014,
+        "integratedImpulseNs": 136.30141305549998,
+        "motorBurnTimeS": 2
+      },
+      "metrics": {
+        "apogeeM": 1173.936843974693,
+        "apogeeTimeS": 13.90552734374975,
+        "burnoutAltitudeM": 258.124734201607,
+        "burnoutSpeedMs": 212.39222079907407,
+        "burnoutTimeS": 2,
+        "railExitSpeedMs": 21.875660044574385,
+        "railExitTimeS": 0.19189453125,
+        "maxMach": 0.6542348552023158
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": null,
+      "observed": {
+        "simulatedMaxMach": {
+          "value": 0.6542348552023158,
+          "unit": "Mach"
+        },
+        "measuredApogee": {
+          "value": 854.549472,
+          "unit": "m AGL"
+        },
+        "simulatedApogee": {
+          "value": 1173.936843974693,
+          "unit": "m AGL"
+        },
+        "signedApogeeError": {
+          "value": 319.3873719746929,
+          "unit": "m"
+        },
+        "measuredApogeeTime": {
+          "value": 12.545,
+          "unit": "s after declared launch reference"
+        },
+        "simulatedApogeeTime": {
+          "value": 13.90552734374975,
+          "unit": "s after declared launch reference"
+        },
+        "apogeeTimeError": {
+          "value": 1.3605273437497498,
+          "unit": "s"
+        }
+      },
+      "sourceQualification": {
+        "absoluteApogee": {
+          "status": "ready",
+          "reasons": []
+        },
+        "eventTiming": {
+          "status": "ready",
+          "reasons": []
+        },
+        "altitudeCurve": {
+          "status": "ready",
+          "reasons": []
+        },
+        "observedVelocity": {
+          "status": "ready",
+          "reasons": []
+        }
+      },
+      "measurement": {
+        "time": {
+          "unit": "s",
+          "basis": "declared",
+          "source": "Raven FIP per-channel source timestamps; protocol unit declaration"
+        },
+        "altitude": {
+          "unit": "ft",
+          "basis": "declared",
+          "reference": "AGL",
+          "unitSource": "Raven FIP source/protocol channel declaration (ft)",
+          "referenceSource": "Raven FIP channel name [Altitude (Baro-Ft-AGL)]",
+          "channel": "[Altitude (Baro-Ft-AGL)]"
+        },
+        "launchReference": {
+          "timeS": 0,
+          "source": "Raven run clock zero; protocol measurement reference"
+        },
+        "observedApogee": {
+          "timeS": 12.545,
+          "source": "maximum sampled altitude in [Altitude (Baro-Ft-AGL)]"
+        },
+        "observedVelocity": {
+          "unit": "ft/s",
+          "basis": "declared",
+          "source": "Raven accelerometer-integrated velocity channel; retained as a sensor diagnostic, not an independent burnout event"
+        }
+      },
+      "assumptions": {
+        "known": [
+          "Mini DX3 ORK geometry",
+          "airframe 0.34471 kg, CG 0.508 m from nose tip",
+          "G69N certified thrust curve",
+          "Raven channel units and AGL label"
+        ],
+        "assumed": [
+          "ISA atmosphere from 915.76 hPa pad pressure",
+          "20 °C page ambient",
+          "zero surface wind",
+          "1.83 m rail and 88° elevation"
+        ],
+        "limitations": [
+          "weather and launch-condition record is incomplete",
+          "per-flight airframe mass/CG was not measured for this individual flight"
+        ]
+      },
+      "trajectoryPhases": {
+        "poweredCoast": {
+          "status": "blocked",
+          "reason": "no source-qualified measured burnout time"
+        },
+        "postApogeeDescent": {
+          "intervalS": [
+            12.545,
+            32.82194335937704
+          ],
+          "sampleCount": 405,
+          "rmseM": 323.8878088905173
+        }
+      },
+      "timingDiagnostic": {
+        "observedApogeeS": 12.545,
+        "modeledApogeeS": 13.90552734374975,
+        "apogeeDeltaS": 1.3605273437497498,
+        "altitudeResidualAtObservedApogeeM": 310.2905280000001,
+        "ascentToObservedApogeeRmseM": 232.86061615100658,
+        "ascentToObservedApogeeSamples": 251,
+        "poweredCoastStatus": "blocked: no source-qualified observed burnout; no inferred burnout from integrated velocity"
+      }
+    },
+    {
+      "caseId": "top-shot-e12-2017-12-14",
+      "experiment": "baseline",
+      "synthetic": false,
+      "inputSha256": "34759b4d6f23e3ad642c2d8fb069d961115e5da0dcbe11512bc2a9932b776d97",
+      "wireSha256": "70219cbecad52efb2823585894bf8c77000873a2880bd96632a5276fd98f4736",
+      "unchangedInputSha256": "34759b4d6f23e3ad642c2d8fb069d961115e5da0dcbe11512bc2a9932b776d97",
+      "rawSha256": "a10c2185ccfbc87642ed078c43ab4f7e8b2fa1fa430e382a1fccceb7de8dd586",
+      "changedPaths": [],
+      "wireChangedPaths": [],
+      "inputSummary": {
+        "dryMassKg": 0.19550000000000006,
+        "liftoffMassKg": 0.25540000000000007,
+        "dryCgM": 0.6349999999999998,
+        "dryCylinderInertiaKgM2": [
+          0.000042404495836000014,
+          0.015728447894168007,
+          0.015728447894168007
+        ],
+        "motorImpulseMetadataNs": 27.13591600000001,
+        "integratedImpulseNs": 27.13591600000001,
+        "motorBurnTimeS": 2.44
+      },
+      "metrics": {
+        "apogeeM": 301.6267529814552,
+        "apogeeTimeS": 8.155605468749869,
+        "burnoutAltitudeM": 113.87582375990712,
+        "burnoutSpeedMs": 77.45611363174282,
+        "burnoutTimeS": 2.44,
+        "railExitSpeedMs": 19.195701276613335,
+        "railExitTimeS": 0.3115136718750001,
+        "maxMach": 0.2309857067957414
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": null,
+      "observed": {
+        "simulatedMaxMach": {
+          "value": 0.2309857067957414,
+          "unit": "Mach"
+        },
+        "measuredApogee": {
+          "value": 309.045864,
+          "unit": "m AGL"
+        },
+        "simulatedApogee": {
+          "value": 301.6267529814552,
+          "unit": "m AGL"
+        },
+        "signedApogeeError": {
+          "value": -7.419111018544811,
+          "unit": "m"
+        },
+        "measuredApogeeTime": {
+          "value": 8.845,
+          "unit": "s after declared launch reference"
+        },
+        "simulatedApogeeTime": {
+          "value": 8.155605468749869,
+          "unit": "s after declared launch reference"
+        },
+        "apogeeTimeError": {
+          "value": -0.689394531250132,
+          "unit": "s"
+        }
+      },
+      "sourceQualification": {
+        "absoluteApogee": {
+          "status": "ready",
+          "reasons": []
+        },
+        "eventTiming": {
+          "status": "ready",
+          "reasons": []
+        },
+        "altitudeCurve": {
+          "status": "ready",
+          "reasons": []
+        },
+        "observedVelocity": {
+          "status": "ready",
+          "reasons": []
+        }
+      },
+      "measurement": {
+        "time": {
+          "unit": "s",
+          "basis": "declared",
+          "source": "Raven FIP per-channel source timestamps; protocol unit declaration"
+        },
+        "altitude": {
+          "unit": "ft",
+          "basis": "declared",
+          "reference": "AGL",
+          "unitSource": "source altitude column header (ft)",
+          "referenceSource": "Raven FIP [Altitude (Baro-Ft-AGL)] channel; Featherweight Raven user manual (2014-05-20), Viewing the data",
+          "channel": "[Altitude (Baro-Ft-AGL)]"
+        },
+        "launchReference": {
+          "timeS": 0,
+          "source": "Unshifted Raven flight-record clock, declared seconds; Featherweight Raven manual describes elapsed time from liftoff detection, which may lag first motion; no apogee alignment"
+        },
+        "observedApogee": {
+          "timeS": 8.845,
+          "source": "maximum sampled altitude in [Altitude (Baro-Ft-AGL)]"
+        },
+        "observedVelocity": {
+          "unit": "ft/s",
+          "basis": "declared",
+          "source": "Raven accelerometer-integrated velocity; sensor diagnostic only"
+        }
+      },
+      "assumptions": {
+        "known": [
+          "DOFPro Top Shot page directly associates the ORK and E12-6 flight log",
+          "page and ORK agree on 195.5 g dry mass",
+          "explicit Raven barometric feet-AGL and pressure-atmospheres channel labels",
+          "Estes E12 NAR/cert RASP simfile 5f4294d20002e900000007ad via pinned OpenRocket mirror; https://www.thrustcurve.org/motors/5f4294d200023100000003e3/"
+        ],
+        "assumed": [
+          "primary CG is the ORK 25 in, not the page 26 in; selected before outcomes",
+          "automatic fore-tube radius reconstructed from equal 20.828 mm neighbors, not cached manual 25 mm",
+          "standard ABS/cardboard proxies for source polystyrene/paper",
+          "ISA pressure-altitude atmosphere derived from first logged pressure; not a measured geographic elevation",
+          "zero wind, 1.83 m rail, 88 degree elevation, default recovery model"
+        ],
+        "limitations": [
+          "published vehicle design, not a configuration verified for this individual flight",
+          "unresolved internal hardware is a positive point-load reconstruction preserving declared dry mass and CG; dry inertia remains cylindrical",
+          "unweighed material-derived component masses may be uniformly redistributed to satisfy the aggregate; the reported modeledMassScale is not an individual weighing or a flight-derived calibration",
+          "actual weather, rail geometry, motor overhang and ignition-to-recorder clock offset are not established",
+          "the first recorded barometric pressure is only a pad-pressure proxy, not a verified prelaunch baseline",
+          "no source-qualified measured burnout; integrated Raven velocity is diagnostic, not independent burnout evidence",
+          "source internal rocket name is Albee Vector Vehicles Model 01D; association is from the page link, not that template name",
+          "page-versus-model CG differs by 25.4 mm",
+          "molded-fin details and actual motor seating are not fully represented"
+        ]
+      },
+      "trajectoryPhases": {
+        "poweredCoast": {
+          "status": "blocked",
+          "reason": "no source-qualified measured burnout time"
+        },
+        "postApogeeDescent": {
+          "intervalS": [
+            8.845,
+            17.392265624999922
+          ],
+          "sampleCount": 170,
+          "rmseM": 127.42837027806601
+        }
+      },
+      "timingDiagnostic": {
+        "observedApogeeS": 8.845,
+        "modeledApogeeS": 8.155605468749869,
+        "apogeeDeltaS": -0.689394531250132,
+        "altitudeResidualAtObservedApogeeM": -9.595864000000006,
+        "ascentToObservedApogeeRmseM": 25.426508284551485,
+        "ascentToObservedApogeeSamples": 177,
+        "poweredCoastStatus": "blocked: no source-qualified observed burnout; no inferred burnout from integrated velocity"
+      }
+    },
+    {
+      "caseId": "adventurer-j510w-2021-04-17",
+      "experiment": "baseline",
+      "synthetic": false,
+      "inputSha256": "e4319ca68f5b59f44c87255dea5da082478c817ceefe4dd3f36f618e916f88a3",
+      "wireSha256": "66305ed8a4b2e3f3dd2e9bc259a973eb88644ae334e17060a4e54cf25ef220a7",
+      "unchangedInputSha256": "e4319ca68f5b59f44c87255dea5da082478c817ceefe4dd3f36f618e916f88a3",
+      "rawSha256": "2d5f492a873be9a289b4f6496f54dbdf49d296ae257a8355c31e3b935508f7f6",
+      "changedPaths": [],
+      "wireChangedPaths": [],
+      "inputSummary": {
+        "dryMassKg": 2.0400000000000005,
+        "liftoffMassKg": 3.1200000000000006,
+        "dryCgM": 0.92075,
+        "dryCylinderInertiaKgM2": [
+          0.0008430937500000002,
+          0.4883633451830001,
+          0.4883633451830001
+        ],
+        "motorImpulseMetadataNs": 1180.4998265000002,
+        "integratedImpulseNs": 1180.4998265000002,
+        "motorBurnTimeS": 2.5
+      },
+      "metrics": {
+        "apogeeM": 3040.3641420428758,
+        "apogeeTimeS": 22.293408203125686,
+        "burnoutAltitudeM": 614.4727157053741,
+        "burnoutSpeedMs": 336.638606060517,
+        "burnoutTimeS": 2.5,
+        "railExitSpeedMs": 32.4387948733507,
+        "railExitTimeS": 0.12419921874999997,
+        "maxMach": 1.0635244923874994
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": null,
+      "observed": {
+        "simulatedMaxMach": {
+          "value": 1.0635244923874994,
+          "unit": "Mach"
+        },
+        "measuredApogee": {
+          "value": 3197.29104,
+          "unit": "m AGL"
+        },
+        "simulatedApogee": {
+          "value": 3040.3641420428758,
+          "unit": "m AGL"
+        },
+        "signedApogeeError": {
+          "value": -156.9268979571243,
+          "unit": "m"
+        },
+        "measuredApogeeTime": {
+          "value": 23.645,
+          "unit": "s after declared launch reference"
+        },
+        "simulatedApogeeTime": {
+          "value": 22.293408203125686,
+          "unit": "s after declared launch reference"
+        },
+        "apogeeTimeError": {
+          "value": -1.3515917968743132,
+          "unit": "s"
+        }
+      },
+      "sourceQualification": {
+        "absoluteApogee": {
+          "status": "ready",
+          "reasons": []
+        },
+        "eventTiming": {
+          "status": "ready",
+          "reasons": []
+        },
+        "altitudeCurve": {
+          "status": "ready",
+          "reasons": []
+        },
+        "observedVelocity": {
+          "status": "ready",
+          "reasons": []
+        }
+      },
+      "measurement": {
+        "time": {
+          "unit": "s",
+          "basis": "declared",
+          "source": "Raven FIP per-channel source timestamps; protocol unit declaration"
+        },
+        "altitude": {
+          "unit": "ft",
+          "basis": "declared",
+          "reference": "AGL",
+          "unitSource": "source altitude column header (ft)",
+          "referenceSource": "Raven FIP [Altitude (Baro-Ft-AGL)] channel; Featherweight Raven user manual (2014-05-20), Viewing the data",
+          "channel": "[Altitude (Baro-Ft-AGL)]"
+        },
+        "launchReference": {
+          "timeS": 0,
+          "source": "Unshifted Raven flight-record clock, declared seconds; Featherweight Raven manual describes elapsed time from liftoff detection, which may lag first motion; no apogee alignment"
+        },
+        "observedApogee": {
+          "timeS": 23.645,
+          "source": "maximum sampled altitude in [Altitude (Baro-Ft-AGL)]"
+        },
+        "observedVelocity": {
+          "unit": "ft/s",
+          "basis": "declared",
+          "source": "Raven accelerometer-integrated velocity; sensor diagnostic only"
+        }
+      },
+      "assumptions": {
+        "known": [
+          "DOFPro Adventurer page directly associates this model and J510W Raven flight log",
+          "page and ORK agree on 2.04 kg dry mass and 36.25 in CG",
+          "explicit Raven barometric feet-AGL and pressure-atmospheres channel labels",
+          "AeroTech J510W manufacturer RASP simfile 5f4294d20002e900000006d2 via pinned OpenRocket mirror; https://www.thrustcurve.org/motors/5f4294d2000231000000030a/"
+        ],
+        "assumed": [
+          "generic published ClassAdventurer design with flight-log J510W, not its stored default I140 motor",
+          "standard G10 fin proxy; encoded source density 0.502255 kg/m3 is implausible and not treated as a weighing",
+          "conical approximation to the source ogive tail; source outer-component mass/CG overrides retained",
+          "ISA pressure-altitude atmosphere derived from first logged pressure; not a measured geographic elevation",
+          "zero wind, 1.83 m rail, 88 degree elevation, default recovery model"
+        ],
+        "limitations": [
+          "published vehicle design, not a configuration verified for this individual flight",
+          "unresolved internal hardware is a positive point-load reconstruction preserving declared dry mass and CG; dry inertia remains cylindrical",
+          "unweighed material-derived component masses may be uniformly redistributed to satisfy the aggregate; the reported modeledMassScale is not an individual weighing or a flight-derived calibration",
+          "actual weather, rail geometry, motor overhang and ignition-to-recorder clock offset are not established",
+          "the first recorded barometric pressure is only a pad-pressure proxy, not a verified prelaunch baseline",
+          "no source-qualified measured burnout; integrated Raven velocity is diagnostic, not independent burnout evidence",
+          "conditional approximate-geometry reconstruction, not exact-geometry validation",
+          "fin material-density source anomaly and as-flown revisions unresolved"
+        ]
+      },
+      "trajectoryPhases": {
+        "poweredCoast": {
+          "status": "blocked",
+          "reason": "no source-qualified measured burnout time"
+        },
+        "postApogeeDescent": {
+          "intervalS": [
+            23.645,
+            51.45336914062334
+          ],
+          "sampleCount": 556,
+          "rmseM": 1346.5260360433424
+        }
+      },
+      "timingDiagnostic": {
+        "observedApogeeS": 23.645,
+        "modeledApogeeS": 22.293408203125686,
+        "apogeeDeltaS": -1.3515917968743132,
+        "altitudeResidualAtObservedApogeeM": -165.59104000000025,
+        "ascentToObservedApogeeRmseM": 139.97830138771292,
+        "ascentToObservedApogeeSamples": 473,
+        "poweredCoastStatus": "blocked: no source-qualified observed burnout; no inferred burnout from integrated velocity"
+      }
+    },
+    {
+      "caseId": "cosmic-cargo-2986",
+      "experiment": "macro-0.005",
+      "synthetic": false,
+      "inputSha256": "252aab172dfa4a9d4c23cda3dcee8c38d776d5c64732d25fab39efa137b9d5a6",
+      "wireSha256": "b510cc8da974421df6ec58e32f5f960b1a79d670ccd3db861ede35aa40668d87",
+      "unchangedInputSha256": "1cefccbaf3ee2af590faf78a107eefe8cc1f852391080deed0aae578fee9bc86",
+      "rawSha256": "e14be5ef79d52edf662d6a9c029831702fe2711f8fb5caac882c1cfa7d168a98",
+      "changedPaths": [
+        "options.timeStep"
+      ],
+      "wireChangedPaths": [
+        "options.timeStep"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.037836287840496426,
+        "liftoffMassKg": 0.06093628784049643,
+        "dryCgM": 0.21817078785252447,
+        "dryCylinderInertiaKgM2": [
+          0.000003051307432896834,
+          0.00038777109208818286,
+          0.00038777109208818286
+        ],
+        "motorImpulseMetadataNs": 8.8,
+        "integratedImpulseNs": 8.817238000000001,
+        "motorBurnTimeS": 1.86
+      },
+      "metrics": {
+        "apogeeM": 371.7145006082945,
+        "apogeeTimeS": 7.985029296874853,
+        "burnoutAltitudeM": 122.78066138993968,
+        "burnoutSpeedMs": 113.43354917588809,
+        "burnoutTimeS": 1.86,
+        "railExitSpeedMs": 17.513733343384892,
+        "railExitTimeS": 0.1912402343750001,
+        "maxMach": 0.3353063397236361
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "PASS",
+        "offNominalExcursion": false,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": 0.01028453799426643,
+        "apogeeTimeS": 0.00008789062497882583,
+        "burnoutAltitudeM": 0.0004475133564199041,
+        "burnoutSpeedMs": 0.004474092591806311,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": 7.105427357601002e-15,
+        "railExitTimeS": 5.551115123125783e-17,
+        "maxMach": 5.390972085406176e-7
+      }
+    },
+    {
+      "caseId": "cosmic-cargo-2986",
+      "experiment": "macro-0.0025",
+      "synthetic": false,
+      "inputSha256": "a4de33c01c3a3ab7f7ddb7aca4f725d63185a07adf5ca70ef277ce84fa406a28",
+      "wireSha256": "82fe5ed82fcd4034dd5b5801c9a182fd4141ac828c72a8cdf852a1cafa9d75df",
+      "unchangedInputSha256": "1cefccbaf3ee2af590faf78a107eefe8cc1f852391080deed0aae578fee9bc86",
+      "rawSha256": "c7aa3c56e2744ab3ee3c838f62aef84d593db8cbe3d97910eecb7812651d5ae2",
+      "changedPaths": [
+        "options.timeStep"
+      ],
+      "wireChangedPaths": [
+        "options.timeStep"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.037836287840496426,
+        "liftoffMassKg": 0.06093628784049643,
+        "dryCgM": 0.21817078785252447,
+        "dryCylinderInertiaKgM2": [
+          0.000003051307432896834,
+          0.00038777109208818286,
+          0.00038777109208818286
+        ],
+        "motorImpulseMetadataNs": 8.8,
+        "integratedImpulseNs": 8.817238000000001,
+        "motorBurnTimeS": 1.86
+      },
+      "metrics": {
+        "apogeeM": 371.7124623770451,
+        "apogeeTimeS": 7.9850097656255485,
+        "burnoutAltitudeM": 122.77991825397103,
+        "burnoutSpeedMs": 113.43296378849293,
+        "burnoutTimeS": 1.86,
+        "railExitSpeedMs": 17.51605261935198,
+        "railExitTimeS": 0.19125000000000011,
+        "maxMach": 0.3353048164774942
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "PASS",
+        "offNominalExcursion": false,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": 0.008246306744865706,
+        "apogeeTimeS": 0.00006835937567473138,
+        "burnoutAltitudeM": -0.0002956226122279304,
+        "burnoutSpeedMs": 0.003888705196644082,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": 0.002319275967096246,
+        "railExitTimeS": 0.000009765625000074385,
+        "maxMach": -9.841489333473064e-7
+      }
+    },
+    {
+      "caseId": "cosmic-cargo-2986",
+      "experiment": "dry-mass-plus-1pct",
+      "synthetic": true,
+      "inputSha256": "4adb694b7fa05168e1a4a1f3a9e2669a490dc60eb08126cd0dfca3e04eb351df",
+      "wireSha256": "79fc7bd349f3225ba96fe9000e790ec343349b2c4fd36730009db562cd6ca299",
+      "unchangedInputSha256": "1cefccbaf3ee2af590faf78a107eefe8cc1f852391080deed0aae578fee9bc86",
+      "rawSha256": "258b45937a9eb712ed288600e76273d6ec066ee8c4fc1181e230d80a591b9571",
+      "changedPaths": [
+        "vehicle.components.0.massOverride",
+        "vehicle.components.0.cgOverride",
+        "vehicle.components.1.massOverride",
+        "vehicle.components.1.cgOverride",
+        "vehicle.components.2.massOverride",
+        "vehicle.components.2.cgOverride",
+        "vehicle.components.3.mass"
+      ],
+      "wireChangedPaths": [
+        "vehicle.components.0.massOverride",
+        "vehicle.components.0.cgOverride",
+        "vehicle.components.1.massOverride",
+        "vehicle.components.1.cgOverride",
+        "vehicle.components.2.massOverride",
+        "vehicle.components.2.cgOverride",
+        "vehicle.components.3.mass"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.038214650718901386,
+        "liftoffMassKg": 0.06131465071890138,
+        "dryCgM": 0.2181707878525245,
+        "dryCylinderInertiaKgM2": [
+          0.000003081820507225802,
+          0.00039164880300906465,
+          0.00039164880300906465
+        ],
+        "motorImpulseMetadataNs": 8.8,
+        "integratedImpulseNs": 8.817238000000001,
+        "motorBurnTimeS": 1.86
+      },
+      "metrics": {
+        "apogeeM": 370.6538438778357,
+        "apogeeTimeS": 7.989013671874876,
+        "burnoutAltitudeM": 122.03594808978504,
+        "burnoutSpeedMs": 112.8469119562126,
+        "burnoutTimeS": 1.86,
+        "railExitSpeedMs": 17.47928596648852,
+        "railExitTimeS": 0.19162109375000003,
+        "maxMach": 0.33356098401888346
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "PASS",
+        "offNominalExcursion": false,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": -1.050372192464522,
+        "apogeeTimeS": 0.004072265625001847,
+        "burnoutAltitudeM": -0.7442657867982234,
+        "burnoutSpeedMs": -0.5821631270836889,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": -0.03444737689636668,
+        "railExitTimeS": 0.0003808593749999867,
+        "maxMach": -0.0017448166075441085
+      }
+    },
+    {
+      "caseId": "cosmic-cargo-2986",
+      "experiment": "impulse-plus-1pct",
+      "synthetic": true,
+      "inputSha256": "abebf1c97bf5c7bb7f13d1f8460c46741ad9bf1ee539afd2e879199b06861e12",
+      "wireSha256": "ec8094e5462644f743cbb16ad422a0d9a01e5c536ca1bd8ccab231c04804f9a9",
+      "unchangedInputSha256": "1cefccbaf3ee2af590faf78a107eefe8cc1f852391080deed0aae578fee9bc86",
+      "rawSha256": "768f54f0b1a982a30245db78e424bcf32ee1f2c89db1f24d231a277e2777bf92",
+      "changedPaths": [
+        "motor.totalImpulse",
+        "motor.avgThrust",
+        "motor.maxThrust",
+        "motor.thrustCurve.1.thrust",
+        "motor.thrustCurve.2.thrust",
+        "motor.thrustCurve.3.thrust",
+        "motor.thrustCurve.4.thrust",
+        "motor.thrustCurve.5.thrust",
+        "motor.thrustCurve.6.thrust",
+        "motor.thrustCurve.7.thrust",
+        "motor.thrustCurve.8.thrust",
+        "motor.thrustCurve.9.thrust",
+        "motor.thrustCurve.10.thrust",
+        "motor.thrustCurve.11.thrust",
+        "motor.thrustCurve.12.thrust",
+        "motor.thrustCurve.13.thrust",
+        "motor.thrustCurve.14.thrust",
+        "motor.thrustCurve.15.thrust",
+        "motor.thrustCurve.16.thrust",
+        "motor.thrustCurve.17.thrust",
+        "motor.thrustCurve.18.thrust",
+        "motor.thrustCurve.19.thrust",
+        "motor.thrustCurve.20.thrust",
+        "motor.thrustCurve.21.thrust",
+        "motor.thrustCurve.22.thrust",
+        "motor.thrustCurve.23.thrust"
+      ],
+      "wireChangedPaths": [
+        "motor.totalImpulse",
+        "motor.avgThrust",
+        "motor.maxThrust",
+        "motor.thrustCurve.1.thrust",
+        "motor.thrustCurve.2.thrust",
+        "motor.thrustCurve.3.thrust",
+        "motor.thrustCurve.4.thrust",
+        "motor.thrustCurve.5.thrust",
+        "motor.thrustCurve.6.thrust",
+        "motor.thrustCurve.7.thrust",
+        "motor.thrustCurve.8.thrust",
+        "motor.thrustCurve.9.thrust",
+        "motor.thrustCurve.10.thrust",
+        "motor.thrustCurve.11.thrust",
+        "motor.thrustCurve.12.thrust",
+        "motor.thrustCurve.13.thrust",
+        "motor.thrustCurve.14.thrust",
+        "motor.thrustCurve.15.thrust",
+        "motor.thrustCurve.16.thrust",
+        "motor.thrustCurve.17.thrust",
+        "motor.thrustCurve.18.thrust",
+        "motor.thrustCurve.19.thrust",
+        "motor.thrustCurve.20.thrust",
+        "motor.thrustCurve.21.thrust",
+        "motor.thrustCurve.22.thrust",
+        "motor.thrustCurve.23.thrust"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.037836287840496426,
+        "liftoffMassKg": 0.06093628784049643,
+        "dryCgM": 0.21817078785252447,
+        "dryCylinderInertiaKgM2": [
+          0.000003051307432896834,
+          0.00038777109208818286,
+          0.00038777109208818286
+        ],
+        "motorImpulseMetadataNs": 8.888000000000002,
+        "integratedImpulseNs": 8.905410380000001,
+        "motorBurnTimeS": 1.86
+      },
+      "metrics": {
+        "apogeeM": 375.30646702425474,
+        "apogeeTimeS": 8.005859374999874,
+        "burnoutAltitudeM": 124.0356143793795,
+        "burnoutSpeedMs": 114.49275330603912,
+        "burnoutTimeS": 1.86,
+        "railExitSpeedMs": 17.570193795873713,
+        "railExitTimeS": 0.19064453125000003,
+        "maxMach": 0.33846992133886167
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "PASS",
+        "offNominalExcursion": false,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": 3.602250953954524,
+        "apogeeTimeS": 0.02091796875000007,
+        "burnoutAltitudeM": 1.2554005027962347,
+        "burnoutSpeedMs": 1.063678222742837,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": 0.05646045248882814,
+        "railExitTimeS": -0.0005957031250000133,
+        "maxMach": 0.003164120712434104
+      }
+    },
+    {
+      "caseId": "cosmic-cargo-2986",
+      "experiment": "airframe-cd-plus-1pct",
+      "synthetic": true,
+      "inputSha256": "c594900a1312ad5a6ce61335adedf8e8b68b09c1345449db5f670b32db1c1a6f",
+      "wireSha256": "dc5ae46753d29b96bd731e4b1f3e09673ebe8e3f90c44ed9fc09aeaaca63228f",
+      "unchangedInputSha256": "1cefccbaf3ee2af590faf78a107eefe8cc1f852391080deed0aae578fee9bc86",
+      "rawSha256": "8ae3a0f549234bc0af86855653b460736ba1035a0bae83917de71af6939a0182",
+      "changedPaths": [
+        "options.dragCdScale"
+      ],
+      "wireChangedPaths": [
+        "options.dragCdScale"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.037836287840496426,
+        "liftoffMassKg": 0.06093628784049643,
+        "dryCgM": 0.21817078785252447,
+        "dryCylinderInertiaKgM2": [
+          0.000003051307432896834,
+          0.00038777109208818286,
+          0.00038777109208818286
+        ],
+        "motorImpulseMetadataNs": 8.8,
+        "integratedImpulseNs": 8.817238000000001,
+        "motorBurnTimeS": 1.86
+      },
+      "metrics": {
+        "apogeeM": 369.79798698970177,
+        "apogeeTimeS": 7.959902343749874,
+        "burnoutAltitudeM": 122.65532540492721,
+        "burnoutSpeedMs": 113.2143383621333,
+        "burnoutTimeS": 1.86,
+        "railExitSpeedMs": 17.513432457904823,
+        "railExitTimeS": 0.19124023437500004,
+        "maxMach": 0.33468649424563296
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "PASS",
+        "offNominalExcursion": false,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": -1.9062290805984503,
+        "apogeeTimeS": -0.02503906249999943,
+        "burnoutAltitudeM": -0.12488847165604966,
+        "burnoutSpeedMs": -0.21473672116297848,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": -0.00030088548006190763,
+        "railExitTimeS": 0,
+        "maxMach": -0.0006193063807946042
+      }
+    },
+    {
+      "caseId": "cosmic-cargo-2986",
+      "experiment": "duration-plus-1pct-fixed-impulse",
+      "synthetic": true,
+      "inputSha256": "4f062eb4446ff87a80a7418c2eedb29c85873949dd2477b03ab3a1214ded71e4",
+      "wireSha256": "ab705f9078fc85ba13c2112fe22f6b0d2831d7702cfe492599d32bd57e370087",
+      "unchangedInputSha256": "1cefccbaf3ee2af590faf78a107eefe8cc1f852391080deed0aae578fee9bc86",
+      "rawSha256": "4ecadc654c2485b8330bb11660ee4c739f58032465e37d56bd7742d82b3fba09",
+      "changedPaths": [
+        "motor.avgThrust",
+        "motor.maxThrust",
+        "motor.burnTime",
+        "motor.thrustCurve.1.time",
+        "motor.thrustCurve.1.thrust",
+        "motor.thrustCurve.2.time",
+        "motor.thrustCurve.2.thrust",
+        "motor.thrustCurve.3.time",
+        "motor.thrustCurve.3.thrust",
+        "motor.thrustCurve.4.time",
+        "motor.thrustCurve.4.thrust",
+        "motor.thrustCurve.5.time",
+        "motor.thrustCurve.5.thrust",
+        "motor.thrustCurve.6.time",
+        "motor.thrustCurve.6.thrust",
+        "motor.thrustCurve.7.time",
+        "motor.thrustCurve.7.thrust",
+        "motor.thrustCurve.8.time",
+        "motor.thrustCurve.8.thrust",
+        "motor.thrustCurve.9.time",
+        "motor.thrustCurve.9.thrust",
+        "motor.thrustCurve.10.time",
+        "motor.thrustCurve.10.thrust",
+        "motor.thrustCurve.11.time",
+        "motor.thrustCurve.11.thrust",
+        "motor.thrustCurve.12.time",
+        "motor.thrustCurve.12.thrust",
+        "motor.thrustCurve.13.time",
+        "motor.thrustCurve.13.thrust",
+        "motor.thrustCurve.14.time",
+        "motor.thrustCurve.14.thrust",
+        "motor.thrustCurve.15.time",
+        "motor.thrustCurve.15.thrust",
+        "motor.thrustCurve.16.time",
+        "motor.thrustCurve.16.thrust",
+        "motor.thrustCurve.17.time",
+        "motor.thrustCurve.17.thrust",
+        "motor.thrustCurve.18.time",
+        "motor.thrustCurve.18.thrust",
+        "motor.thrustCurve.19.time",
+        "motor.thrustCurve.19.thrust",
+        "motor.thrustCurve.20.time",
+        "motor.thrustCurve.20.thrust",
+        "motor.thrustCurve.21.time",
+        "motor.thrustCurve.21.thrust",
+        "motor.thrustCurve.22.time",
+        "motor.thrustCurve.22.thrust",
+        "motor.thrustCurve.23.time",
+        "motor.thrustCurve.23.thrust",
+        "motor.thrustCurve.24.time"
+      ],
+      "wireChangedPaths": [
+        "motor.burnTime",
+        "motor.avgThrust",
+        "motor.maxThrust",
+        "motor.thrustCurve.1.time",
+        "motor.thrustCurve.1.thrust",
+        "motor.thrustCurve.2.time",
+        "motor.thrustCurve.2.thrust",
+        "motor.thrustCurve.3.time",
+        "motor.thrustCurve.3.thrust",
+        "motor.thrustCurve.4.time",
+        "motor.thrustCurve.4.thrust",
+        "motor.thrustCurve.5.time",
+        "motor.thrustCurve.5.thrust",
+        "motor.thrustCurve.6.time",
+        "motor.thrustCurve.6.thrust",
+        "motor.thrustCurve.7.time",
+        "motor.thrustCurve.7.thrust",
+        "motor.thrustCurve.8.time",
+        "motor.thrustCurve.8.thrust",
+        "motor.thrustCurve.9.time",
+        "motor.thrustCurve.9.thrust",
+        "motor.thrustCurve.10.time",
+        "motor.thrustCurve.10.thrust",
+        "motor.thrustCurve.11.time",
+        "motor.thrustCurve.11.thrust",
+        "motor.thrustCurve.12.time",
+        "motor.thrustCurve.12.thrust",
+        "motor.thrustCurve.13.time",
+        "motor.thrustCurve.13.thrust",
+        "motor.thrustCurve.14.time",
+        "motor.thrustCurve.14.thrust",
+        "motor.thrustCurve.15.time",
+        "motor.thrustCurve.15.thrust",
+        "motor.thrustCurve.16.time",
+        "motor.thrustCurve.16.thrust",
+        "motor.thrustCurve.17.time",
+        "motor.thrustCurve.17.thrust",
+        "motor.thrustCurve.18.time",
+        "motor.thrustCurve.18.thrust",
+        "motor.thrustCurve.19.time",
+        "motor.thrustCurve.19.thrust",
+        "motor.thrustCurve.20.time",
+        "motor.thrustCurve.20.thrust",
+        "motor.thrustCurve.21.time",
+        "motor.thrustCurve.21.thrust",
+        "motor.thrustCurve.22.time",
+        "motor.thrustCurve.22.thrust",
+        "motor.thrustCurve.23.time",
+        "motor.thrustCurve.23.thrust",
+        "motor.thrustCurve.24.time"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.037836287840496426,
+        "liftoffMassKg": 0.06093628784049643,
+        "dryCgM": 0.21817078785252447,
+        "dryCylinderInertiaKgM2": [
+          0.000003051307432896834,
+          0.00038777109208818286,
+          0.00038777109208818286
+        ],
+        "motorImpulseMetadataNs": 8.8,
+        "integratedImpulseNs": 8.817238,
+        "motorBurnTimeS": 1.8786
+      },
+      "metrics": {
+        "apogeeM": 371.9550728137157,
+        "apogeeTimeS": 7.997216796874875,
+        "burnoutAltitudeM": 123.7499485394459,
+        "burnoutSpeedMs": 113.09696268954866,
+        "burnoutTimeS": 1.8786,
+        "railExitSpeedMs": 17.40151869474865,
+        "railExitTimeS": 0.19271484375000003,
+        "maxMach": 0.33432192623926416
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "PASS",
+        "offNominalExcursion": false,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": 0.2508567434154543,
+        "apogeeTimeS": 0.012275390625001492,
+        "burnoutAltitudeM": 0.9697346628626349,
+        "burnoutSpeedMs": -0.3321123937476216,
+        "burnoutTimeS": 0.01859999999999995,
+        "railExitSpeedMs": -0.11221464863623609,
+        "railExitTimeS": 0.0014746093749999911,
+        "maxMach": -0.0009838743871634081
+      }
+    },
+    {
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "experiment": "macro-0.005",
+      "synthetic": false,
+      "inputSha256": "7091adb9e6fcdfbb185059cd983398613c595f174030ce8b431a6d75690a5154",
+      "wireSha256": "1dec81c8b9f316c5149d63c2c529cf9d1d2877d89e9ff0d2cb69baf1eb52870c",
+      "unchangedInputSha256": "c0e849e74eb3b1590210958dc4c464aa443846741e6cd556df553592bd959303",
+      "rawSha256": "bd9d0ab05e10ebf34ef25465c906fde7ebcc23557db3c772897d449ab549f7f5",
+      "changedPaths": [
+        "options.timeStep"
+      ],
+      "wireChangedPaths": [
+        "options.timeStep"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.34471,
+        "liftoffMassKg": 0.54571,
+        "dryCgM": 0.508,
+        "dryCylinderInertiaKgM2": [
+          0.000072058145480195,
+          0.02472629676199843,
+          0.02472629676199843
+        ],
+        "motorImpulseMetadataNs": 136.3014,
+        "integratedImpulseNs": 136.30141305549998,
+        "motorBurnTimeS": 2
+      },
+      "metrics": {
+        "apogeeM": 1173.9573442000155,
+        "apogeeTimeS": 13.905625000000775,
+        "burnoutAltitudeM": 258.1247342016043,
+        "burnoutSpeedMs": 212.39694326108872,
+        "burnoutTimeS": 2,
+        "railExitSpeedMs": 21.875660044574385,
+        "railExitTimeS": 0.19189453125000006,
+        "maxMach": 0.6542348552023135
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": 0.02050022532262119,
+        "apogeeTimeS": 0.00009765625102531317,
+        "burnoutAltitudeM": -2.6716406864579767e-12,
+        "burnoutSpeedMs": 0.004722462014655093,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": 0,
+        "railExitTimeS": 5.551115123125783e-17,
+        "maxMach": -2.3314683517128287e-15
+      }
+    },
+    {
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "experiment": "macro-0.0025",
+      "synthetic": false,
+      "inputSha256": "25c1779af11f3db6265b5040e031efe3050735e2b46e8838ee9a5f322de6f71b",
+      "wireSha256": "5528583d4a6593dd2379cbff13bc8f679a83f127d30a465991fb11d2be7800d9",
+      "unchangedInputSha256": "c0e849e74eb3b1590210958dc4c464aa443846741e6cd556df553592bd959303",
+      "rawSha256": "ef74e976a7aea55dab87942be86678730d1151d696257dc7ffe2e5b34230de14",
+      "changedPaths": [
+        "options.timeStep"
+      ],
+      "wireChangedPaths": [
+        "options.timeStep"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.34471,
+        "liftoffMassKg": 0.54571,
+        "dryCgM": 0.508,
+        "dryCylinderInertiaKgM2": [
+          0.000072058145480195,
+          0.02472629676199843,
+          0.02472629676199843
+        ],
+        "motorImpulseMetadataNs": 136.3014,
+        "integratedImpulseNs": 136.30141305549998,
+        "motorBurnTimeS": 2
+      },
+      "metrics": {
+        "apogeeM": 1173.952407904632,
+        "apogeeTimeS": 13.905615234374375,
+        "burnoutAltitudeM": 258.1230839660821,
+        "burnoutSpeedMs": 212.39620375085477,
+        "burnoutTimeS": 2,
+        "railExitSpeedMs": 21.87606931473487,
+        "railExitTimeS": 0.1919042968750001,
+        "maxMach": 0.6542325859811944
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": 0.015563929939162335,
+        "apogeeTimeS": 0.00008789062462533082,
+        "burnoutAltitudeM": -0.001650235524891741,
+        "burnoutSpeedMs": 0.003982951780699295,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": 0.00040927016048541986,
+        "railExitTimeS": 0.00000976562500010214,
+        "maxMach": -0.0000022692211214536684
+      }
+    },
+    {
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "experiment": "dry-mass-plus-1pct",
+      "synthetic": true,
+      "inputSha256": "6c92d8e0dd8675a59dfd8faaa48868eb559868459394340c7948e6bc164ebe61",
+      "wireSha256": "ff4535f683787b6ff471a939f88cf0301e2027099add8936e7121bd676fb3503",
+      "unchangedInputSha256": "c0e849e74eb3b1590210958dc4c464aa443846741e6cd556df553592bd959303",
+      "rawSha256": "87e1316c35c172cadd133776d8a9c023db37ccc9175cec305d961d94a40b1b4a",
+      "changedPaths": [
+        "vehicle.components.0.massOverride",
+        "vehicle.components.1.massOverride",
+        "vehicle.components.2.massOverride"
+      ],
+      "wireChangedPaths": [
+        "vehicle.components.0.massOverride",
+        "vehicle.components.1.massOverride",
+        "vehicle.components.2.massOverride"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.34815710000000005,
+        "liftoffMassKg": 0.5491571000000001,
+        "dryCgM": 0.508,
+        "dryCylinderInertiaKgM2": [
+          0.00007277872693499697,
+          0.024973559729618417,
+          0.024973559729618417
+        ],
+        "motorImpulseMetadataNs": 136.3014,
+        "integratedImpulseNs": 136.30141305549998,
+        "motorBurnTimeS": 2
+      },
+      "metrics": {
+        "apogeeM": 1170.6054386919168,
+        "apogeeTimeS": 13.908427734374749,
+        "burnoutAltitudeM": 256.5220303034384,
+        "burnoutSpeedMs": 211.2450596381883,
+        "burnoutTimeS": 2,
+        "railExitSpeedMs": 21.80327700095241,
+        "railExitTimeS": 0.19247070312500003,
+        "maxMach": 0.6504057317917659
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": -3.3314052827761316,
+        "apogeeTimeS": 0.0029003906249993605,
+        "burnoutAltitudeM": -1.6027038981686133,
+        "burnoutSpeedMs": -1.1471611608857586,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": -0.07238304362197567,
+        "railExitTimeS": 0.0005761718750000311,
+        "maxMach": -0.0038291234105499727
+      }
+    },
+    {
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "experiment": "impulse-plus-1pct",
+      "synthetic": true,
+      "inputSha256": "d7028e6f80a78ecf7d117c70f8961c457e078acc5eade7eddc9a5c88ff4f4102",
+      "wireSha256": "dca53afd0da79a9155802c8b64554cda1f9a1735da577db926ecfbf703db97c2",
+      "unchangedInputSha256": "c0e849e74eb3b1590210958dc4c464aa443846741e6cd556df553592bd959303",
+      "rawSha256": "1d1996226374a5c15fadcddfdd69535624731afd33c2af98ab020457fa1f3550",
+      "changedPaths": [
+        "motor.totalImpulse",
+        "motor.avgThrust",
+        "motor.maxThrust",
+        "motor.thrustCurve.1.thrust",
+        "motor.thrustCurve.2.thrust",
+        "motor.thrustCurve.3.thrust",
+        "motor.thrustCurve.4.thrust",
+        "motor.thrustCurve.5.thrust",
+        "motor.thrustCurve.6.thrust",
+        "motor.thrustCurve.7.thrust",
+        "motor.thrustCurve.8.thrust",
+        "motor.thrustCurve.9.thrust",
+        "motor.thrustCurve.10.thrust",
+        "motor.thrustCurve.11.thrust",
+        "motor.thrustCurve.12.thrust",
+        "motor.thrustCurve.13.thrust",
+        "motor.thrustCurve.14.thrust",
+        "motor.thrustCurve.15.thrust",
+        "motor.thrustCurve.16.thrust",
+        "motor.thrustCurve.17.thrust",
+        "motor.thrustCurve.18.thrust",
+        "motor.thrustCurve.19.thrust",
+        "motor.thrustCurve.20.thrust",
+        "motor.thrustCurve.21.thrust",
+        "motor.thrustCurve.22.thrust",
+        "motor.thrustCurve.23.thrust",
+        "motor.thrustCurve.24.thrust",
+        "motor.thrustCurve.25.thrust",
+        "motor.thrustCurve.26.thrust",
+        "motor.thrustCurve.27.thrust"
+      ],
+      "wireChangedPaths": [
+        "motor.totalImpulse",
+        "motor.avgThrust",
+        "motor.maxThrust",
+        "motor.thrustCurve.1.thrust",
+        "motor.thrustCurve.2.thrust",
+        "motor.thrustCurve.3.thrust",
+        "motor.thrustCurve.4.thrust",
+        "motor.thrustCurve.5.thrust",
+        "motor.thrustCurve.6.thrust",
+        "motor.thrustCurve.7.thrust",
+        "motor.thrustCurve.8.thrust",
+        "motor.thrustCurve.9.thrust",
+        "motor.thrustCurve.10.thrust",
+        "motor.thrustCurve.11.thrust",
+        "motor.thrustCurve.12.thrust",
+        "motor.thrustCurve.13.thrust",
+        "motor.thrustCurve.14.thrust",
+        "motor.thrustCurve.15.thrust",
+        "motor.thrustCurve.16.thrust",
+        "motor.thrustCurve.17.thrust",
+        "motor.thrustCurve.18.thrust",
+        "motor.thrustCurve.19.thrust",
+        "motor.thrustCurve.20.thrust",
+        "motor.thrustCurve.21.thrust",
+        "motor.thrustCurve.22.thrust",
+        "motor.thrustCurve.23.thrust",
+        "motor.thrustCurve.24.thrust",
+        "motor.thrustCurve.25.thrust",
+        "motor.thrustCurve.26.thrust",
+        "motor.thrustCurve.27.thrust"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.34471,
+        "liftoffMassKg": 0.54571,
+        "dryCgM": 0.508,
+        "dryCylinderInertiaKgM2": [
+          0.000072058145480195,
+          0.02472629676199843,
+          0.02472629676199843
+        ],
+        "motorImpulseMetadataNs": 137.664414,
+        "integratedImpulseNs": 137.66442718605504,
+        "motorBurnTimeS": 2
+      },
+      "metrics": {
+        "apogeeM": 1185.3352970523135,
+        "apogeeTimeS": 13.948691406249747,
+        "burnoutAltitudeM": 260.7256092177908,
+        "burnoutSpeedMs": 214.39541199399264,
+        "burnoutTimeS": 2,
+        "railExitSpeedMs": 21.98911990836725,
+        "railExitTimeS": 0.19098632812500005,
+        "maxMach": 0.6606025331321763
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": 11.398453077620616,
+        "apogeeTimeS": 0.04316406249999716,
+        "burnoutAltitudeM": 2.6008750161838066,
+        "burnoutSpeedMs": 2.0031911949185712,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": 0.11345986379286543,
+        "railExitTimeS": -0.0009082031249999512,
+        "maxMach": 0.006367677929860482
+      }
+    },
+    {
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "experiment": "airframe-cd-plus-1pct",
+      "synthetic": true,
+      "inputSha256": "108627e66a5cb9744f316487bbf2dfcf4ad57dafaa838fd8a9e78dfcebc11ffd",
+      "wireSha256": "7866f26ee78965e0d6feb087d8e045c49756005cd9d06c079d8eebcd9fade71d",
+      "unchangedInputSha256": "c0e849e74eb3b1590210958dc4c464aa443846741e6cd556df553592bd959303",
+      "rawSha256": "36ab7029632b8f66ed64337ca98342a72a5ea418c14d8cfed4cb99a40476ae65",
+      "changedPaths": [
+        "options.dragCdScale"
+      ],
+      "wireChangedPaths": [
+        "options.dragCdScale"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.34471,
+        "liftoffMassKg": 0.54571,
+        "dryCgM": 0.508,
+        "dryCylinderInertiaKgM2": [
+          0.000072058145480195,
+          0.02472629676199843,
+          0.02472629676199843
+        ],
+        "motorImpulseMetadataNs": 136.3014,
+        "integratedImpulseNs": 136.30141305549998,
+        "motorBurnTimeS": 2
+      },
+      "metrics": {
+        "apogeeM": 1167.8355317078529,
+        "apogeeTimeS": 13.860087890624749,
+        "burnoutAltitudeM": 257.9636148229422,
+        "burnoutSpeedMs": 212.10775133825183,
+        "burnoutTimeS": 2,
+        "railExitSpeedMs": 21.875411099217562,
+        "railExitTimeS": 0.19189453125,
+        "maxMach": 0.6536013595414049
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": -6.101312266840068,
+        "apogeeTimeS": -0.04543945312500064,
+        "burnoutAltitudeM": -0.1611193786648073,
+        "burnoutSpeedMs": -0.2844694608222369,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": -0.0002489453568230715,
+        "railExitTimeS": 0,
+        "maxMach": -0.0006334956609109765
+      }
+    },
+    {
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "experiment": "duration-plus-1pct-fixed-impulse",
+      "synthetic": true,
+      "inputSha256": "ba8c79bf83459eb5ae2e8d5735c7e398a453c23803af121dbdb1e58514bb58d2",
+      "wireSha256": "96389221a20e52a2a86badfce0055b69e10a8e3fee4df4f4901592c572b677bb",
+      "unchangedInputSha256": "c0e849e74eb3b1590210958dc4c464aa443846741e6cd556df553592bd959303",
+      "rawSha256": "21ef979966dc44a2ef75df939f86c00f5a507735e44f1ee69633c26c1d6e877d",
+      "changedPaths": [
+        "motor.avgThrust",
+        "motor.maxThrust",
+        "motor.burnTime",
+        "motor.thrustCurve.1.time",
+        "motor.thrustCurve.1.thrust",
+        "motor.thrustCurve.2.time",
+        "motor.thrustCurve.2.thrust",
+        "motor.thrustCurve.3.time",
+        "motor.thrustCurve.3.thrust",
+        "motor.thrustCurve.4.time",
+        "motor.thrustCurve.4.thrust",
+        "motor.thrustCurve.5.time",
+        "motor.thrustCurve.5.thrust",
+        "motor.thrustCurve.6.time",
+        "motor.thrustCurve.6.thrust",
+        "motor.thrustCurve.7.time",
+        "motor.thrustCurve.7.thrust",
+        "motor.thrustCurve.8.time",
+        "motor.thrustCurve.8.thrust",
+        "motor.thrustCurve.9.time",
+        "motor.thrustCurve.9.thrust",
+        "motor.thrustCurve.10.time",
+        "motor.thrustCurve.10.thrust",
+        "motor.thrustCurve.11.time",
+        "motor.thrustCurve.11.thrust",
+        "motor.thrustCurve.12.time",
+        "motor.thrustCurve.12.thrust",
+        "motor.thrustCurve.13.time",
+        "motor.thrustCurve.13.thrust",
+        "motor.thrustCurve.14.time",
+        "motor.thrustCurve.14.thrust",
+        "motor.thrustCurve.15.time",
+        "motor.thrustCurve.15.thrust",
+        "motor.thrustCurve.16.time",
+        "motor.thrustCurve.16.thrust",
+        "motor.thrustCurve.17.time",
+        "motor.thrustCurve.17.thrust",
+        "motor.thrustCurve.18.time",
+        "motor.thrustCurve.18.thrust",
+        "motor.thrustCurve.19.time",
+        "motor.thrustCurve.19.thrust",
+        "motor.thrustCurve.20.time",
+        "motor.thrustCurve.20.thrust",
+        "motor.thrustCurve.21.time",
+        "motor.thrustCurve.21.thrust",
+        "motor.thrustCurve.22.time",
+        "motor.thrustCurve.22.thrust",
+        "motor.thrustCurve.23.time",
+        "motor.thrustCurve.23.thrust",
+        "motor.thrustCurve.24.time",
+        "motor.thrustCurve.24.thrust",
+        "motor.thrustCurve.25.time",
+        "motor.thrustCurve.25.thrust",
+        "motor.thrustCurve.26.time",
+        "motor.thrustCurve.26.thrust",
+        "motor.thrustCurve.27.time",
+        "motor.thrustCurve.27.thrust",
+        "motor.thrustCurve.28.time"
+      ],
+      "wireChangedPaths": [
+        "motor.burnTime",
+        "motor.avgThrust",
+        "motor.maxThrust",
+        "motor.thrustCurve.1.time",
+        "motor.thrustCurve.1.thrust",
+        "motor.thrustCurve.2.time",
+        "motor.thrustCurve.2.thrust",
+        "motor.thrustCurve.3.time",
+        "motor.thrustCurve.3.thrust",
+        "motor.thrustCurve.4.time",
+        "motor.thrustCurve.4.thrust",
+        "motor.thrustCurve.5.time",
+        "motor.thrustCurve.5.thrust",
+        "motor.thrustCurve.6.time",
+        "motor.thrustCurve.6.thrust",
+        "motor.thrustCurve.7.time",
+        "motor.thrustCurve.7.thrust",
+        "motor.thrustCurve.8.time",
+        "motor.thrustCurve.8.thrust",
+        "motor.thrustCurve.9.time",
+        "motor.thrustCurve.9.thrust",
+        "motor.thrustCurve.10.time",
+        "motor.thrustCurve.10.thrust",
+        "motor.thrustCurve.11.time",
+        "motor.thrustCurve.11.thrust",
+        "motor.thrustCurve.12.time",
+        "motor.thrustCurve.12.thrust",
+        "motor.thrustCurve.13.time",
+        "motor.thrustCurve.13.thrust",
+        "motor.thrustCurve.14.time",
+        "motor.thrustCurve.14.thrust",
+        "motor.thrustCurve.15.time",
+        "motor.thrustCurve.15.thrust",
+        "motor.thrustCurve.16.time",
+        "motor.thrustCurve.16.thrust",
+        "motor.thrustCurve.17.time",
+        "motor.thrustCurve.17.thrust",
+        "motor.thrustCurve.18.time",
+        "motor.thrustCurve.18.thrust",
+        "motor.thrustCurve.19.time",
+        "motor.thrustCurve.19.thrust",
+        "motor.thrustCurve.20.time",
+        "motor.thrustCurve.20.thrust",
+        "motor.thrustCurve.21.time",
+        "motor.thrustCurve.21.thrust",
+        "motor.thrustCurve.22.time",
+        "motor.thrustCurve.22.thrust",
+        "motor.thrustCurve.23.time",
+        "motor.thrustCurve.23.thrust",
+        "motor.thrustCurve.24.time",
+        "motor.thrustCurve.24.thrust",
+        "motor.thrustCurve.25.time",
+        "motor.thrustCurve.25.thrust",
+        "motor.thrustCurve.26.time",
+        "motor.thrustCurve.26.thrust",
+        "motor.thrustCurve.27.time",
+        "motor.thrustCurve.27.thrust",
+        "motor.thrustCurve.28.time"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.34471,
+        "liftoffMassKg": 0.54571,
+        "dryCgM": 0.508,
+        "dryCylinderInertiaKgM2": [
+          0.000072058145480195,
+          0.02472629676199843,
+          0.02472629676199843
+        ],
+        "motorImpulseMetadataNs": 136.3014,
+        "integratedImpulseNs": 136.3014130555,
+        "motorBurnTimeS": 2.02
+      },
+      "metrics": {
+        "apogeeM": 1174.4104551983103,
+        "apogeeTimeS": 13.91724609374975,
+        "burnoutAltitudeM": 260.37326929172923,
+        "burnoutSpeedMs": 211.9603430158837,
+        "burnoutTimeS": 2.02,
+        "railExitSpeedMs": 21.75574886495108,
+        "railExitTimeS": 0.19303710937500007,
+        "maxMach": 0.653206550701385
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": 0.47361122361735397,
+        "apogeeTimeS": 0.01171875,
+        "burnoutAltitudeM": 2.248535090122232,
+        "burnoutSpeedMs": -0.43187778319037307,
+        "burnoutTimeS": 0.020000000000000018,
+        "railExitSpeedMs": -0.11991117962330478,
+        "railExitTimeS": 0.001142578125000071,
+        "maxMach": -0.0010283045009308323
+      }
+    },
+    {
+      "caseId": "top-shot-e12-2017-12-14",
+      "experiment": "macro-0.005",
+      "synthetic": false,
+      "inputSha256": "b6fb29abd5abe2e7fa740a5d764f82c349545345e96de24bee3d4ac9f44c59ac",
+      "wireSha256": "87b0b0529721cb5cbbb9598b8de058f91d6944bea8843a19d3146287702da33e",
+      "unchangedInputSha256": "34759b4d6f23e3ad642c2d8fb069d961115e5da0dcbe11512bc2a9932b776d97",
+      "rawSha256": "5708f020dead908f41c5a7577f9cb26f87be305314cb093ec5aa0a1633ec90b2",
+      "changedPaths": [
+        "options.timeStep"
+      ],
+      "wireChangedPaths": [
+        "options.timeStep"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.19550000000000006,
+        "liftoffMassKg": 0.25540000000000007,
+        "dryCgM": 0.6349999999999998,
+        "dryCylinderInertiaKgM2": [
+          0.000042404495836000014,
+          0.015728447894168007,
+          0.015728447894168007
+        ],
+        "motorImpulseMetadataNs": 27.13591600000001,
+        "integratedImpulseNs": 27.13591600000001,
+        "motorBurnTimeS": 2.44
+      },
+      "metrics": {
+        "apogeeM": 301.62675298145297,
+        "apogeeTimeS": 8.155605468749876,
+        "burnoutAltitudeM": 113.8758237599059,
+        "burnoutSpeedMs": 77.45611363174251,
+        "burnoutTimeS": 2.44,
+        "railExitSpeedMs": 19.195701276613317,
+        "railExitTimeS": 0.3115136718750001,
+        "maxMach": 0.23098598093838857
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": -2.2168933355715126e-12,
+        "apogeeTimeS": 7.105427357601002e-15,
+        "burnoutAltitudeM": -1.2221335055073723e-12,
+        "burnoutSpeedMs": -3.126388037344441e-13,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": -1.7763568394002505e-14,
+        "railExitTimeS": 0,
+        "maxMach": 2.741426471664088e-7
+      }
+    },
+    {
+      "caseId": "top-shot-e12-2017-12-14",
+      "experiment": "macro-0.0025",
+      "synthetic": false,
+      "inputSha256": "a4afe911127075ddc35b27f32a6588db7bbcb439128905629f3d970e2b1c7b2f",
+      "wireSha256": "720d72efdf698aa089778838a1b1e4661cfb819aec98bf3a08ac27f037222f93",
+      "unchangedInputSha256": "34759b4d6f23e3ad642c2d8fb069d961115e5da0dcbe11512bc2a9932b776d97",
+      "rawSha256": "028a6102adfe17849c1c08043fcfd017fa7f7e8043d03111565b436f754aa090",
+      "changedPaths": [
+        "options.timeStep"
+      ],
+      "wireChangedPaths": [
+        "options.timeStep"
+      ],
+      "inputSummary": {
+        "dryMassKg": 0.19550000000000006,
+        "liftoffMassKg": 0.25540000000000007,
+        "dryCgM": 0.6349999999999998,
+        "dryCylinderInertiaKgM2": [
+          0.000042404495836000014,
+          0.015728447894168007,
+          0.015728447894168007
+        ],
+        "motorImpulseMetadataNs": 27.13591600000001,
+        "integratedImpulseNs": 27.13591600000001,
+        "motorBurnTimeS": 2.44
+      },
+      "metrics": {
+        "apogeeM": 301.62908377541345,
+        "apogeeTimeS": 8.155615234375519,
+        "burnoutAltitudeM": 113.87686709217819,
+        "burnoutSpeedMs": 77.45650229072957,
+        "burnoutTimeS": 2.44,
+        "railExitSpeedMs": 19.195826101891925,
+        "railExitTimeS": 0.31151367187500023,
+        "maxMach": 0.23099329115418032
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": 0.002330793958265076,
+        "apogeeTimeS": 0.000009765625650359766,
+        "burnoutAltitudeM": 0.001043332271066788,
+        "burnoutSpeedMs": 0.0003886589867505563,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": 0.00012482527858992398,
+        "railExitTimeS": 1.1102230246251565e-16,
+        "maxMach": 0.000007584358438922356
+      }
+    },
+    {
+      "caseId": "adventurer-j510w-2021-04-17",
+      "experiment": "macro-0.005",
+      "synthetic": false,
+      "inputSha256": "bda640b83b7422677cfb65cefe8e28509c18347874cb0fd7d183eac6c517f3e4",
+      "wireSha256": "f30aea2c23b6d35777898d5b00206300fc837126664937c5f875cfadab229467",
+      "unchangedInputSha256": "e4319ca68f5b59f44c87255dea5da082478c817ceefe4dd3f36f618e916f88a3",
+      "rawSha256": "2cfdc80089b0039ca7a2253325774f3c654f7348db93dddf68445a99d14092ff",
+      "changedPaths": [
+        "options.timeStep"
+      ],
+      "wireChangedPaths": [
+        "options.timeStep"
+      ],
+      "inputSummary": {
+        "dryMassKg": 2.0400000000000005,
+        "liftoffMassKg": 3.1200000000000006,
+        "dryCgM": 0.92075,
+        "dryCylinderInertiaKgM2": [
+          0.0008430937500000002,
+          0.4883633451830001,
+          0.4883633451830001
+        ],
+        "motorImpulseMetadataNs": 1180.4998265000002,
+        "integratedImpulseNs": 1180.4998265000002,
+        "motorBurnTimeS": 2.5
+      },
+      "metrics": {
+        "apogeeM": 3040.364142042864,
+        "apogeeTimeS": 22.293408203124848,
+        "burnoutAltitudeM": 614.4727157053675,
+        "burnoutSpeedMs": 336.6386060605165,
+        "burnoutTimeS": 2.5,
+        "railExitSpeedMs": 32.43879487335069,
+        "railExitTimeS": 0.12419921875000002,
+        "maxMach": 1.0635262262928742
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": -1.1823431123048067e-11,
+        "apogeeTimeS": -8.384404281969182e-13,
+        "burnoutAltitudeM": -6.59383658785373e-12,
+        "burnoutSpeedMs": -5.115907697472721e-13,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": -1.4210854715202004e-14,
+        "railExitTimeS": 5.551115123125783e-17,
+        "maxMach": 0.0000017339053748344213
+      }
+    },
+    {
+      "caseId": "adventurer-j510w-2021-04-17",
+      "experiment": "macro-0.0025",
+      "synthetic": false,
+      "inputSha256": "61b51591ce30faad74667e4d3ae16e6917ba6c8f6b6cbc897d19d660daa4958e",
+      "wireSha256": "02f931655682280e838ea08ce45bb9fae481831f23ac938bb8431f97c0851e5c",
+      "unchangedInputSha256": "e4319ca68f5b59f44c87255dea5da082478c817ceefe4dd3f36f618e916f88a3",
+      "rawSha256": "83f410607eff88a087f37b5a956019592d24fd28a198c224f41592ef441e98d5",
+      "changedPaths": [
+        "options.timeStep"
+      ],
+      "wireChangedPaths": [
+        "options.timeStep"
+      ],
+      "inputSummary": {
+        "dryMassKg": 2.0400000000000005,
+        "liftoffMassKg": 3.1200000000000006,
+        "dryCgM": 0.92075,
+        "dryCylinderInertiaKgM2": [
+          0.0008430937500000002,
+          0.4883633451830001,
+          0.4883633451830001
+        ],
+        "motorImpulseMetadataNs": 1180.4998265000002,
+        "integratedImpulseNs": 1180.4998265000002,
+        "motorBurnTimeS": 2.5
+      },
+      "metrics": {
+        "apogeeM": 3040.3760579317423,
+        "apogeeTimeS": 22.293427734377175,
+        "burnoutAltitudeM": 614.4766970010118,
+        "burnoutSpeedMs": 336.639858919608,
+        "burnoutTimeS": 2.5,
+        "railExitSpeedMs": 32.438022268033016,
+        "railExitTimeS": 0.12418945312500004,
+        "maxMach": 1.063531152649514
+      },
+      "validity": {
+        "terminationReason": "touchdown",
+        "validity": "UNKNOWN",
+        "offNominalExcursion": true,
+        "unsupportedHandling": "continue-and-mark-UNKNOWN"
+      },
+      "delta": {
+        "apogeeM": 0.011915888866496971,
+        "apogeeTimeS": 0.000019531251489013357,
+        "burnoutAltitudeM": 0.003981295637686344,
+        "burnoutSpeedMs": 0.0012528590909823833,
+        "burnoutTimeS": 0,
+        "railExitSpeedMs": -0.0007726053176853043,
+        "railExitTimeS": -0.00000976562499992173,
+        "maxMach": 0.000006660262014568374
+      }
+    }
+  ],
+  "rankings": [
+    {
+      "caseId": "cosmic-cargo-2986",
+      "absoluteLocalDeltaRanking": {
+        "apogeeM": [
+          {
+            "experiment": "impulse-plus-1pct",
+            "delta": 3.602250953954524
+          },
+          {
+            "experiment": "airframe-cd-plus-1pct",
+            "delta": -1.9062290805984503
+          },
+          {
+            "experiment": "dry-mass-plus-1pct",
+            "delta": -1.050372192464522
+          },
+          {
+            "experiment": "duration-plus-1pct-fixed-impulse",
+            "delta": 0.2508567434154543
+          }
+        ],
+        "apogeeTimeS": [
+          {
+            "experiment": "airframe-cd-plus-1pct",
+            "delta": -0.02503906249999943
+          },
+          {
+            "experiment": "impulse-plus-1pct",
+            "delta": 0.02091796875000007
+          },
+          {
+            "experiment": "duration-plus-1pct-fixed-impulse",
+            "delta": 0.012275390625001492
+          },
+          {
+            "experiment": "dry-mass-plus-1pct",
+            "delta": 0.004072265625001847
+          }
+        ],
+        "burnoutAltitudeM": [
+          {
+            "experiment": "impulse-plus-1pct",
+            "delta": 1.2554005027962347
+          },
+          {
+            "experiment": "duration-plus-1pct-fixed-impulse",
+            "delta": 0.9697346628626349
+          },
+          {
+            "experiment": "dry-mass-plus-1pct",
+            "delta": -0.7442657867982234
+          },
+          {
+            "experiment": "airframe-cd-plus-1pct",
+            "delta": -0.12488847165604966
+          }
+        ],
+        "burnoutSpeedMs": [
+          {
+            "experiment": "impulse-plus-1pct",
+            "delta": 1.063678222742837
+          },
+          {
+            "experiment": "dry-mass-plus-1pct",
+            "delta": -0.5821631270836889
+          },
+          {
+            "experiment": "duration-plus-1pct-fixed-impulse",
+            "delta": -0.3321123937476216
+          },
+          {
+            "experiment": "airframe-cd-plus-1pct",
+            "delta": -0.21473672116297848
+          }
+        ],
+        "railExitTimeS": [
+          {
+            "experiment": "duration-plus-1pct-fixed-impulse",
+            "delta": 0.0014746093749999911
+          },
+          {
+            "experiment": "impulse-plus-1pct",
+            "delta": -0.0005957031250000133
+          },
+          {
+            "experiment": "dry-mass-plus-1pct",
+            "delta": 0.0003808593749999867
+          },
+          {
+            "experiment": "airframe-cd-plus-1pct",
+            "delta": 0
+          }
+        ],
+        "railExitSpeedMs": [
+          {
+            "experiment": "duration-plus-1pct-fixed-impulse",
+            "delta": -0.11221464863623609
+          },
+          {
+            "experiment": "impulse-plus-1pct",
+            "delta": 0.05646045248882814
+          },
+          {
+            "experiment": "dry-mass-plus-1pct",
+            "delta": -0.03444737689636668
+          },
+          {
+            "experiment": "airframe-cd-plus-1pct",
+            "delta": -0.00030088548006190763
+          }
+        ]
+      }
+    },
+    {
+      "caseId": "mini-dx3-g69n-2017-06-30",
+      "absoluteLocalDeltaRanking": {
+        "apogeeM": [
+          {
+            "experiment": "impulse-plus-1pct",
+            "delta": 11.398453077620616
+          },
+          {
+            "experiment": "airframe-cd-plus-1pct",
+            "delta": -6.101312266840068
+          },
+          {
+            "experiment": "dry-mass-plus-1pct",
+            "delta": -3.3314052827761316
+          },
+          {
+            "experiment": "duration-plus-1pct-fixed-impulse",
+            "delta": 0.47361122361735397
+          }
+        ],
+        "apogeeTimeS": [
+          {
+            "experiment": "airframe-cd-plus-1pct",
+            "delta": -0.04543945312500064
+          },
+          {
+            "experiment": "impulse-plus-1pct",
+            "delta": 0.04316406249999716
+          },
+          {
+            "experiment": "duration-plus-1pct-fixed-impulse",
+            "delta": 0.01171875
+          },
+          {
+            "experiment": "dry-mass-plus-1pct",
+            "delta": 0.0029003906249993605
+          }
+        ],
+        "burnoutAltitudeM": [
+          {
+            "experiment": "impulse-plus-1pct",
+            "delta": 2.6008750161838066
+          },
+          {
+            "experiment": "duration-plus-1pct-fixed-impulse",
+            "delta": 2.248535090122232
+          },
+          {
+            "experiment": "dry-mass-plus-1pct",
+            "delta": -1.6027038981686133
+          },
+          {
+            "experiment": "airframe-cd-plus-1pct",
+            "delta": -0.1611193786648073
+          }
+        ],
+        "burnoutSpeedMs": [
+          {
+            "experiment": "impulse-plus-1pct",
+            "delta": 2.0031911949185712
+          },
+          {
+            "experiment": "dry-mass-plus-1pct",
+            "delta": -1.1471611608857586
+          },
+          {
+            "experiment": "duration-plus-1pct-fixed-impulse",
+            "delta": -0.43187778319037307
+          },
+          {
+            "experiment": "airframe-cd-plus-1pct",
+            "delta": -0.2844694608222369
+          }
+        ],
+        "railExitTimeS": [
+          {
+            "experiment": "duration-plus-1pct-fixed-impulse",
+            "delta": 0.001142578125000071
+          },
+          {
+            "experiment": "impulse-plus-1pct",
+            "delta": -0.0009082031249999512
+          },
+          {
+            "experiment": "dry-mass-plus-1pct",
+            "delta": 0.0005761718750000311
+          },
+          {
+            "experiment": "airframe-cd-plus-1pct",
+            "delta": 0
+          }
+        ],
+        "railExitSpeedMs": [
+          {
+            "experiment": "duration-plus-1pct-fixed-impulse",
+            "delta": -0.11991117962330478
+          },
+          {
+            "experiment": "impulse-plus-1pct",
+            "delta": 0.11345986379286543
+          },
+          {
+            "experiment": "dry-mass-plus-1pct",
+            "delta": -0.07238304362197567
+          },
+          {
+            "experiment": "airframe-cd-plus-1pct",
+            "delta": -0.0002489453568230715
+          }
+        ]
+      }
+    }
+  ]
+}

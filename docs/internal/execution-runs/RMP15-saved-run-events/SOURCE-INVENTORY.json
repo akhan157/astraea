@@ -1,0 +1,22 @@
+{
+  "scope": "author-hashed files at source commit 65ef81ef45b84a4b0f4cfe110fd8a3ca866f84db; not an independent seal",
+  "sourceFilesSha256": {
+    "src/application/flightEvents.ts": "7f376243f9a57d091aea3cc3e273c935fbf632e020d244656ab18cedaafea813",
+    "src/application/flightEvents.test.ts": "52f1619c98205b996cf55ccf0370001ec680168fe509e4bc9afd8e581be0fb48",
+    "src/formats/projectJson.ts": "7af0a85e3a346603833b4722f063d63d78404f5708052bb178357ed3ecd7e20b",
+    "src/formats/projectJson.test.ts": "f96dbfc97c9b6d51f3943236ff79f3ca7ef6c9a87ffdc96b54f08b3a2db0773f",
+    "src/application/runCases.ts": "b056383ff0449d8759c2a451b19396f853638fec45d8127c98e0abcc36a6fadc",
+    "src/application/runCases.test.ts": "fef40ac0db96c9ec8baa717a4bc171de33dfc547f0b2cc86c203bcd2645fd856",
+    "src/console/data/adapter.ts": "8636af1e50ddbf4c148ac60fe1806157a29ad7249efee185a3d4d73210fd79fd",
+    "src/console/stages/SavedRuns.tsx": "7d29009de0023c590108cc20932a24aca7349bb29bbf3cf3eb368acb40a982f6",
+    "src/console/stages/SavedRuns.test.tsx": "902a9c718d2b3861567b8e771d385248a0bddb05ada0748181f7e7aac52a9732",
+    "src/application/momentArmHistory.test.ts": "b5273fbd62b47553dfdce0f76d2c46f69e5e6c60f411407dea3b4de798025eb3",
+    "src/application/runInputs.test.ts": "d4b9a4e2d0f5e3423d880c7efa9db343eff97a6fe8495d4ea32dfc762798ec3a"
+  },
+  "readonlyFilesSha256": {
+    "crates/astraea-core/src/six_dof.rs": "4cca84bf35ae281c614d194d8f68d90a2dbe485469e710eadd26f0d3d66c9b09",
+    "src/console/data/contract.ts": "663d19a0fa246bd2aea34ba998b1fb7a4c7da5b3f67f036b8fa3618e96614572",
+    "src/formats/reportJson.ts": "5dd69509e615d55d952480aa1303c92bea9c2a618a68917b59d7f1889a9c44e5",
+    "src/engine/astraea_engine.wasm": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b"
+  }
+}

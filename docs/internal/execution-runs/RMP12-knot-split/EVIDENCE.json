@@ -1,0 +1,351 @@
+{
+  "schema": "rmp12-knot-split-evidence/1.0.0",
+  "packet": "RMP12-C02 (owner-approved C1 + C3 integration-policy change)",
+  "worktree": "/home/ak/.paseo/worktrees/3s8t98rp/rmp12-knot-split",
+  "branch": "rmp12-knot-split",
+  "base": "c0140d4",
+  "lane": {
+    "provider": "openrouter",
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "reasoning": "max",
+    "subagents": false,
+    "reviewer": false
+  },
+  "status": "implementation and bounded diagnostics complete; no self-acceptance",
+  "records": {
+    "ASSIGNMENT.md": "4960b3bffe0db1e6b10ef002ffee735e542be97422e88a55cad2a1f2c64c1052",
+    "RESULT.md": "72cb1cccba9d150353f23b1a57bd9b3403d1e3a6cc99bb012d757dd699821bc6",
+    "run_rows.py": "4ce44f609585a61836dcd08d39bb18289ff4d723125defcbe40e3b158416f46a"
+  },
+  "sources": {
+    "crates/astraea-core/src/six_dof.rs": "e6876f5664397c852796e80e8227ed3dbc5dac5b84fbfcfd0e12ec4f27364621",
+    "crates/astraea-engine/src/candidate_identity.rs": "f3575dddb986b2d848ab0b12de8f6998d334b3da5cb4cf3e3fb022f4f97e8a1c",
+    "crates/astraea-engine/src/native_candidate.rs": "5217a4e099df92823252d2f1da6fa5b24e10464902509a59d20ac10936cbed2f",
+    "crates/astraea-engine/tests/candidate_identity.rs": "aa8aa1bc841c3e3a8055bd1379bacd5eb8ea0ff8e3961d18463f4331a60312a2",
+    "crates/astraea-engine/tests/drag_cd_scale_parity.rs": "20206c38b36fdb987a15c7fb6aafd56c1e85ee2b8a921ee8ed64b056e3dac6ea",
+    "crates/astraea-engine/tests/fixtures/drag-cd-scale-parity.json": "169a48fba9c7de3919892a4dd60db52c54d464a6a717c029f69ef2694db09606",
+    "crates/astraea-engine/tests/fixtures/freeform-fin-parity.json": "e8b9fb9713db2043caec3718b656f70e1b5825d69519d9c6200166f7d97c6d5c",
+    "crates/astraea-engine/tests/fixtures/telemetry-parity.json": "7639cd7ed21792de5e6a40b4568b252610384f9988a8f66201d19a852e38f631",
+    "crates/astraea-engine/tests/native_candidate.rs": "593c05717ca7837d6245501f9455da7d8d07a112bf4dedc99bc83fd6b3eb8cd7",
+    "crates/astraea-engine/tests/profile_candidate.rs": "43a55028c1bc83aa9225c4b01dd83a30b61ebd06f0810e9a2b81a69186a3e401",
+    "crates/astraea-engine/tests/telemetry_parity.rs": "7955000631d545f3c838058dea8a233b160c37f4c0f30d1ec75787b5a1994246",
+    "src/dynamics/rigidBody.adaptive.test.ts": "106abc44aee265357fade3532cd5cc6e12046a5fa12b3089ddfe980242ba8507",
+    "src/dynamics/rigidBody.ts": "ac569d9a2182697f41a8d095c2940a7528040f825a51b268825cf0bcc7f29b3c",
+    "src/sim/sixDofSimulator.ts": "2988d86397b9382f38a733415c76a44e8934cdc2e5c2d5f386d620abfe848421",
+    "docs/internal/execution-runs/RMP12-knot-split/run_rows.py": "4ce44f609585a61836dcd08d39bb18289ff4d723125defcbe40e3b158416f46a"
+  },
+  "artifacts": {
+    "oldWasmSha256": "b32e7b7c0df33b70c51ea645612f74660648212b76a368ccfb5e852f69bc5b3b",
+    "newWasmSha256": "688046089df012a0ee8307a34df8a5501d0b872776f4d4ae24be032a69b47fc7",
+    "oldProfileBinarySha256": "bf18b6faadaa180a9a31f4ef7be50d57aec609ee0a1beb5acbbe5aa1a0cb7e5c",
+    "newProfileBinarySha256": "dcf3a2b05934914f18e96d569a406e62e987c8cb915593893c44a0cc893298ea",
+    "targetDirectory": "/home/ak/.paseo/worktrees/3s8t98rp/target-knot-split",
+    "oldA20StdoutPinnedSha256": "ced63cf42a93ca4a8019f484caacf3e37eb00b1bfc2a4425d061b978baddf98c"
+  },
+  "identity": {
+    "inheritedPolicyId": "inherited-candidate-driver-numerics/2.0.0",
+    "explicitPolicyId": "candidate-native-diagnostic-numerics/2.0.0",
+    "knotCutPolicyId": "candidate-thrust-knot-cut/1.0.0",
+    "eventRootWidthS": 1e-07,
+    "splitDefault": true,
+    "newAbsentDigests": {
+      "native": "80c447b8426ef64fa93509dbc07e75bba1859c01bbdfa586f0e7da8b9ffdb1b4",
+      "profile": "5e07b4b7cbfbee2e56a17d34e4c2707543a34f41b38cddc7d5534e3518524769"
+    },
+    "historicalRmp07aDigests": {
+      "native": "2fa123db118f136c9f73447f1c014aad57f7c1f8ba6a8b0ac2d6c965d43bc6af",
+      "profile": "4bc2cb87b8b37f4dae1a1fb0233a5852f4ccebe5abd92a5d545c3d1e9ed0c3a3"
+    }
+  },
+  "rows": {
+    "A-dt020": {
+      "inputSha256": "f790a2472543771d7fbd7efe5503dca9add94153988a6b60c9f19078c4a37bb2",
+      "stdoutSha256": "496a38a5a83021518f57980ae14de43e82ed4c57798cda14167edc253e3da2ec",
+      "stderrSha256": "ba68e5ac07ea00dc7f23760a2fc69baa534615efd1dfb95651e4c06f37313403",
+      "exitCode": 0,
+      "wallSeconds": 0.040126840001903474,
+      "binarySha256": "dcf3a2b05934914f18e96d569a406e62e987c8cb915593893c44a0cc893298ea",
+      "railEventTimeS": 0.5058634567260742,
+      "referenceRailTimeS": 0.5058667373657227,
+      "railTimeErrorS": 3.2806396484952316e-06,
+      "maxPositionErrorM": 0.00015025388479728008,
+      "maxVelocityErrorMps": 9.255699395403771e-05,
+      "eventAltitudeAglM": 2.999999989794288,
+      "eventDeltaSAcrossRailM": 4.289511166399862e-05,
+      "committedSamplesCompared": 101,
+      "referencePositionDeltaM": 3.588240815588506e-13,
+      "referenceVelocityDeltaMps": 2.4158453015843406e-13,
+      "referenceRailDeltaS": 0.0,
+      "splitAtThrustKnots": true,
+      "clippedTrials": 21,
+      "straddledTrials": 0,
+      "stepWindowTrials": 11,
+      "adaptiveTrialTotals": {
+        "acceptedSteps": 228,
+        "rejectedSteps": 0,
+        "trials": 228
+      }
+    },
+    "A-dt010": {
+      "inputSha256": "75ee455e087de0146394257bf44f4219203d607da965489aa89b127ef86cadc9",
+      "stdoutSha256": "4af77ce7d1d5c48563337f8492fa51418ed1c60f164b1b9c5550834f1368adcd",
+      "stderrSha256": "ffdb1bbf592d791edbb3866939e0535dd846f715a8670a3a7459221544161544",
+      "exitCode": 0,
+      "wallSeconds": 0.07257750199642032,
+      "binarySha256": "dcf3a2b05934914f18e96d569a406e62e987c8cb915593893c44a0cc893298ea",
+      "railEventTimeS": 0.5058639144897463,
+      "referenceRailTimeS": 0.5058667373657229,
+      "railTimeErrorS": 2.822875976526973e-06,
+      "maxPositionErrorM": 0.00013102922349617074,
+      "maxVelocityErrorMps": 8.130121631834755e-05,
+      "eventAltitudeAglM": 2.9999998107238333,
+      "eventDeltaSAcrossRailM": 3.6729243285460456e-05,
+      "committedSamplesCompared": 201,
+      "referencePositionDeltaM": 3.055333763768431e-13,
+      "referenceVelocityDeltaMps": 2.0961010704922955e-13,
+      "referenceRailDeltaS": 0.0,
+      "splitAtThrustKnots": true,
+      "clippedTrials": 21,
+      "straddledTrials": 0,
+      "stepWindowTrials": 16,
+      "adaptiveTrialTotals": {
+        "acceptedSteps": 425,
+        "rejectedSteps": 0,
+        "trials": 425
+      }
+    },
+    "A-dt005": {
+      "inputSha256": "75fc4bf27aeb620ec9557f07f090805586bb801825bfcd57aa790bfadef55bc0",
+      "stdoutSha256": "79e640ef261e6a37fe65b323210c40b0c8ec8d68cf62b8700d986d8538172a0e",
+      "stderrSha256": "11af562ee117c747ba75290b88e6397dd7b12b703da6e185c5eb0b98b23a3ef7",
+      "exitCode": 0,
+      "wallSeconds": 0.13069207401713356,
+      "binarySha256": "dcf3a2b05934914f18e96d569a406e62e987c8cb915593893c44a0cc893298ea",
+      "railEventTimeS": 0.5058639144897463,
+      "referenceRailTimeS": 0.5058667373657229,
+      "railTimeErrorS": 2.822875976526973e-06,
+      "maxPositionErrorM": 0.00013102922311247767,
+      "maxVelocityErrorMps": 8.130131620401673e-05,
+      "eventAltitudeAglM": 2.999999810723897,
+      "eventDeltaSAcrossRailM": 3.67292433494093e-05,
+      "committedSamplesCompared": 402,
+      "referencePositionDeltaM": 3.375077994860476e-13,
+      "referenceVelocityDeltaMps": 2.3803181647963356e-13,
+      "referenceRailDeltaS": 0.0,
+      "splitAtThrustKnots": true,
+      "clippedTrials": 21,
+      "straddledTrials": 0,
+      "stepWindowTrials": 17,
+      "adaptiveTrialTotals": {
+        "acceptedSteps": 442,
+        "rejectedSteps": 0,
+        "trials": 442
+      }
+    },
+    "C-dt020": {
+      "inputSha256": "70711ea6c8c8f1476770d8f5281b77da2407728abcf80606342cc05f2c6781fc",
+      "stdoutSha256": "8d4f970861a3ba0eb99b3178e8d3095e95eace72454c09b821ed39a16f2c1214",
+      "stderrSha256": "ea95b7141d47f541df419c96db40de33332cfe244a81a7d889aa826bb845ce13",
+      "exitCode": 0,
+      "wallSeconds": 0.04069199398509227,
+      "binarySha256": "dcf3a2b05934914f18e96d569a406e62e987c8cb915593893c44a0cc893298ea",
+      "railEventTimeS": 0.5058634567260742,
+      "referenceRailTimeS": 0.5058667373657227,
+      "railTimeErrorS": 3.2806396484952316e-06,
+      "maxPositionErrorM": 0.00015025388479728008,
+      "maxVelocityErrorMps": 9.255699395403771e-05,
+      "eventAltitudeAglM": 2.999999989794288,
+      "eventDeltaSAcrossRailM": 4.289511166399862e-05,
+      "committedSamplesCompared": 101,
+      "referencePositionDeltaM": 3.588240815588506e-13,
+      "referenceVelocityDeltaMps": 2.4158453015843406e-13,
+      "referenceRailDeltaS": 0.0,
+      "splitAtThrustKnots": true,
+      "clippedTrials": 21,
+      "straddledTrials": 0,
+      "stepWindowTrials": 11,
+      "adaptiveTrialTotals": {
+        "acceptedSteps": 228,
+        "rejectedSteps": 0,
+        "trials": 228
+      }
+    },
+    "F-dt020": {
+      "inputSha256": "ec68cbe89fb5c92973eb6632125291701775f558879f6c6e76f16d0e0ccb5328",
+      "stdoutSha256": "3cd5ad676a1d39b7c77d2332a643953469c26705a53ccd34469eeb4fae436f34",
+      "stderrSha256": "a2e29cbfb0a8900cfbad666dc1b3de5e737f8a8b84bb2713685c3492b6222257",
+      "exitCode": 0,
+      "wallSeconds": 0.03939574601827189,
+      "binarySha256": "dcf3a2b05934914f18e96d569a406e62e987c8cb915593893c44a0cc893298ea",
+      "railEventTimeS": 0.505753059387207,
+      "referenceRailTimeS": 0.5058667343139649,
+      "railTimeErrorS": 0.00011367492675784518,
+      "maxPositionErrorM": 0.007366789798716411,
+      "maxVelocityErrorMps": 0.005020062311348106,
+      "eventAltitudeAglM": 3.000000377153575,
+      "eventDeltaSAcrossRailM": 0.0014873928334604436,
+      "committedSamplesCompared": 101,
+      "referencePositionDeltaM": 3.481659405224491e-13,
+      "referenceVelocityDeltaMps": 2.2737367544323206e-13,
+      "referenceRailDeltaS": 0.0,
+      "splitAtThrustKnots": false,
+      "clippedTrials": 0,
+      "straddledTrials": 21,
+      "stepWindowTrials": 8,
+      "adaptiveTrialTotals": {
+        "acceptedSteps": 207,
+        "rejectedSteps": 0,
+        "trials": 207
+      }
+    },
+    "OLD-A-dt020": {
+      "inputSha256": "f790a2472543771d7fbd7efe5503dca9add94153988a6b60c9f19078c4a37bb2",
+      "stdoutSha256": "ced63cf42a93ca4a8019f484caacf3e37eb00b1bfc2a4425d061b978baddf98c",
+      "stderrSha256": "c1bec9ee9a774668fb7ae7ea8c31eefcc5758df8ef0ff1c4c3f68ccd8dc81596",
+      "exitCode": 0,
+      "wallSeconds": 0.04133783400175162,
+      "binarySha256": "bf18b6faadaa180a9a31f4ef7be50d57aec609ee0a1beb5acbbe5aa1a0cb7e5c",
+      "railEventTimeS": 0.5057617187500001,
+      "referenceRailTimeS": 0.5058667327880859,
+      "railTimeErrorS": 0.00010501403808582666,
+      "maxPositionErrorM": 0.0073667897951992245,
+      "maxVelocityErrorMps": 0.005020062311348106,
+      "eventAltitudeAglM": 3.0001136534711517,
+      "eventDeltaSAcrossRailM": 0.0014873881684578372,
+      "committedSamplesCompared": 101,
+      "referencePositionDeltaM": 3.375077994860476e-13,
+      "referenceVelocityDeltaMps": 2.2026824808563106e-13,
+      "referenceRailDeltaS": 0.0,
+      "splitAtThrustKnots": false,
+      "clippedTrials": 0,
+      "straddledTrials": 21,
+      "stepWindowTrials": 8,
+      "adaptiveTrialTotals": null
+    }
+  },
+  "corrections": {
+    "dispatchExpectedSplitA20ReportedUs": 8.08,
+    "dispatchExpectedSplitA20DeltaSmm": 0.106,
+    "measuredSplitA20ReportedUs": 3.2806,
+    "measuredSplitA20EventDeltaSmm": 0.042895,
+    "measuredSplitA20MaxPositionMm": 0.150254,
+    "measuredSplitA20MaxVelocityMps": 9.2557e-05,
+    "legacyC20ReportedUs": 2.4011850356941977,
+    "legacyC20EventAltitudeAglM": 3.000074326012072,
+    "legacyA20ReportedUs": 105.01403808582666,
+    "legacyA20DeltaSmm": 1.4873881684578372,
+    "newNoSplitF20ReportedUs": 113.6749,
+    "newNoSplitF20DeltaSmm": 1.487393,
+    "explanation": "The old 8.08 us / 0.106 mm added the C20 upper-endpoint event-height offset (5.68 us / 0.0743 mm) to the reported time offset (2.401 us / 0.0314 mm), double-counting one overshoot. The C3 midpoint measures the true 3.2806 us / 0.042895 mm event displacement; max position over samples remains 0.150254 mm. The old 105.014 us no-split headline is the old upper endpoint; C3 no-split is 113.6749 us; the old binary reproduces 105.014 bit-for-bit and is retained as the legacy figure."
+  },
+  "falsifier": {
+    "oldBinaryReproducedA20BitForBit": true,
+    "oldA20StdoutSha256": "ced63cf42a93ca4a8019f484caacf3e37eb00b1bfc2a4425d061b978baddf98c",
+    "newNoSplitArm": "F-dt020",
+    "newNoSplitRailUs": 113.6749,
+    "newNoSplitDeltaSmm": 1.487393,
+    "splitOffTrajectorySameAsOld": true
+  },
+  "tests": {
+    "rustCore": {
+      "command": "cargo test --offline --manifest-path crates/astraea-core/Cargo.toml --lib --jobs 2",
+      "passed": 223,
+      "failed": 0,
+      "log": "test-logs/core-tests.log"
+    },
+    "rustEngine": {
+      "command": "cargo test --offline --locked --manifest-path crates/astraea-engine/Cargo.toml --jobs 2",
+      "passed": 100,
+      "failed": 0,
+      "log": "test-logs/engine-tests.log"
+    },
+    "tsAdaptiveSimulator": {
+      "passed": 49,
+      "failed": 0,
+      "log": "test-logs/ts-adaptive-simulator.log"
+    },
+    "tsEngineEnsembleLedger": {
+      "passed": 20,
+      "failed": 0,
+      "log": "test-logs/ts-engine-ensemble-ledger.log",
+      "note": "includes WASM-vs-oracle 1e-9 parity and classified ledger; no tolerance change"
+    },
+    "tsMonteCarloPool": {
+      "passed": 32,
+      "failed": 0,
+      "log": "test-logs/ts-montecarlo-pool.log"
+    },
+    "tsConsoleApplication": {
+      "passed": 22,
+      "failed": 0,
+      "log": "test-logs/ts-console-application.log"
+    },
+    "fixturesRegenerated": [
+      "telemetry-parity.json",
+      "drag-cd-scale-parity.json",
+      "freeform-fin-parity.json"
+    ],
+    "eventTimeTestContract": "telemetry_parity and drag_cd_scale duration checks use the declared 1e-7 root width; apogee/trajectory checks remain 1e-12; engine 1e-9 oracle test untouched"
+  },
+  "externalEvidence": {
+    "path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp12-knot-split/run-1",
+    "rowsJsonSha256": "2c766a6bdefd316989a0c35badadba0f40478cdc7e19cf786450b6830414ed56",
+    "testLogs": {
+      "core-tests.log": "fc120923f8237db31488f8dd75b2708f2f8b40ef0422d40fec279e55fd8549a6",
+      "engine-tests.log": "ef92b162ccf59fd7d1fac80dd3b8645b8309945ec0566517bbc18beca28e26c7",
+      "ts-adaptive-simulator.log": "5afe5c1928b666630c2bd1e25890febbd0eec67ddbe23a74f7fc8e0a8c280cbf",
+      "ts-console-application.log": "1e62a6ef75257ef1a1ee6d1117aa94662c30cc10c9dd296e82570c8d3cff030b",
+      "ts-engine-ensemble-ledger.log": "60c311073f7692879ab60d4963e40ea93fa5a0c2e1979b542174616022c9dbd2",
+      "ts-montecarlo-pool.log": "fd17a9d2f9ae00653e74cf3f2b722f1972366ebc515b6a04d6c1d3259a3196b2"
+    },
+    "inputs": {
+      "A-dt005.input.json": "75fc4bf27aeb620ec9557f07f090805586bb801825bfcd57aa790bfadef55bc0",
+      "A-dt010.input.json": "75ee455e087de0146394257bf44f4219203d607da965489aa89b127ef86cadc9",
+      "A-dt020.input.json": "f790a2472543771d7fbd7efe5503dca9add94153988a6b60c9f19078c4a37bb2",
+      "C-dt020.input.json": "70711ea6c8c8f1476770d8f5281b77da2407728abcf80606342cc05f2c6781fc",
+      "F-dt020.input.json": "ec68cbe89fb5c92973eb6632125291701775f558879f6c6e76f16d0e0ccb5328",
+      "OLD-A-dt020.input.json": "f790a2472543771d7fbd7efe5503dca9add94153988a6b60c9f19078c4a37bb2"
+    },
+    "outputs": {
+      "A-dt005.stdout": "79e640ef261e6a37fe65b323210c40b0c8ec8d68cf62b8700d986d8538172a0e",
+      "A-dt010.stdout": "4af77ce7d1d5c48563337f8492fa51418ed1c60f164b1b9c5550834f1368adcd",
+      "A-dt020.stdout": "496a38a5a83021518f57980ae14de43e82ed4c57798cda14167edc253e3da2ec",
+      "C-dt020.stdout": "8d4f970861a3ba0eb99b3178e8d3095e95eace72454c09b821ed39a16f2c1214",
+      "F-dt020.stdout": "3cd5ad676a1d39b7c77d2332a643953469c26705a53ccd34469eeb4fae436f34",
+      "OLD-A-dt020.stdout": "ced63cf42a93ca4a8019f484caacf3e37eb00b1bfc2a4425d061b978baddf98c"
+    },
+    "stderrs": {
+      "A-dt005.stderr": "11af562ee117c747ba75290b88e6397dd7b12b703da6e185c5eb0b98b23a3ef7",
+      "A-dt010.stderr": "ffdb1bbf592d791edbb3866939e0535dd846f715a8670a3a7459221544161544",
+      "A-dt020.stderr": "ba68e5ac07ea00dc7f23760a2fc69baa534615efd1dfb95651e4c06f37313403",
+      "C-dt020.stderr": "ea95b7141d47f541df419c96db40de33332cfe244a81a7d889aa826bb845ce13",
+      "F-dt020.stderr": "a2e29cbfb0a8900cfbad666dc1b3de5e737f8a8b84bb2713685c3492b6222257",
+      "OLD-A-dt020.stderr": "c1bec9ee9a774668fb7ae7ea8c31eefcc5758df8ef0ff1c4c3f68ccd8dc81596"
+    }
+  },
+  "residualRisk": [
+    "Only time-tabulated thrust breakpoints are cut; Mach Cd/normal-slope, 11 km atmosphere and wind-shear breakpoints are state-dependent and remain unsplit. A transonic/high-altitude fixture is the direct incompleteness falsifier.",
+    "Max position 0.150254 mm and max velocity 9.256e-5 m/s remain; the split removes the straddle error but not model/reference mismatch.",
+    "One synthetic vertical fixture; no convergence order, global bound or physical qualification.",
+    "Event root is a 1e-7 s midpoint; TS/Rust event times can differ by up to that width (observed ~2e-9 s at dwell) without trajectory divergence.",
+    "Old calibration fits bound to old engine SHAs are inactive by design; old archives/SHAs are not rewritten.",
+    "No RMP05 budget decision, full-6D/canopy/empirical qualification or release claim."
+  ],
+  "noSelfAcceptance": true,
+  "executionAccounting": {
+    "recordedExternalExecution": "run-1; each of the six rows executed once; no retried attempt",
+    "earlierAdHocInspections": "unsealed /tmp invocations of the same new binary used only to verify the rows during implementation; not evidence and not used for any claim"
+  },
+  "assertionChange": {
+    "engineTest1e9Untouched": true,
+    "engineTestDiffLines": 0,
+    "apogeeTrajectory1e12": true,
+    "durationBound": "EVENT_ROOT_WIDTH_S=1e-7; two independent midpoints of a width-w bracket differ by at most w; observed drag gap ~2.1e-9 s; a trajectory divergence > w is still caught",
+    "oldUpperEndpointReason": "The old 1e-12 duration parity held only because the old code returned the upper endpoint, a coarse dyadic value; it was not an event-time accuracy claim.",
+    "tests": {
+      "telemetry_parity": "apogee <=1e-12; duration <=1e-7 root width",
+      "drag_cd_scale_parity": "apogee <=1e-12; duration <=1e-7 root width",
+      "engine_test": "WASM-vs-oracle 1e-9 untouched"
+    }
+  }
+}

@@ -1,0 +1,227 @@
+{
+  "result": "PASS native offer/defer and signature-verified DOWNLOAD ONLY",
+  "baseCommit": "8815bcbf34b4b4b93a0eda005a5830a9898f9135",
+  "branch": "engineering/updater-verify-20261026",
+  "image": "sha256:9c6c230e1d815013fa34fcb6b9174d9a6f9e2a9ec68920b93f345e547c723174",
+  "limits": {
+    "network": "none",
+    "cpuset": "0",
+    "cpus": 1,
+    "memory": "4g"
+  },
+  "source": [
+    {
+      "path": "src-tauri/Cargo.toml",
+      "sha256": "f1ec84c0aa54952c8592e1282094fd77bc6adabe2a7996a8b820923fd00b0d56"
+    },
+    {
+      "path": "src-tauri/src/lib.rs",
+      "sha256": "fcdfd274272dee7cd8f6fa95c88725c8d83b7c840237c3da41587d087b8b39c1"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "sha256": "8b299a8ce0a04e3abe1da68991c752dda1684d0ca4a922b046f1e0cbacde0b6e"
+    },
+    {
+      "path": "src-tauri/tauri.conf.json",
+      "sha256": "5d66919814f5211d839db98c610c3ceaafcd6fd3841b9078da2cba93f27f9168"
+    },
+    {
+      "path": "src-tauri/capabilities/default.json",
+      "sha256": "38ed15daa9d574dc4405c8a4493f3aad76e8350e815704bb8ecb3f3d3295cf1b"
+    },
+    {
+      "path": "src/desktop/updates.ts",
+      "sha256": "459d4427ca6f2fae3fd06ff52e3c48e281970b770532eb5b1e341a55a310bb9d"
+    },
+    {
+      "path": "src/desktop/UpdateBanner.tsx",
+      "sha256": "9e2c4a467c8cf3b73cccadab35ae48a9b56d004eb31cd2d6201622431b433d59"
+    },
+    {
+      "path": "src/App.tsx",
+      "sha256": "fc15f5a53a0179b84124e79b34126a4612bfc0fd8edc1c6b4c80f0152b756df3"
+    },
+    {
+      "path": "scripts/updater-fixture/build.sh",
+      "sha256": "83fdb7914edd909890dc3aae2aa0b2e2072e1d9d35621f81e256f07b8abd2030"
+    },
+    {
+      "path": "scripts/updater-fixture/driver.js",
+      "sha256": "fcae62d3e8a6b9072878d9fdcf4c97562299285f9c471782efdd51e74edc4375"
+    },
+    {
+      "path": "scripts/updater-fixture/prepare.py",
+      "sha256": "f1d0e47f68fbeacc35af24ca886363b32daf597d643c90a2054602ccb9a46016"
+    },
+    {
+      "path": "scripts/updater-fixture/run-container.sh",
+      "sha256": "60b7e925b0c637b17edf6232222f2c11d794f7b9f71d2df3e033f025f0a6aa2e"
+    },
+    {
+      "path": "scripts/updater-fixture/runtime.py",
+      "sha256": "ee4d77e616a690a066b16213fbc5ef2e1773df5608d4f6591f686c2637b3bba2"
+    }
+  ],
+  "cachedNativeSource": [
+    {
+      "path": "src/updater.rs",
+      "sha256": "79ed11ecdb3d22410f71d7adb9f7bcbcab00f888cd8892e2268639085df044ce"
+    },
+    {
+      "path": "src/commands.rs",
+      "sha256": "c7b7393c0368b1856e128ddd817bc79d15def8f746faba0e3dbb3db7d1caad67"
+    },
+    {
+      "path": "api-iife.js",
+      "sha256": "2b06134e561371bb2568c6024a90c2cd98362a2f9486d5de682f775abb999f53"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "native-report.json",
+      "bytes": 3904,
+      "sha256": "7a47e18fbf04da91315e10d550c1ede2e6743df93dea28d2a4eeba5a8229384e"
+    },
+    {
+      "path": "runtime-result.json",
+      "bytes": 693,
+      "sha256": "baef3f37b2d08bf9d75ffcd58cab62ef9b961e73ea07addd3d34c220284039f8"
+    },
+    {
+      "path": "requests.jsonl",
+      "bytes": 1629,
+      "sha256": "34e01ce717ea4c507eb62a90a65b8166d1265a7502685fcb5da7cf468686df54"
+    },
+    {
+      "path": "fixture-config.json",
+      "bytes": 520,
+      "sha256": "6dfdf48bf9100ca7bac2a3456ed2f8f98cc29a76072f638c53fa314c090b9f35"
+    },
+    {
+      "path": "fixture-public-key.txt",
+      "bytes": 153,
+      "sha256": "2b5d0f09ce995fce2e081a1ed9633226a242a26e93b2f224e402ce13659f53db"
+    },
+    {
+      "path": "payload.bin.sig",
+      "bytes": 416,
+      "sha256": "f93ad9ffe401e3071a15bc7d1c53d5a48dde2cf9c0688dc0ebfcb809c760759f"
+    },
+    {
+      "path": "bad-signature.sig",
+      "bytes": 417,
+      "sha256": "a3d34d82c3aadc3ac979b478bd213b9b50f5382868aba949f4597ab2eb4da205"
+    },
+    {
+      "path": "frontend-files.json",
+      "bytes": 12749,
+      "sha256": "d3c157b5e247b80cbf01b5516cf9c0b031521200941008623ca58a52ec3a40e7"
+    },
+    {
+      "path": "preserved-before.json",
+      "bytes": 221,
+      "sha256": "488f4ec24ba220f69bf8f0708622aac2d8b81570ce7026c50413eb29c46d4087"
+    },
+    {
+      "path": "restoration.json",
+      "bytes": 373,
+      "sha256": "2e96421ffdf550e8beef2915b80ecba360a6a9b0eae9e5ff07fe9cf770dcf8b0"
+    },
+    {
+      "path": "checks-build-final.log",
+      "bytes": 1022,
+      "sha256": "60f36a855a9d40f4abfa48264d251afd4c59520a771db63a7262fef4ad54fcd6"
+    },
+    {
+      "path": "runtime-final.log",
+      "bytes": 619,
+      "sha256": "d1e3403500faec23a00292ae3d160dcd2a890165c80867e3597fa0edf6eb1d39"
+    },
+    {
+      "path": "feed-bad-signature.json",
+      "bytes": 607,
+      "sha256": "66afac22e8bfe5ea2646938cde6d89d85d76809bd56960f2618a910ca989c967"
+    },
+    {
+      "path": "feed-defer.json",
+      "bytes": 599,
+      "sha256": "ebc5c246d4a1e2bd5f31019bc738e5231c9857e436d79e2e0e4f96fee630ef27"
+    },
+    {
+      "path": "feed-tampered.json",
+      "bytes": 602,
+      "sha256": "aa71607b3f64a0489d9bbd1483f4d8ba6409522e48c7005a07533ff9ac90b820"
+    },
+    {
+      "path": "feed-valid.json",
+      "bytes": 599,
+      "sha256": "1054580bd08c32ef0988b855e8feeda859bf0e8d5d2d2f5fa82a48cec53bf4ae"
+    },
+    {
+      "path": "feed-version-mismatch.json",
+      "bytes": 610,
+      "sha256": "a160887b7bb9b14a088ae4960b7e1bc56d2c0705c7ae31d60f3e5df130c8e58d"
+    },
+    {
+      "path": "payload.bin",
+      "bytes": 65536,
+      "sha256": "19b5fa6ac4854462f2ab19bb281f22589e88aa559c6efe7cf74e6b7d674ef07e"
+    },
+    {
+      "path": "payload-tampered.bin",
+      "bytes": 65536,
+      "sha256": "0ab7b28b8928d359e8c27c3be100a2dce502a9094e524c37c3bdebf3eea52885"
+    },
+    {
+      "path": "fixture-debug",
+      "bytes": 261796776,
+      "sha256": "97fe16adedce546525687543b9c950bd3808ac393540ef7957c6cef4b2f42723"
+    },
+    {
+      "path": "original-debug",
+      "bytes": 261264720,
+      "sha256": "d5938bc6a5ee9201695cd67f5f3702b28eccf9641d6eef51d463b5f08873ccfd"
+    }
+  ],
+  "frontendFiles": 75,
+  "frontendMatchesCurrentRoot": true,
+  "privateKeyDirectoryMode": "0700",
+  "privateKeyAndPrivateLogsMode": "0600",
+  "externalEvidence": "/workspace/astraea-plan/evidence/updater-verify-20261026",
+  "firstRunRetained": "/workspace/astraea-plan/evidence/updater-verify-20261026/first-run",
+  "checks": [
+    "default cargo check --no-default-features --locked --offline -j 1 passed",
+    "feature guard negative configuration unit test passed",
+    "feature debug no-bundle build passed",
+    "JS syntax/Python AST/shell syntax/diff whitespace passed"
+  ],
+  "execution": {
+    "nativeReportOk": true,
+    "artifactGets": [
+      "/artifact/valid",
+      "/artifact/bad-signature",
+      "/artifact/tampered",
+      "/artifact/version-mismatch"
+    ],
+    "deferArtifactGets": 0,
+    "exitBeforeStop": null,
+    "controlledStop": "SIGTERM process group",
+    "wrapperExitCode": -15,
+    "forcedKill": false,
+    "elapsedSeconds": 3.140594776996295,
+    "scope": "offer/defer and signature-verified download only; no apply or relaunch",
+    "specificErrorsMatch": true,
+    "fullArtifactBytes": true,
+    "nativeReceivedBytes": {
+      "defer": 0,
+      "valid": 65536,
+      "bad-signature": 65536,
+      "tampered": 65536,
+      "version-mismatch": 65536
+    },
+    "nativeByteCountsMatch": true,
+    "ok": true
+  },
+  "scope": "No apply, relaunch, AppImage packaging, user consent acceptance, publication, channel policy, or production-default enforcement claim."
+}

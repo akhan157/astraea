@@ -1,0 +1,163 @@
+{
+  "schemaVersion": "astraea-packet-evidence/1.0",
+  "packet": "RMP07",
+  "subpacket": "RMP07a native content identity/lossless diagnostic replay",
+  "baseSha": "bbac580f28fa2ef1add701240a343f212f9eb922",
+  "sourceSha": "f5bf3c5b201d12c93fb15c316ee50f7aafb7c26f",
+  "owner": "coordinator/author; exclusive existing intended worktree; lease released",
+  "modelRouting": {
+    "model": "installed OpenAI gpt-6.1-sol",
+    "effort": "high",
+    "reviewer": "separate serial read-only Codex sessions, same installed model/high",
+    "usageTelemetry": "no quota/reset/cost telemetry supplied; goal harness snapshots are not scientific evidence"
+  },
+  "effectiveInputs": [
+    "Tracked synthetic native-candidate-request.json and profile-candidate-request.json",
+    "Existing permitted RMP01 synthetic legacy request only",
+    "Native typed normalization and authoritative exact bit preimage; readable decimal view is not lossless replay decoder"
+  ],
+  "sourceHashes": {
+    "crates/astraea-engine/Cargo.toml": "1cd1091d8c23f108d90151fc1a8ad751b0db9d69fdbc7d5b0d7ce1d9f0f47bca",
+    "crates/astraea-engine/Cargo.lock": "17a528102d3624f15b870969a180863e90d144e2177f8626b44d7982a8a4fc06",
+    "crates/astraea-engine/src/candidate_identity.rs": "f15a722207fa24303db25c02baea3bd170c12571c0f3bc01f1c6500b89848c50",
+    "crates/astraea-engine/src/candidate_identity/replay.rs": "dca63b1bdd01481b24fe46f4008be313b2b69e6a54f2640b15a556ef57cb90ea",
+    "crates/astraea-engine/src/native_candidate.rs": "d8aa1429a1a3538dd078f14c01d2b0d7e85dd2002a3db990e8af22c02eab3b80",
+    "crates/astraea-engine/src/profile_candidate.rs": "c3d75057b5be1af1e9efcaec826a7e3fcbb45f7676eaef1fc1690d9a195b109a",
+    "crates/astraea-engine/src/models.rs": "7d05da97bd2309350b6627e705a994f44c91dac3bf5260ec085ff5c90e48b19c",
+    "crates/astraea-engine/src/environment_diagnostic.rs": "8609694c8adfb9a5ee3831c5e07054fc2428d22de405a392fa873638682d2f82",
+    "crates/astraea-engine/tests/candidate_identity.rs": "1bdd42799f9f1d32442f4c02cb64c99e29e997f470904d5f24e97bb36d04ebed",
+    "crates/astraea-engine/examples/replay_candidate_report.rs": "9d10fe4f5a520d75510d084dee318b9787c18912cb1d45afdb75b2cdf10375ea",
+    "scripts/diagnostics/check-candidate-identity.py": "da6055cfe3b0f7c503b2c4c1b0c8c7cd272d70a6798f814bbe3b9611d8416d33"
+  },
+  "runtimeHashes": {
+    "native_candidate_flight": "9cb5d58c74ee85f69ca26d54fe8de64fcec8124b6d1352b3377b3b763fe693dd",
+    "profile_candidate_flight": "ac91302f6e33efc3f12a6480b3b0880ae9ac69526ee679fd5d7bdc27bffdfdc4",
+    "legacy_flight_snapshot": "5350c79229c57576d3dd013f0f10a8fe018a1c8698dd8b1ef795f1eadf0609a6",
+    "replay_candidate_report": "25a2ff0b193a3effda586f68e765ba8a9adcf3978e0bd7f55d6fe3fefc80f095",
+    "checker": "da6055cfe3b0f7c503b2c4c1b0c8c7cd272d70a6798f814bbe3b9611d8416d33",
+    "native.json": "af618da23f942c5e8679337fa4ef1c1e47c411a9bb91b8edca5e1f0eade0c66f",
+    "native.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "native-replay.json": "af618da23f942c5e8679337fa4ef1c1e47c411a9bb91b8edca5e1f0eade0c66f",
+    "native-replay.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "profile.json": "c499363f9f531968b16af0d7d5a19773d5ee024e25e209668085439820e90dcf",
+    "profile.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "profile-replay.json": "b2456a3df8c55892af7d74959c5160148caff4536fb8c5be9add6023f72afda0",
+    "profile-replay.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "legacy.json": "f37d195fc903e3599603706a9e3f6b95b152d7a79b4639a31f50fa4f64972249",
+    "legacy.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "artifactAvailability": [
+    {
+      "kind": "portable",
+      "location": "this directory; tracked checker, tests and synthetic fixtures"
+    },
+    {
+      "kind": "external-local-only",
+      "location": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp07-content-identity",
+      "contents": "raw reports/stdout/stderr, logs, reviewer prompts/transcripts"
+    },
+    {
+      "kind": "external-local-only",
+      "location": "/home/ak/.paseo/worktrees/3s8t98rp/target-rmp01/debug/examples",
+      "contents": "four exact native executables; hashes in native-checks.json"
+    },
+    {
+      "kind": "not-built-or-offered",
+      "location": "production WASM/browser app",
+      "contents": "no generated production WASM at expected source path in checkout; wasm32 library compile check only"
+    }
+  ],
+  "checks": [
+    {
+      "id": "RMP07-C01",
+      "status": "in_progress",
+      "kind": "native identity increment only",
+      "commandOrMechanism": "5 unit + 8 integration identity/replay tests; final 86-test engine all-target suite; 5 CLI independent Python probes",
+      "expectedRule": "actual consumed input/model/policy changes invalidate identity; lossless archive replay; no false runtime binding",
+      "observed": "all bounded native checks pass; parent frontend identity/migration not implemented",
+      "exitCode": 0,
+      "evidencePath": "docs/internal/execution-runs/RMP07-content-identity/native-checks.json",
+      "limitation": "C01 remains in_progress; C02-C08 not established"
+    },
+    {
+      "id": "RMP07-C02",
+      "status": "not_run",
+      "kind": "parent product acceptance",
+      "observed": "Not established by native-only diagnostic scope"
+    },
+    {
+      "id": "RMP07-C03",
+      "status": "not_run",
+      "kind": "parent product acceptance",
+      "observed": "Not established by native-only diagnostic scope"
+    },
+    {
+      "id": "RMP07-C04",
+      "status": "not_run",
+      "kind": "parent product acceptance",
+      "observed": "Not established by native-only diagnostic scope"
+    },
+    {
+      "id": "RMP07-C05",
+      "status": "not_run",
+      "kind": "parent product acceptance",
+      "observed": "Not established by native-only diagnostic scope"
+    },
+    {
+      "id": "RMP07-C06",
+      "status": "not_run",
+      "kind": "parent product acceptance",
+      "observed": "Not established by native-only diagnostic scope"
+    },
+    {
+      "id": "RMP07-C07",
+      "status": "not_run",
+      "kind": "parent product acceptance",
+      "observed": "Not established by native-only diagnostic scope"
+    },
+    {
+      "id": "RMP07-C08",
+      "status": "not_run",
+      "kind": "parent product acceptance",
+      "observed": "Not established by native-only diagnostic scope"
+    }
+  ],
+  "commands": [
+    "CARGO_BUILD_JOBS=2 cargo test --offline --locked --manifest-path crates/astraea-engine/Cargo.toml --all-targets -- --test-threads=2",
+    "CARGO_BUILD_JOBS=2 cargo check --offline --locked --manifest-path crates/astraea-engine/Cargo.toml --target wasm32-unknown-unknown --lib",
+    "CARGO_BUILD_JOBS=2 cargo build --offline --locked --manifest-path crates/astraea-engine/Cargo.toml --example native_candidate_flight --example profile_candidate_flight --example legacy_flight_snapshot --example replay_candidate_report -j2",
+    "python3 scripts/diagnostics/check-candidate-identity.py <measured examples directory> <fresh output directory> <permitted retained RMP06b synthetic outputs> <permitted RMP01 synthetic legacy request>"
+  ],
+  "review": {
+    "reviewer": "independent read-only Codex installed OpenAI gpt-6.1-sol/high",
+    "independentOfAuthor": true,
+    "disposition": "approved for bounded native increment after focused rework",
+    "findings": [
+      "Initial REQUEST_CHANGES: exact serialized float replay and omitted active policies",
+      "Both corrected; independent rereview ACCEPT; no material defects",
+      "Optional public-entrypoint noncanonical fuzz cases remain follow-up"
+    ]
+  },
+  "qualification": {
+    "computational": "native bounded identity/replay tests pass",
+    "physical": "unqualified",
+    "dynamic": "unknown",
+    "numerical": "not qualified; existing RMP12 coarse-rail failure retained"
+  },
+  "failedAttempts": [
+    "Initial identity integration test incorrectly changed motor wet mass alone; existing identity guard refused; test changed dry/wet consistently, no threshold relaxation",
+    "Initial read-only review REQUEST_CHANGES preserved, rework then ACCEPT",
+    "Unused helper warning removed",
+    "rustfmt not installed; no formatter success claimed"
+  ],
+  "remainingScope": [
+    "RMP07 C01 complete frontend content identity and C02-C08 migration/calibration/worker/UI/ensemble/persistence/exact built runtime",
+    "RMP03 actual source imports and RMP06 local axial startup/source dependencies",
+    "All empirical/numerical/mission/team/platform/release gates remain subject to existing evidence/authorization"
+  ],
+  "nextActions": [
+    "Continue existing RMP07 schema/provider archive and calibration compatibility contract, preserving legacy projects/defaults",
+    "Check actual frontend dependency availability before tests/browser promises"
+  ],
+  "usageLimitMessageActuallyProvided": null
+}

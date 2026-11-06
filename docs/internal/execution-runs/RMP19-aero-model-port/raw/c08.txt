@@ -1,0 +1,49 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running tests/engine_corpus_parity.rs (crates/astraea-core/target/debug/deps/engine_corpus_parity-8c735de4a6919c1a)
+
+running 1 test
+aeropac104kstageone-two-2: rows=1296 worst=3.263e-7 tier=exact at aeropac104kstageone-two-2 Barrowman M2.5 a0 noz0 RE: got=101333166.93451159 exp=101333200
+arcas-long: rows=648 worst=4.994e-7 tier=exact at arcas-long Barrowman M1.04 a0 noz0 RE: got=13677303.169622904 exp=13677310
+arcas-short: rows=648 worst=4.871e-7 tier=exact at arcas-short Barrowman M3 a0 noz0 RE: got=10865105.292150155 exp=10865100
+blister: rows=1296 worst=4.220e-7 tier=exact at blister Barrowman M0.1 a0 noz0 protub: got=0.1238296522550727 exp=0.1238296
+byrum: rows=648 worst=4.539e-7 tier=exact at byrum Barrowman M0.2 a0 noz0 RE: got=10029764.55205823 exp=10029760
+calisp1: rows=1296 worst=4.837e-7 tier=exact at calisp1 Barrowman M0.8 a0 noz0 protub: got=0.11529965577224381 exp=0.1152996
+calisp2: rows=1296 worst=4.837e-7 tier=exact at calisp2 Barrowman M0.8 a0 noz0 protub: got=0.11529965577224381 exp=0.1152996
+calisp3: rows=1296 worst=4.837e-7 tier=exact at calisp3 Barrowman M0.8 a0 noz0 protub: got=0.11529965577224381 exp=0.1152996
+calisp4: rows=1296 worst=4.837e-7 tier=exact at calisp4 Barrowman M0.8 a0 noz0 protub: got=0.11529965577224381 exp=0.1152996
+calisp5: rows=1296 worst=4.837e-7 tier=exact at calisp5 Barrowman M0.8 a0 noz0 protub: got=0.11529965577224381 exp=0.1152996
+cancerdescending: rows=648 worst=3.450e-7 tier=exact at cancerdescending Barrowman M2 a0 noz0 CP: got=89.19578389215177 exp=89.19575312270919
+dontdebatethisn5800mindia: rows=1296 worst=3.301e-7 tier=exact at dontdebatethisn5800mindia Barrowman M20 a0 noz0 RE: got=1162742616.21206 exp=1162743000
+ezi65-1: rows=648 worst=3.783e-7 tier=exact at ezi65-1 Barrowman M0.01 a0 noz0 protub: got=0.11756975552511024 exp=0.1175698
+full-metal-jacket1: rows=1296 worst=3.919e-7 tier=exact at full-metal-jacket1 Barrowman M1.3 a0 noz0 RE: got=101780660.11695963 exp=101780700
+full-metal-jacket2: rows=1296 worst=4.157e-7 tier=exact at full-metal-jacket2 Barrowman M1.1 a0 noz0 CP: got=100.07250155139518 exp=100.07245994984214
+gibb: rows=648 worst=4.649e-7 tier=exact at gibb Barrowman M1.5 a1 noz0 CL: got=0.30650774915606577 exp=0.30650760665487
+iondrive: rows=648 worst=3.997e-7 tier=exact at iondrive Barrowman M25 a0 noz0 RE: got=1035521413.9293156 exp=1035521000
+kinsel-p4935-a-601-rocket: rows=1296 worst=5.149e-7 tier=exact at kinsel-p4935-a-601-rocket Barrowman M1.04 a0 noz0 RE: got=104001853.54983802 exp=104001800
+l500roc: rows=1296 worst=3.479e-7 tier=exact at l500roc Barrowman M3.5 a0 noz0 RE: got=128404655.32723516 exp=128404700
+proteus6: rows=1296 worst=4.249e-7 tier=exact at proteus6 Barrowman M1.04 a0 noz0 RE: got=105232644.71610829 exp=105232600
+qu8k: rows=1296 worst=4.633e-7 tier=exact at qu8k Barrowman M2 a0 noz0 protub: got=0.10644245068580985 exp=0.1064425
+rabia: rows=1296 worst=4.297e-7 tier=exact at rabia Barrowman M2 a0 noz0 CP: got=91.5126868142378 exp=91.5127261386138
+rabia-shortfincan: rows=1296 worst=4.220e-7 tier=exact at rabia-shortfincan Barrowman M1.75 a0 noz0 RE: got=100704457.50462593 exp=100704500
+raven: rows=648 worst=4.740e-7 tier=exact at raven Barrowman M25 a0 noz0 RE: got=1087297484.6257813 exp=1087298000
+thunder-lightning: rows=648 worst=3.556e-7 tier=exact at thunder-lightning Barrowman M0.3 a0 noz0 RE: got=13446985.21802497 exp=13446990
+torrent: rows=1296 worst=4.394e-7 tier=exact at torrent Barrowman M1.5 a0 noz0 CP: got=93.16931252066223 exp=93.16935345840369
+w20-elliptical: rows=648 worst=4.740e-7 tier=exact at w20-elliptical Barrowman M25 a0 noz0 RE: got=1087297484.6257813 exp=1087298000
+w20-fin-biconvex: rows=648 worst=4.740e-7 tier=exact at w20-fin-biconvex Barrowman M25 a0 noz0 RE: got=1087297484.6257813 exp=1087298000
+w20-fin-double-wedge: rows=648 worst=4.740e-7 tier=exact at w20-fin-double-wedge Barrowman M25 a0 noz0 RE: got=1087297484.6257813 exp=1087298000
+w20-fin-hexagonal-blunt: rows=648 worst=4.740e-7 tier=exact at w20-fin-hexagonal-blunt Barrowman M25 a0 noz0 RE: got=1087297484.6257813 exp=1087298000
+w20-fin-single-wedge: rows=648 worst=4.740e-7 tier=exact at w20-fin-single-wedge Barrowman M25 a0 noz0 RE: got=1087297484.6257813 exp=1087298000
+w20-fin-subsonic-naca: rows=648 worst=4.740e-7 tier=exact at w20-fin-subsonic-naca Barrowman M25 a0 noz0 RE: got=1087297484.6257813 exp=1087298000
+w20-lvhaack: rows=648 worst=4.740e-7 tier=exact at w20-lvhaack Barrowman M25 a0 noz0 RE: got=1087297484.6257813 exp=1087298000
+w20-parabolic: rows=648 worst=4.740e-7 tier=exact at w20-parabolic Barrowman M25 a0 noz0 RE: got=1087297484.6257813 exp=1087298000
+w20-powerlaw-0p5: rows=648 worst=4.740e-7 tier=exact at w20-powerlaw-0p5 Barrowman M25 a0 noz0 RE: got=1087297484.6257813 exp=1087298000
+w20-powerlaw-0p75: rows=648 worst=4.740e-7 tier=exact at w20-powerlaw-0p75 Barrowman M25 a0 noz0 RE: got=1087297484.6257813 exp=1087298000
+w20-powerlaw-1p0: rows=648 worst=4.740e-7 tier=exact at w20-powerlaw-1p0 Barrowman M25 a0 noz0 RE: got=1087297484.6257813 exp=1087298000
+w20-steep-boattail: rows=648 worst=1.554e-6 tier=exact at w20-steep-boattail Barrowman M3 a0 noz0 CP: got=-1.0393832326256298 exp=-1.0393848473573863
+w20-transition-expanding: rows=648 worst=3.185e-7 tier=exact at w20-transition-expanding Barrowman M10 a0 noz0 finExtra: got=0.01114316645089286 exp=0.01114317
+w20-transition-reducing: rows=648 worst=3.165e-7 tier=exact at w20-transition-reducing Barrowman M0.3 a0 noz0 protub: got=0.21681906861647815 exp=0.216819
+engine corpus: designs=40 rows=36936 worst=1.554e-6 at w20-steep-boattail Barrowman M3 a0 noz0 CP: got=-1.0393832326256298 exp=-1.0393848473573863
+test provider_reproduces_the_engine_corpus_by_design ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.65s
+

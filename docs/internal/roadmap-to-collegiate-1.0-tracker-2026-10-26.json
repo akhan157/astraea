@@ -1,0 +1,458 @@
+{
+  "schemaVersion": "astraea-remaining-roadmap/1.0",
+  "preparedDate": "2026-10-26",
+  "engineeringBase": "5ea3141",
+  "scope": "Remaining known work; creating this tracker completes none of these implementation/evidence packets. No CI configuration or authorization changed.",
+  "dependencySemantics": "Closure dependencies for selected mission/output claims, not a prohibition on early independent design. Alternative native/supplied routes and optional capabilities require explicit scope review; unknown evidence cannot satisfy a primary claim. This is not an automatic release-eligibility solver.",
+  "roadmap": "roadmap-to-collegiate-1.0-2026-10-26.md",
+  "packets": [
+    {
+      "id": "RMP01",
+      "title": "A1d-2 native candidate and shared queries",
+      "wave": "A",
+      "status": "accepted_bounded_native_increment",
+      "dependenciesForClosure": [],
+      "externalDependencies": [],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP01",
+      "owner": "coordinator/author session; independent Codex/GPT-6 read-only review",
+      "pinnedBase": "c80e7d356fe0a777bd793c56815388960ea597c7",
+      "evidence": [
+        "docs/internal/execution-runs/RMP01-20261026/EVIDENCE.json"
+      ],
+      "reviewDisposition": "accepted after independent read-only review; two rework rounds, findings resolved",
+      "executionBrief": "execution-package/packets/RMP01.md"
+    },
+    {
+      "id": "RMP02",
+      "title": "D1 matched coefficient-source qualification",
+      "wave": "A",
+      "status": "in_progress",
+      "dependenciesForClosure": [],
+      "externalDependencies": [
+        "Unresolved source geometry/conditions may require additional eligible records"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP02",
+      "owner": "coordinator; RMP02a lease released",
+      "pinnedBase": "46bb995a4d83790f06d75e47f79e0211105f8f20",
+      "evidence": [
+        "docs/internal/execution-runs/RMP02-source-eligibility/EVIDENCE.json",
+        "docs/internal/execution-package/evidence/RMP02/eligibility.json"
+      ],
+      "reviewDisposition": "RMP02a independent ACCEPT: C01/C05 explicit exclusions/paired guard only,64 retained entries/25 tests; zero qualified cases. Parent sign/datum/base/native-density/geometry/physical closure open.",
+      "executionBrief": "execution-package/packets/RMP02.md"
+    },
+    {
+      "id": "RMP03",
+      "title": "T1b real source/vendor and sparse-quantity import",
+      "wave": "A",
+      "status": "blocked",
+      "dependenciesForClosure": [],
+      "externalDependencies": [
+        "Actual source exports/runtime/rights for a particular vendor adapter"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP03",
+      "owner": "coordinator; prerequisite lease released",
+      "pinnedBase": "8b935f20e0cefabba3b09ece103a0c86c0ce5541",
+      "evidence": [
+        "docs/internal/execution-runs/RMP03-RMP04-prerequisites/EVIDENCE.json"
+      ],
+      "reviewDisposition": "source availability review accepted; actual export/schema blocks adapter; no new check passed",
+      "executionBrief": "execution-package/packets/RMP03.md"
+    },
+    {
+      "id": "RMP04",
+      "title": "UP1d actual update apply/relaunch/channel policy",
+      "wave": "A",
+      "status": "blocked",
+      "dependenciesForClosure": [],
+      "externalDependencies": [],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP04",
+      "owner": "coordinator; prerequisite lease released",
+      "pinnedBase": "8b935f20e0cefabba3b09ece103a0c86c0ce5541",
+      "evidence": [
+        "docs/internal/execution-runs/RMP03-RMP04-prerequisites/EVIDENCE.json"
+      ],
+      "reviewDisposition": "technical constraints accepted; actual desktop/image/dependency prerequisites absent; no executable apply recipe/check approved",
+      "executionBrief": "execution-package/packets/RMP04.md"
+    },
+    {
+      "id": "RMP05",
+      "title": "Q0 as-flown eligibility and decision budgets",
+      "wave": "A",
+      "status": "blocked",
+      "dependenciesForClosure": [],
+      "externalDependencies": [
+        "As-flown records and rights",
+        "Team/custodian",
+        "Output-specific decision reserves and observation quality"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP05",
+      "owner": "responsible decision owner/custodian input pending;local preparation lease released",
+      "pinnedBase": "bdcea0bf57be5407f6b61f4655f6ee59775c99b5",
+      "evidence": [
+        "docs/internal/execution-runs/RMP05-input-only/EVIDENCE.json"
+      ],
+      "reviewDisposition": "input-only form prepared/structurally checked;actual authorized inputs,independent eligibility and agreed output budgets absent;no check passed",
+      "executionBrief": "execution-package/packets/RMP05.md"
+    },
+    {
+      "id": "RMP06",
+      "title": "E1c complete axial/environment consumption",
+      "wave": "B",
+      "status": "in_progress_native_subpacket_accepted",
+      "dependenciesForClosure": [
+        "RMP01"
+      ],
+      "externalDependencies": [],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP06",
+      "owner": "coordinator/author; RMP06a/b leases released",
+      "pinnedBase": "8a63a0147665f6f3554f6a2a8af6921d07ba8f03",
+      "evidence": [
+        "execution-runs/RMP06-local-axial/EVIDENCE.json",
+        "execution-runs/RMP06-profile-bridge/EVIDENCE.json"
+      ],
+      "reviewDisposition": "RMP06a/b independently accepted; parent partial on local axial startup source/cache/product/physical qualification; continue unblocked RMP02",
+      "executionBrief": "execution-package/packets/RMP06.md"
+    },
+    {
+      "id": "RMP07",
+      "title": "Provider identity/migration and experimental app exposure",
+      "wave": "B",
+      "status": "partial-native-identity-legacy-schema-archived-reporting-calibration-binding; candidate integration pending",
+      "dependenciesForClosure": [
+        "RMP01",
+        "RMP03",
+        "RMP06"
+      ],
+      "externalDependencies": [],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP07",
+      "owner": "coordinator/author; serial independent reviewer; lease released",
+      "pinnedBase": "a22df9d253445fb145868038aed816da70235b4b",
+      "evidence": [
+        "execution-runs/RMP07-content-identity/RESULT.md",
+        "execution-runs/RMP07-content-identity/EVIDENCE.json",
+        "execution-runs/RMP07-project-identity/RESULT.md",
+        "execution-runs/RMP07-project-identity/EVIDENCE.json",
+        "execution-runs/RMP07-run-comparison/RESULT.md",
+        "execution-runs/RMP07-run-comparison/EVIDENCE.json",
+        "execution-runs/RMP07-calibration-binding/RESULT.md",
+        "execution-runs/RMP07-calibration-binding/EVIDENCE.json",
+        "execution-runs/RMP07-model-status/RESULT.md",
+        "execution-runs/RMP07-model-status/EVIDENCE.json",
+        "execution-runs/RMP07-consumer-calibration-guard/RESULT.md",
+        "execution-runs/RMP07-consumer-calibration-guard/EVIDENCE.json",
+        "execution-runs/RMP07-built-runtime/RESULT.md",
+        "execution-runs/RMP07-built-runtime/EVIDENCE.json"
+      ],
+      "reviewDisposition": "RMP07a-d ACCEPT; C02 pass, C03 mechanism done, parent partial; no candidate/default activation",
+      "executionBrief": "execution-package/packets/RMP07.md"
+    },
+    {
+      "id": "RMP08",
+      "title": "Required geometry/Mach/incidence/rate coverage",
+      "wave": "B",
+      "status": "dependency-pending",
+      "dependenciesForClosure": [
+        "RMP01",
+        "RMP02"
+      ],
+      "externalDependencies": [
+        "Eligible physical coefficient/rate evidence for claimed regimes"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP08",
+      "owner": null,
+      "pinnedBase": null,
+      "evidence": [],
+      "reviewDisposition": null,
+      "executionBrief": "execution-package/packets/RMP08.md"
+    },
+    {
+      "id": "RMP09",
+      "title": "Mass/propulsion/guide/recovery contracts and qualification",
+      "wave": "B",
+      "status": "dependency-pending",
+      "dependenciesForClosure": [
+        "RMP01",
+        "RMP05"
+      ],
+      "externalDependencies": [
+        "Measured mechanics/guide/propulsion/recovery inputs and observations"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP09",
+      "owner": null,
+      "pinnedBase": null,
+      "evidence": [
+        "execution-runs/RMP09-mechanics-invariants/RESULT.md",
+        "execution-runs/RMP09-mechanics-invariants/EVIDENCE.json"
+      ],
+      "reviewDisposition": null,
+      "executionBrief": "execution-package/packets/RMP09.md"
+    },
+    {
+      "id": "RMP10",
+      "title": "Powered stability/peak/decision-output contracts",
+      "wave": "B",
+      "status": "partial-legacy-history-and-recovery-readouts-accepted; provider/peak/event/section/structural/scientific closure open",
+      "dependenciesForClosure": [
+        "RMP01",
+        "RMP09"
+      ],
+      "externalDependencies": [
+        "Measurement/material/joint evidence for optional structural claims"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP10",
+      "owner": "coordinator/author; RMP10a/b source/compute leases released",
+      "pinnedBase": "59700ee85c4c832784b37f6e8ddca4a351390584",
+      "evidence": [
+        "execution-runs/RMP10-flight-model-history/RESULT.md",
+        "execution-runs/RMP10-flight-model-history/EVIDENCE.json",
+        "execution-runs/RMP10-recovery-readouts/RESULT.md",
+        "execution-runs/RMP10-recovery-readouts/EVIDENCE.json"
+      ],
+      "reviewDisposition": "RMP10a ACCEPT; RMP10b request_changes/rework/ACCEPT, coordinator minor tooltip/test follow-ups; C04 progress only, no new PASS/physics/default/release qualification",
+      "executionBrief": "execution-package/packets/RMP10.md",
+      "latestSourceSha": "add2c706ba8a09f0db613f38dd79d26069ea5af2"
+    },
+    {
+      "id": "RMP11",
+      "title": "Matched-input comparator adapters",
+      "wave": "B",
+      "status": "dependency-pending",
+      "dependenciesForClosure": [
+        "RMP01",
+        "RMP03",
+        "RMP06"
+      ],
+      "externalDependencies": [
+        "Lawful pinned comparator executable/API and required platform access"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP11",
+      "owner": null,
+      "pinnedBase": null,
+      "evidence": [],
+      "reviewDisposition": null,
+      "executionBrief": "execution-package/packets/RMP11.md"
+    },
+    {
+      "id": "RMP12",
+      "title": "Changed-model native and production-WASM numerical qualification",
+      "wave": "C",
+      "status": "partial-regime-expansion-accepted;20ms default failure retained;qualification/parity/budgets open",
+      "dependenciesForClosure": [
+        "RMP01",
+        "RMP06",
+        "RMP08",
+        "RMP09",
+        "RMP10"
+      ],
+      "externalDependencies": [],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP12",
+      "owner": "coordinator; RMP12c source/compute lease released",
+      "pinnedBase": "05121c59dda3b437f19367cdedce037d193dc11c",
+      "evidence": [
+        "docs/internal/execution-runs/RMP12-native-reference/EVIDENCE.json",
+        "execution-runs/RMP12-candidate-controls/RESULT.md",
+        "execution-runs/RMP12-candidate-controls/EVIDENCE.json",
+        "execution-runs/RMP12c-regime-expansion/RESULT.md",
+        "execution-runs/RMP12c-regime-expansion/EVIDENCE.json",
+        "execution-runs/RMP12-ensemble-determinism/RESULT.md",
+        "execution-runs/RMP12-ensemble-determinism/EVIDENCE.json"
+      ],
+      "reviewDisposition": "RMP12c contract/implementation/results ACCEPT;7 attempts once; split effect at3 selected steps one fixture; no default/qualification change",
+      "executionBrief": "execution-package/packets/RMP12.md"
+    },
+    {
+      "id": "RMP13",
+      "title": "Grounded uncertainty and scoped calibration",
+      "wave": "C",
+      "status": "dependency-pending",
+      "dependenciesForClosure": [
+        "RMP02",
+        "RMP05",
+        "RMP08",
+        "RMP09",
+        "RMP12"
+      ],
+      "externalDependencies": [
+        "Independent input ranges and relevant development discrepancy evidence"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP13",
+      "owner": null,
+      "pinnedBase": null,
+      "evidence": [],
+      "reviewDisposition": null,
+      "executionBrief": "execution-package/packets/RMP13.md"
+    },
+    {
+      "id": "RMP14",
+      "title": "Q1 frozen prospective validation",
+      "wave": "C",
+      "status": "dependency-pending",
+      "dependenciesForClosure": [
+        "RMP05",
+        "RMP07",
+        "RMP12",
+        "RMP13"
+      ],
+      "externalDependencies": [
+        "Separately authorized unseen outcome release",
+        "Independent scoring/custody"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP14",
+      "owner": null,
+      "pinnedBase": null,
+      "evidence": [],
+      "reviewDisposition": null,
+      "executionBrief": "execution-package/packets/RMP14.md"
+    },
+    {
+      "id": "RMP15",
+      "title": "Product journeys/preservation/interoperability",
+      "wave": "C",
+      "status": "dependency-pending; early RMP15a-d accepted; C02/C03 pass (current paths), C01 in_progress",
+      "dependenciesForClosure": [
+        "RMP03",
+        "RMP07",
+        "RMP10"
+      ],
+      "externalDependencies": [
+        "Permitted representative real vendor/telemetry cases where needed"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP15",
+      "owner": "coordinator/author; RMP15a source/compute lease released",
+      "pinnedBase": "df94473b129172105d9e52d15b34b12fe4d89445",
+      "evidence": [
+        "execution-runs/RMP15-saved-run-landing/RESULT.md",
+        "execution-runs/RMP15-saved-run-landing/EVIDENCE.json",
+        "execution-runs/RMP15-saved-run-events/RESULT.md",
+        "execution-runs/RMP15-saved-run-events/EVIDENCE.json",
+        "execution-runs/RMP15-failure-recovery/RESULT.md",
+        "execution-runs/RMP15-failure-recovery/EVIDENCE.json",
+        "execution-runs/RMP15-lifecycle/RESULT.md",
+        "execution-runs/RMP15-lifecycle/EVIDENCE.json"
+      ],
+      "reviewDisposition": "RMP15a-d accepted; C02/C03 pass scoped to current legacy paths; closure dependencies pending",
+      "executionBrief": "execution-package/packets/RMP15.md"
+    },
+    {
+      "id": "RMP16",
+      "title": "Installed supported-platform acceptance",
+      "wave": "C",
+      "status": "dependency-pending",
+      "dependenciesForClosure": [
+        "RMP04",
+        "RMP07",
+        "RMP15"
+      ],
+      "externalDependencies": [
+        "Actual Windows/macOS/Linux sessions/hardware",
+        "Applicable signing/notarization credentials and authorization"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP16",
+      "owner": null,
+      "pinnedBase": null,
+      "evidence": [],
+      "reviewDisposition": null,
+      "executionBrief": "execution-package/packets/RMP16.md"
+    },
+    {
+      "id": "RMP17",
+      "title": "Independent team and second-member reproduction",
+      "wave": "C",
+      "status": "dependency-pending",
+      "dependenciesForClosure": [
+        "RMP05",
+        "RMP14",
+        "RMP15"
+      ],
+      "externalDependencies": [
+        "Authorized collegiate team participation"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP17",
+      "owner": null,
+      "pinnedBase": null,
+      "evidence": [],
+      "reviewDisposition": null,
+      "executionBrief": "execution-package/packets/RMP17.md"
+    },
+    {
+      "id": "RMP18",
+      "title": "Release-candidate/claim reconciliation and owner decision",
+      "wave": "C",
+      "status": "dependency-pending",
+      "dependenciesForClosure": [
+        "RMP14",
+        "RMP15",
+        "RMP16",
+        "RMP17"
+      ],
+      "externalDependencies": [
+        "Owner authorization for push/merge/publication/deployment/production operations"
+      ],
+      "acceptanceReference": "roadmap-to-collegiate-1.0-2026-10-26.md: RMP18",
+      "owner": null,
+      "pinnedBase": null,
+      "evidence": [],
+      "reviewDisposition": null,
+      "executionBrief": "execution-package/packets/RMP18.md"
+    }
+  ],
+  "gates": [
+    {
+      "id": "G0",
+      "name": "Reproducibility and preservation",
+      "status": "open-for-final-claim",
+      "evidence": []
+    },
+    {
+      "id": "G1",
+      "name": "Coherent implementation and runtime identity",
+      "status": "open-for-final-claim",
+      "evidence": []
+    },
+    {
+      "id": "G2",
+      "name": "Candidate numerical budgets",
+      "status": "open-for-final-claim",
+      "evidence": []
+    },
+    {
+      "id": "G3",
+      "name": "Physical development evidence",
+      "status": "open-for-final-claim",
+      "evidence": []
+    },
+    {
+      "id": "G4",
+      "name": "Prospective flight qualification",
+      "status": "open-for-final-claim",
+      "evidence": []
+    },
+    {
+      "id": "G5",
+      "name": "Useful grounded uncertainty",
+      "status": "open-for-final-claim",
+      "evidence": []
+    },
+    {
+      "id": "G6",
+      "name": "Independent team usability",
+      "status": "open-for-final-claim",
+      "evidence": []
+    },
+    {
+      "id": "G7",
+      "name": "Installed platforms and update/recovery",
+      "status": "open-for-final-claim",
+      "evidence": []
+    },
+    {
+      "id": "G8",
+      "name": "Release authorization",
+      "status": "open-for-final-claim",
+      "evidence": []
+    }
+  ],
+  "executionPackageEntry": "execution-package/START-HERE.md",
+  "acceptanceRegister": "execution-package/acceptance-register.json"
+}

@@ -1,0 +1,19 @@
+{
+  "directory": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-rmp10-geometry-cp-support-resume",
+  "scope": "external author-run raw evidence, not tracked raw files",
+  "sha256": {
+    "before.log": "ee2dbfc988ca6ef91b867ee40c396a2abc9c0f67ea64d5bc0096f523a6e5e24b",
+    "intermediate.log": "0ba39f98907116f514fa2fa0ffe4ec8988fe5237e7845e2d5b17f2f3757e47ae",
+    "full-src.log": "cf4ec252207e4ec6823b4561441cdcacc031fc0f14fb55744ec448d3d6a773a8",
+    "coefficient-before.log": "f2e9e35a47d698d443bf172299fdcb99d114d27e5a71caf64ddbe1d77df674ec",
+    "affected-final.log": "096bd1b074a0932615892225c0819e8bcbfa55c9e5d45aaa816813362e6dd1fe",
+    "build-modules.json": "bfa3e540f8e777ca5bc6acf1c8ed90225a34423af0915ff79d2e5098886a9a4e",
+    "browser.json": "691a5c32cadb88f35d5cf1bb6d6ec419f8066d461d6749ce2d6a22c85dd745b6",
+    "coefficient-browser.json": "7832bca7df276020771e8c799c480c521ac12b58280b05d9249d4a7050c3deaf",
+    "copilot.webp": "a1e3bb9df2a018b61d57d345e8112a8e048ae3231ce5edc2161686116188995e",
+    "coefficients.webp": "8e0f3fb5029d219799318ef0df33e79bf1fbe7559286803e10ce99dd18410a66",
+    "review-input.md": "c7735d2a4c9a0ea46499d6af1453ccca6c1aa6a9b188d7be7fe61b6205010d07",
+    "review.md": "306ac92807129a13cfc5f7c64a272e8e506b2b9947c5744b3a976001a2ae63be",
+    "review.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

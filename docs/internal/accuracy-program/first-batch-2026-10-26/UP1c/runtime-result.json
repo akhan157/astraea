@@ -1,0 +1,27 @@
+{
+  "nativeReportOk": true,
+  "artifactGets": [
+    "/artifact/valid",
+    "/artifact/bad-signature",
+    "/artifact/tampered",
+    "/artifact/version-mismatch"
+  ],
+  "deferArtifactGets": 0,
+  "exitBeforeStop": null,
+  "controlledStop": "SIGTERM process group",
+  "wrapperExitCode": -15,
+  "forcedKill": false,
+  "elapsedSeconds": 3.140594776996295,
+  "scope": "offer/defer and signature-verified download only; no apply or relaunch",
+  "specificErrorsMatch": true,
+  "fullArtifactBytes": true,
+  "nativeReceivedBytes": {
+    "defer": 0,
+    "valid": 65536,
+    "bad-signature": 65536,
+    "tampered": 65536,
+    "version-mismatch": 65536
+  },
+  "nativeByteCountsMatch": true,
+  "ok": true
+}

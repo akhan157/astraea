@@ -1,0 +1,22 @@
+{
+  "sourceSha": "49b07adccc2c882bd8eabc861fe05625fb2b0465",
+  "originalBase": "29cbc02",
+  "files": {
+    "src/aero/geometryCpSupport.test.ts": "fc98a436eb2b728fe56fc6c7fce09d7473045b77847b85d07c4b9daff438295d",
+    "src/aero/geometryCpSupport.ts": "f0ced71240369766e786957ed1816621e524ee666386e73263e5799c65a7edee",
+    "src/aero/stabilityBreakdown.ts": "9e6f0d2c92eeb97855b72a2b951f4e080a9fd0a282634e726787d6159b9ad14a",
+    "src/console/data/adapter.ts": "ea499a0abcf86611d7f48759e83f5e6e5c9558c11e7ea3b318126d8e538f4b0f",
+    "src/console/stages/AeroControls.tsx": "057919c51715a4d2bcd7eb4518f0049f3fa5047286805ef30da1463b2b372f3b",
+    "src/console/stages/Airframe.tsx": "67dc3ce76b8801212d8aad49da4923640d36cf50b9b600c1329de9ae69872cff",
+    "src/console/store.test.tsx": "1ade3477838e8a627a94291f822fea5078d3425827384c871cc435e1a2d7d219",
+    "src/console/viewport/Vehicle3D.tsx": "de2e440df92eae3d29a72d16a05b14fee52d7e46b59b5e1bdd96853a56865169",
+    "src/copilot/assistant.ts": "bf06068ce1ed6a8e32aebf58b5dbd232e41a284df008a47fca0c058bc0e1045e",
+    "src/copilot/checks.ts": "b24adc8aa4b513d1c8f41e44547d34e16058fae92ed1b7feb5742ecf31f840d7",
+    "src/copilot/engine.ts": "3882b8be551d7444e4a876522ccdeaf649a335b51c84b1de9907b3214ff82962",
+    "src/copilot/fixes.ts": "992a547434dce2c240bc0454256ea4dc0759c120bb1604170f7b6823273ccb14",
+    "src/core/types.ts": "520a15150ea4e2e5e75f8dc1257b248c3642da3eec3e72dc7cd5eb62381e19cb",
+    "src/engine/ensembleDeterminism.test.ts": "458a06e991b8d4dafb653fcbf819ec83b40be54451af257ae50ddf2e60824036",
+    "src/engine/geometryCpSupport.test.ts": "ea184a32bbfb39b109595aad8fe7a4b816f4d2047720d73104672b32c9504ff0",
+    "src/tauri/bridge.ts": "c1f5e2adf53f1cdce56fd9c62ec3b532463b2923eaa970895677f8cb612c8fe5"
+  }
+}

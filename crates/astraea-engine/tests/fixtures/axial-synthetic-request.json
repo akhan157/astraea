@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "rmp06-local-total-axial-diagnostic/1.0.0",
+  "modelId": "local-subsonic-inherited-total-axial/1.0.0",
+  "inputIdentity": "rmp06a-synthetic-local-total-v1",
+  "source": {
+    "identity": "inherited-unqualified-equations-synthetic-geometry-v1",
+    "geometryIdentity": "declared-clean-synthetic-body-and-square-fins-v1",
+    "conditionIdentity": "synthetic-still-not-as-flown-v1",
+    "description": "Implementation-only synthetic geometry and independent P/T profile. Not a weather observation, measured drag source, real vehicle or flight qualification."
+  },
+  "conditionIdentity": "synthetic-still-not-as-flown-v1",
+  "powerPolicy": "inherited-plume-factor-0.38",
+  "power": "coast",
+  "geometry": {
+    "identity": "declared-clean-synthetic-body-and-square-fins-v1",
+    "configuration": "clean-nose-cylinder-trapezoid-fins-unobstructed-base/1.0.0",
+    "frictionCoverage": "nose-cylinder-plus-all-fin-faces-friction-no-pressure-in-form-factors/1.0.0",
+    "referenceAreaM2": 0.02,
+    "bodyDiameterM": 0.1,
+    "noseShape": "conical",
+    "noseLengthM": 0.5,
+    "cylinderLengthM": 1.5,
+    "bodyFriction": { "identity": "synthetic-body", "lengthM": 2.0, "roughnessM": 0.000005, "wettedAreaM2": 0.58, "formFactor": 1.2 },
+    "fins": [
+      { "count": 4, "rootChordM": 0.3, "tipChordM": 0.15, "spanM": 0.1, "sweepLengthM": 0.1, "thicknessM": 0.003, "crossSection": "square",
+        "friction": { "identity": "synthetic-fin", "lengthM": 0.25, "roughnessM": 0.000001, "wettedAreaM2": 0.18, "formFactor": 1.03 }
+      }
+    ]
+  },
+  "environment": {
+    "schemaVersion": "e1a-environment-diagnostic/1.0.0",
+    "inputIdentity": "e1a-rmp06-synthetic-local-state-v1",
+    "profile": {
+      "source": { "identity": "e1a-synthetic-table-v1", "evidenceClass": "synthetic", "description": "Arbitrary implementation fixture, not weather or a launch profile; P/T independent." },
+      "location": { "identity": "synthetic-coordinate-origin", "latitudeDeg": 0.0, "longitudeDeg": 0.0, "horizontalDatumIdentity": "synthetic-coordinates-no-geodetic-survey" },
+      "altitudeDatum": "geometricMsl",
+      "verticalDatumIdentity": "synthetic-MSL-no-geoid-model",
+      "issueTimeUtcUnixS": 1792965600,
+      "validity": { "fromUtcUnixS": 1792965600, "untilUtcUnixS": 1792969200 },
+      "units": { "altitude": "m", "pressure": "Pa", "temperature": "K", "wind": "m/s", "time": "UTC Unix seconds" },
+      "interpolationPolicy": "logPressureLinearTemperatureWind",
+      "extrapolationPolicy": "reject",
+      "closureId": "dry-ideal-air-sutherland/1.0.0",
+      "knots": [
+        { "altitudeM": 0.0, "pressurePa": 100000.0, "temperatureK": 300.0, "windTowardEnuMps": { "east": 2.0, "north": -4.0, "up": 1.0 } },
+        { "altitudeM": 1000.0, "pressurePa": 25000.0, "temperatureK": 200.0, "windTowardEnuMps": { "east": 6.0, "north": 8.0, "up": -3.0 } }
+      ]
+    },
+    "query": { "altitudeM": 500.0, "altitudeDatum": "geometricMsl", "timeUtcUnixS": 1792967400, "groundVelocityEnuMps": { "east": 34.0, "north": 42.0, "up": -1.0 } },
+    "surfaces": [
+      { "identity": "synthetic-body", "lengthM": 2.0, "roughnessM": 0.000005 },
+      { "identity": "synthetic-fin", "lengthM": 0.25, "roughnessM": 0.000001 }
+    ]
+  }
+}
