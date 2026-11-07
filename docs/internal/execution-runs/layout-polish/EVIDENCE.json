@@ -1,0 +1,98 @@
+{
+  "lane": "layout-polish",
+  "author": "OpenCode Go opencode-go/deepseek-v4.1-flash (variant max)",
+  "branch": "layout-polish",
+  "worktree": "/home/ak/.t3/worktrees/astraeat3/t3-533d58d6",
+  "base_commit": "92b7083e35eab3b1be6af88cd15c08988e3619d0",
+  "implementation_commit": "d55ce14fe980ce9cf2a48594e8b68f58314f4b88",
+  "report_commit": "the commit that adds RESULT.md and EVIDENCE.json on the same branch (this file is not self-referential)",
+  "gate1": {
+    "note": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/GATE1-DESIGN-NOTE.md",
+    "approved": true,
+    "decisions": {
+      "acceptance": "plot, ring legend, Run button and outcome counts visible at the default dock; stats and footnotes may scroll",
+      "6d": "do nothing; record the 187/160/145 trade-off table",
+      "6c_reflow": "3-column controls and counts after controls accepted; no label/text/colour/component change; completed-job row stays; keyboard/tab order follows visual order",
+      "6e": "name column minimum 170 -> 190"
+    }
+  },
+  "changes": [
+    {"file": "src/console/stages/Flight.tsx", "summary": "MC body fills the panel (h-full, fixed grid row); controls grid-cols-3 with Run in the empty 6th cell; counts directly after controls; drag/job/stale rows unchanged but below counts"},
+    {"file": "src/console/kit/Charts.tsx", "summary": "LandingScatter measures its box with a cleaned-up ResizeObserver; landingScatterSize = clamp(80, floor(min(w,h)), 340); all plotted geometry derives from the same square edge; legend uses the column width; text sizes unchanged"},
+    {"file": "src/console/kit/Charts.test.ts", "summary": "unit test for landingScatterSize: limiting edge, floor, cap, whole-pixel, non-finite fallback"},
+    {"file": "src/console/stages/Airframe.tsx", "summary": "mass-budget part column minmax(170px,1.4fr) -> minmax(190px,1.4fr)"},
+    {"file": "scripts/preview-journeys.mjs", "summary": "journey falsifiers: MC plot/legend/Run/counts inside the active panel at 1280x800 and 1600x1000; every [data-part-name] one line at 1280x800 with both panels open; collected then strictly asserted"}
+  ],
+  "measured_after": {
+    "commit": "d55ce14fe980ce9cf2a48594e8b68f58314f4b88",
+    "source": "AFTER-MEASUREMENTS.json (real 24-flight ensemble, SwiftShader Chromium, production CSP)",
+    "mc_1600x1000": {"panel_client": 263, "panel_scroll": 702, "scatter": {"w": 202, "h": 202, "top": 12, "bottom": 214}, "controls_h": 94, "run_bottom": 134.3, "counts": {"top": 168, "bottom": 230.8}, "all_required_visible": true},
+    "mc_1280x800": {"panel_client": 241, "panel_scroll": 702, "scatter": {"w": 147, "h": 147, "top": 12, "bottom": 159}, "controls_h": 94, "run_bottom": 134.3, "counts": {"top": 168, "bottom": 230.8}, "all_required_visible": true},
+    "mass_1280x800_both_panels": {"source": "AFTER-PROBE2.json", "table": 636, "part_column": 190, "share_column": 102, "all_names_one_line": true, "longest_needed": 181},
+    "mass_other_sizes": {"1600_part_column": 252, "1024_part_column": 253.6, "800_part_column": 190, "800_share": 202, "800_table_scroll_eq_client": true},
+    "flight_800x600": {"canvas_h": 161, "region_h": 106.3, "rocket_h": 80.7, "dock_h": 240.8, "changed": false},
+    "console_errors": []
+  },
+  "measured_base": {
+    "commit": "92b7083e35eab3b1be6af88cd15c08988e3619d0",
+    "source": "BASE-MEASUREMENTS.json / GATE1-DESIGN-NOTE.md",
+    "mc_1600x1000": {"panel_client": 263, "panel_scroll": 794, "scatter": {"w": 320, "h": 320, "bottom": 530.3}, "legend_bottom": 583.8, "counts": {"top": 317, "bottom": 379.8}},
+    "mc_1280x800": {"panel_client": 241, "panel_scroll": 794, "scatter": {"w": 256, "h": 256, "bottom": 490}, "legend_bottom": 560, "counts": {"top": 317, "bottom": 379.8}},
+    "mass_1280x800_both_panels": {"table": 636, "part_column": 170, "share_column": 122, "fins_lines": 2, "longest_needed": 181},
+    "flight_800x600": {"canvas_h": 161, "region_h": 106.3, "rocket_h": 77.7, "dock_h": 240.8}
+  },
+  "falsifiers": {
+    "base": {
+      "command": "pnpm test:browser (old dist at 92b7083, new journey)",
+      "exit": 1,
+      "log": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/base-browser-falsifier.log",
+      "failures": [
+        "1280x800: mass-budget part name \"High-Power Clipped Delta Fins\" must stay on one line (got 2)",
+        "1280x800 MC scatter 234-490, legend 494-560, counts 317-379.8 of 241 px",
+        "1600x1000 MC scatter 210.3-530.3, legend 534.3-583.8, counts 317-379.8 of 263 px"
+      ]
+    },
+    "after": {
+      "command": "pnpm test:browser (dist at d55ce14)",
+      "exit": 0,
+      "log": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/after-browser.log",
+      "pass_line": "Preview acceptance passed: Monte Carlo plot, ring legend, Run and outcome counts fit the default dock at 1280x800 and 1600x1000",
+      "mass_one_line_check": "included in the strict layoutFailures assertion, empty after"
+    }
+  },
+  "checks": {
+    "tsc": "pnpm exec tsc --noEmit, exit 0",
+    "vitest": "pnpm exec vitest run --maxWorkers=2, 166 files / 1951 tests passed, 248.46 s",
+    "focused_tests": "Charts.test.ts + flightLayout.test.tsx, 2 files / 11 tests passed",
+    "build": "PATH=$HOME/.cargo/bin:$PATH CARGO_BUILD_JOBS=2 pnpm build, exit 0",
+    "browser": "pnpm test:browser, exit 0 (production CSP, real Wasm)"
+  },
+  "tradeoff_6d_800x600": [
+    {"dock": 240.8, "canvas": 161, "region": 106.3, "rocket": 77.7, "mc_panel": 206, "shipped": true},
+    {"dock": 187, "canvas": 214.8, "region": 118.5, "rocket": 85.9, "mc_panel": 152},
+    {"dock": 160, "canvas": 241.8, "region": 145.5, "rocket": 103.2, "mc_panel": 125},
+    {"dock": 145, "canvas": 256.8, "region": 160.5, "rocket": 112.1, "mc_panel": 110}
+  ],
+  "not_done": [
+    "No 6d change (coordinator decision; trade-off table recorded).",
+    "No change to Monte Carlo behaviour, seed, counts, ensemble config, exports, physics, schema or presets.",
+    "No push, merge, tag, release or publish.",
+    "Stats cards, completed-job row and footnotes remain scrollable by design (confirmed)."
+  ],
+  "known_consequence": "Supplemental BASE-PROBE2.json was overwritten by its after re-run (now AFTER-PROBE2.json). Base values it held are preserved in GATE1-DESIGN-NOTE.md and base-browser-falsifier.log; no claim depends on the lost file.",
+  "self_acceptance": false,
+  "evidence_files": [
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/AFTER-MEASUREMENTS.json", "sha256": "2d374c13cfe8292625d994aaeaf37e06bb4afde64a358c3d23bc8e493c57c0f2", "bytes": 11890},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/AFTER-PROBE2.json", "sha256": "9308bd2a4b89296e61164201549be5e17a5ef9896a13ad92ee35b7ef8a39ba6d", "bytes": 3071},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/BASE-MEASUREMENTS.json", "sha256": "cf88645cd460bf33bacd5330d0eacadba840e5131228abe6f2cb8439480e1316", "bytes": 12123},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/BASE-DESIGN-PROBE.json", "sha256": "e18bbb0a95ebb1bc5840660c815d17cef9f7aab9f6bca5b8c8aa8a14e058a48a", "bytes": 9848},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/BASE-DESIGN-PROBE2.json", "sha256": "5b1752a357d6ca2bf85c2272a741f20f2adc8c13525d495f999d51162db80e36", "bytes": 10369},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/GATE1-DESIGN-NOTE.md", "sha256": "80445f7daf78224c2383e40fa4c4b8708aeb522ba3157adf0ec25c168e3533de", "bytes": 7390},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/base-browser-falsifier.log", "sha256": "f00ed24854a745c103f19996aed05a060b8812c5f95f249b68d50d6473e30875", "bytes": 5479},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/after-browser.log", "sha256": "92c6b0fc9c0cde904d1e67007c0df47ece1c844407e0d1d28f5d658d2580637e", "bytes": 5437},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/layout-polish-measure.mjs", "sha256": "08993c8325d6816da4002169b9c8a20b576bb9efeaa40e9ca4ec19ffc0917c8c", "bytes": 14695},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/layout-polish-probe2.mjs", "sha256": "952014916211bc9bf990badb9d466e889e8f537e46fd31874e5cb3b86159f26c", "bytes": 7150},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/layout-polish-probe3.mjs", "sha256": "f9e7b9be9d98b562629a6e3a3c3cc3a1aeb781e6c8d82a81220ba935f2f659a2", "bytes": 12599},
+    {"path": "/home/ak/.paseo/worktrees/3s8t98rp/evidence-layout-polish/layout-polish-probe4.mjs", "sha256": "ea073eb4fa09c840ec47d2efa60d4b330ed3502483c7b5e13886309c553d1538", "bytes": 8811}
+  ]
+}

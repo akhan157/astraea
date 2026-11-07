@@ -29,6 +29,10 @@ export async function previewJourneys(page, origin) {
     await page.getByRole('button', { name: new RegExp(`^${name}`) }).click();
   };
   const pass = (name) => console.log(`Preview acceptance passed: ${name}`);
+  // layout-polish falsifiers are collected so one run reports every failure
+  // instead of stopping at the first; the strict assertion is below.
+  const layoutFailures = [];
+  const layoutCheck = (condition, message) => { if (!condition) layoutFailures.push(message); };
   const themedControlCounts = () => page.evaluate(() => ({
     selects: document.querySelectorAll('select:not([data-kit-select])').length,
     details: document.querySelectorAll('details:not([data-kit-disclosure])').length,
@@ -317,6 +321,25 @@ export async function previewJourneys(page, origin) {
     return last.getBoundingClientRect().right <= table.getBoundingClientRect().right + 1 && table.scrollWidth <= table.clientWidth + 1;
   });
   assert.ok(massTableFits, '1280: the mass-budget last column must stay inside the table');
+  // layout-polish 6e: with the inspector open the name column takes its width
+  // from the share bar, so every part name stays on one line. Truncation is
+  // still forbidden by the scrollWidth check in assertLayout.
+  const massNameLines = await page.evaluate(() => {
+    const lines = (element) => {
+      const tops = new Set();
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (!node.textContent?.trim()) continue;
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        for (const rect of range.getClientRects()) if (rect.width > 1 && rect.height > 1) tops.add(Math.round(rect.top));
+      }
+      return tops.size;
+    };
+    return [...document.querySelectorAll('[data-part-name]')].map((node) => ({ text: node.textContent, lines: lines(node) }));
+  });
+  layoutCheck(massNameLines.length > 0, '1280×800: mass-budget part names must be present');
+  for (const name of massNameLines) layoutCheck(name.lines === 1, `1280×800: mass-budget part name "${name.text}" must stay on one line (got ${name.lines})`);
   await stage('Motor');
   const motorTabLines = await page.evaluate(() => {
     const lines = (element) => {
@@ -601,6 +624,42 @@ export async function previewJourneys(page, origin) {
       assert.ok(c.top >= -1 && c.bottom <= m.scrollH + 2, `${label}: control "${c.name}" must be reachable by scrolling (${c.top}..${c.bottom} of ${m.scrollH})`);
     }
   };
+  // layout-polish 6c: after an ensemble run, the plot, its ring legend, the Run
+  // button and the outcome counts must all sit inside the default dock's
+  // visible panel area at scrollTop 0.
+  const assertMcRecapVisible = async (label) => {
+    await page.evaluate(() => { const panel = document.querySelector('main [role="tabpanel"][data-state="active"]'); if (panel) panel.scrollTop = 0; });
+    await page.waitForTimeout(300);
+    const m = await page.evaluate(() => {
+      const panel = document.querySelector('main [role="tabpanel"][data-state="active"]');
+      if (!panel) return null;
+      const base = panel.getBoundingClientRect();
+      const inside = (element) => {
+        if (!element) return { present: false, top: null, bottom: null, visible: false };
+        const r = element.getBoundingClientRect();
+        return {
+          present: true,
+          top: Math.round((r.top - base.top) * 10) / 10,
+          bottom: Math.round((r.bottom - base.top) * 10) / 10,
+          visible: r.top >= base.top - 0.5 && r.bottom <= base.top + panel.clientHeight + 0.5,
+        };
+      };
+      const legend = [...panel.querySelectorAll('span')].find((span) => (span.textContent ?? '').includes('99% of samples within')) ?? null;
+      return {
+        panelH: panel.clientHeight,
+        scatter: inside(panel.querySelector('[role="img"][aria-label*="simulated landing points"]')),
+        legend: inside(legend),
+        run: inside([...panel.querySelectorAll('button')].find((button) => /^Run \d+ flights$/.test((button.textContent ?? '').trim()))),
+        counts: inside(panel.querySelector('[data-mc-outcome-counts]')),
+      };
+    });
+    layoutCheck(m !== null, `${label}: the Monte Carlo panel must be active`);
+    if (!m) return;
+    for (const [name, box] of Object.entries({ scatter: m.scatter, legend: m.legend, run: m.run, counts: m.counts })) {
+      layoutCheck(box.present, `${label}: ${name} must be present`);
+      layoutCheck(box.visible, `${label}: ${name} must be fully visible at the default dock (${JSON.stringify(box)} of ${m.panelH} px)`);
+    }
+  };
   for (const [tabName, label] of [['Monte Carlo', '1280×800 Monte Carlo'], ['Weather', '1280×800 Weather']]) {
     await dockTab(tabName);
     await page.waitForTimeout(300);
@@ -614,6 +673,22 @@ export async function previewJourneys(page, origin) {
   assertDockTabUsable('1280×800 Results', resultPanel);
   assert.ok(resultPanel.rows >= 10, `1280×800 Results: every result row must render (got ${resultPanel.rows})`);
   pass(`1280×800: Monte Carlo, Weather and Results stay usable in the smaller dock (${resultPanel.rows} result rows)`);
+
+  // layout-polish 6c falsifier: a real ensemble at the default dock.
+  await dockTab('Monte Carlo');
+  await page.waitForTimeout(300);
+  await page.getByRole('spinbutton', { name: 'Monte Carlo nRuns', exact: true }).fill('24');
+  await page.waitForTimeout(150);
+  await page.getByRole('button', { name: /^Run \d+ flights$/ }).click();
+  await page.locator('[data-mc-outcome-counts]').waitFor({ timeout: 240_000 });
+  await page.waitForFunction(() => document.querySelectorAll('main .animate-spin').length === 0, undefined, { timeout: 240_000 });
+  await page.waitForTimeout(400);
+  await assertMcRecapVisible('1280×800 Monte Carlo after a run');
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await page.waitForTimeout(900);
+  await assertMcRecapVisible('1600×1000 Monte Carlo after a run');
+  assert.deepEqual(layoutFailures, [], `layout-polish falsifiers:\n${layoutFailures.join('\n')}`);
+  pass('Monte Carlo plot, ring legend, Run and outcome counts fit the default dock at 1280×800 and 1600×1000');
 
   await dockTab('Timeline');
   await page.setViewportSize({ width: 1600, height: 1000 });

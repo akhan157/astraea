@@ -255,24 +255,21 @@ function MonteCarlo() {
     ? [{ r: d.r50, label: '50%' }, { r: d.r90, label: '90%' }, { r: d.r99, label: '99%' }]
     : []), [d, eligible.length, statisticsAvailable]);
   return (
-    <div className="grid min-h-full grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
-      <div className="flex items-center justify-center p-3" style={{ borderRight: `1px solid ${C.line}` }}>
+    <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)] grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+      <div className="flex min-h-0 items-center justify-center p-3" style={{ borderRight: `1px solid ${C.line}` }}>
         {d && eligible.length > 0
-          ? <LandingScatter landings={eligible} mean={d.mean} rings={rings} height={Math.max(220, Math.min(340, innerHeight * 0.32))} />
+          ? <LandingScatter landings={eligible} mean={d.mean} rings={rings} />
           : <EmptyState title={d ? 'No supported footprint' : 'No dispersion yet'} body={d ? 'The ledger has no supported nominal terminal samples, so no footprint is drawn. Every requested run stays counted below; scenario variation is not probability.' : 'Monte Carlo re-flies the current design many times with varied wind direction, rail angle and motor impulse, and shows where it lands.'} />}
       </div>
       <div className="space-y-3 p-3">
         <PanelHeader title="Landing dispersion" sub="per-run-v2, seeded" />
-        <div className="grid grid-cols-2 gap-2" data-mc-controls="true">
+        <div className="grid grid-cols-3 gap-2" data-mc-controls="true">
           {(['nRuns', 'seed', 'windAzimuthDegSigma', 'railAngleDegSigma', 'impulsePctSigma'] as const).map((field) => <label key={field} className="flex min-w-0 flex-col gap-0.5 text-[11px]"><span className="truncate" title={field}>{MC_FIELD_LABELS[field]}</span><input aria-label={`Monte Carlo ${field}`} type="number" min={field === 'nRuns' ? 1 : 0} max={field === 'nRuns' ? 1000 : undefined} value={config[field]} onChange={(e) => {
             if (!Number.isFinite(e.target.valueAsNumber)) return;
             consoleActions.setWorkspace({ ensemble: { ...config, [field]: e.target.valueAsNumber } }, `MC ${field}`);
           }} className="w-full min-w-0 rounded p-1" style={{ background: C.sunken }} /></label>)}
-          <div className="col-span-2"><Button primary small disabled={job?.state === 'running'} onClick={() => s.runMonteCarlo(n)}>Run {n} flights</Button></div>
+          <div><Button primary small disabled={job?.state === 'running'} onClick={() => s.runMonteCarlo(n)}>Run {n} flights</Button></div>
         </div>
-        {d?.dragCalibration && <div><DragCalibrationChip calibration={d.dragCalibration} /></div>}
-        {job && <JobProgress job={job} onCancel={s.cancelMonteCarlo} onDismiss={s.dismissMonteCarlo} />}
-        {stale && <p role="status" style={{ color: C.changed }}>Stale: ensemble or flight inputs changed. Rerun required.</p>}
         {d?.counts && (
           <div data-mc-outcome-counts className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11.5px]">
             <span>Requested <b className="font-geist-mono">{d.counts.requested}</b></span>
@@ -283,6 +280,9 @@ function MonteCarlo() {
             <span>Computational failure <b className="font-geist-mono">{d.counts.computationalFailure}</b></span>
           </div>
         )}
+        {d?.dragCalibration && <div><DragCalibrationChip calibration={d.dragCalibration} /></div>}
+        {job && <JobProgress job={job} onCancel={s.cancelMonteCarlo} onDismiss={s.dismissMonteCarlo} />}
+        {stale && <p role="status" style={{ color: C.changed }}>Stale: ensemble or flight inputs changed. Rerun required.</p>}
         {d && statisticsAvailable && (
           <div className="grid grid-cols-3 gap-3">
             <Stat label="Sample 50% radius"><ValueUnit value={d.r50} kind="dist" /></Stat>

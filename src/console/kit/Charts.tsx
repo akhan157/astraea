@@ -3,7 +3,7 @@
  * axes), 1.75px lines, recessive grid, shared time cursor, direct labels.
  * Series colors are the validated s1/s2/s3; text stays in ink colors.
  */
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { FlightEvent, FlutterPoint } from '../data/contract';
 import { useSessionStore } from '../../state/session';
 import { C } from './theme';
@@ -202,29 +202,63 @@ export function FlutterChart({ points, gate, cursor, onCursor, worstT }: { point
 
 /* ───────────── landing scatter with containment rings ───────────── */
 
-export function LandingScatter({ landings, mean, rings, height = 300 }: { landings: { x: number; y: number }[]; mean: { x: number; y: number }; rings: { r: number; label: string }[]; height?: number }) {
+/** Smallest square the scatter may shrink to; below this the rings and labels stop being readable. */
+export const LANDING_SCATTER_MIN = 80;
+/** Largest square: a tall dock keeps the chart it always had. */
+export const LANDING_SCATTER_MAX = 340;
+
+/**
+ * The square chart edge for the box the stage gives it. Every ring, point, tick
+ * and the N / radius labels are placed from this one number, so a shorter dock
+ * rescales the plotted geometry and never the text.
+ */
+export function landingScatterSize(width: number, height: number): number {
+  if (!Number.isFinite(width) || !Number.isFinite(height)) return LANDING_SCATTER_MIN;
+  return Math.max(LANDING_SCATTER_MIN, Math.min(LANDING_SCATTER_MAX, Math.floor(Math.min(width, height))));
+}
+
+export function LandingScatter({ landings, mean, rings }: { landings: { x: number; y: number }[]; mean: { x: number; y: number }; rings: { r: number; label: string }[] }) {
   const units = useSessionStore((s) => s.units);
   const [hover, setHover] = useState<number | null>(null);
+  const box = useRef<HTMLDivElement | null>(null);
+  const [size, setSize] = useState(LANDING_SCATTER_MIN);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const measure = () => {
+      const next = landingScatterSize(el.clientWidth, el.clientHeight);
+      setSize((prev) => (prev === next ? prev : next));
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   const ext = Math.max(50, ...landings.map((p) => Math.max(Math.abs(p.x), Math.abs(p.y))), ...rings.map((r) => Math.hypot(mean.x, mean.y) + r.r)) * 1.1;
-  const S = height, half = S / 2;
+  const S = size, half = S / 2;
   const P = (x: number, y: number) => [half + (x / ext) * (half - 14), half - (y / ext) * (half - 14)] as const;
   const tk = ticks(0, ext, 3).filter((v) => v > 0);
   const f = show(1, 'dist', units);
   return (
-    <div className="relative" style={{ width: S }}>
-      <svg width={S} height={S} role="img" aria-label={`${landings.length} simulated landing points`}>
-        {tk.map((v) => <g key={v}><circle cx={half} cy={half} r={(v / ext) * (half - 14)} fill="none" stroke={C.line} /><text x={half + 3} y={half - (v / ext) * (half - 14) - 3} style={axisText}>{(v * f.value).toFixed(0)} {f.unit}</text></g>)}
-        <line x1={half} x2={half} y1={8} y2={S - 8} stroke={C.line} /><line x1={8} x2={S - 8} y1={half} y2={half} stroke={C.line} />
-        <text x={half + 4} y={16} style={axisText}>N</text>
-        {rings.map((r, i) => { const [cx, cy] = P(mean.x, mean.y); return <circle key={r.label} cx={cx} cy={cy} r={(r.r / ext) * (half - 14)} fill="none" stroke={[C.s1, C.s2, C.s3][i]} strokeWidth={1.5} strokeDasharray={i === 2 ? '4 3' : undefined} />; })}
-        {landings.map((p, i) => { const [x, y] = P(p.x, p.y); return <circle key={i} cx={x} cy={y} r={hover === i ? 4 : 2.5} fill={C.fg} fillOpacity={0.55} stroke={C.panel} strokeWidth={1} onPointerEnter={() => setHover(i)} onPointerLeave={() => setHover(null)} />; })}
-        <g><rect x={half - 4} y={half - 4} width={8} height={8} fill={C.accent} transform={`rotate(45 ${half} ${half})`} /></g>
-      </svg>
-      <div className="mt-1 flex justify-center gap-4 text-[11px]" style={{ color: C.muted }}>
+    <div className="flex h-full min-h-0 w-full flex-col">
+      <div ref={box} className="relative flex min-h-0 w-full flex-1 items-center justify-center">
+        <div className="relative" style={{ width: S, height: S }}>
+          <svg width={S} height={S} role="img" aria-label={`${landings.length} simulated landing points`}>
+            {tk.map((v) => <g key={v}><circle cx={half} cy={half} r={(v / ext) * (half - 14)} fill="none" stroke={C.line} /><text x={half + 3} y={half - (v / ext) * (half - 14) - 3} style={axisText}>{(v * f.value).toFixed(0)} {f.unit}</text></g>)}
+            <line x1={half} x2={half} y1={8} y2={S - 8} stroke={C.line} /><line x1={8} x2={S - 8} y1={half} y2={half} stroke={C.line} />
+            <text x={half + 4} y={16} style={axisText}>N</text>
+            {rings.map((r, i) => { const [cx, cy] = P(mean.x, mean.y); return <circle key={r.label} cx={cx} cy={cy} r={(r.r / ext) * (half - 14)} fill="none" stroke={[C.s1, C.s2, C.s3][i]} strokeWidth={1.5} strokeDasharray={i === 2 ? '4 3' : undefined} />; })}
+            {landings.map((p, i) => { const [x, y] = P(p.x, p.y); return <circle key={i} cx={x} cy={y} r={hover === i ? 4 : 2.5} fill={C.fg} fillOpacity={0.55} stroke={C.panel} strokeWidth={1} onPointerEnter={() => setHover(i)} onPointerLeave={() => setHover(null)} />; })}
+            <g><rect x={half - 4} y={half - 4} width={8} height={8} fill={C.accent} transform={`rotate(45 ${half} ${half})`} /></g>
+          </svg>
+          {hover !== null && (() => { const [x, y] = P(landings[hover].x, landings[hover].y); return <div className="pointer-events-none absolute rounded px-2 py-1 font-geist-mono text-[11px]" style={{ left: x + 8, top: y - 30, background: C.raised, border: `1px solid ${C.lineStrong}` }}>{(landings[hover].x * f.value).toFixed(0)} E, {(landings[hover].y * f.value).toFixed(0)} N {f.unit}</div>; })()}
+        </div>
+      </div>
+      <div className="mt-1 flex w-full justify-center gap-4 text-[11px]" style={{ color: C.muted }}>
         {rings.map((r, i) => <span key={r.label} className="inline-flex items-center gap-1.5"><svg width="14" height="6" aria-hidden><line x1="0" y1="3" x2="14" y2="3" stroke={[C.s1, C.s2, C.s3][i]} strokeWidth="1.5" strokeDasharray={i === 2 ? '4 3' : undefined} /></svg>{r.label} of samples within {(r.r * f.value).toFixed(0)} {f.unit}</span>)}
         <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rotate-45" style={{ background: C.accent }} />Pad</span>
       </div>
-      {hover !== null && (() => { const [x, y] = P(landings[hover].x, landings[hover].y); return <div className="pointer-events-none absolute rounded px-2 py-1 font-geist-mono text-[11px]" style={{ left: x + 8, top: y - 30, background: C.raised, border: `1px solid ${C.lineStrong}` }}>{(landings[hover].x * f.value).toFixed(0)} E, {(landings[hover].y * f.value).toFixed(0)} N {f.unit}</div>; })()}
     </div>
   );
 }

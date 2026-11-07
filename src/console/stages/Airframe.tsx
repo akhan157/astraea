@@ -105,7 +105,7 @@ function MassBudget() {
     <div>
       <DataTable rows={rows} rowKey={(r) => r.partId} activeKey={s.selectedId} onRowHover={(k) => s.set({ hoverId: k })} onRowClick={(k) => s.set({ selectedId: k })} dense
         columns={[
-          { key: 'name', label: 'Part', width: 'minmax(170px,1.4fr)', render: (r) => <span data-part-name className="flex min-w-0 items-center gap-2 leading-tight" title={r.name}>{r.name}</span> },
+          { key: 'name', label: 'Part', width: 'minmax(190px,1.4fr)', render: (r) => <span data-part-name className="flex min-w-0 items-center gap-2 leading-tight" title={r.name}>{r.name}</span> },
           { key: 'share', label: 'Share of dry mass', width: '2fr', render: (r) => <ShareBar pct={(r.mass.value / total) * 100} color={C.s1} /> },
           { key: 'mass', label: 'Mass', align: 'right', width: '96px', render: (r) => <ResultValue r={r.mass} label={`${r.name} mass`} /> },
           { key: 'cg', label: 'CG from nose', align: 'right', width: '108px', render: (r) => <ResultValue r={r.cg} kind="len" label={`${r.name} CG`} /> },
