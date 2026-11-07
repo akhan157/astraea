@@ -40,7 +40,7 @@ independent-blind vehicles. See the [protocol](flight-validation/round2-protocol
 
 | Comparison | Result | Limits |
 |---|---|---|
-| Same airframe family, 11 G69N flights (development data) | +32 % | Found and fixed missing fin edge drag; remaining gap unexplained |
+| Same airframe family, 11 G69N flights (development data) | +32 % | After the missing fin edge drag was found and fixed; remaining gap unexplained |
 | Estes Cosmic Cargo, 1 flight | +27 % | Fin shape estimated, mass disputed, no weather |
 | NASA ARCAS wind-tunnel data | see per-band table below | Wind tunnel only, not flight |
 

@@ -111,11 +111,11 @@ export async function previewJourneys(page, origin) {
   assert.equal((await page.goto(origin)).status(), 200);
   await page.getByText('Read the validation record', { exact: true }).click();
   await expect(page.getByText(/The Estes Cosmic Cargo comparison uses estimated fin geometry/)).toBeVisible();
-  assert.equal(await page.locator('.eyebrow').textContent(), `Free · Beta ${appVersion} · Browser, Windows, macOS and Linux`, 'Landing version must come from package.json');
+  assert.equal(await page.locator('.eyebrow').textContent(), `Free · Beta ${appVersion} · Browser, Windows and Linux · macOS pending`, 'Landing version must come from package.json');
   const landingNotice = page.locator('[data-beta-notice]');
   assert.match(await landingNotice.innerText(), /^Beta\b[\s\S]*6–10%[\s\S]*not flight approval/i, 'The landing page labels itself Beta and states its accuracy');
   assert.match(await landingNotice.locator('a').getAttribute('href'), /docs\/accuracy\.md$/);
-  assert.equal(await page.locator('a[href*="releases/latest"]').count(), 0, 'Do not offer unpublished desktop downloads');
+  assert.equal(await page.locator('a[href*="astraea/releases"]').count(), 0, 'Do not offer unpublished desktop downloads');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Mobile landing must not overflow');
   await page.setViewportSize({ width: 1600, height: 1000 });
@@ -154,6 +154,74 @@ export async function previewJourneys(page, origin) {
     }
   }
   pass('all eight stages, themed controls and reachable gate reasons');
+
+  // no-parachute-warning: the note is a current-component inventory fact, not
+  // a recovery result inferred from the committed run. Remove both chutes with
+  // the real tree, check Flight readiness and Recovery, add one back, then undo
+  // all three structural edits and prove the original identities/order and the
+  // current committed result are restored.
+  await stage('Airframe');
+  const partNameFilter = page.getByLabel('Filter parts by name');
+  await partNameFilter.fill('');
+  await page.getByTitle(/^All assembly components/).click();
+  const originalComponents = await page.locator('[role="treeitem"]').evaluateAll((nodes) => nodes.map((node) => ({
+    id: node.getAttribute('data-component-id'),
+    name: node.getAttribute('aria-label'),
+  })));
+  assert.equal(originalComponents.length, 7, 'NASA Student Launch must have seven parts before the chute check');
+  await partNameFilter.fill('Parachute');
+  await expect(page.locator('[role="treeitem"]')).toHaveCount(2);
+  while (await page.locator('[role="treeitem"]').count() > 0) {
+    const row = page.locator('[role="treeitem"]').first();
+    await row.hover();
+    await row.getByRole('button', { name: 'Remove component' }).click();
+  }
+  await partNameFilter.fill('');
+
+  await stage('Flight');
+  const readiness = page.getByLabel('Run readiness');
+  await expect(readiness).toContainText('No parachute in this design.');
+  assert.equal(await readiness.locator('[data-no-parachute-note] p').evaluate((node) => getComputedStyle(node).color), 'rgb(245, 181, 68)', 'the no-parachute note must be amber');
+  await expect(page.getByText(/Showing the committed run\./)).toBeVisible();
+  assert.equal(await runButton.isDisabled(), false, 'the no-parachute note must not block a run');
+
+  await stage('Recovery');
+  const recoveryNote = page.locator('main [data-no-parachute-note]');
+  assert.equal(await recoveryNote.count(), 1, 'Recovery must show one no-parachute note');
+  assert.equal((await recoveryNote.innerText()).trim(), 'No parachute in this design.');
+  const recoveryNoteBox = await recoveryNote.boundingBox();
+  const landingStatBox = await page.getByText('Landing speed', { exact: true }).first().boundingBox();
+  assert.ok(recoveryNoteBox && landingStatBox && recoveryNoteBox.y < landingStatBox.y, 'the Recovery note must sit above the recorded stats');
+  await expect(page.getByText('Descent events', { exact: true })).toBeVisible();
+
+  await stage('Airframe');
+  await page.getByRole('button', { name: 'Add part' }).click();
+  await page.getByRole('button', { name: 'Recovery parachute' }).click();
+  await stage('Flight');
+  await expect(readiness).not.toContainText('No parachute in this design.');
+  await stage('Recovery');
+  await expect(page.locator('main [data-no-parachute-note]')).toHaveCount(0);
+
+  // Undo the add, then the two removals. Structural edits never coalesce, so
+  // exactly three steps restore the original component list. Focus a button
+  // first so the Workstation's undo shortcut is not ignored as field typing.
+  await stage('Airframe');
+  await partNameFilter.fill('');
+  await page.getByRole('button', { name: 'Add part' }).focus();
+  const undoKey = isMac ? 'Meta+z' : 'Control+z';
+  for (let i = 0; i < 3; i += 1) await page.keyboard.press(undoKey);
+  await expect.poll(() => page.locator('[role="treeitem"]').count()).toBe(originalComponents.length);
+  const restoredComponents = await page.locator('[role="treeitem"]').evaluateAll((nodes) => nodes.map((node) => ({
+    id: node.getAttribute('data-component-id'),
+    name: node.getAttribute('aria-label'),
+  })));
+  assert.deepEqual(restoredComponents, originalComponents, 'undo must restore the original component identities and order');
+  await stage('Flight');
+  await expect(page.getByLabel('Run readiness')).not.toContainText('No parachute in this design.');
+  await expect(page.getByText(/Showing the committed run\./)).toHaveCount(0);
+  await expect(page.getByText(/not a current result/)).toHaveCount(0);
+  await expect(page.getByRole('main').getByText('Valid run', { exact: true })).toBeVisible();
+  pass('no-parachute note is current-design only, non-blocking, removed by a returning chute, and fully undone');
 
   // declutter-fold: the Airframe stability card shows its two caveat sentences
   // as one ellipsized line with More; expanding restores both full lines in
@@ -542,7 +610,15 @@ export async function previewJourneys(page, origin) {
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, String(value));
       input.dispatchEvent(new Event('input', { bubbles: true }));
     }, Math.max(0, max * 0.5));
-    await page.waitForTimeout(450);
+    // Resize and pose effects can settle after the fixed delay on a busy
+    // software renderer. Wait for the existing size requirements themselves;
+    // a genuinely undersized rocket or free region still fails this check.
+    await expect.poll(async () => {
+      const settled = await frame();
+      return Boolean(settled?.bbox && settled.region
+        && settled.bbox[3] - settled.bbox[1] >= 281
+        && settled.region[3] - settled.region[1] >= 378);
+    }, { message: '1600×1000: the resized Flight frame must meet its existing size requirements', timeout: 20_000 }).toBe(true);
     const wide = await frame();
     assert.ok(wide?.bbox, '1600×1000: the viewport must report the rocket\'s screen box');
     const wideBoxH = wide.bbox[3] - wide.bbox[1];

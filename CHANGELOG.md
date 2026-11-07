@@ -117,7 +117,7 @@ User-facing changes. Detailed internal engineering notes live in `docs/internal/
 
 ## 0.9.0 — unreleased
 
-Planned first public release, as a **beta**. Apogee was tested blind on one small
+Planned first public release, as a **beta**; not published, superseded by 0.10.0. Apogee was tested blind on one small
 subsonic rocket, where predictions ran 6–10 % high; other vehicles and
 supersonic flight are not independently validated. Nothing here is flight
 approval; see [how accurate it is](docs/accuracy.md). 1.0 requires the accuracy
@@ -300,7 +300,7 @@ target and desktop acceptance gates to be met.
 
 ## 1.0.0 — 2026-10-18 (unpublished release candidate)
 
-Never published: this release candidate was superseded by 0.9.0, which ships
+Never published: this release candidate was superseded by 0.9.0, which was planned to ship
 the same features as a beta.
 
 - Browser and desktop apps (Windows, macOS, Linux) on one Rust/WebAssembly
@@ -312,4 +312,4 @@ the same features as a beta.
   dispersion.
 - Altimeter and GPS log import for comparing predictions with real flights.
 - OpenRocket, RockSim, motor, STEP, STL, drawing and KML file support.
-- Signed in-app updates for the desktop app.
+- Signed in-app updates for the desktop app (signature verification exercised only with a local fixture key; no production signing key or public feed was established).

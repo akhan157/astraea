@@ -12,6 +12,7 @@
     "test": "pnpm build:engine && vitest run",
     "test:watch": "vitest",
     "test:browser": "node scripts/browser-smoke.mjs",
+    "test:viewport-context": "node scripts/viewport-context-lifecycle.mjs",
     "test:arcas-runtime": "cargo build --manifest-path crates/astraea-core/Cargo.toml --example arcas_aero && vitest run --config scripts/arcas-runtime.vitest.config.mjs",
     "benchmark:arcas": "vitest run --config scripts/arcas-empirical.vitest.config.mjs --reporter=verbose",
     "validate:mini-dx3": "vitest run --config scripts/flight-validation.vitest.config.mjs --reporter=verbose",

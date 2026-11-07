@@ -1,6 +1,6 @@
 # Road to 1.0
 
-Astraea 0.9 is a beta aimed at **college rocketry teams**. A useful 1.0 needs
+Astraea 0.10 is a beta aimed at **college rocketry teams**. A useful 1.0 needs
 both a reproducible team engineering workflow and demonstrated predictions for
 its stated mission. The earlier proposed numerical gate below is a baseline,
 not proof that collegiate flight regimes are covered. These targets were
@@ -71,6 +71,8 @@ flights exist to set one.
 | In-scope flights inside predicted range | 0 of 2; input-only intervals omitted model uncertainty (all three recorded flights: 0 of 3) |
 | Native acceptance | Named Linux beta passes and rebuilt trace/weather fixes recorded in the desktop acceptance checklist; current Windows installers built and NSIS installed, but initial WebView is blank and feature acceptance remains open; interactive macOS pending |
 | Signing, real-feed updater | Production signing and real-feed install unverified; controlled local Linux updater exercised |
+
+The native-acceptance row above records the 2026-10-22 state. In a 2026-10-30 Windows 11 VM check, a fresh 0.9.0 package installed and launched with no blank WebView, ran a flight under the production CSP, and saved/opened a project; the 0.10.0 rebuild installs, launches and runs the sample project (2026-11-02). Signed upgrade, hardware-GPU, accessibility and migration/recovery checks remain open.
 
 Help reach 1.0: [share a flight](team-data-request.md) or use **Share this
 flight** in the app's Verify stage.

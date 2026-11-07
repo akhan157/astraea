@@ -1,0 +1,39 @@
+name: Update feed
+
+# Beta releases are GitHub prereleases, which /releases/latest ignores. When a
+# release is published, copy its signed latest.json onto the fixed
+# "update-feed" release that the desktop app polls first.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-feed
+  cancel-in-progress: false
+
+jobs:
+  feed:
+    if: github.event.release.tag_name != 'update-feed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Fetch latest.json from the published release
+        run: gh release download "$TAG" --pattern latest.json --dir feed
+      - name: Refuse a feed whose version does not match the tag
+        run: |
+          version=$(jq -r .version feed/latest.json)
+          test "v${version#v}" = "$TAG" || { echo "latest.json version $version != $TAG"; exit 1; }
+      - name: Publish to the update-feed release
+        run: |
+          gh release view update-feed >/dev/null 2>&1 || \
+            gh release create update-feed --prerelease --title 'Update feed (do not download)' \
+              --notes 'Machine-read update manifest for the Astraea desktop app. Download installers from the versioned releases.'
+          gh release upload update-feed feed/latest.json --clobber

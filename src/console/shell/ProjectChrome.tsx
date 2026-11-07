@@ -19,7 +19,7 @@ import { consoleActions, useWS } from '../store';
 import { C } from '../kit/theme';
 
 /** Desktop bundles for Linux, Windows and macOS are attached to each release. */
-export const DESKTOP_DOWNLOAD_URL = 'https://github.com/akhan157/astraea/releases/latest';
+export const DESKTOP_DOWNLOAD_URL = 'https://github.com/akhan157/astraea/releases';
 
 /** Shown only where the engine cannot run (no WebAssembly or Web Workers). */
 export function BrowserPreviewBanner() {

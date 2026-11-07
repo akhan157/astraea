@@ -1,0 +1,184 @@
+{
+  "lane": "webkit-contexts",
+  "status": "implemented_pending_independent_review",
+  "self_accepted": false,
+  "recorded_at": "2026-11-07",
+  "base": {
+    "pin": "cb195f8928226bac8b7ca84b0875fc62fa2e031e",
+    "pin_parent": "89fc995ee711774513119a95751f423c1f92a972",
+    "branch": "webkit-contexts",
+    "worktree": "/home/ak/.t3/worktrees/astraeat3/t3-29f972a9"
+  },
+  "commits": {
+    "fix": "146e8e1",
+    "regression": "3993d21",
+    "ci": "6346158",
+    "docs": "this commit"
+  },
+  "root_cause": {
+    "summary": "The viewport created a new WebGL context on every stage mount. WebKit keeps an explicitly lost context in its 16-slot per-page active set until the context object is destroyed or garbage-collected; the 17th tracked context makes WebKit recycle the oldest, already-lost context, which prints both CI messages.",
+    "code_refs": [
+      "src/console/Workstation.tsx:286-291 (only the active stage renders; stage switches unmount Viewport)",
+      "src/console/viewport/Viewport.tsx (pre-fix: a fresh R3F <Canvas> per mount)",
+      "node_modules/@react-three/fiber caller-provided renderer teardown: renderLists.dispose() then forceContextLoss()"
+    ],
+    "webkit_source_refs": {
+      "snapshot": "~/.t3/evidence/webkit-contexts/WebGLRenderingContextBase.cpp",
+      "max_active_contexts": "194 (maxActiveContexts = 16)",
+      "add_active_context": "335-349",
+      "remove_active_context_only_via_destroy_graphics_context": "699",
+      "destroy_paths": "675 destructor, 5165 stop(), 6107 recycleContext()",
+      "force_lost_context": "5103-5127 (sets lost state only; does not remove active-set entry)",
+      "recycle_context": "6100-6108 (prints the too-many-contexts error at 6103, then forceLostContext at 6106)",
+      "context_already_lost_error": "5105-5106 (printed by synthesizeLostContextGLError when forceLostContext is called on a lost context)"
+    }
+  },
+  "pre_fix_reproduction": [
+    {
+      "browser": "Playwright WebKit 2370 (Playwright 1.64.1)",
+      "environment": "ubuntu:24.04 container, Node 24.22.2, host-built dist at pin cb195f8",
+      "probe": "~/.t3/evidence/webkit-contexts/webkit-probe.mjs",
+      "command": "SWITCHES=60 SETTLE_MS=0 node ./webkit-probe.mjs (inside the container)",
+      "stage_switches": 60,
+      "contexts_created": 63,
+      "loss_calls": 61,
+      "error_pairs": 10,
+      "errors": [
+        "There are too many active WebGL contexts on this page, the oldest context will be lost.",
+        "WebGL: INVALID_OPERATION: loseContext: context already lost"
+      ],
+      "artifact": "~/.t3/evidence/webkit-contexts/probe-webkit-fast.log",
+      "sha256": "54985d283a1398b48e64479a5936db1159750fd07b0fa829148628f64140d411",
+      "note": "20 and 40 switch runs did not trigger the error because WebKit GC reclaimed contexts in time; the failure is timing-dependent. Artifacts probe-webkit.log and probe-webkit-20fast.log/40fast.log are preserved under the evidence root."
+    },
+    {
+      "browser": "Chromium 156.0.8078.4 (Playwright 1.64.1, SwiftShader)",
+      "stage_switches": 20,
+      "contexts_created": 23,
+      "visible_context_changed_each_mount": true,
+      "errors": 0,
+      "artifact": "~/.t3/evidence/webkit-contexts/probe-churn-20.log",
+      "sha256": "76bfad77ef12fa602c4ad0141ac8ca853d2944357c72475d1bb2d106387f9e40",
+      "note": "Chromium frees lost contexts, explaining why only WebKit failed."
+    }
+  ],
+  "prototype": {
+    "purpose": "Prove that R3F can use one persistent renderer across Canvas mount/unmount without losing the context.",
+    "browsers": ["Chromium 156.0.8078.4", "Playwright WebKit 2370"],
+    "result": "One WebGL context across a Canvas unmount/remount; frame counter advanced (WebKit 69 -> 165, Chromium 180 -> 217); draw calls present; no console errors.",
+    "artifacts": [
+      "~/.t3/evidence/webkit-contexts/proto-webkit.log (sha256 a456b59c1e80f7d235ba0827ca892107a4aa11c9e49d301c6d77a3aff61e83bc)",
+      "~/.t3/evidence/webkit-contexts/proto-chromium.log (sha256 cacf15e5b53a1c98199387b6694bbe14177500900f56c9c4c06c98ec9b00ee71)",
+      "~/.t3/evidence/webkit-contexts/proto-probe.mjs"
+    ]
+  },
+  "final_build": {
+    "command": "CARGO_BUILD_JOBS=2 pnpm build",
+    "exit": 0,
+    "app_bundle": "dist/assets/app-DRXR9nam.js",
+    "app_bundle_sha256": "32a62c376045a88e50b0c80bd4ce983708bdc080ed3a1a1f5482e2c239ef89ad",
+    "artifact": "~/.t3/evidence/webkit-contexts/build-final2.log",
+    "artifact_sha256": "3681198090e3fbba12aee659fa62c86b0d8a63d3f963c8f453bf6f3a318028c3"
+  },
+  "validation": [
+    {
+      "check": "type_check",
+      "command": "pnpm exec tsc --noEmit",
+      "exit": 0,
+      "artifact": "~/.t3/evidence/webkit-contexts/tsc-final.log",
+      "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "note": "Empty log because tsc produced no output."
+    },
+    {
+      "check": "focused_unit_tests",
+      "command": "pnpm exec vitest run --maxWorkers=2 src/console/viewport/webgl.test.tsx src/console/viewport/viewportRenderer.test.ts src/console/viewport/markers.test.tsx src/console/viewport/betaSurfaces.test.tsx src/console/shell/projectChrome.test.tsx",
+      "result": "5 files, 31 tests passed"
+    },
+    {
+      "check": "full_unit_suite",
+      "command": "pnpm exec vitest run --maxWorkers=2",
+      "result": "167 files, 1960 tests passed",
+      "duration_seconds": 251.99,
+      "artifact": "~/.t3/evidence/webkit-contexts/vitest-all-final.log",
+      "artifact_sha256": "a7285bb1216d7c782764adbcd05d4dcbaf1d8aa957a22440784e69dd52c1f09f"
+    },
+    {
+      "check": "chromium_acceptance",
+      "command": "pnpm test:browser",
+      "browser": "Chromium 156.0.8078.4",
+      "exit": 0,
+      "webgl_loss_line": "Preview acceptance passed: WebGL loss preserves readouts; viewport restores",
+      "artifact": "~/.t3/evidence/webkit-contexts/acceptance-chromium-final.log",
+      "artifact_sha256": "792650736e1df78fd7d8648db7a25a1818b1396f1ecd36d947b5e672f1f2c07a"
+    },
+    {
+      "check": "chromium_lifecycle",
+      "command": "pnpm test:viewport-context",
+      "browser": "Chromium 156.0.8078.4",
+      "exit": 0,
+      "result": "initial contexts 2; 60 stage switches still 2; restore +1; placeholder contexts 0; console errors 0",
+      "artifact": "~/.t3/evidence/webkit-contexts/lifecycle-chromium-final2.log",
+      "artifact_sha256": "8eccc0cc19ee18ada24003c0810b071a644b0a5df09a393476b07ce8eeffd1df"
+    },
+    {
+      "check": "firefox_lifecycle",
+      "command": "ASTRAEA_BROWSER=firefox pnpm test:viewport-context",
+      "browser": "Firefox 157.0",
+      "exit": 0,
+      "result": "initial contexts 2; 60 stage switches still 2; restore +1; placeholder contexts 0; console errors 0",
+      "artifact": "~/.t3/evidence/webkit-contexts/lifecycle-firefox-final.log",
+      "artifact_sha256": "144d84d0ec89ae898b4452dfdaf248d5c7cc078622fedfa485b696a5f147c5dd"
+    },
+    {
+      "check": "webkit_lifecycle",
+      "command": "ASTRAEA_BROWSER=webkit pnpm test:viewport-context (inside the Ubuntu 24.04 container)",
+      "browser": "Playwright WebKit 2370 (Playwright 1.64.1)",
+      "exit": 0,
+      "result": "initial contexts 2; 60 stage switches still 2; restore +1; placeholder contexts 0; console errors 0",
+      "artifact": "~/.t3/evidence/webkit-contexts/lifecycle-webkit-final.log",
+      "artifact_sha256": "f3a1f933ba23bba573a7b5851cd58fb4b728b58cdb3475c673d3020d2e7db929"
+    },
+    {
+      "check": "webkit_acceptance",
+      "command": "ASTRAEA_BROWSER=webkit pnpm test:browser (inside the Ubuntu 24.04 container)",
+      "browser": "Playwright WebKit 2370 (Playwright 1.64.1)",
+      "exit": 0,
+      "webgl_loss_line": "Preview acceptance passed: WebGL loss preserves readouts; viewport restores",
+      "context_error_occurrences": 0,
+      "artifact": "~/.t3/evidence/webkit-contexts/acceptance-webkit-final.log",
+      "artifact_sha256": "c30ea72d4061a782dc9fc4a1cbe9a43437921e315707c6e63373252eac96810f"
+    }
+  ],
+  "webkit_environment": {
+    "native_host_unavailable": true,
+    "native_reason": "Playwright WebKit 2370 needs Ubuntu 24.04 libraries (ICU 74, older libxml2 ABI, flite, avif16, harfbuzz-icu, manette, enchant, hyphen); CachyOS has ICU 78 and ldd reports libWPEWebKit-2.0.so.1 missing.",
+    "method": "Disposable ubuntu:24.04 Docker container; Node 24.22.2; pnpm 12.14.0; pnpm install --frozen-lockfile; pnpm exec playwright install --with-deps webkit; host-built dist copied read-only; no host system packages changed.",
+    "container_commands": [
+      "docker run -d --name astraea-webkit-final --shm-size=2g -v <worktree>:/src:ro -w /work ubuntu:24.04 sleep infinity",
+      "docker exec astraea-webkit-final bash -lc 'apt-get update -qq && apt-get install -y -qq curl xz-utils ca-certificates tar && <install Node 24.22.2 from nodejs.org> && npm i -g pnpm@12.14.0 && mkdir -p /work && (cd /src && tar --exclude=node_modules --exclude=.git -cf - . | tar -C /work -xf -) && cd /work && pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps webkit'",
+      "docker exec -e ASTRAEA_BROWSER=webkit astraea-webkit-final bash -lc 'cd /work && pnpm test:viewport-context'",
+      "docker exec -e ASTRAEA_BROWSER=webkit astraea-webkit-final bash -lc 'cd /work && pnpm test:browser'",
+      "docker rm -f astraea-webkit-final"
+    ],
+    "containers_removed": true
+  },
+  "not_run": [
+    "Native WebKit on the CachyOS host (blocked by the Ubuntu 24.04 ABI libraries above; container is the CI-equivalent run)",
+    "Full Firefox acceptance (focused Firefox lifecycle passed; CI covers the full Firefox acceptance)",
+    "Combined frontend/design (f7999d2) acceptance — coordinator merges and validates",
+    "Push, merge, release, deploy (not authorized)"
+  ],
+  "deliberately_not_changed": [
+    "scripts/preview-journeys.mjs",
+    "Flight readiness and Recovery",
+    "documentation claims",
+    "engine, physics, schema and output",
+    "renderer-related visual design"
+  ],
+  "residual_risk": [
+    "R3F caller-provided renderer teardown is version-sensitive; the lockfile pins 9.3.0 and the lifecycle regression guards a future change.",
+    "WebKit retains the one released availability-probe context and the one released replacement context (after Restore) until GC: bounded at 2-3 slots, no growth with navigation.",
+    "The WebKit evidence is a container run, not a native Safari test."
+  ],
+  "evidence_root": "~/.t3/evidence/webkit-contexts/"
+}

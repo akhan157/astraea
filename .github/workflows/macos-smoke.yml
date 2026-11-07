@@ -66,6 +66,15 @@ jobs:
           pnpm tauri build --bundles app --config '{"bundle":{"createUpdaterArtifacts":false}}'
           echo "BUILD_SECONDS=$((SECONDS - start))" >> "$GITHUB_ENV"
 
+      - name: Verify the ad-hoc bundle signature
+        # signingIdentity "-" (tauri.conf.json): a downloaded Apple Silicon
+        # app with a broken signature is reported as "damaged" with no way
+        # through; a valid ad-hoc signature can be allowed in Privacy & Security.
+        run: |
+          app=$(ls -d "$APP_DIR"/*.app | head -n 1)
+          codesign --verify --deep --strict --verbose=2 "$app"
+          codesign -dv "$app" 2>&1 | tee /dev/stderr | grep -q 'Signature=adhoc'
+
       - name: Launch the packaged app in smoke mode
         run: |
           mkdir -p "$SMOKE_DIR"

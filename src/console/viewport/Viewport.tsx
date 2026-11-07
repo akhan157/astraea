@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Grid, GizmoHelper, GizmoViewcube } from '@react-three/drei';
 import * as THREE from 'three';
@@ -12,7 +12,8 @@ import {
 } from './framing';
 import { canvasOverlayRects, VIEWCUBE_MARGIN, viewcubeRect } from './overlays';
 import type { AeroModelSelection } from '../../application/aeroModel';
-import { WEBGL_FALLBACK_TITLE, releaseShellCanvases, useWebGLLoss } from './webgl';
+import { WEBGL_FALLBACK_TITLE, canUseWebGL, useWebGLLoss } from './webgl';
+import { ensureViewportRenderer, releaseViewportRenderer } from './viewportRenderer';
 import { C } from '../kit/theme';
 import { Segmented } from '../kit/Fields';
 
@@ -313,22 +314,53 @@ export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, loo
   // A missing or lost context never blocks editing: the canvas is replaced by
   // a labeled notice, and every other surface (tree, inspectors, exports) stays live.
   const shell = useRef<HTMLDivElement | null>(null);
-  const { lost, retry, epoch } = useWebGLLoss(shell);
-  // Release canvases on detach: React 19 clears refs before unmount effects
-  // run, and a removed R3F canvas can linger detached with a live GL context
-  // when teardown races a remount. One viewport must mean one live context.
-  const shellRef = useCallback((el: HTMLDivElement | null) => {
-    if (el) {
-      shell.current = el;
-    } else {
-      releaseShellCanvases(shell.current);
-      shell.current = null;
-    }
+  const canvasHost = useRef<HTMLDivElement | null>(null);
+  // One renderer for the page, not one per stage mount: WebKit keeps a lost
+  // context in its 16-slot active set until GC, so a new context per stage
+  // eventually recycles an already-lost one. The replacement renderer is also
+  // the Restore availability check: creating it is the probe, so a restore
+  // spends one real context, not a throwaway context plus a replacement.
+  const recoverRenderer = useCallback(() => {
+    releaseViewportRenderer();
+    return ensureViewportRenderer() !== null;
   }, []);
+  const { lost, retry, epoch } = useWebGLLoss(shell, canUseWebGL, recoverRenderer);
+  const shared = useMemo(() => (lost ? null : ensureViewportRenderer()), [lost, epoch]);
+  // A shared renderer can outlive the viewport that lost it. A later stage
+  // mount inherits that lost context; the probe is already satisfied, so the
+  // context's own state must put the new mount on the labeled fallback instead
+  // of mounting a canvas that cannot draw.
+  const contextLost = shared !== null && shared.renderer.getContext().isContextLost();
+  const fallback = lost || shared === null || contextLost;
   useEffect(() => {
     // Pose about mid-length so the rocket stays framed while it turns.
     if (pose.current && attitude) pose.current.quaternion.copy(attitudeToThree(attitude));
   }, [attitude]);
+  // The shared canvas is not a React child (React must not destroy it when a
+  // stage unmounts), so attach it to whichever viewport host is active. The
+  // parent check makes a stale cleanup harmless if the next mount already
+  // moved the same canvas into its own host.
+  useLayoutEffect(() => {
+    const host = canvasHost.current;
+    if (!host || shared === null || fallback) return;
+    const { canvas } = shared;
+    if (canvas.parentElement !== host) host.prepend(canvas);
+    return () => {
+      if (canvas.parentElement === host) canvas.remove();
+    };
+  }, [shared, fallback]);
+  // R3F still renders its own <canvas> as the event/measure element, but the
+  // real pixels come from the shared renderer's canvas. Hide the contextless
+  // placeholder so exactly one canvas is visible and assistive tech sees one.
+  useLayoutEffect(() => {
+    const host = canvasHost.current;
+    if (!host || shared === null || fallback) return;
+    for (const canvas of Array.from(host.querySelectorAll('canvas'))) {
+      if (canvas === shared.canvas) continue;
+      canvas.style.visibility = 'hidden';
+      canvas.setAttribute('aria-hidden', 'true');
+    }
+  });
 
   const groundY = upright ? -0.002 : -Math.max(0.15, length * 0.12);
   const span = Math.max(length, bounds.radius * 4);
@@ -371,60 +403,62 @@ export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, loo
 
   return (
     <div className="flex h-full w-full" style={{ background: 'radial-gradient(ellipse at 50% 40%, #14171B 0%, #0B0C0E 70%)' }}>
-      <div ref={shellRef} className="relative min-w-0 flex-1" data-layout-state={layoutState} data-layout-length={snapshot?.layout.length ?? ''} data-layout-parts={snapshot === null ? '' : Object.keys(snapshot.layout.parts).length} data-markers={markerState} data-marker-cg={shownCg ?? ''} data-marker-cp={shownCp ?? ''}>
-      {lost ? (
-        <div role="alert" data-webgl-fallback="true" className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-center">
-          <p className="text-[13px] font-semibold" style={{ color: C.fg }}>{WEBGL_FALLBACK_TITLE}</p>
-          <p className="max-w-md text-[11.5px]" style={{ color: C.muted }}>
-            No WebGL context is available. The parts tree, every inspector field, the metrics and the
-            exports keep working — fix the GPU driver or the browser setting, then restore the view.
-          </p>
-          <button type="button" onClick={retry} className="rounded px-2.5 py-1.5 text-[11.5px]" style={{ border: `1px solid ${C.line}`, color: C.fg }}>
-            Restore viewport
-          </button>
-        </div>
-      ) : (
-        <Canvas key={epoch} camera={{ fov: FIT_FOV, near: 0.01, far: 200, position: [2, 1.5, 2] }} dpr={[1, 2]} onPointerMissed={() => onPick?.('')}
-          onCreated={({ gl }) => {
-            // ACES is R3F's default; pinned here so a later `flat` cannot drop it.
-            gl.toneMapping = THREE.ACESFilmicToneMapping;
-            gl.toneMappingExposure = 1.05;
-          }}>
-          <hemisphereLight args={['#CFE8FF', '#1A1D22', 0.6]} />
-          <directionalLight position={[span * 0.85, (upright ? length * 0.55 : 0) + span * 0.95, span * 0.8]} intensity={2} />
-          <directionalLight color="#6EE7F7" position={[-span * 0.9, span * 0.35, -span * 0.8]} intensity={1.2} />
-          <directionalLight position={[-span * 0.4, -span * 0.3, span * 1.1]} intensity={0.35} />
-          <Suspense fallback={null}>
-            {attitude ? (
-              <group position={[0, length / 2, 0]}>
-                <group ref={pose}>
-                  <group position={[0, -length / 2, 0]}>
-                    {snapshot && <VehicleModel vehicle={snapshot.vehicle} layout={snapshot.layout} motor={motor} look={look} cg={shownCg} cp={shownCp} onPick={onPick} onHover={onHover} />}
+      <div ref={shell} className="relative min-w-0 flex-1" data-layout-state={layoutState} data-layout-length={snapshot?.layout.length ?? ''} data-layout-parts={snapshot === null ? '' : Object.keys(snapshot.layout.parts).length} data-markers={markerState} data-marker-cg={shownCg ?? ''} data-marker-cp={shownCp ?? ''} data-look-selected={look?.selected ?? ''} data-look-hovered={look?.hovered ?? ''}>
+        <div ref={canvasHost} className="absolute inset-0">
+          {!fallback && shared ? (
+            <Canvas key={epoch} gl={shared.renderer} eventSource={canvasHost} style={{ position: 'absolute', inset: 0 }} camera={{ fov: FIT_FOV, near: 0.01, far: 200, position: [2, 1.5, 2] }} dpr={[1, 2]} onPointerMissed={() => onPick?.('')}
+              onCreated={({ gl }) => {
+                // ACES is R3F's default; pinned here so a later `flat` cannot drop it.
+                gl.toneMapping = THREE.ACESFilmicToneMapping;
+                gl.toneMappingExposure = 1.05;
+              }}>
+              <hemisphereLight args={['#CFE8FF', '#1A1D22', 0.6]} />
+              <directionalLight position={[span * 0.85, (upright ? length * 0.55 : 0) + span * 0.95, span * 0.8]} intensity={2} />
+              <directionalLight color="#6EE7F7" position={[-span * 0.9, span * 0.35, -span * 0.8]} intensity={1.2} />
+              <directionalLight position={[-span * 0.4, -span * 0.3, span * 1.1]} intensity={0.35} />
+              <Suspense fallback={null}>
+                {attitude ? (
+                  <group position={[0, length / 2, 0]}>
+                    <group ref={pose}>
+                      <group position={[0, -length / 2, 0]}>
+                        {snapshot && <VehicleModel vehicle={snapshot.vehicle} layout={snapshot.layout} motor={motor} look={look} cg={shownCg} cp={shownCp} onPick={onPick} onHover={onHover} />}
+                      </group>
+                    </group>
                   </group>
-                </group>
-              </group>
-            ) : (
-              // Lay the +Y-nose model on its side: nose toward +X, centred on the origin.
-              <group rotation={[0, 0, -Math.PI / 2]} position={[-length / 2, 0, 0]}>
-                {snapshot && <VehicleModel vehicle={snapshot.vehicle} layout={snapshot.layout} motor={motor} look={look} cg={shownCg} cp={shownCp} onPick={onPick} onHover={onHover} />}
-                {showGhost && ghost && <GhostVehicleModel vehicle={ghost} aeroModel={ghostAeroModel ?? aeroModel} look={{ ghost: true, opacity: ghostOpacity }} />}
-              </group>
-            )}
-          </Suspense>
-          <Grid position={[0, groundY, 0]} args={[10, 10]} cellSize={0.1} cellThickness={0.5} cellColor="#1C2025" sectionSize={0.5} sectionThickness={0.8} sectionColor="#262B31" fadeDistance={length * 4 + 4} infiniteGrid />
-          <OrbitControls makeDefault enableDamping dampingFactor={0.12} />
-          <CameraFit preset={preset} nonce={nonce} bounds={bounds} points={points} upright={upright} overlays={chrome.rects} chromeReady={chrome.ready} reserveGizmo={upright} frame={frame} attitude={attitudeRef} probe={shell} />
-          <RocketFrameProbe frame={frame} points={points} attitude={attitude} probe={shell} />
-          <GizmoHelper alignment="bottom-right" margin={[VIEWCUBE_MARGIN, VIEWCUBE_MARGIN]}>
-            <GizmoViewcube color="#16191D" textColor="#8B9199" strokeColor="#3D4249" hoverColor="#22414A" opacity={0.95} />
-          </GizmoHelper>
-        </Canvas>
-      )}
-      <div className="absolute top-2 left-2 flex items-center gap-2" data-canvas-overlay="" data-viewport-toolbar="">
-        {toolbar}
-        {!lost && <Segmented size="sm" value={preset} onChange={(v) => { setPreset(v); setNonce((n) => n + 1); }} options={[{ value: 'iso', label: 'ISO' }, { value: 'side', label: 'SIDE' }, { value: 'top', label: 'NOSE' }, { value: 'aft', label: 'AFT' }]} />}
-      </div>
-      {!lost && showGhost && ghost && !attitude && <div data-canvas-overlay="" className="pointer-events-none absolute bottom-2 left-3 font-geist-mono text-[11px]" style={{ color: C.changed }}>- - - ghost = {ghostLabel}</div>}
+                ) : (
+                  // Lay the +Y-nose model on its side: nose toward +X, centred on the origin.
+                  <group rotation={[0, 0, -Math.PI / 2]} position={[-length / 2, 0, 0]}>
+                    {snapshot && <VehicleModel vehicle={snapshot.vehicle} layout={snapshot.layout} motor={motor} look={look} cg={shownCg} cp={shownCp} onPick={onPick} onHover={onHover} />}
+                    {showGhost && ghost && <GhostVehicleModel vehicle={ghost} aeroModel={ghostAeroModel ?? aeroModel} look={{ ghost: true, opacity: ghostOpacity }} />}
+                  </group>
+                )}
+              </Suspense>
+              <Grid position={[0, groundY, 0]} args={[10, 10]} cellSize={0.1} cellThickness={0.5} cellColor="#1C2025" sectionSize={0.5} sectionThickness={0.8} sectionColor="#262B31" fadeDistance={length * 4 + 4} infiniteGrid />
+              <OrbitControls makeDefault enableDamping dampingFactor={0.12} />
+              <CameraFit preset={preset} nonce={nonce} bounds={bounds} points={points} upright={upright} overlays={chrome.rects} chromeReady={chrome.ready} reserveGizmo={upright} frame={frame} attitude={attitudeRef} probe={shell} />
+              <RocketFrameProbe frame={frame} points={points} attitude={attitude} probe={shell} />
+              <GizmoHelper alignment="bottom-right" margin={[VIEWCUBE_MARGIN, VIEWCUBE_MARGIN]}>
+                <GizmoViewcube color="#16191D" textColor="#8B9199" strokeColor="#3D4249" hoverColor="#22414A" opacity={0.95} />
+              </GizmoHelper>
+            </Canvas>
+          ) : (
+            <div role="alert" data-webgl-fallback="true" className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-center">
+              <p className="text-[13px] font-semibold" style={{ color: C.fg }}>{WEBGL_FALLBACK_TITLE}</p>
+              <p className="max-w-md text-[11.5px]" style={{ color: C.muted }}>
+                No WebGL context is available. The parts tree, every inspector field, the metrics and the
+                exports keep working — fix the GPU driver or the browser setting, then restore the view.
+              </p>
+              <button type="button" onClick={retry} className="rounded px-2.5 py-1.5 text-[11.5px]" style={{ border: `1px solid ${C.line}`, color: C.fg }}>
+                Restore viewport
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="absolute top-2 left-2 flex items-center gap-2" data-canvas-overlay="" data-viewport-toolbar="">
+          {toolbar}
+          {!fallback && <Segmented size="sm" value={preset} onChange={(v) => { setPreset(v); setNonce((n) => n + 1); }} options={[{ value: 'iso', label: 'ISO' }, { value: 'side', label: 'SIDE' }, { value: 'top', label: 'NOSE' }, { value: 'aft', label: 'AFT' }]} />}
+        </div>
+        {!fallback && showGhost && ghost && !attitude && <div data-canvas-overlay="" className="pointer-events-none absolute bottom-2 left-3 font-geist-mono text-[11px]" style={{ color: C.changed }}>- - - ghost = {ghostLabel}</div>}
       </div>
       {readout && <div className="w-[250px] shrink-0 overflow-y-auto p-2">{readout}</div>}
     </div>

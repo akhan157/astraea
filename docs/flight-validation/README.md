@@ -10,7 +10,7 @@ vs Altimeter Cloud 457.20 mm/56.70 g) and unrecorded launch temperature, pressur
 It is a limited-case comparison and a regression pin. It is not general empirical validation
 of the aerodynamic model, and it is not a calibration of the shipped coefficients.
 
-## Current production replay (2026-10-20)
+## Current production replay (2026-10-21)
 
 The actual shipped WebAssembly engine, invoked through the production bridge in
 `src/evidence/flightValidation.test.ts`, produces **371.70 m apogee** versus the

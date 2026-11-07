@@ -1,0 +1,177 @@
+{
+  "lane": "no-parachute-warning",
+  "status": "implementation complete, awaiting coordinator review",
+  "self_accepted": false,
+  "branch": "no-parachute-warning",
+  "worktree": "/home/ak/.t3/worktrees/astraeat3/t3-5f32a0c5",
+  "pin": "8b31787cb7e07164058d964e0a6f248eb0f451aa",
+  "commits": {
+    "gate1_record": "0a0a3d9cef337a84801ccefa26b33e8f61edfba8",
+    "implementation": "576be3ba42d2d1e619236cb309572dcca69d08d0"
+  },
+  "approval": "Coordinator 2026-11-07: Gate 1 approved; all four decisions accepted (existing Note warn styling, include candidate Recovery, small shared helper, current design only). Browser block must undo all three actions and assert original component identities/order and current-result freshness.",
+  "change": {
+    "shared_note": {
+      "file": "src/console/shell/NoParachuteNote.tsx",
+      "lines": "1-27",
+      "predicate": "components.some(component => component.type === 'parachute')",
+      "sentence": "No parachute in this design.",
+      "styling": "existing Note tone=\"warn\" (C.warn #F5B544, text-[11px] leading-snug)",
+      "dom_hook": "data-no-parachute-note",
+      "no_panel_or_banner": true
+    },
+    "flight_readiness": {
+      "file": "src/console/shell/RunReadiness.tsx",
+      "lines": "4,21",
+      "placement": "inside the existing Run readiness section, after the ready-to-run line and before mount/preflight diagnostics"
+    },
+    "recovery": {
+      "file": "src/console/stages/Recovery.tsx",
+      "lines": "13,34-35,44",
+      "placement": "directly under StageHeader in candidate, no-run and committed-run branches; outside the stale-opacity results container",
+      "stale_recorded_stats_remain_visible": true
+    },
+    "tests": {
+      "file": "src/console/shell/noParachuteWarning.test.tsx",
+      "lines": "1-163",
+      "count": 7
+    },
+    "browser_journey": {
+      "file": "scripts/preview-journeys.mjs",
+      "lines": "158-224",
+      "asserts": [
+        "default two-chute design has no note",
+        "remove both chutes through the real part tree",
+        "Flight readiness shows the exact amber note while the committed run is stale",
+        "banner Run simulation remains enabled",
+        "Recovery shows one note above the recorded Landing speed stat and keeps Descent events visible",
+        "adding one Recovery parachute removes the note in Flight and Recovery",
+        "undo exactly three structural actions restores the original seven component ids and order by deep equality",
+        "after undo the stale banner and not-a-current-result text are gone and Valid run is visible"
+      ]
+    }
+  },
+  "behavior": {
+    "source": "s.design.vehicle.components only; never s.committed.run.events, s.committed.design, recorded parachute rows or staged airframe drafts",
+    "any_parachute_component_hides_note": true,
+    "candidate_recovery": "note shown",
+    "candidate_flight": "unchanged; no readiness area",
+    "run_authorization": "unchanged; currentPreflight().runnable stays true with zero parachutes",
+    "physics_inputs_results": "unchanged"
+  },
+  "tests_run": {
+    "focused": {
+      "command": "pnpm exec vitest run --maxWorkers=2 src/console/shell/noParachuteWarning.test.tsx src/console/shell/editBoundaries.test.tsx src/console/stages/recoveryResults.test.tsx src/console/stages/flightLayout.test.tsx src/console/stageRendering.test.tsx",
+      "files": 5,
+      "tests": 35,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "/tmp/opencode/no-parachute-focused.log"
+    },
+    "new_test_file_alone": {
+      "file": "src/console/shell/noParachuteWarning.test.tsx",
+      "tests": 7,
+      "failed": 0,
+      "exit_code": 0
+    }
+  },
+  "checks_run": [
+    {
+      "command": "pnpm install --frozen-lockfile --prefer-offline",
+      "exit_code": 0,
+      "result": "280 packages linked from the local pnpm store"
+    },
+    {
+      "command": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 pnpm build:engine",
+      "exit_code": 0,
+      "result": "wasm32 release build completed in 44.90 s (later builds no-op)"
+    },
+    {
+      "command": "pnpm exec tsc",
+      "exit_code": 0,
+      "result": "no output",
+      "log": "/tmp/opencode/no-parachute-tsc.log"
+    },
+    {
+      "command": "PATH=\"$HOME/.cargo/bin:$PATH\" CARGO_BUILD_JOBS=2 pnpm build",
+      "exit_code": 0,
+      "result": "vite built 3133 modules in 4.21 s",
+      "log": "/tmp/opencode/no-parachute-build.log"
+    },
+    {
+      "command": "ASTRAEA_BROWSER=chromium node scripts/browser-smoke.mjs",
+      "exit_code": 0,
+      "result": "all preview acceptance checks passed, including: Preview acceptance passed: no-parachute note is current-design only, non-blocking, removed by a returning chute, and fully undone",
+      "log": "/tmp/opencode/no-parachute-browser.log"
+    },
+    {
+      "command": "node /tmp/opencode/probe-no-parachute.mjs",
+      "exit_code": 0,
+      "result": "built dist under production CSP, Chromium 1600x1000, no page errors",
+      "log": "/tmp/opencode/no-parachute-probe.log"
+    }
+  ],
+  "browser_probe": {
+    "artifact": "built dist/ served by vite preview with the dist/_headers Content-Security-Policy",
+    "browser": "Chromium 1600x1000",
+    "flight": {
+      "noteText": "No parachute in this design.",
+      "noteColor": "rgb(245, 181, 68)",
+      "runDisabled": false,
+      "staleBanner": "Showing the committed run. 2 inputs have changed since; press Ctrl+Enter to re-run.",
+      "apogee": "Apogee (committed run) 533 m, Modeled"
+    },
+    "recovery": {
+      "noteText": "No parachute in this design.",
+      "noteColor": "rgb(245, 181, 68)",
+      "noteBox": { "x": 319, "y": 110.9375, "width": 956, "height": 27.125 },
+      "landingSpeed": "Landing speed 6.0 m/s, Modeled",
+      "landingStatBox": { "x": 350, "y": 188.8125, "width": 61, "height": 27 },
+      "descentEventsVisible": true
+    },
+    "flightAfterAdd": 0,
+    "recoveryAfterAdd": 0,
+    "afterUndo": {
+      "noteCount": 0,
+      "staleBannerCount": 0,
+      "notCurrentCount": 0,
+      "validity": "Valid run"
+    },
+    "originalComponents": [
+      { "id": "nsl-nc", "name": "Von Kármán Nosecone" },
+      { "id": "nsl-bt1", "name": "Payload & Avionics Bay" },
+      { "id": "nsl-trans", "name": "Airframe Coupler" },
+      { "id": "nsl-bt2", "name": "Booster & Motor Section" },
+      { "id": "nsl-fins", "name": "High-Power Clipped Delta Fins" },
+      { "id": "nsl-drogue", "name": "Drogue Parachute (Apogee)" },
+      { "id": "nsl-main", "name": "Main Parachute (700ft AGL)" }
+    ],
+    "restoredComponentsDeepEqualOriginal": true,
+    "pageErrors": []
+  },
+  "falsifier": {
+    "method": "detached worktree at pin 8b31787 with only the new test file copied in; node_modules and generated wasm linked; same focused vitest command",
+    "result": "Test Files 1 failed (1); Tests 6 failed | 1 passed (7)",
+    "meaning": "all six positive no-note assertions fail on the pin; the one pass is the negative hides-when-a-chute-is-present case, vacuously true before the feature exists",
+    "log": "/tmp/opencode/no-parachute-before.log",
+    "log_bytes": 39440,
+    "temporary_worktree_removed": true
+  },
+  "engine_artifact": {
+    "path": "src/engine/astraea_engine.wasm",
+    "sha256": "4a897bbe4b96e98149c42c2413a4575a5511051e40039238690620aa0330b837",
+    "note": "generated by the standard build from unchanged crates/ source; no engine source changed in this lane"
+  },
+  "no_other_changes": {
+    "theme_ts": "untouched",
+    "preflight_gates_thresholds_physics": "untouched",
+    "presets_and_inputs": "untouched",
+    "schema_and_exports": "untouched"
+  },
+  "deliberately_not_done": [
+    "full test suite and all browser engines, left for the combined export",
+    "screenshots were not taken, opened or read; coordinator will inspect screenshots and publish the design backup",
+    "no push, merge, release or deploy",
+    "no self-acceptance"
+  ]
+}

@@ -10,6 +10,7 @@ import { EmptyState, GateRow } from '../kit/Status';
 import { DataTable, Stat } from '../kit/Table';
 import { Button } from '../kit/Fields';
 import { StageHeader } from './common';
+import { NoParachuteNote } from '../shell/NoParachuteNote';
 import { FlightTimeline } from './FlightTimeline';
 import { RecoveryCard } from '../evidence/RecoveryCard';
 import { recordedDescentInterval } from '../data/recoveryResults';
@@ -30,8 +31,8 @@ export function RecoveryStage() {
     if (sel?.type !== 'parachute' && chutes[0]) s.set({ selectedId: chutes[0].id });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (candidateSelected) return <div className="flex min-h-0 flex-1 flex-col"><StageHeader stage="recovery" title="Recovery" /><div className="min-h-0 flex-1 space-y-3 overflow-auto p-4"><CandidateRefusalNotice title="Legacy recovery readout not evaluated" message={CANDIDATE_REFUSAL.legacyAero} /><p className="text-[11.5px]" style={{ color: C.muted }}>Candidate recorded events and landing availability are presented in Flight. No legacy recovery gate or landing value is substituted.</p><RecoveryCard /></div></div>;
-  if (!run) return <div className="flex min-h-0 flex-1 flex-col"><StageHeader stage="recovery" title="Recovery" /><div className="min-h-0 flex-1 overflow-auto"><EmptyState icon={<Umbrella size={22} />} title="No flight yet" action={<Button primary onClick={() => void s.run()}>Run simulation</Button>} /><RecoveryCard /></div></div>;
+  if (candidateSelected) return <div className="flex min-h-0 flex-1 flex-col"><StageHeader stage="recovery" title="Recovery" /><NoParachuteNote components={s.design.vehicle.components} className="shrink-0 px-4 pt-3" /><div className="min-h-0 flex-1 space-y-3 overflow-auto p-4"><CandidateRefusalNotice title="Legacy recovery readout not evaluated" message={CANDIDATE_REFUSAL.legacyAero} /><p className="text-[11.5px]" style={{ color: C.muted }}>Candidate recorded events and landing availability are presented in Flight. No legacy recovery gate or landing value is substituted.</p><RecoveryCard /></div></div>;
+  if (!run) return <div className="flex min-h-0 flex-1 flex-col"><StageHeader stage="recovery" title="Recovery" /><NoParachuteNote components={s.design.vehicle.components} className="shrink-0 px-4 pt-3" /><div className="min-h-0 flex-1 overflow-auto"><EmptyState icon={<Umbrella size={22} />} title="No flight yet" action={<Button primary onClick={() => void s.run()}>Run simulation</Button>} /><RecoveryCard /></div></div>;
   const descent = recordedDescentInterval(run);
   const landing = landingAvailability(run);
   const main = run.events.find((e) => e.kind === 'main');
@@ -40,6 +41,7 @@ export function RecoveryStage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <StageHeader stage="recovery" title="Recovery" sub="Descent from apogee to touchdown, from the committed 6-DOF run." />
+      <NoParachuteNote components={s.design.vehicle.components} className="shrink-0 px-4 pt-3" />
       <div className="min-h-0 flex-1 space-y-4 overflow-auto p-4 thin-scroll" style={{ opacity: stale ? 0.85 : 1 }}>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4 rounded-md p-3.5" style={{ background: C.panel, border: `1px solid ${C.line}` }}>
           <Stat label="Landing speed">{landing.available ? <ResultValue r={run.summary.landingSpeed} size="lg" label="Landing speed" /> : `N/A — ${landing.reason}`}</Stat>

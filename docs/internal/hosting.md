@@ -91,8 +91,8 @@ Installers are not code-signed for v1 (free-only decision), so Windows and
 macOS may display security warnings on first install.
 
 **Auto-updates are configured and signed.** The desktop app checks
-`https://github.com/akhan157/astraea/releases/latest/download/latest.json` once
-per launch and offers a newer version; it installs only when the user clicks.
+`https://github.com/akhan157/astraea/releases/download/update-feed/latest.json`
+(then `releases/latest/...` as a fallback) once per launch and offers a newer version; it installs only when the user clicks.
 Updates are verified against the public key in `src-tauri/tauri.conf.json`.
 One-time setup — add two more repository secrets:
 
@@ -105,8 +105,12 @@ Back up `~/.tauri/astraea-updater.key` somewhere safe and private. If it is
 lost, already-installed apps can never accept another update; if it leaks,
 anyone can sign updates they will accept. Never commit it.
 
-The feed only resolves once the repository is public and a release is
-**published** (drafts are invisible to `releases/latest`). Linux updates apply
+Beta releases are GitHub prereleases, which `releases/latest` ignores. So
+publishing any release (prerelease or stable) runs `update-feed.yml`, which
+copies that release's `latest.json` onto a fixed `update-feed` release. The
+feed only resolves once the repository is public and a release is
+**published** by hand (drafts never feed). Installs built before this change
+only poll `releases/latest` and need one manual reinstall. Linux updates apply
 to the AppImage install only; `.deb`/`.rpm` installs update through
 reinstalling. No paid signing, R2 bucket, custom domain or cloud accounts are
 configured.
