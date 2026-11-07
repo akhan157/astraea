@@ -13,13 +13,13 @@ This is a future dispatch brief. Current session is packaging only: no engineeri
 
 ## Required reading
 
-- [STOP/migration handoff](../../SESSION-HANDOFF.md)
+- STOP/migration handoff (private coordination notes)
 - [Full roadmap](../../roadmap-to-collegiate-1.0-2026-10-26.md)
-- [Model routing](../../session-handoff/coordination/MODELS.md)
+- Model routing (private coordination notes)
 - [Completed Linux embedded/extracted smoke](../../delivery-review-2026-10-25-native.md)
 - [Historical package manifest](../../delivery-review-2026-10-25-native-package.json)
 - [Readiness gaps](../../preview-readiness.md)
-- [Portable platform assignment](../../session-handoff/coordination/assignments/platform.md)
+- Portable platform assignment (private coordination notes)
 - [Existing startup instrumentation](../../../../src-tauri/src/startup_trace.rs)
 
 ## Files owned/prohibited/shared leases

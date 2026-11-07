@@ -155,8 +155,8 @@ format. A `.astraea.json` project opens in either one.
 - **No vendor software, binaries, or sample flight data are shipped.** Development
   flight diagnostics stay outside the repository and are opt-in.
 
-Roadmap and the full acceptance record live in
-[`docs/internal/execution-package/`](docs/internal/execution-package).
+Roadmap and acceptance records are internal engineering records under
+`docs/internal/`.
 
 ## Contributing
 

@@ -47,7 +47,7 @@ is pushed, merged to main, tagged, released, deployed, signed or fed.
 Owner now explicitly requests native OMP goal execution to a final deliverable.
 The updated executable objective, success criteria, authority limits and exact
 next gate are in
-[`ASTRAEA-GOAL.md`](../../session-handoff/coordination/ASTRAEA-GOAL.md).
+`ASTRAEA-GOAL.md` (private coordination notes).
 Managed terminal `cc214241-968c-4d38-b823-0d481c632077`
 (**Astraea — native OMP goal**) is allocated for `omp --goal`; after confirmed
 activation it becomes sole coordinator and the prior chat becomes reporting-only.

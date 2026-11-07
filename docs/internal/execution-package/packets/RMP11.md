@@ -13,9 +13,9 @@ This is a future dispatch brief. Current session is packaging only: no engineeri
 
 ## Required reading
 
-- [STOP/migration handoff](../../SESSION-HANDOFF.md)
+- STOP/migration handoff (private coordination notes)
 - [Full roadmap](../../roadmap-to-collegiate-1.0-2026-10-26.md)
-- [Model routing](../../session-handoff/coordination/MODELS.md)
+- Model routing (private coordination notes)
 - [C1–C5 contract](../../accuracy-program/comparison-input-contract-v0.1.md)
 - [Method/evidence limits](../../accuracy-program/reference-methods-and-evidence.md)
 - [Pinned API/license findings](../../accuracy-program/execution-2026-10-25/alternative-paths.md)

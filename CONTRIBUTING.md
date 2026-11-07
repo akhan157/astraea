@@ -16,7 +16,6 @@ pnpm dev                                    # landing page at :5173, app at :517
 Use Node.js 24 (the CI version), the pnpm version in `package.json`, and stable
 Rust. For the desktop shell, install the
 [Tauri prerequisites for your OS](https://v2.tauri.app/start/prerequisites/).
-The repository is currently private; cloning requires access.
 
 ## Before you open a pull request
 

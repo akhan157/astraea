@@ -17,9 +17,9 @@ work remains possible; actual source-specific implementation stays parked.
 
 ## Required reading
 
-- [STOP/migration handoff](../../SESSION-HANDOFF.md)
+- STOP/migration handoff (private coordination notes)
 - [Full roadmap](../../roadmap-to-collegiate-1.0-2026-10-26.md)
-- [Model routing](../../session-handoff/coordination/MODELS.md)
+- Model routing (private coordination notes)
 - [Existing T1a schema/boundary](../../accuracy-program/diagnostics/T1a-supplied-static-table-diagnostic-2026-10-26.md)
 - [P0 frame/wrench contract](../../accuracy-program/first-batch-2026-10-26/P0-contract.md)
 - [Vendor/API findings](../../accuracy-program/execution-2026-10-25/alternative-paths.md)

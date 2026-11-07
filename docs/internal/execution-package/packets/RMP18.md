@@ -22,11 +22,11 @@ decision. Release decision and all remote/production actions remain separate.
 
 ## Required reading
 
-- [STOP/migration handoff](../../SESSION-HANDOFF.md)
+- STOP/migration handoff (private coordination notes)
 - [Full roadmap](../../roadmap-to-collegiate-1.0-2026-10-26.md)
-- [Model routing](../../session-handoff/coordination/MODELS.md)
+- Model routing (private coordination notes)
 - [G0–G8 release gates](../../roadmap-to-collegiate-1.0-2026-10-26.md)
-- [Migration/push authority boundary](../../SESSION-HANDOFF.md)
+- Migration/push authority boundary (private coordination notes)
 - [Product direction/status](../../project-status.md)
 - [Preview readiness](../../preview-readiness.md)
 - [Claim/budget limits](../../accuracy-program/collegiate-accuracy-spec-proposed.md)

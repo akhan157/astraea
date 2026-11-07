@@ -38,7 +38,7 @@ engineering; RMP05 forms are not a universal development stop.
 | --- | --- |
 | Project/motor/history/async IO preservation |[delivery review](../delivery-review-2026-10-24.md); source defects fixed, not all possible vendor combinations |
 | Complete saved inputs and executed engine identity |[reproduction review](../delivery-review-2026-10-25-repro.md); schema1.6/new archives; old summaries remain unreconstructable |
-| Signed normal sums and scoped calibration |[engineering checkpoint](../session-handoff/coordination/RUN-20261025.md); no identified single causal accuracy repair |
+| Signed normal sums and scoped calibration |engineering checkpoint (private coordination notes); no identified single causal accuracy repair |
 | P0 source/axis/moment contract |[accepted contract](../accuracy-program/first-batch-2026-10-26/P0-contract.md) and independent review |
 | A1a/b/c static/core/real geometry/JSON diagnostics |[adapter review](../accuracy-program/diagnostics/A1b-integration-review-2026-10-26.md), [A1c](../accuracy-program/diagnostics/A1c-integration-review-2026-10-26.md) |
 | E1a/T1a environment/canonical supplied static tables |[integration review](../accuracy-program/diagnostics/E1a-T1a-integration-review-2026-10-26.md); unqualified, no actual full vendor adapter |
@@ -50,8 +50,8 @@ engineering; RMP05 forms are not a universal development stop.
 | RMP03/RMP04 prerequisite review |[findings](../execution-runs/RMP03-RMP04-prerequisites/RESULT.md); actual vendor export/schema and inspected offline desktop/image/dependency prerequisites unavailable; technical constraints accepted, no parser/guard/apply checks passed. Continue independently unblocked native work |
 | RMP12a new native numerical reference |[result](../execution-runs/RMP12-native-reference/RESULT.md); independent experiment/report ACCEPT including retained20ms rail diagnostic failure(105.0167us>100us),9 attempts once/9 analytic tests; no adaptive/full6D/nativeWASM/mission budget closure or default change |
 | RMP05a input-only preparation |[request](evidence/RMP05/README.md) and [result](../execution-runs/RMP05-input-only/RESULT.md);10 unselected decisions/7 input-gap groups,0 agreed budgets/rights signoffs. Responsible owner/custodian case and agreement required;no scientific pass,outcomes kept sealed |
-| N1 old-model numerical study |[first-batch record](../session-handoff/coordination/RUN-20261025-FIRST-BATCH.md);20 bounded calls, not universal convergence |
-| Linux native/packaging |[portable checkpoint](../session-handoff/coordination/RUN-20261025-ACCURACY-PATH.md); embedded/extracted smoke, not installed interactive/platform acceptance |
+| N1 old-model numerical study |first-batch record (private coordination notes);20 bounded calls, not universal convergence |
+| Linux native/packaging |portable checkpoint (private coordination notes); embedded/extracted smoke, not installed interactive/platform acceptance |
 | Updater transport/lifecycle/download |[UP1c review](../delivery-review-2026-10-26-updater-download-verification.md); no executable apply/relaunch proof |
 
 A standalone synthetic legacy before/after pair around A1d-1 produced identical

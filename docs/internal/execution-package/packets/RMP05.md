@@ -18,9 +18,9 @@ No outcome access,outreach or historical-threshold promotion occurred.
 
 ## Required reading
 
-- [STOP/migration handoff](../../SESSION-HANDOFF.md)
+- STOP/migration handoff (private coordination notes)
 - [Full roadmap](../../roadmap-to-collegiate-1.0-2026-10-26.md)
-- [Model routing](../../session-handoff/coordination/MODELS.md)
+- Model routing (private coordination notes)
 - [Mission/decision matrix](../../accuracy-program/collegiate-mission-and-decision-matrix.md)
 - [Proposed accuracy structure](../../accuracy-program/collegiate-accuracy-spec-proposed.md)
 - [Input-only freeze template](../../accuracy-program/execution-2026-10-25/pilot-freeze-template.json)

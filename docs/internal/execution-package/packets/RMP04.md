@@ -17,9 +17,9 @@ checks not_run. Reopen on concrete authorized offline inputs, not old cache assu
 
 ## Required reading
 
-- [STOP/migration handoff](../../SESSION-HANDOFF.md)
+- STOP/migration handoff (private coordination notes)
 - [Full roadmap](../../roadmap-to-collegiate-1.0-2026-10-26.md)
-- [Model routing](../../session-handoff/coordination/MODELS.md)
+- Model routing (private coordination notes)
 - [UP1c proof and limits](../../delivery-review-2026-10-26-updater-download-verification.md)
 - [Updater lifecycle review](../../delivery-review-2026-10-26-updater-lifecycle.md)
 - [UP0 proposal and channel boundary](../../accuracy-program/first-batch-2026-10-26/UP0/plan.md)

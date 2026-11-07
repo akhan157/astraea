@@ -1,6 +1,6 @@
 # Real-flight validation candidate (found 2026-09-28)
 
-Purpose: close the "real-flight comparison" gap in [project-status.md](../internal/project-status.md)
+Purpose: close the "real-flight comparison" gap recorded in the internal project-status notes
 using public data only. This file records the candidate triple, what is verified, and what is
 still missing. It is a **candidate**, not a completed validation.
 

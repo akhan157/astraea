@@ -45,11 +45,11 @@ This is a future dispatch brief. Current session is packaging only: no engineeri
 
 ## Required reading
 
-- [STOP/migration handoff](../../SESSION-HANDOFF.md)
+- STOP/migration handoff (private coordination notes)
 - [Full roadmap](../../roadmap-to-collegiate-1.0-2026-10-26.md)
-- [Model routing](../../session-handoff/coordination/MODELS.md)
+- Model routing (private coordination notes)
 - [Completed archive/provenance checkpoint](../../delivery-review-2026-10-25-repro.md)
-- [Reproducibility run record](../../session-handoff/coordination/RUN-20261025-REPRO.md)
+- Reproducibility run record (private coordination notes)
 - [Prior delivery evidence](../../delivery-review-2026-10-25.md)
 - [Output/claim audit](../../accuracy-program/diagnostics/collegiate-output-contract-audit.md)
 - [Existing project boundary](../../../../src/formats/projectJson.ts)

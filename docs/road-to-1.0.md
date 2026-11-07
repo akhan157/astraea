@@ -69,7 +69,7 @@ flights exist to set one.
 | Out-of-scope Mini DX3 flight | H128W +10.2 % at peak Mach 0.929; reported, not counted toward the subsonic gate |
 | Overall bias within the proposed scope | +6.55 % (one vehicle); above the ±5 % target |
 | In-scope flights inside predicted range | 0 of 2; input-only intervals omitted model uncertainty (all three recorded flights: 0 of 3) |
-| Native acceptance | Named Linux beta passes and rebuilt trace/weather fixes recorded in the internal desktop checklist; current Windows installers built and NSIS installed, but initial WebView is blank and feature acceptance remains open; interactive macOS pending |
+| Native acceptance | Named Linux beta passes and rebuilt trace/weather fixes recorded in the desktop acceptance checklist; current Windows installers built and NSIS installed, but initial WebView is blank and feature acceptance remains open; interactive macOS pending |
 | Signing, real-feed updater | Production signing and real-feed install unverified; controlled local Linux updater exercised |
 
 Help reach 1.0: [share a flight](team-data-request.md) or use **Share this

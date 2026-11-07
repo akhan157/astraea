@@ -1,7 +1,6 @@
 # Changelog
 
-User-facing changes. Detailed engineering notes:
-[docs/internal/engineering-changelog.md](docs/internal/engineering-changelog.md).
+User-facing changes. Detailed internal engineering notes live in `docs/internal/`.
 
 ## 0.10.0 — unreleased
 

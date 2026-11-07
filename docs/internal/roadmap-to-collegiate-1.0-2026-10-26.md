@@ -573,7 +573,7 @@ remain visible; numerical assertions and vehicle constraints are not weakened.
 
 ## 8. Delegation, quota and schedule control
 
-Use the current [model routing](session-handoff/coordination/MODELS.md): Luna/medium for
+Use the current model routing (private coordination notes): Luna/medium for
 bounded inventories where available, Sol/medium for ordinary isolated changes,
 Sol/high for numerical/cross-file integration, Astra/high selectively for difficult
 scientific decisions or independent material-model review. Reuse suitable agents;
@@ -599,8 +599,8 @@ lanes or promise accuracy by a coding deadline.
 
 ## 9. Reference and review record
 
-Source-of-truth coordination: [TASKS](session-handoff/coordination/TASKS.md),
-[latest engineering checkpoint](session-handoff/coordination/RUN-20261026-FRICTION-PROVIDER.md),
+Source-of-truth coordination: TASKS (private coordination notes),
+latest engineering checkpoint (private coordination notes),
 [concrete six-route accuracy plan](accuracy-program/accuracy-execution-plan-2026-10-25.md),
 [A1d implementation sequence](accuracy-program/diagnostics/A1d-provider-integration-design-2026-10-26.md),
 [reference eligibility decision](accuracy-program/diagnostics/A1b-reference-eligibility-2026-10-26.md),

@@ -18,9 +18,9 @@ No source acquisition, new curve reading, model change or outcome access occurre
 
 ## Required reading
 
-- [STOP/migration handoff](../../SESSION-HANDOFF.md)
+- STOP/migration handoff (private coordination notes)
 - [Full roadmap](../../roadmap-to-collegiate-1.0-2026-10-26.md)
-- [Model routing](../../session-handoff/coordination/MODELS.md)
+- Model routing (private coordination notes)
 - [A1b eligibility decision](../../accuracy-program/diagnostics/A1b-reference-eligibility-2026-10-26.md)
 - [Open geometry ledger](../../accuracy-program/sb1-foundation-2026-10-26/D1/geometry-ledger.json)
 - [Retained extraction method](../../accuracy-program/first-batch-2026-10-26/D1/README.md)
