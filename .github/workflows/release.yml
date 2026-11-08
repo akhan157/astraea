@@ -2,11 +2,12 @@ name: Release
 
 # Pushing a tag such as v0.10.0 builds the desktop app on Linux, Windows and
 # macOS and attaches the bundles to a draft GitHub release for review.
-# Bundles are not code-signed: macOS Gatekeeper and Windows SmartScreen will
-# warn until signing certificates are added. Updates ARE signed: the updater
-# key's private half must be a repository secret (TAURI_SIGNING_PRIVATE_KEY,
-# the contents of ~/.tauri/astraea-updater.key; its password secret is empty),
-# and the published release carries the latest.json the app polls.
+# Bundles: Windows and Linux remain unsigned; macOS is ad-hoc signed, so
+# Gatekeeper still warns but the app is not reported as damaged. Updates ARE
+# signed: the updater key's private half must be a repository secret
+# (TAURI_SIGNING_PRIVATE_KEY, the contents of ~/.tauri/astraea-updater.key; its
+# password secret is empty), and the published release carries the latest.json
+# the app polls.
 
 on:
   push:
@@ -68,7 +69,7 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: 'Astraea v__VERSION__'
-          releaseBody: 'Beta (0.9). Apogee was tested blind on one small subsonic rocket: predictions ran 6–10% high. Other vehicles and supersonic flight are untested. Not flight approval. See docs/accuracy.md and CHANGELOG.md.'
+          releaseBody: 'Beta (0.10). Apogee was tested blind on one small subsonic rocket: predictions ran 6–10% high. Other vehicles and supersonic flight are untested. Not flight approval. See docs/accuracy.md and CHANGELOG.md.'
           releaseDraft: true
           prerelease: true
           args: ${{ matrix.args }}

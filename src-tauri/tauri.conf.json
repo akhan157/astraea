@@ -48,7 +48,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZFOUEyNzM4OTQyNzdFODAKUldTQWZpZVVPQ2VhYmhQK3Y2NUJ4dEpMckFJbHRCUFdseEs5ZWFxeTJZNHRXTWZ1eFo1b21GUWwK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQyMDM0MzcyN0IwNDdDRkEKUldUNmZBUjdja01EMHAzV1pDZ0J0T016ZFViM05vM2lUNE1LQ01WRzZMa21PNm00MTErOGp6cTkK",
       "endpoints": [
         "https://github.com/akhan157/astraea/releases/download/update-feed/latest.json",
         "https://github.com/akhan157/astraea/releases/latest/download/latest.json"
