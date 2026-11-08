@@ -7,9 +7,13 @@ server, database, account system or cloud-project service is needed for v1.
 Browser projects stay on the device in IndexedDB; export `.astraea.json` files
 for backups and transfers. Clearing site data removes local projects.
 
-**Release hold:** the website is an experimental research preview. Do not
-publish the draft desktop release or tag a general v1 before independent flight
-validation and desktop acceptance. See [preview readiness](preview-readiness.md).
+**Live (2026-11-08, owner-directed):** production is https://astraea-5e2.pages.dev/
+(landing) and `/app/` (workstation), deployed from `astraea-dev` `main` by the
+`Website` workflow on every push. The 0.10 beta is public as a pre-release.
+**Release hold:** the draft v1.0.0 desktop release and a general v1 tag stay held
+until independent flight validation and desktop acceptance. See
+[preview readiness](preview-readiness.md) and
+[the publish record](execution-runs/website-publish/RECORD.md).
 
 ## Cloudflare Pages (one-time setup)
 
