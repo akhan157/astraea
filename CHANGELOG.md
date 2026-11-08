@@ -2,7 +2,21 @@
 
 User-facing changes. Detailed internal engineering notes live in `docs/internal/`.
 
-## 0.10.0 — unreleased
+## 0.10.1 — 2026-11-08
+
+Security update for the desktop app. No changes to the engine or results.
+
+### Security
+
+- **Desktop updater:** the update unpacker's `zip` library moved from 4.6.1 to
+  9.4.2 (via `tauri-plugin-updater` 2.14.1), fixing seven advisories about
+  archive extraction. Updates were already signature-checked.
+- **TLS certificates:** `rustls-webpki` 0.103.16 and `webpki-root-certs` 1.0.11
+  stop trusting certificate authorities that browsers have distrusted.
+- **Build tooling:** Vite 8.3.6, Vitest 5.1.0 and jsdom 30.1.3; these never
+  shipped to users. CI actions are pinned to exact commits.
+
+## 0.10.0 — 2026-11-08 (pre-release)
 
 ### Added
 

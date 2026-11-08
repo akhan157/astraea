@@ -20,7 +20,7 @@
 <p align="center">
   <a href="https://astraea-5e2.pages.dev/app/"><strong>Open in your browser</strong></a> ·
   <a href="https://astraea-5e2.pages.dev/">Website</a> ·
-  <a href="https://github.com/akhan157/astraea/releases/tag/v0.10.0">Desktop beta downloads</a>
+  <a href="https://github.com/akhan157/astraea/releases/tag/v0.10.1">Desktop beta downloads</a>
 </p>
 
 Astraea is a high-power rocketry workstation with one computational engine for
@@ -102,7 +102,7 @@ pnpm tauri build     # MSI/NSIS on Windows, bundles on macOS/Linux
 ```
 
 Prebuilt beta installers for Windows, macOS and Linux are on the
-[v0.10.0 release](https://github.com/akhan157/astraea/releases/tag/v0.10.0).
+[v0.10.1 release](https://github.com/akhan157/astraea/releases/tag/v0.10.1).
 They are not code-signed yet.
 
 **Checks**
@@ -150,7 +150,7 @@ format. A `.astraea.json` project opens in either one.
 
 - **0.10 beta.** The web app is live at
   [astraea-5e2.pages.dev](https://astraea-5e2.pages.dev/); desktop installers are a
-  [pre-release](https://github.com/akhan157/astraea/releases/tag/v0.10.0). Not flight approval.
+  [pre-release](https://github.com/akhan157/astraea/releases/tag/v0.10.1). Not flight approval.
 - **Windows** is verified in a Windows 11 VM (install, launch, production CSP,
   flight, persistence). **macOS** acceptance is still pending. The Linux desktop
   build needs WebKitGTK; the browser app is the supported Linux path today.

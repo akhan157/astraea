@@ -1,6 +1,6 @@
 [package]
 name = "astraea-engine"
-version = "0.10.0"
+version = "0.10.1"
 edition = "2021"
 description = "Astraea engine commands over astraea-core: one JSON dispatch, built natively for tests and as WebAssembly for the app"
 license = "Apache-2.0"

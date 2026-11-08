@@ -1,6 +1,6 @@
 [package]
 name = "astraea-core"
-version = "0.10.0"
+version = "0.10.1"
 edition = "2021"
 description = "Astraea compute engines — Tauri-ready Rust core (TS frontend untouched; TS is the oracle)"
 license = "Apache-2.0"

@@ -4,11 +4,11 @@ version = 4
 
 [[package]]
 name = "astraea-core"
-version = "0.10.0"
+version = "0.10.1"
 
 [[package]]
 name = "astraea-engine"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "astraea-core",
  "serde",

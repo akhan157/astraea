@@ -1,6 +1,6 @@
 [package]
 name = "astraea-workstation"
-version = "0.10.0"
+version = "0.10.1"
 description = "Astraea rocket engineering workstation (Tauri desktop shell; the engine runs as WebAssembly in the app)"
 edition = "2021"
 license = "Apache-2.0"
