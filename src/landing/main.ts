@@ -28,7 +28,7 @@ function init(): void {
   const os = detectOs(navigator.userAgent, nav.userAgentData?.platform ?? navigator.platform ?? '');
   if (!os) return;
   for (const el of document.querySelectorAll<HTMLElement>('[data-download-label]')) {
-    el.textContent = `Desktop preview for ${OS_NAMES[os]}`;
+    el.textContent = `Download for ${OS_NAMES[os]}`;
   }
   document.querySelector<HTMLElement>(`.dl[data-os="${os}"]`)?.classList.add('dl-yours');
 }

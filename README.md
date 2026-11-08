@@ -17,6 +17,12 @@
   <img alt="UI: React + TypeScript" src="https://img.shields.io/badge/UI-React%20%2B%20TypeScript-3178c6">
 </p>
 
+<p align="center">
+  <a href="https://astraea-5e2.pages.dev/app/"><strong>Open in your browser</strong></a> ·
+  <a href="https://astraea-5e2.pages.dev/">Website</a> ·
+  <a href="https://github.com/akhan157/astraea/releases/tag/v0.10.0">Desktop beta downloads</a>
+</p>
+
 Astraea is a high-power rocketry workstation with one computational engine for
 the browser and the desktop. It covers the whole loop: parametric airframe
 design, mass and stability, motor selection, 6-DOF flight, recovery, Monte Carlo
@@ -95,9 +101,9 @@ pnpm tauri dev       # development desktop shell
 pnpm tauri build     # MSI/NSIS on Windows, bundles on macOS/Linux
 ```
 
-Desktop packages are not published yet; the Windows installer is built and
-smoke-tested locally, but it is unsigned and its updater signatures use a fixture
-key.
+Prebuilt beta installers for Windows, macOS and Linux are on the
+[v0.10.0 release](https://github.com/akhan157/astraea/releases/tag/v0.10.0).
+They are not code-signed yet.
 
 **Checks**
 
@@ -142,7 +148,9 @@ format. A `.astraea.json` project opens in either one.
 
 ## Project status
 
-- **0.10 beta, unreleased.** No public installers or tagged releases yet.
+- **0.10 beta.** The web app is live at
+  [astraea-5e2.pages.dev](https://astraea-5e2.pages.dev/); desktop installers are a
+  [pre-release](https://github.com/akhan157/astraea/releases/tag/v0.10.0). Not flight approval.
 - **Windows** is verified in a Windows 11 VM (install, launch, production CSP,
   flight, persistence). **macOS** acceptance is still pending. The Linux desktop
   build needs WebKitGTK; the browser app is the supported Linux path today.

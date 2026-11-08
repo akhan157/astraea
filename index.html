@@ -24,7 +24,7 @@
           <a href="#workflow">Workflow</a>
           <a href="#features">Features</a>
           <a href="#honest">Validation</a>
-          <a href="#download">Desktop status</a>
+          <a href="#download">Download</a>
           <a href="#honest">Beta</a>
         </nav>
         <a class="btn btn-primary btn-sm" href="./app/">Open in browser</a>
@@ -43,7 +43,7 @@
           </p>
           <div class="cta-row">
             <a class="btn btn-primary" href="./app/">Open in browser <span aria-hidden="true">→</span></a>
-            <a class="btn btn-ghost" href="#download" data-download-label>Desktop preview status</a>
+            <a class="btn btn-ghost" href="#download" data-download-label>Download the desktop beta</a>
           </div>
           <p class="fineprint">No account. Nothing to install to try it. Apache-2.0 licensed.</p>
         </div>
@@ -195,35 +195,34 @@
       <section id="download" class="section">
         <div class="wrap">
           <p class="kicker">Get Astraea</p>
-          <h2>Try the browser preview. Desktop release is on hold.</h2>
-          <p class="section-lede">Windows, macOS and Linux installers have built successfully into an unpublished draft release.
-            Public downloads are not available yet. Desktop acceptance and independent flight validation remain release gates.</p>
+          <h2>Use it in your browser, or download the desktop beta.</h2>
+          <p class="section-lede">Beta %APP_VERSION% installers for Windows, macOS and Linux are on GitHub. This is a beta, not flight
+            approval: independent flight validation is still open, and the macOS build has not finished acceptance testing.</p>
           <div class="downloads">
             <a class="dl dl-browser" href="./app/">
               <strong>Web</strong>
               <span>Any current browser. Nothing to install.</span>
               <em>Open in browser →</em>
             </a>
-            <div class="dl" data-os="windows">
+            <a class="dl" data-os="windows" href="https://github.com/akhan157/astraea/releases/tag/v%APP_VERSION%">
               <strong>Windows</strong>
               <span>Installer (.msi or .exe), Windows 10 and 11.</span>
-              <em>Draft built · not published</em>
-            </div>
-            <div class="dl" data-os="mac">
+              <em>Download beta %APP_VERSION% →</em>
+            </a>
+            <a class="dl" data-os="mac" href="https://github.com/akhan157/astraea/releases/tag/v%APP_VERSION%">
               <strong>macOS</strong>
               <span>Apple silicon and Intel (.dmg).</span>
-              <em>Draft built · not published</em>
-            </div>
-            <div class="dl" data-os="linux">
+              <em>Download beta %APP_VERSION% →</em>
+            </a>
+            <a class="dl" data-os="linux" href="https://github.com/akhan157/astraea/releases/tag/v%APP_VERSION%">
               <strong>Linux</strong>
               <span>AppImage, .deb or .rpm.</span>
-              <em>Draft built · not published</em>
-            </div>
+              <em>Download beta %APP_VERSION% →</em>
+            </a>
           </div>
           <p class="fineprint">
             The desktop app works offline and saves real files. Installers are not code-signed yet: on Windows choose
             <em>More info → Run anyway</em>; on macOS right-click the app and choose <em>Open</em> the first time.
-            Public auto-updates also remain unavailable until a release is published.
           </p>
         </div>
       </section>

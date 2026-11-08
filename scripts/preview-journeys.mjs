@@ -115,7 +115,10 @@ export async function previewJourneys(page, origin) {
   const landingNotice = page.locator('[data-beta-notice]');
   assert.match(await landingNotice.innerText(), /^Beta\b[\s\S]*6–10%[\s\S]*not flight approval/i, 'The landing page labels itself Beta and states its accuracy');
   assert.match(await landingNotice.locator('a').getAttribute('href'), /docs\/accuracy\.md$/);
-  assert.equal(await page.locator('a[href*="astraea/releases"]').count(), 0, 'Do not offer unpublished desktop downloads');
+  // v0.10.0 is a published pre-release: the three OS cards, and nothing else, link to the
+  // release that matches package.json, so a version bump cannot leave stale download links.
+  const releaseLinks = await page.locator('a[href*="astraea/releases"]').evaluateAll((links) => links.map((link) => [link.dataset.os, link.getAttribute('href')]));
+  assert.deepEqual(releaseLinks, ['windows', 'mac', 'linux'].map((os) => [os, `https://github.com/akhan157/astraea/releases/tag/v${appVersion}`]), 'Desktop downloads must point at the published release for this version');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Mobile landing must not overflow');
   await page.setViewportSize({ width: 1600, height: 1000 });
