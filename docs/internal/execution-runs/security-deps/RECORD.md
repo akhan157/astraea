@@ -40,6 +40,19 @@ Owner: "run security check on repo", then "fix all then push". Orchestrator-auth
 
 - glib 0.18 (RUSTSEC-2024-0429) / proc-macro-error: Tauri GTK3 stack on Linux; external
   (needs Tauri on gtk4). Our code does not call the affected glib iterators.
-- Installed v0.10.0 desktop apps still carry the old zip/TLS crates until a 0.10.1 release
-  ships — release requires owner authorization.
+- Installed v0.10.0 apps are offered 0.10.1 through the update feed (see below).
 - Flaky `cameraPose` read should poll like its neighbours (separate lane).
+
+## 0.10.1 release (owner approved "Ok", 2026-11-08)
+
+- Dev `1f09603` (lane `release-0.10.1`, version bump in package.json + 3 crates, CHANGELOG, README
+  links). Local: tsc 0, build 0, vitest 1966/1967 (ShareFlightCard missed once under the full
+  parallel run, 3/3 in isolation), `pnpm test:browser` exit 0.
+- Public `c068ea1`, annotated tag `v0.10.1`. Release 42513087544: Windows, Linux, macOS arm64 and
+  x64 bundles success; macOS smoke 42513087546 arm64 + Intel success; CI 42513085610 success.
+- Draft checked before publishing: 17 assets; `latest.json` version 0.10.1, 11 platforms, every
+  URL under `v0.10.1/`, all signatures key id `fa7c047b724303d2` = app pubkey = 0.10.0's key.
+- Published as pre-release; update-feed run 42514392662 success; the app's first endpoint
+  (`update-feed/latest.json`) now returns 0.10.1.
+- Website run 42514451056 deployed `1f09603`; landing shows Beta 0.10.1 and links v0.10.1.
+- Not verified: an actual in-app update from an installed 0.10.0 on a real machine.
