@@ -1,0 +1,194 @@
+name: Windows smoke
+
+# Scripted smoke of the packaged desktop app on a GitHub-hosted Windows
+# runner: it builds the release binary and the NSIS installer from the commit,
+# installs that installer silently and launches the *installed* executable in
+# smoke mode (ASTRAEA_SMOKE_OUT, src/desktop/smoke.ts), then asserts the
+# baseline flight it reports. It is NOT interactive Windows acceptance
+# (docs/internal/desktop-acceptance-checklist.md still needs a person on a
+# Windows host).
+#
+# Windows minutes bill at 2x on a private repository, so this never runs on
+# push or pull request: dispatch it by hand or push a release tag.
+#   gh workflow run windows-smoke.yml --ref <branch>
+#
+# The installer is unsigned and updater artifacts are switched off here: this
+# job has no signing secret (see macos-smoke.yml for the macOS equivalent).
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_DIR: src-tauri/target/release/bundle/nsis
+
+jobs:
+  smoke:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
+        with:
+          persist-credentials: false
+      - name: Set the smoke directory
+        run: |
+          "SMOKE_DIR=$env:RUNNER_TEMP\smoke" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6, Node 24
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: |
+            src-tauri
+            crates/astraea-engine
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build the NSIS installer
+        # Only the NSIS installer (no MSI). Updater artifacts are signed with a
+        # release secret this job does not have, so they are switched off here.
+        # The overlay goes through a file: PowerShell and pnpm.cmd strip the
+        # inner double quotes from an inline JSON argument on Windows
+        # (observed run 44097293954: `{bundle:{createUpdaterArtifacts:false}}`).
+        run: |
+          $config = Join-Path $env:RUNNER_TEMP 'smoke-tauri-config.json'
+          '{"bundle":{"createUpdaterArtifacts":false}}' | Set-Content -Path $config -Encoding ascii
+          $start = Get-Date
+          pnpm tauri build --bundles nsis --config $config
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "BUILD_SECONDS=$([int]((Get-Date) - $start).TotalSeconds)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Install the NSIS build silently
+        # Default install mode is currentUser (tauri.conf.json sets no
+        # bundle.windows.nsis.installMode), so /S needs no elevation and writes
+        # under $env:LOCALAPPDATA.
+        run: |
+          $installer = Get-ChildItem -Path $env:APP_DIR -Filter '*-setup.exe' -File | Select-Object -First 1
+          if (-not $installer) {
+            Write-Host "::error::no NSIS installer under $env:APP_DIR"
+            Get-ChildItem -Path $env:APP_DIR -Recurse -ErrorAction SilentlyContinue | Out-String | Write-Host
+            exit 1
+          }
+          Write-Host "installing $($installer.FullName) silently"
+          $install = Start-Process -FilePath $installer.FullName -ArgumentList '/S' -Wait -PassThru
+          if ($install.ExitCode -ne 0) {
+            Write-Host "::error::the NSIS installer exited $($install.ExitCode)"
+            exit 1
+          }
+          Write-Host "installed; installer exit code 0"
+
+      - name: Launch the installed app in smoke mode
+        run: |
+          $exe = Join-Path $env:LOCALAPPDATA 'Astraea Workstation\astraea-workstation.exe'
+          if (-not (Test-Path $exe)) {
+            $found = Get-ChildItem -Path $env:LOCALAPPDATA -Filter 'astraea-workstation.exe' -Recurse -File -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) { $exe = $found.FullName }
+          }
+          if (-not (Test-Path $exe)) {
+            Write-Host "::error::the installed Astraea Workstation executable was not found"
+            Write-Host "--- product install directory ---"
+            Get-ChildItem -Path (Join-Path $env:LOCALAPPDATA 'Astraea Workstation') -Recurse -ErrorAction SilentlyContinue | Out-String | Write-Host
+            Write-Host "--- LOCALAPPDATA directories ---"
+            Get-ChildItem -Path $env:LOCALAPPDATA -Directory | Select-Object -ExpandProperty Name | Out-String | Write-Host
+            Write-Host "--- uninstall registry entries ---"
+            Get-ChildItem 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall' -ErrorAction SilentlyContinue |
+              ForEach-Object { Get-ItemProperty $_.PSPath } |
+              Where-Object { $_.DisplayName -like '*Astraea*' } |
+              Format-List DisplayName, DisplayVersion, InstallLocation, DisplayIcon, UninstallString | Out-String | Write-Host
+            exit 1
+          }
+          Write-Host "launching $exe"
+          New-Item -ItemType Directory -Force -Path $env:SMOKE_DIR | Out-Null
+          $report = Join-Path $env:SMOKE_DIR 'report.json'
+          Remove-Item -Force -ErrorAction SilentlyContinue $report
+          $env:ASTRAEA_SMOKE_OUT = $report
+          $stdout = Join-Path $env:SMOKE_DIR 'app.stdout.log'
+          $stderr = Join-Path $env:SMOKE_DIR 'app.stderr.log'
+          $start = Get-Date
+          $app = Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe) -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          # The app times its own startup flight out at 180 s and still reports.
+          $deadline = $start.AddSeconds(240)
+          while (-not (Test-Path $report) -and -not $app.HasExited -and (Get-Date) -lt $deadline) {
+            Start-Sleep -Seconds 1
+          }
+          "LAUNCH_SECONDS=$([int]((Get-Date) - $start).TotalSeconds)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          if (Test-Path $report) {
+            # The app keeps its window up for a few seconds after reporting.
+            try {
+              Add-Type -AssemblyName System.Windows.Forms
+              Add-Type -AssemblyName System.Drawing
+              $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+              $bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
+              $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+              $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+              $bitmap.Save((Join-Path $env:SMOKE_DIR 'window.png'))
+              $graphics.Dispose()
+              $bitmap.Dispose()
+            } catch {
+              Write-Host "screenshot failed (non-fatal): $_"
+            }
+          }
+          if (-not $app.HasExited) { $app.WaitForExit(30000) | Out-Null }
+          if (-not $app.HasExited) {
+            Write-Host "app did not exit after its report; killing it"
+            taskkill /PID $app.Id /T /F | Out-Null
+            $code = 'timeout'
+          } else {
+            $code = $app.ExitCode
+          }
+          Write-Host "app exit code: $code"
+          Get-Content -Path $stdout, $stderr -ErrorAction SilentlyContinue | Out-File -FilePath (Join-Path $env:SMOKE_DIR 'app.log') -Encoding utf8
+          if (-not (Test-Path $report)) {
+            Write-Host "::error::the app wrote no smoke report"
+            Get-Content -Path (Join-Path $env:SMOKE_DIR 'app.log') -ErrorAction SilentlyContinue | Out-String | Write-Host
+            exit 1
+          }
+
+      - name: Assert the reported flight
+        run: |
+          $report = Join-Path $env:SMOKE_DIR 'report.json'
+          $version = node -p "require('./package.json').version"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $summary = node -e 'const r=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));console.log(JSON.stringify({apogeeM:r.apogeeM,maxMach:r.maxMach,railExitSpeedMps:r.railExitSpeedMps,terminationReason:r.terminationReason,engine:r.engine,webgl:r.webgl,appVersion:r.appVersion,elapsedMs:r.elapsedMs,buildSeconds:+process.env.BUILD_SECONDS,launchSeconds:+process.env.LAUNCH_SECONDS},null,2))' $report
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $lines = @(
+            '### Windows smoke (windows-latest, x64)',
+            '',
+            'Scripted smoke of the installed NSIS build on a hosted runner, not interactive Windows acceptance.',
+            '',
+            '```json',
+            $summary,
+            '```'
+          )
+          $lines -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          node scripts/macos-smoke-check.mjs $report $version
+
+      - name: Upload report, screenshot and app log
+        # Artifact storage quota has run out on this repository before; the
+        # assertions above decide the job result, never this upload.
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: windows-smoke
+          path: |
+            ${{ runner.temp }}/smoke/report.json
+            ${{ runner.temp }}/smoke/window.png
+            ${{ runner.temp }}/smoke/app.log
+          retention-days: 3
+          if-no-files-found: ignore

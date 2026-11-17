@@ -928,4 +928,63 @@ Owner instruction: "do all of the above" (merge, push, tag, version bump; PR #2 
 - Release run 44004824842: **success on all four targets** — ubuntu-22.04, windows-latest, macOS x86_64 and macOS aarch64. Tauri built the 0.11.0 bundles with updater signatures and `latest.json`.
 - The ubuntu job logged "Couldn't find release with tag v0.11.0. Creating one."; the other three logged "Found draft release with tag v0.11.0 on the release list." and uploaded their bundles. All four jobs succeeded.
 - **Why the API shows no release:** the fine-grained PAT is read-only, and draft releases are not listed for it (`/releases` returns `[]`, `/releases/tags/v0.11.0` 404). The draft is verified from the four job logs, not from the API. The owner sees it under Releases (draft) in `astraea-dev`.
-- **Not published:** the release stays a draft prerelease (`releaseDraft: true`, `prerelease: true`). Publishing it, and moving the public README download links from v0.10.1, remain owner actions.
+- **Second draft in the public repo:** pushing tag `v0.11.0` to `astraea` also ran Release (44015444617) and its ubuntu job created a draft `v0.11.0` there; all four jobs uploaded their bundles and `latest.json`. The public README points at that repo, so the public draft is the one to publish.
+- **Not published:** both releases stay draft prereleases (`releaseDraft: true`, `prerelease: true`). Publishing is an owner action; until then the public download link has no files (see the CI section below).
+
+### Public CI red on the 0.11.0 export, fixed 2026-11-17
+
+- **Failure:** public repo (`astraea`) CI run 44015444574, `main` @ `4f89853`, step
+  "WebKit viewport context lifecycle": `AssertionError: Flight must use the
+  attitude-posed camera`, `null !== 'upright'`
+  (`scripts/viewport-context-lifecycle.mjs:360`). Chromium, Firefox, unit tests, build
+  and the Rust job passed in the same run. Release run 44015444617 (all four targets) and
+  macOS smoke run 44015444596 (arm64, x64) passed on the same commit.
+- **Cause:** the harness read `data-camera-pose` in the same tick the Flight canvas
+  became visible (`waitForActualCanvas` → `expectOneVisibleCanvas` → `state()`).
+  `CameraFit` in `src/console/viewport/Viewport.tsx` early-returns while
+  `upright && !chromeReady` and writes that report in an effect after the stage commits,
+  so the report trails the canvas. Local WebKit passed; CI's WebKit read the gap.
+- **Fix:** lane `ci/webkit-pose-report` @ `254ad6a`, merged into `main` as `d64a521`.
+  The harness now polls up to 15 s for `cameraPose`, and the poll itself requires
+  `'upright'`; `poseQ` is still asserted. No tolerance and no app change.
+- **Falsifier:** a throwaway harness that delayed the `upright` write by 1.2 s failed the
+  old assertion with the CI error (`null !== 'upright'`) and passed with the wait.
+  Undelayed local WebKit (80 s) and Firefox runs pass. Chromium was not run to
+  completion: it runs this script under SwiftShader and exceeded a 300 s budget, and
+  Chromium is not a CI runner for this script.
+- **Independent review: none.** claude-pool `claude-sonnet-5-5` returned 429 (reset in
+  about 1h47m) and codex `gpt-6.1-sol` hit its usage limit (until 2026-11-22). No verdict
+  exists; the CI run on the pushed commit is the acceptance check.
+- **Public repo:** `main` `4f89853`→`6b37534`, a test-only export of `d64a521`. Tag
+  `v0.11.0` and the draft release stay at `4f89853`; the shipped bundles are unchanged.
+- **Live gap for the owner:** the public README on `main` points downloads at
+  `releases/tag/v0.11.0`, but that release is still a draft. The anonymous asset list
+  (`releases/expanded_assets/v0.11.0`) returns 0 files against 17 for `v0.10.1`.
+  Publishing the draft in `akhan157/astraea` is the owner action that closes it.
+- **Public CI run 44019941427 (`main` @ `6b37534`): success.** Frontend and Rust jobs
+  green, including "WebKit viewport context lifecycle", the step that failed on
+  `4f89853`. Chromium, Firefox and WebKit acceptance, unit tests, engine build, site
+  build, desktop shell build and startup-trace checks all passed. This is the only
+  independent check on the fix; no model review produced a verdict.
+- **macOS packaged smoke now ran:** public run 44015444596 built the `.app` on arm64 and
+  x64, verified the ad-hoc signature, launched the packaged binary in smoke mode and
+  asserted the baseline flight — success on both. Interactive macOS acceptance (a person
+  on a Mac) is still not done, and Windows native smoke is still not run.
+- **Deploy of the fixed tree:** Website run 44021387032 (`main` @ `bed709f`): success,
+  including the browser acceptance suite and the Cloudflare Pages deploy. The live app
+  bundle is still `assets/app-BFvOTcIL.js` and the engine still
+  `assets/astraea_engine-BhZQMjX6.wasm`, sha256
+  `82d727e5…` (2,076,406 bytes) — the same bytes as before the fix, so the harness change
+  did not alter the product.
+
+### Public 0.11.0 release published, 2026-11-17
+
+Owner instruction: "u do it" (publish the draft and move the download links).
+
+- **Export:** public `akhan157/astraea` main `4f89853`, the tree of dev `cc0ee2e` (README links and beta label moved to 0.11.0) minus `docs/internal/session-handoff/` and `docs/internal/SESSION-HANDOFF.md`, with the no-reply author. Export checks before the push: install 0, engine build 0, tsc 0, vitest 194 files / 2236 tests, build 0. Annotated tag `v0.11.0` → `4f89853`.
+- **Runs at the tag:** Release `44015444617` success (17 assets); macOS smoke `44015444596` success; CI `44015444574` failed on the WebKit pose read, which was fixed in `d64a521` (public `6b37534`, CI `44019941427` success; see above).
+- **Draft check before publishing:** 17 assets as in v0.10.1; `latest.json` version 0.11.0, 11 platforms, every URL under `v0.11.0/`, every signature key id `fa7c047b724303d2` (= the app's updater key and 0.10.x's key).
+- **Published** as a pre-release at 2026-11-17T13:28:16Z. Update-feed run `44093043209` success; `update-feed/latest.json` now returns 0.11.0. The Windows installer URL returns 200; the landing page links `releases/tag/v0.11.0`.
+- **Access:** the saved PAT is read-only and got 403 on the public repo. The owner supplied a short-lived fine-grained token (Contents write, public repo only), used per command from a T3 secret file; it is not stored in git config or records.
+- **Removed** the merged lane worktrees a1, a2, a3, b1-step3-final, bl1, bx1, sc1; branches kept.
+- **Not verified:** an in-app update from an installed 0.10.x on a real machine; Windows native smoke.
