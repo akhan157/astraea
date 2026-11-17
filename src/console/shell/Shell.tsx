@@ -297,7 +297,7 @@ export function Palette({ open, setOpen, openShortcuts }: { open: boolean; setOp
                   <Command.Item className={item} onSelect={() => { s.redo(); close(); }}><Redo2 size={13} color={C.dim} />Redo</Command.Item>
                   <Command.Item className={item} onSelect={() => { s.setUnits(s.units === 'metric' ? 'imperial' : 'metric'); close(); }}><Rows3 size={13} color={C.dim} />Switch units to {s.units === 'metric' ? 'in · ft' : 'mm · m'}</Command.Item>
                   <Command.Item className={item} onSelect={() => { s.setConfidenceStyle(s.confidenceStyle === 'A' ? 'B' : 'A'); close(); }}><CircleDot size={13} color={C.dim} />Confidence style {s.confidenceStyle === 'A' ? 'B' : 'A'}</Command.Item>
-                  <Command.Item className={item} onSelect={() => { s.set({ onboarding: 0 }); close(); }}><Target size={13} color={C.dim} />Start the guided tour</Command.Item>
+                  <Command.Item className={item} onSelect={() => { s.set({ onboarding: 0, stage: 'mission' }); close(); }}><Target size={13} color={C.dim} />Start the guided tour</Command.Item>
                   <Command.Item className={item} onSelect={() => { close(); openShortcuts(); }}><Keyboard size={13} color={C.dim} />Keyboard shortcuts<span className="ml-auto"><Kbd>?</Kbd></span></Command.Item>
                 </Command.Group>
                 <Command.Group heading="Stages" className={group}>

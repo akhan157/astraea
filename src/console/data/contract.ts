@@ -9,6 +9,7 @@
  */
 import type { SixDofTelemetryPoint } from '../../sim/sixDofSimulator';
 import type { EngineIdentity } from '../../engine/identity';
+import type { DispatchedPhysicsOptions } from '../../application/caseResolver';
 import type { DragCalibration } from '../../application/dragCalibration';
 import type {
   DispersionStatistics,
@@ -145,6 +146,14 @@ export interface Dispersion {
   failed: number;
   /** Set when the ensemble ran with the project's drag calibration. */
   dragCalibration?: DragCalibration;
+  /**
+   * The physics options this run actually sent beyond the console's own
+   * allowlist (site temperature, back-pressure nozzle, built-up drag source).
+   * Absent when none was set, so default results render exactly as before.
+   */
+  physicsOptions?: DispatchedPhysicsOptions;
+  /** Engine's axial-drag source line; present only on a completed dispersion. */
+  axialDrag?: string;
   /** classified-v1 ledger; absent on legacy records. */
   runs?: MonteCarloRunOutcome[];
   counts?: MonteCarloOutcomeCounts;
@@ -196,6 +205,12 @@ export interface FlightRun {
   momentArmHistory?: import('../../application/momentArmHistory').MomentArmHistory;
   /** Engine run manifest, shown in the Build pre-export check and trace file. */
   manifest: Record<string, string>;
+  /**
+   * The physics options this run actually sent beyond the console's own
+   * allowlist. Derived from the vehicle at conversion time; absent when none
+   * was set, so a default run renders exactly as it did before this bundle.
+   */
+  physicsOptions?: DispatchedPhysicsOptions;
   durationMs: number;
   /** Set when this run's drag was scaled by the project's calibration; every aero-driven number then reads Calibrated. */
   dragCalibration?: DragCalibration;

@@ -2,6 +2,37 @@
 
 User-facing changes. Detailed internal engineering notes live in `docs/internal/`.
 
+## 0.11.0 — 2026-11-16
+
+### Accuracy
+
+- **Built-up axial drag is the default flight model.** On the 20 published
+  rockets it was tested against, apogee error averages 5.6 % (18 of 20 within
+  ±10 %). This is development data, not a blind result and not a limit; the app
+  states that where it shows the figure.
+- **Typical-error line.** Flight results show the typical apogee error for the
+  flight regime, or withhold it with the stated reason.
+- **Shapes the model cannot represent fly legacy drag**, with the reason shown.
+  Legacy drag has no blind test on those shapes; in one development comparison
+  it predicted about 26 % low on a small rocket with freeform fins.
+
+### Fixed
+
+- A nozzle exit wider than the aft body is refused with a clear error instead of
+  a wrong result.
+- Extreme or invalid wind no longer traps the engine; the drag ladder falls back
+  and says so.
+- A motor longer than its mount, and a zero-impulse thrust curve, are refused
+  with an error instead of trapping the engine.
+- Drag coefficients are rescaled to the solver's reference area, and pressure
+  thrust applies only while the motor is thrusting.
+
+### Changed
+
+- Projects with an active legacy-fitted drag calibration stay on legacy drag.
+- Flights take about 1.7× longer per case (≈134 ms vs ≈80 ms on the reference
+  machine). Accuracy was prioritised over speed.
+
 ## 0.10.1 — 2026-11-08
 
 Security update for the desktop app. No changes to the engine or results.

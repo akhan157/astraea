@@ -28,7 +28,8 @@ import type { ClassifiedDispersionResult, MonteCarloChunkResult } from '../sim/m
 import type { ApcpEquilibrium } from '../propulsion/nozzleChemistry';
 import type { AeroCurveResult } from '../aero/transonicAero';
 import type { VehicleMassRollup } from '../core/mass';
-import { flightRunOptions } from '../application/caseResolver';
+import { assertVehicleRunOptions, dispatchVehicle, flightRunOptions } from '../application/caseResolver';
+import { flightAdmissionRefusal } from '../application/flightAdmission';
 import { engineInvoke, engineInvokeRecorded, type EngineInvoke, type RecordedEngineResult } from '../engine';
 import { parseMomentArmHistory } from '../application/momentArmHistory';
 import { qualifyGeometryStability } from '../aero/geometryCpSupport';
@@ -40,9 +41,6 @@ export { motorDto, vehicleDto } from './dto';
 function getInvoke(): EngineInvoke {
   return engineInvoke;
 }
-
-/** Run options owned by the vehicle: derived here, never chosen by a caller. */
-const DERIVED_RUN_OPTION_KEYS = ['launchAltitudeASL'] as const;
 
 /**
  * Central run layer: every flight and every ensemble run derives its
@@ -57,17 +55,25 @@ function deriveRunOptions(
   vehicle: RocketVehicle,
   options: SixDofOptions,
 ): SixDofOptions {
+  // `vehicle` is the dispatch vehicle: every entry point resolves it ONCE with `dispatchVehicle`
+  // (K3: a drag-calibration scale rides the dispatch and the vehicle made no explicit drag choice,
+  // so the legacy tables fly) and reuses that same vehicle for admission and the request.
   const derived = flightRunOptions(vehicle);
-  for (const key of DERIVED_RUN_OPTION_KEYS) {
-    const given = options[key];
-    if (given !== undefined && given !== derived[key]) {
-      throw new Error(
-        `${runLabel}: options.${key} (${String(given)}) disagrees with the vehicle-derived value ` +
-          `(${String(derived[key])}) -- the launch site is derived from the vehicle`,
-      );
-    }
-  }
+  assertVehicleRunOptions(runLabel, vehicle, options);
   return { ...options, ...derived };
+}
+
+/**
+ * Last-gate admission for every committed flight and ensemble dispatch. The
+ * refusal text is the shared one from `application/flightAdmission`, so the
+ * bridge and the Console store cannot disagree about the pairing.
+ */
+function assertCommittedAdmission(
+  vehicle: RocketVehicle,
+  aeroModel: AeroModelSelection | undefined,
+): void {
+  const refusal = flightAdmissionRefusal(vehicle, aeroModel);
+  if (refusal !== null) throw new Error(refusal);
 }
 
 /** Full 6-DOF flight via the Rust core (only path). */
@@ -80,7 +86,17 @@ export async function simulateFlight(
   return (await simulateFlightRecorded(vehicle, motor, options, undefined, aeroModel)).value;
 }
 
-/** Flight plus the identity captured by its actual invocation. */
+/**
+ * Flight plus the identity captured by its actual invocation.
+ *
+ * Committed-flight admission: the selection × opt-in pairing is the shared
+ * `flightAdmissionRefusal` rule (the same one the Console store checks before
+ * archiving). A vehicle that carries the built-up flight drag needs a usable
+ * built-up selection; a selection without the opt-in keeps the panels-only
+ * refusal. The engine's own axialDrag line names the drag source it actually
+ * used (including a refusal). `aeroModel` is an app-side admission input only
+ * and is never placed in the wire options.
+ */
 export async function simulateFlightRecorded(
   vehicle: RocketVehicle, motor: MotorSpec, options: SixDofOptions = {},
   reportMomentArmHistory?: boolean,
@@ -89,16 +105,14 @@ export async function simulateFlightRecorded(
   if (reportMomentArmHistory !== undefined && typeof reportMomentArmHistory !== 'boolean') {
     throw new Error('simulateFlight: reportMomentArmHistory must be boolean when present');
   }
-  if (aeroModel !== undefined) {
-    throw new Error(
-      `${aeroModel.modelId} ${aeroModel.modelVersion} drives stability and aero panels in this build; `
-        + 'flight coefficients still come from the legacy path. Choose the legacy model to fly.',
-    );
-  }
+  // Resolved once: the admission rule, the request and (via `dispatchVehicle` in the adapter) the
+  // recorded metadata all use this same vehicle.
+  const flown = dispatchVehicle(vehicle, options);
+  assertCommittedAdmission(flown, aeroModel);
   const recorded = await engineInvokeRecorded<SixDofSimulationResult>('simulate_flight', {
-    vehicle: vehicleDto(vehicle),
+    vehicle: vehicleDto(flown),
     motor: motorDto(motor),
-    options: deriveRunOptions('simulateFlight', vehicle, options),
+    options: deriveRunOptions('simulateFlight', flown, options),
     ...(reportMomentArmHistory === undefined ? {} : { reportMomentArmHistory }),
   });
   const hasHistory = Object.hasOwn(recorded.value, 'momentArmHistory');
@@ -124,6 +138,9 @@ export async function simulateCandidateRecorded(
 /**
  * The same flight as `simulateFlight`, without the display telemetry: the
  * live preview's call. Interactive lane; `signal` cancels a superseded one.
+ * The preview is deliberately **ungated** by the selection × opt-in admission
+ * rule (it never had an aero-model gate), so it keeps showing the vehicle's
+ * derived physics while the committed run may still refuse pre-run.
  */
 export async function previewFlight(
   vehicle: RocketVehicle,
@@ -131,12 +148,13 @@ export async function previewFlight(
   options: SixDofOptions = {},
   signal?: AbortSignal,
 ): Promise<SixDofSimulationResult> {
+  const flown = dispatchVehicle(vehicle, options);
   return getInvoke()<SixDofSimulationResult>(
     'flight_summary',
     {
-      vehicle: vehicleDto(vehicle),
+      vehicle: vehicleDto(flown),
       motor: motorDto(motor),
-      options: deriveRunOptions('previewFlight', vehicle, options),
+      options: deriveRunOptions('previewFlight', flown, options),
     },
     { lane: 'interactive', signal },
   );
@@ -149,12 +167,15 @@ export async function runEnsemble(
   nRuns: number,
   seed: number,
   version: SamplingVersion = 'legacy-sequential-v1',
+  aeroModel?: AeroModelSelection,
 ): Promise<DispersionResult> {
+  const flown = dispatchVehicle(baseInput.vehicle, baseInput.options);
+  assertCommittedAdmission(flown, aeroModel);
   return getInvoke()<DispersionResult>('run_ensemble', {
     req: {
-      vehicle: vehicleDto(baseInput.vehicle),
+      vehicle: vehicleDto(flown),
       motor: motorDto(baseInput.motor),
-      options: deriveRunOptions('runEnsemble', baseInput.vehicle, baseInput.options),
+      options: deriveRunOptions('runEnsemble', flown, baseInput.options),
       sigmas: perturbations,
       nRuns,
       seed,
@@ -174,12 +195,15 @@ export async function runEnsembleClassified(
   nRuns: number,
   seed: number,
   version: SamplingVersion = 'legacy-sequential-v1',
+  aeroModel?: AeroModelSelection,
 ): Promise<ClassifiedDispersionResult> {
+  const flown = dispatchVehicle(baseInput.vehicle, baseInput.options);
+  assertCommittedAdmission(flown, aeroModel);
   return getInvoke()<ClassifiedDispersionResult>('run_ensemble_classified', {
     req: {
-      vehicle: vehicleDto(baseInput.vehicle),
+      vehicle: vehicleDto(flown),
       motor: motorDto(baseInput.motor),
-      options: deriveRunOptions('runEnsembleClassified', baseInput.vehicle, baseInput.options),
+      options: deriveRunOptions('runEnsembleClassified', flown, baseInput.options),
       sigmas: perturbations,
       nRuns,
       seed,
@@ -205,20 +229,24 @@ export async function runEnsembleChunk(
   runEnd: number,
   version: SamplingVersion = 'per-run-v2',
   signal?: AbortSignal,
+  aeroModel?: AeroModelSelection,
 ): Promise<MonteCarloChunkResult> {
-  return (await runEnsembleChunkRecorded(baseInput, perturbations, nRuns, seed, runStart, runEnd, version, signal)).value;
+  return (await runEnsembleChunkRecorded(baseInput, perturbations, nRuns, seed, runStart, runEnd, version, signal, aeroModel)).value;
 }
 
 /** Chunk plus invocation-bound identity; cancellation stays in the pool. */
 export async function runEnsembleChunkRecorded(
   baseInput: MonteCarloSimInput, perturbations: PerturbationSigmas, nRuns: number, seed: number,
   runStart: number, runEnd: number, version: SamplingVersion = 'per-run-v2', signal?: AbortSignal,
+  aeroModel?: AeroModelSelection,
 ): Promise<RecordedEngineResult<MonteCarloChunkResult>> {
+  const flown = dispatchVehicle(baseInput.vehicle, baseInput.options);
+  assertCommittedAdmission(flown, aeroModel);
   return engineInvokeRecorded<MonteCarloChunkResult>('run_ensemble_chunk', {
     req: {
-      vehicle: vehicleDto(baseInput.vehicle),
+      vehicle: vehicleDto(flown),
       motor: motorDto(baseInput.motor),
-      options: deriveRunOptions('runEnsembleChunk', baseInput.vehicle, baseInput.options),
+      options: deriveRunOptions('runEnsembleChunk', flown, baseInput.options),
       sigmas: perturbations,
       nRuns,
       seed,

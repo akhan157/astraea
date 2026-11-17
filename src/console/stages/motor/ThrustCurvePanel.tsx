@@ -40,7 +40,7 @@ function Alert({ tone, children }: { tone: 'bad' | 'ok'; children: React.ReactNo
   );
 }
 
-export function ThrustCurvePanel() {
+export function ThrustCurvePanel({ onImported }: { onImported?: (id: string) => void }) {
   const s = useWS();
   const [query, setQuery] = useState('');
   const [state, setState] = useState<SearchState>({ kind: 'idle' });
@@ -78,6 +78,7 @@ export function ThrustCurvePanel() {
         sourceFile: `thrustcurve.org/motors/${summary.id}/`,
         note: `simfile from ThrustCurve.org (${summary.manufacturer} ${summary.designation})`,
       });
+      onImported?.(key);
       setResult({ kind: 'ok', message: `Imported ${motor.designation} (${motor.totalImpulse.toFixed(1)} N·s total impulse) — registered as ${key} and selected.` });
     } catch (err) {
       const why = err instanceof Error ? err.message : String(err);

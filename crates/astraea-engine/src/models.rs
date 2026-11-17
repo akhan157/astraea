@@ -85,6 +85,11 @@ pub struct FrontendComponent {
     /// Trailing-edge bevel length (m; trapezoidal fin sets).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub trailing_edge_bevel: Option<f64>,
+    /// Nose tip (blunt) radius (m). R44: absent is a sharp tip, exactly the
+    /// pre-R44 adapter value; a declared value also feeds the calibrated aero
+    /// panels, not only the flight.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tip_radius: Option<f64>,
     /// Leading-edge radius (m; trapezoidal fin sets).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub leading_edge_radius: Option<f64>,
@@ -142,6 +147,22 @@ pub struct FlightOptionsDto {
     pub fin_cant_angle_deg: Option<f64>,
     /// Airframe axial-drag multiplier (default 1.0). Positive finite when present.
     pub drag_cd_scale: Option<f64>,
+    /// Launch-site air temperature, °C (R42). Absent keeps the product ISA-1976
+    /// atmosphere in every bit; present selects the site-anchored hydrostatic
+    /// column. Domain [-60, 60] °C, fail closed outside it.
+    pub launch_site_temperature_c: Option<f64>,
+    /// Nozzle exit diameter for the flight back-pressure term, metres (R42).
+    /// Absent = no term. This is NOT `FrontendVehicle::nozzle_exit_diameter`
+    /// (that one stays the aero method's design input): the flight path never
+    /// reads the vehicle field, so no existing project changes.
+    pub nozzle_exit_diameter: Option<f64>,
+    /// Axial-drag source for this flight (R44). Absent keeps the legacy
+    /// 25-station build-up tables bit for bit; `"calibrated"` fills them from
+    /// the in-repo calibrated method at the run's own ascent altitudes. Any
+    /// other value is refused. The removed `aeroModel` / `launchTemperatureK` /
+    /// `launchPressurePa` names stay unknown fields (see
+    /// `removed_calibrated_options_are_rejected_by_the_dto`).
+    pub flight_drag_source: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -198,6 +219,9 @@ pub struct ChunkResultDto {
     pub boattail_policy: String,
     /// Fin-interference station rule shared by every run in the chunk.
     pub fin_interference_id: String,
+    /// R44: the axial-drag source these runs flew, and (when calibrated) the
+    /// statement that every member shares the nominal baseline ladder.
+    pub axial_drag: String,
 }
 
 /// One run's carried native classification. Fields are `null` only when the
@@ -252,6 +276,8 @@ pub struct ClassifiedDispersionResultDto {
     pub normal_law_id: String,
     pub boattail_policy: String,
     pub fin_interference_id: String,
+    /// R44: axial-drag source identity for every run in this dispersion.
+    pub axial_drag: String,
     pub requested_runs: i64,
     pub runs: Vec<RunOutcomeDto>,
     pub counts: OutcomeCountsDto,
@@ -304,11 +330,13 @@ fn to_indexed_endpoint_dto(e: &astraea_core::monte_carlo::IndexedEndpoint) -> In
 pub fn to_classified_dispersion_dto(
     r: &astraea_core::monte_carlo::ClassifiedDispersionResult,
     normal_identity: (&str, &str),
+    axial_drag: &str,
 ) -> ClassifiedDispersionResultDto {
     ClassifiedDispersionResultDto {
         normal_law_id: normal_identity.0.to_string(),
         boattail_policy: normal_identity.1.to_string(),
         fin_interference_id: astraea_core::aero::FIN_INTERFERENCE_ID.to_string(),
+        axial_drag: axial_drag.to_string(),
         requested_runs: r.requested_runs,
         runs: r.runs.iter().map(to_run_outcome_dto).collect(),
         counts: to_outcome_counts_dto(&r.counts),
@@ -497,8 +525,50 @@ pub fn to_mass_vehicle(fv: &FrontendVehicle) -> Result<astraea_core::mass::Vehic
 // aero::Vehicle conversion (same fields, aero module-local types)
 // ---------------------------------------------------------------------------
 
-fn component_design_inputs(c: &FrontendComponent) -> astraea_core::aero::ComponentDesignInputs {
-    astraea_core::aero::ComponentDesignInputs {
+fn component_design_inputs(
+    c: &FrontendComponent,
+) -> Result<astraea_core::aero::ComponentDesignInputs, String> {
+    // R44: the declared nose tip radius is a calibrated design input. Validate
+    // before it can reach a design: a typo here would otherwise change drag
+    // silently, and a value on a non-nose component would be dropped.
+    if let Some(r) = c.tip_radius {
+        if !r.is_finite() {
+            return Err(format!(
+                "prepareVehicle: nose tipRadius {r} m on component '{}' must be finite",
+                c.id
+            ));
+        }
+        if r < 0.0 {
+            return Err(format!(
+                "prepareVehicle: nose tipRadius {r} m on component '{}' must be nonnegative",
+                c.id
+            ));
+        }
+        if c.kind != "nosecone" {
+            return Err(format!(
+                "prepareVehicle: nose tipRadius {r} m on component '{}' is only supported on a \
+                 nosecone (kind '{}')",
+                c.id, c.kind
+            ));
+        }
+        match c.base_diameter {
+            Some(d) if r > d => {
+                return Err(format!(
+                    "prepareVehicle: nose tipRadius {r} m on component '{}' exceeds its nose base \
+                     diameter {d} m",
+                    c.id
+                ))
+            }
+            Some(_) => {}
+            None => {
+                return Err(format!(
+                    "prepareVehicle: nose tipRadius {r} m on component '{}' requires baseDiameter",
+                    c.id
+                ))
+            }
+        }
+    }
+    Ok(astraea_core::aero::ComponentDesignInputs {
         rail_guide_diameter: c.rail_guide_diameter,
         rail_guide_height: c.rail_guide_height,
         launch_lug_diameter: c.launch_lug_diameter,
@@ -507,7 +577,8 @@ fn component_design_inputs(c: &FrontendComponent) -> astraea_core::aero::Compone
         leading_edge_bevel: c.leading_edge_bevel,
         trailing_edge_bevel: c.trailing_edge_bevel,
         leading_edge_radius: c.leading_edge_radius,
-    }
+        tip_radius: c.tip_radius,
+    })
 }
 
 fn has_component_design_inputs(inputs: &astraea_core::aero::ComponentDesignInputs) -> bool {
@@ -519,6 +590,7 @@ fn has_component_design_inputs(inputs: &astraea_core::aero::ComponentDesignInput
         || inputs.leading_edge_bevel.is_some()
         || inputs.trailing_edge_bevel.is_some()
         || inputs.leading_edge_radius.is_some()
+        || inputs.tip_radius.is_some()
 }
 
 pub fn to_aero_vehicle(fv: &FrontendVehicle) -> Result<astraea_core::aero::Vehicle, String> {
@@ -598,7 +670,7 @@ pub fn to_aero_vehicle(fv: &FrontendVehicle) -> Result<astraea_core::aero::Vehic
                 kind: other.to_string(),
             },
         };
-        let design = component_design_inputs(c);
+        let design = component_design_inputs(c)?;
         if has_component_design_inputs(&design) {
             design_components.insert(c.id.clone(), design);
         }
@@ -633,13 +705,23 @@ pub fn to_aero_vehicle(fv: &FrontendVehicle) -> Result<astraea_core::aero::Vehic
 // Motor conversion (TS MotorSpec wire record -> six_dof::MotorSpec)
 // ---------------------------------------------------------------------------
 
+/// Convert and validate a wire motor. Every flight-path command uses this, so an
+/// invalid record (for example zero total impulse) is refused before integration.
 pub fn to_motor(fm: &FrontendMotor) -> Result<astraea_core::six_dof::MotorSpec, String> {
+    let motor = to_motor_unvalidated(fm)?;
+    astraea_core::six_dof::validate_motor_spec(&motor)?;
+    Ok(motor)
+}
+
+/// Conversion only. The native candidate path validates the motor itself inside
+/// `PreparedCandidate::prepare`, which reports typed `invalid-input` refusals.
+pub(crate) fn to_motor_unvalidated(fm: &FrontendMotor) -> Result<astraea_core::six_dof::MotorSpec, String> {
     use astraea_core::six_dof::{MotorSpec, ThrustPoint};
     if fm.thrust_curve.len() < 2 {
         let what = fm.designation.clone().unwrap_or_else(|| "motor".to_string());
         return Err(format!("motor validation: {what} thrust curve needs at least two points"));
     }
-    Ok(MotorSpec {
+    let motor = MotorSpec {
         designation: fm
             .designation
             .clone()
@@ -659,7 +741,8 @@ pub fn to_motor(fm: &FrontendMotor) -> Result<astraea_core::six_dof::MotorSpec, 
                 thrust: p.thrust,
             })
             .collect(),
-    })
+    };
+    Ok(motor)
 }
 
 // ---------------------------------------------------------------------------
@@ -793,6 +876,8 @@ pub fn prepare_flight_vehicle(
             mount_end
         }
     };
+
+    astraea_core::six_dof::validate_motor_placement(motor_aft_station_from_nose, fm.length)?;
 
     let powered = drag_table(&aero_v, true)?;
     let coasting = drag_table(&aero_v, false)?;
@@ -1179,6 +1264,383 @@ pub fn to_flight_dto(r: &astraea_core::six_dof::SimulationResult) -> FlightResul
     }
 }
 
+// ---------------------------------------------------------------------------
+// R44: calibrated axial drag on the flight path (opt-in)
+//
+// The 6-DOF consumes two 25-point Mach tables (`Vehicle::aero_powered_cd` /
+// `aero_coasting_cd`) and interpolates them; nothing in the solver changes. R44
+// only decides WHAT fills those two tables: the legacy build-up (absent) or the
+// in-repo calibrated method evaluated at the run's own ascent altitudes. One
+// `ResolvedFlightDrag` per command produces both the tables and the manifest
+// text, so a run cannot claim a model it did not use.
+// ---------------------------------------------------------------------------
+
+/// Which run is asking. The ladder construction is identical; an ensemble
+/// shares one ladder across its members, so its manifest says so.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum FlightDragScope {
+    Single,
+    Ensemble,
+}
+
+/// One command's resolved drag decision. `Calibrated` carries everything the
+/// table build and the manifest need; nothing is re-derived from the DTO later.
+pub enum ResolvedFlightDrag {
+    /// `flightDragSource` absent: the legacy tables, byte for byte.
+    Legacy,
+    /// The option asked for the calibrated method and the vehicle is refused by
+    /// it (elliptical/freeform fins, second fin set, unknown component, ...).
+    /// The flight still runs, on legacy drag, and the manifest says why.
+    Refused { reason: String },
+    /// The calibrated method models this vehicle.
+    Calibrated {
+        design: astraea_core::calibrated::Design,
+        nozzle_in: Option<f64>,
+        site: Option<astraea_core::calibrated::Site>,
+        site_ft: f64,
+        /// The declared site altitude in metres, printed verbatim by the
+        /// manifest (the `Site` itself needs feet).
+        site_altitude_m: f64,
+        site_temperature_c: Option<f64>,
+        tip_radius_m: Option<f64>,
+        ladder_state: std::cell::Cell<u8>,
+    },
+}
+
+/// The station grid the solver interpolates over (mirrors `aero_at_mach`).
+const DRAG_STATIONS: usize = 25;
+/// Half-width of a station bin in Mach (one station spacing).
+const DRAG_HALF_WINDOW: f64 = 4.0 / 48.0;
+/// Minimum ascent rows before a station contributes a ladder altitude.
+const DRAG_MIN_ROWS: usize = 5;
+
+fn drag_median(mut v: Vec<f64>) -> f64 {
+    v.sort_by(|a, b| a.partial_cmp(b).expect("ladder altitudes are finite"));
+    let n = v.len();
+    if n % 2 == 1 {
+        v[n / 2]
+    } else {
+        0.5 * (v[n / 2 - 1] + v[n / 2])
+    }
+}
+
+/// Per-station median AGL altitude of one phase (R41's frozen rule).
+///
+/// `TelemetryPoint.altitude` is metres AGL; `EvalOptions.altitude_ft` is feet.
+/// Convert once here, never at the `calibrated::evaluate` call.
+fn station_altitudes(
+    rows: &[&astraea_core::telemetry::TelemetryPoint],
+    burn: f64,
+    powered: bool,
+) -> Vec<Option<f64>> {
+    let mut vals: Vec<Option<f64>> = vec![None; DRAG_STATIONS];
+    for (i, slot) in vals.iter_mut().enumerate() {
+        let m = i as f64 * 4.0 / (DRAG_STATIONS - 1) as f64;
+        let mut win = Vec::new();
+        for row in rows {
+            if (row.time < burn) != powered
+                || row.mach <= 0.02
+                || row.angle_of_attack_deg.abs() > 2.0
+            {
+                continue;
+            }
+            if (row.mach - m).abs() <= DRAG_HALF_WINDOW {
+                win.push(row.altitude / 0.3048);
+            }
+        }
+        if win.len() >= DRAG_MIN_ROWS {
+            *slot = Some(drag_median(win));
+        }
+    }
+    let populated: Vec<usize> = vals
+        .iter()
+        .enumerate()
+        .filter(|(_, v)| v.is_some())
+        .map(|(i, _)| i)
+        .collect();
+    if populated.is_empty() {
+        return vals;
+    }
+    for i in 0..DRAG_STATIONS {
+        if vals[i].is_none() {
+            let j = *populated
+                .iter()
+                .min_by_key(|&&k| (k as i64 - i as i64).abs())
+                .expect("populated is non-empty");
+            vals[i] = vals[j];
+        }
+    }
+    vals
+}
+
+fn drag_opt_inches(value: Option<f64>) -> Option<f64> {
+    value.map(|v| v / 0.0254)
+}
+
+/// Resolve the flight's axial-drag source from the declared inputs.
+///
+/// `physics` is the resolved R42 input set (the same value the flight uses), so
+/// an invalid site temperature keeps R42's own refusal text and the drag air
+/// cannot disagree with the flight air.
+pub fn validate_nozzle_geometry(fv: &FrontendVehicle, fo: &FlightOptionsDto) -> Result<(), String> {
+    if fv.nozzle_exit_diameter.is_none() && fo.nozzle_exit_diameter.is_none() { return Ok(()); }
+    let aft = fv.components.iter().rev().find_map(|c| match c.kind.as_str() {
+        "transition" => c.aft_diameter,
+        "bodytube" if c.is_motor_mount != Some(true) => c.outer_diameter,
+        "nosecone" => c.base_diameter,
+        _ => None,
+    }).ok_or_else(|| "simulate6DofFlight: no aft-body diameter for nozzle validation".to_string())?;
+    for (name, value) in [("vehicle.nozzleExitDiameter", fv.nozzle_exit_diameter), ("options.nozzleExitDiameter", fo.nozzle_exit_diameter)] {
+        if let Some(d) = value {
+            if !d.is_finite() || d < 0.0 || d > aft {
+                return Err(format!("simulate6DofFlight: {name} {d:?} m must be finite and within 0..={aft:?} m (aft-body diameter)"));
+            }
+        }
+    }
+    Ok(())
+}
+
+pub fn resolve_flight_drag(
+    fv: &FrontendVehicle,
+    fo: &FlightOptionsDto,
+    physics: &astraea_core::six_dof::FlightPhysicsInputs,
+) -> Result<ResolvedFlightDrag, String> {
+    let Some(raw) = fo.flight_drag_source.as_deref() else {
+        return Ok(ResolvedFlightDrag::Legacy);
+    };
+    if raw != "calibrated" {
+        return Err(format!(
+            "simulate6DofFlight: flightDragSource \"{raw}\" is not a supported drag source \
+             (supported: \"calibrated\")"
+        ));
+    }
+    // to_aero_vehicle also validates the declared nose tip radius.
+    let aero = to_aero_vehicle(fv)?;
+    let site_ft = physics.site_altitude_m / 0.3048;
+    // The manifest prints the declared inputs, never a unit round trip.
+    let site_temperature_c = fo.launch_site_temperature_c;
+    let site = match physics.site_temperature_k {
+        None => None,
+        Some(ts) => Some(
+            astraea_core::calibrated::Site::new(site_ft, (ts - 273.15) * 1.8 + 32.0)
+                .map_err(|e| format!("simulate6DofFlight: calibrated drag site: {e}"))?,
+        ),
+    };
+    let nozzle_in = drag_opt_inches(fv.nozzle_exit_diameter);
+    let tip_radius_m = fv
+        .components
+        .iter()
+        .find(|c| c.kind == "nosecone")
+        .and_then(|c| c.tip_radius);
+    match astraea_core::aero_model::design_from_app_vehicle(&aero) {
+        Ok(design) => Ok(ResolvedFlightDrag::Calibrated {
+            design,
+            nozzle_in,
+            site,
+            site_ft,
+            site_altitude_m: physics.site_altitude_m,
+            site_temperature_c,
+            tip_radius_m,
+            ladder_state: std::cell::Cell::new(0),
+        }),
+        Err(e) => Ok(ResolvedFlightDrag::Refused {
+            reason: e.to_string(),
+        }),
+    }
+}
+
+impl ResolvedFlightDrag {
+    /// The two 25-point tables, from the baseline pass's own ascent rows.
+    /// `Ok(None)` for the legacy source; `Err` when the calibrated method asked
+    /// for a table it cannot build (fail closed, no silent legacy fallback).
+    pub fn tables(
+        &self,
+        pass1: &astraea_core::six_dof::SimulationResult,
+        burn_time: f64,
+    ) -> Result<Option<(Vec<f64>, Vec<f64>)>, String> {
+        let ResolvedFlightDrag::Calibrated {
+            design,
+            nozzle_in,
+            site,
+            site_ft,
+            ladder_state,
+            ..
+        } = self
+        else {
+            return Ok(None);
+        };
+        let rows: Vec<&astraea_core::telemetry::TelemetryPoint> = pass1
+            .telemetry
+            .iter()
+            .filter(|p| p.time <= pass1.apogee_time)
+            .collect();
+        // AGL ladder; without a site temperature the method's air is anchored at
+        // sea level, so the station altitude is absolute (R41's dev construction).
+        let offset_ft = if site.is_some() { 0.0 } else { *site_ft };
+        let mut powered_alt = station_altitudes(&rows, burn_time, true);
+        let mut coasting_alt = station_altitudes(&rows, burn_time, false);
+        let p_empty = powered_alt.iter().all(Option::is_none);
+        let c_empty = coasting_alt.iter().all(Option::is_none);
+        if p_empty && c_empty {
+            ladder_state.set(2);
+            return Ok(None);
+        }
+        if p_empty { powered_alt.clone_from(&coasting_alt); ladder_state.set(1); }
+        if c_empty { coasting_alt.clone_from(&powered_alt); ladder_state.set(1); }
+        let mut powered = Vec::with_capacity(DRAG_STATIONS);
+        let mut coasting = Vec::with_capacity(DRAG_STATIONS);
+        for i in 0..DRAG_STATIONS {
+            let mach = (i as f64 * 4.0 / (DRAG_STATIONS - 1) as f64).max(0.01);
+            for (out, alt, is_powered) in [
+                (&mut powered, &powered_alt, true),
+                (&mut coasting, &coasting_alt, false),
+            ] {
+                let Some(a) = alt[i] else {
+                    return Err(format!(
+                        "simulate6DofFlight: calibrated axial drag has no ascent rows for Mach \
+                         station {i} in the {} phase",
+                        if is_powered { "powered" } else { "coasting" }
+                    ));
+                };
+                let point = astraea_core::calibrated::evaluate(
+                    design,
+                    &astraea_core::calibrated::EvalOptions {
+                        mach,
+                        alpha_deg: 0.0,
+                        method: astraea_core::calibrated::CpMethod::Barrowman,
+                        nozzle_exit_in: *nozzle_in,
+                        altitude_ft: Some(a + offset_ft),
+                        site: *site,
+                    },
+                )
+                .map_err(|e| {
+                    format!("simulate6DofFlight: calibrated axial drag at Mach {mach}: {e}")
+                })?;
+                out.push(if is_powered {
+                    point.cd_power_on
+                } else {
+                    point.cd_power_off
+                });
+            }
+        }
+        Ok(Some((powered, coasting)))
+    }
+
+    /// The `axialDrag` manifest string for this run. Always present: an absent
+    /// option must be visible, not silent.
+    pub fn manifest_text(&self, scope: FlightDragScope) -> String {
+        const LEGACY: &str = "legacy 25-station Mach drag tables from compute_aerodynamic_curves";
+        match self {
+            ResolvedFlightDrag::Legacy => format!("{LEGACY}; calibrated drag not requested"),
+            ResolvedFlightDrag::Refused { reason } => {
+                format!("{LEGACY}; legacy drag used (refused: {reason})")
+            }
+            ResolvedFlightDrag::Calibrated {
+                site_temperature_c,
+                site_altitude_m,
+                tip_radius_m,
+                nozzle_in,
+                ladder_state,
+                ..
+            } => {
+                if ladder_state.get() == 2 { return format!("{LEGACY}; legacy drag used (refused: no eligible ascent ladder rows in either phase)"); }
+                let ladder = match scope {
+                    FlightDragScope::Single => {
+                        "25-station table at the run's own ascent altitudes".to_string()
+                    }
+                    FlightDragScope::Ensemble => {
+                        "25-station table at the nominal baseline flight's ascent altitudes"
+                            .to_string()
+                    }
+                };
+                let sharing = match scope {
+                    FlightDragScope::Single => String::new(),
+                    FlightDragScope::Ensemble => {
+                        "; drag ladder from the nominal baseline flight; ensemble members share it"
+                            .to_string()
+                    }
+                };
+                let radius = match tip_radius_m {
+                    Some(r) => format!("nose tipRadius {r} m"),
+                    None => "nose tipRadius none (sharp)".to_string(),
+                };
+                let nozzle = match nozzle_in {
+                    Some(d) => format!("design nozzle exit {d} in"),
+                    None => "design nozzle exit none (method default)".to_string(),
+                };
+                let air = match site_temperature_c {
+                    Some(c) => format!("site-anchored air at {site_altitude_m} m ASL, {c} degC"),
+                    None => "method reference air at altitude above sea level".to_string(),
+                };
+                let cross_phase = if ladder_state.get() == 1 { "; cross-phase nearest fill" } else { "" };
+                format!(
+                    "calibrated build-up axial drag (alpha = 0) from the in-repo method port; \
+                     {ladder} (median AGL per Mach bin over the baseline pass, minimum 5 rows per \
+                     bin, nearest-station fill){cross_phase}{sharing}; {radius}; {nozzle}; {air}; not a validated \
+                     model"
+                )
+            }
+        }
+    }
+}
+
+/// R44: write the resolved drag source into the result's model manifest.
+/// `text` comes from the same `ResolvedFlightDrag` that filled the tables.
+pub fn apply_axial_drag(dto: &mut FlightResultDto, text: &str) {
+    dto.run_manifest.insert(
+        "axialDrag".to_string(),
+        serde_json::Value::String(text.to_string()),
+    );
+}
+
+/// R42: write the optional flight-physics inputs into the result's model
+/// manifest.
+///
+/// The strings are built from the resolved inputs the flight actually used
+/// (`astraea_core::six_dof::flight_physics_inputs`), never from a second reading
+/// of the DTO, so the manifest cannot claim a model the run did not use. The
+/// pre-existing `atmosphere` text is replaced only when the anchored column ran;
+/// `thrustPressure` is always stated (coordinator decision D-R42-2), so a run
+/// without the inputs says so explicitly instead of staying silent.
+pub fn apply_flight_physics(
+    dto: &mut FlightResultDto,
+    physics: &astraea_core::six_dof::FlightPhysicsInputs,
+) {
+    if let Some(ts) = physics.site_temperature_k {
+        dto.run_manifest.insert(
+            "atmosphere".to_string(),
+            serde_json::Value::String(format!(
+                "site-anchored dry-air lapse from the declared launch-site temperature: \
+                 Ts = {ts} K at hs = {} m ASL, L = 0.0065 K/m to 11 km ASL then isothermal; \
+                 pressure, density and speed of sound hydrostatically consistent; \
+                 not a measured sounding",
+                physics.site_altitude_m
+            )),
+        );
+    }
+    let pressure_text = match (physics.nozzle_exit_diameter_m, physics.exit_area_m2) {
+        (None, _) => {
+            "no back-pressure term: no flight nozzleExitDiameter supplied (A_e = 0)".to_string()
+        }
+        (Some(d), None) => {
+            format!("no back-pressure term: nozzleExitDiameter = {d} m (A_e = 0)")
+        }
+        (Some(d), Some(a)) => format!(
+            "A_e = {a} m^2 from nozzleExitDiameter {d} m; p_ref = 101325 Pa; \
+             p_amb from the {} atmosphere at altitude ASL, while motor thrust > 0",
+            if physics.site_temperature_k.is_some() {
+                "site-anchored"
+            } else {
+                "ISA-1976"
+            }
+        ),
+    };
+    dto.run_manifest.insert(
+        "thrustPressure".to_string(),
+        serde_json::Value::String(pressure_text),
+    );
+}
+
 /// Bounded display telemetry for the wire (IPC rule: one series, never
 /// per-step streaming).
 ///
@@ -1271,6 +1733,8 @@ pub struct DispersionResultDto {
     pub normal_law_id: String,
     pub boattail_policy: String,
     pub fin_interference_id: String,
+    /// R44: axial-drag source identity for every run in this dispersion.
+    pub axial_drag: String,
     pub mean: LandingPointDto,
     pub covariance: CovarianceDto,
     pub sigma1: f64,
@@ -1305,11 +1769,13 @@ pub struct ContainmentDto {
 pub fn to_dispersion_dto(
     r: &astraea_core::monte_carlo::DispersionResult,
     normal_identity: (&str, &str),
+    axial_drag: &str,
 ) -> DispersionResultDto {
     DispersionResultDto {
         normal_law_id: normal_identity.0.to_string(),
         boattail_policy: normal_identity.1.to_string(),
         fin_interference_id: astraea_core::aero::FIN_INTERFERENCE_ID.to_string(),
+        axial_drag: axial_drag.to_string(),
         mean: LandingPointDto {
             x: r.mean.x,
             y: r.mean.y,
@@ -1750,6 +2216,25 @@ mod dto_tests {
         assert!(s.total_cna > 20.0, "slender-body CNa {}", s.total_cna);
     }
 
+    #[test]
+    fn provider_stability_dto_withholds_the_breakdown() {
+        let fv: FrontendVehicle = serde_json::from_value(alpha_vehicle_json()).unwrap();
+        let av = to_aero_vehicle(&fv).unwrap();
+        let analysis = astraea_core::aero::stability(&av).unwrap();
+
+        let legacy = to_stability_dto(&analysis);
+        assert!(
+            serde_json::to_value(&legacy).unwrap().get("parts").is_none(),
+            "legacy JSON must omit the parts key"
+        );
+
+        let provider = to_provider_stability_dto(&analysis, "aero-buildup", "1.0.0");
+        assert!(provider.contributions.is_empty());
+        assert!(provider.breakdown_unavailable);
+        let provider_json = serde_json::to_value(&provider).unwrap();
+        assert!(provider_json.get("parts").is_none(), "parts is not part of this app DTO");
+    }
+
     fn flight_opts_90() -> astraea_core::six_dof::SixDofOptions {
         astraea_core::six_dof::SixDofOptions {
             rail_length: Some(1.0),
@@ -1762,6 +2247,8 @@ mod dto_tests {
             time_step: None,
             fin_cant_angle_deg: None,
             drag_cd_scale: None,
+            launch_site_temperature_c: None,
+            nozzle_exit_diameter: None,
             record_telemetry: false,
             record_moment_arm_history: false,
         }
@@ -1778,9 +2265,12 @@ mod dto_tests {
     /// 320.5894538955301 m, flight 89.698 -> 90.863 s. Re-derived 2026-10-21
     /// after adding published fin leading-edge pressure and trailing-edge base
     /// drag (`compute_fin_edge_drag` / `computeFinEdgeDrag`): 320.5894538955301 m,
-    /// flight 87.561 s. Native matched TS bit-for-bit each time. The core `zero_wind_landing_parity`
-    /// fixture keeps its frozen pre-correction drag tables (kernel parity on
-    /// fixed inputs); this test is the live-aero oracle.
+    /// flight 87.561 s. Re-derived 2026-11-09 for the R38 E-1b cylinder base
+    /// drag (measured NASA TN D-4821, mirrored in `transonicAero.ts`):
+    /// 320.3159751148401 m, flight 87.48915485382867 s. Native matched TS
+    /// bit-for-bit each time. The core `zero_wind_landing_parity` fixture keeps
+    /// its frozen pre-correction drag tables (kernel parity on fixed inputs);
+    /// this test is the live-aero oracle.
     #[test]
     fn ipc_flight_matches_zero_wind_alpha_c6_oracle() {
         let fv: FrontendVehicle = serde_json::from_value(alpha_vehicle_json()).unwrap();
@@ -1789,16 +2279,16 @@ mod dto_tests {
         let r = astraea_core::six_dof::simulate_flight(&v, &m, &flight_opts_90()).unwrap();
         let dto = to_flight_dto(&r);
         let wire = serde_json::to_value(&dto).unwrap();
-        let rel = ((dto.apogee_altitude - 320.5894538955301) / 320.5894538955301).abs();
+        let rel = ((dto.apogee_altitude - 320.3159751148401) / 320.3159751148401).abs();
         assert!(
             rel <= 0.005,
-            "apogee rel err {rel} exceeds 0.5% (got {} m, expected 320.5894538955301 m)",
+            "apogee rel err {rel} exceeds 0.5% (got {} m, expected 320.3159751148401 m)",
             dto.apogee_altitude
         );
         assert!(rel < 1e-6, "apogee drifted from oracle: rel err {rel}");
         assert!(dto.landing_distance <= 5.0, "drift {} > 5 m", dto.landing_distance);
-        assert!((dto.flight_duration - 87.5610156250079).abs() < 0.05, "flight time {}", dto.flight_duration);
-        assert!((dto.landing_velocity - 3.9873074781541566).abs() < 0.05, "landing vel {}", dto.landing_velocity);
+        assert!((dto.flight_duration - 87.48915485382867).abs() < 0.05, "flight time {}", dto.flight_duration);
+        assert!((dto.landing_velocity - 3.9873074788215805).abs() < 0.05, "landing vel {}", dto.landing_velocity);
         // Wire shape is camelCase and carries the TS result contract keys.
         assert!(wire.get("apogeeAltitude").is_some());
         assert_eq!(wire.get("flightDuration").unwrap().as_f64().unwrap(), dto.flight_duration);
@@ -1835,7 +2325,11 @@ mod dto_tests {
         let base = PerturbedParams { wind_azimuth_deg: None, rail_elevation_deg: None, impulse_scale: 1.0 };
         let version = parse_sampling_version("per-run-v2").unwrap();
         let result = run_ensemble(&base, &sigmas, 8, 7, version, &fly).unwrap();
-        let dto = to_dispersion_dto(&result, flight_vehicle.normal_law_identity());
+        let dto = to_dispersion_dto(
+            &result,
+            flight_vehicle.normal_law_identity(),
+            "legacy 25-station Mach drag tables from compute_aerodynamic_curves; calibrated drag not requested",
+        );
         assert_eq!(dto.successful_runs + dto.failed_runs, 8);
         assert!(dto.sigma1 >= 0.0 && dto.sigma2 >= 0.0);
         let wire = serde_json::to_value(&dto).unwrap();
@@ -1899,6 +2393,7 @@ mod dto_tests {
                 leading_edge_bevel: None,
                 trailing_edge_bevel: None,
                 leading_edge_radius: None,
+                tip_radius: None,
             }],
             surface_finish: None,
             force_turbulent_flow: None,
@@ -2032,6 +2527,60 @@ mod dto_tests {
             attached.normal_law_identity(),
             ("published-supersonic-normal-v1", "attached")
         );
+    }
+
+    #[test]
+    fn oversized_nozzle_is_refused_and_following_flight_works() {
+        let mut v: FrontendVehicle = serde_json::from_value(alpha_vehicle_json()).unwrap();
+        v.components[0].base_diameter = Some(0.076);
+        v.components[1].outer_diameter = Some(0.076);
+        v.components[1].is_motor_mount = Some(false);
+        for d in [0.5, 1.0] {
+            v.nozzle_exit_diameter = Some(d);
+            let options = FlightOptionsDto { nozzle_exit_diameter: Some(d), ..Default::default() };
+            let err = crate::commands::simulate_flight(v.clone(), c6_motor(), options).unwrap_err();
+            assert!(err.contains("aft-body diameter"), "{err}");
+        }
+        for d in [0.05, 0.076] {
+            v.nozzle_exit_diameter = Some(d);
+            let options = FlightOptionsDto { nozzle_exit_diameter: Some(d), ..Default::default() };
+            assert!(crate::commands::simulate_flight(v.clone(), c6_motor(), options).is_ok());
+        }
+    }
+
+    #[test]
+    fn station_altitudes_convert_metres_to_feet() {
+        use astraea_core::six_dof::{Quat, Vec3};
+        use astraea_core::telemetry::{BodyRates, TelemetryPoint};
+
+        fn point(altitude_m: f64) -> TelemetryPoint {
+            TelemetryPoint {
+                time: 1.0,
+                position: Vec3 { x: 0.0, y: 0.0, z: altitude_m },
+                velocity: Vec3 { x: 0.0, y: 0.0, z: 1.0 },
+                speed: 1.0,
+                mach: 1.0,
+                altitude: altitude_m,
+                acceleration: 0.0,
+                angular_velocity: BodyRates { p: 0.0, q: 0.0, r: 0.0 },
+                angle_of_attack_deg: 0.0,
+                q: Quat { w: 1.0, x: 0.0, y: 0.0, z: 0.0 },
+                pitch_deg: 90.0,
+                roll_deg: 0.0,
+                yaw_deg: 0.0,
+                drag: 0.0,
+                thrust: 0.0,
+                mass: 1.0,
+                dynamic_pressure: 0.0,
+            }
+        }
+
+        let rows: Vec<TelemetryPoint> = (0..DRAG_MIN_ROWS + 1).map(|_| point(1000.0)).collect();
+        let refs: Vec<&TelemetryPoint> = rows.iter().collect();
+        let vals = station_altitudes(&refs, 0.5, false);
+        // 25 stations over Mach 0..4: index 6 is Mach 1.0.
+        let got = vals[6].expect("station 6 populated");
+        assert!((got - 1000.0 / 0.3048).abs() < 1e-9, "station altitude must be feet, got {got}");
     }
 
 }

@@ -30,7 +30,7 @@ import { useAnalysisStore } from '../../state/analysis';
 import { useSessionStore } from '../../state/session';
 import { consoleActions, currentRunKey, designOf, type FlightPayload } from '../store';
 import { toFlightRun } from '../data/adapter';
-import { consoleJobStub, flightResult, stubEngine } from '../testFixtures';
+import { consoleJobStub, flightResult, pinLegacyFlightDrag, stubEngine } from '../testFixtures';
 import type { SixDofSimulationResult } from '../../sim/sixDofSimulator';
 import type { DragCalibration } from '../../application/dragCalibration';
 import { momentArmHistoryFixture } from '../../application/momentArmHistory.fixture';
@@ -109,6 +109,7 @@ describe('Build stage export', () => {
     const stub = stubEngine();
     teardown = stub.teardown;
     useProjectStore.getState().loadPreset('estesAlpha');
+    pinLegacyFlightDrag();
     useAnalysisStore.getState().reset();
     useSessionStore.getState().setConsole({ stage: 'build' });
     consoleJobStub();
@@ -139,6 +140,9 @@ describe('Build stage export', () => {
       'Import motor Exported C6',
     );
 
+    for (let i = 0; i < 6; i++) commitFlightRun();
+    expect(useAnalysisStore.getState().history[0].payload).toBeNull();
+    const firstId = `flight-${useAnalysisStore.getState().history[0].finishedAt}-${useAnalysisStore.getState().history[0].token}`;
     const { container } = render(<BuildStage />);
     // Save through the browser download: the Tauri save dialog is not part of
     // this test, and the trace bundle is covered by io's own tests.
@@ -154,6 +158,8 @@ describe('Build stage export', () => {
     expect(download.filename.endsWith('.astraea.json')).toBe(true);
     const doc = JSON.parse(await download.blob.text());
     expect(doc.schemaVersion).toBe(PROJECT_SCHEMA_VERSION);
+    expect(doc.cases).toHaveLength(6);
+    expect(doc.cases[0].id).toBe(firstId);
     expect(doc.motorRecords.map((r: { id: string }) => r.id)).toContain('exported_c6');
     expect(doc.motorRecords.find((r: { id: string }) => r.id === 'exported_c6').provenance.sourceFile).toBe('exported.eng');
   });

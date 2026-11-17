@@ -86,6 +86,9 @@ export function PartInspector({ extra }: { extra?: ReactNode }) {
   const offsetViolation = axialBounds !== null && Number(rec.axialOffset) > axialBounds.offsetMax + 1e-9;
   const axialOverrun = axialBounds !== null && offsetViolation ? show(Number(rec.axialOffset) - axialBounds.offsetMax, 'len', units) : null;
   const diameterViolation = c.type === 'bodytube' && c.innerDiameter > 0 && c.innerDiameter >= c.outerDiameter;
+  const tipRadiusValue = rec.tipRadius === undefined ? undefined : Number(rec.tipRadius);
+  const tipRadiusOutOfRange = c.type === 'nosecone' && tipRadiusValue !== undefined
+    && (!(tipRadiusValue >= 0) || tipRadiusValue > c.baseDiameter);
   const tubeChildren = c.type === 'bodytube' ? tubeChildEnds(s.design.vehicle.components, componentIndex) : [];
   const tubeLengthMin = c.type === 'bodytube' ? tubeLengthFloor(s.design.vehicle.components, componentIndex) : 0;
   const tubeOverhang = c.type === 'bodytube' ? tubeChildren.filter((child) => child.end > c.length + 1e-9) : [];
@@ -240,6 +243,38 @@ export function PartInspector({ extra }: { extra?: ReactNode }) {
           <FieldRow label="Profile" changed={isChanged('shape')} onRevert={() => revert('shape')}>
             <SelectField value={c.shape} width={140} onChange={(v) => s.setComponent(c.id, { shape: v } as Partial<RocketComponent>, `${c.name} · Profile`)} options={['ogive', 'vonkarman', 'conical', 'parabolic', 'elliptical'].map((v) => ({ value: v, label: v === 'vonkarman' ? 'Von Kármán' : v[0].toUpperCase() + v.slice(1) }))} />
           </FieldRow>
+          <FieldRow
+            label="Nose tip radius"
+            changed={isChanged('tipRadius')}
+            onRevert={() => revert('tipRadius')}
+            hint="Blunt tip radius, used only by the built-up method above about Mach 0.9. It does not change the drawn nose, the mass or the legacy model. Absent is a sharp tip."
+          >
+            {rec.tipRadius === undefined
+              ? <button
+                  aria-label="Add Nose tip radius"
+                  onClick={() => s.setComponent(c.id, { tipRadius: 0.001 } as Partial<RocketComponent>, `${c.name} · Nose tip radius`)}
+                  className="rounded px-2 py-1 text-[11.5px] hover:bg-white/5"
+                  style={{ border: `1px solid ${C.line}`, color: C.muted }}
+                >Add</button>
+              : <span className="flex items-center gap-1">
+                  {/* No min/max: this field never clamps a typed value. */}
+                  <NumberField
+                    value={Number(rec.tipRadius)}
+                    kind="len"
+                    onChange={(v) => s.setComponent(c.id, { tipRadius: v } as Partial<RocketComponent>, `${c.name} · Nose tip radius`)}
+                  />
+                  <button
+                    aria-label="Clear Nose tip radius"
+                    onClick={() => s.clearComponentField(c.id, 'tipRadius', `${c.name} · Clear Nose tip radius`)}
+                    className="text-[11px]"
+                    style={{ color: C.dim }}
+                    title="None"
+                  >×</button>
+                </span>}
+          </FieldRow>
+          {tipRadiusOutOfRange && warning(
+            'This nose tip radius is outside what the engine accepts (0 to the nose base diameter). Stability, aero curves and flights are refused until it is corrected or cleared.',
+          )}
         </InspectorSection>
       )}
 

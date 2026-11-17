@@ -97,6 +97,8 @@ export interface DispersionResult extends DispersionStatistics {
   boattailPolicy?: 'suppressed' | 'attached' | 'not-applicable';
   /** Absent on historical results; never inferred while loading archives. */
   finInterferenceId?: 'fin-station-v1' | 'fin-station-v2';
+  /** Axial-drag source the ensemble runs flew (R44); absent on historical results. */
+  axialDrag?: string;
 
   /**
    * Legacy meaning preserved: every finite endpoint in absolute run-index
@@ -206,6 +208,8 @@ export interface MonteCarloChunkResult {
   boattailPolicy?: 'suppressed' | 'attached' | 'not-applicable';
   /** Fin-interference station rule shared by every run in the chunk. */
   finInterferenceId?: 'fin-station-v1' | 'fin-station-v2';
+  /** Axial-drag source shared by every run in the chunk (R44); absent on historical chunks. */
+  axialDrag?: string;
 }
 // The TS simulator's prepareVehicle uses this fixed law/policy (loads.ts).
 const TS_NORMAL_IDENTITY = {
@@ -658,7 +662,7 @@ export function accumulateMonteCarloChunks(
 /** Preserve one declared identity, including absence on historical chunks. */
 function ensembleNormalIdentity(
   chunks: readonly MonteCarloChunkResult[],
-): Pick<DispersionResult, 'normalLawId' | 'boattailPolicy' | 'finInterferenceId'> {
+): Pick<DispersionResult, 'normalLawId' | 'boattailPolicy' | 'finInterferenceId' | 'axialDrag'> {
   const first = chunks[0];
   for (const chunk of chunks) {
     if ((chunk.normalLawId === undefined) !== (chunk.boattailPolicy === undefined)) {
@@ -670,6 +674,9 @@ function ensembleNormalIdentity(
     if (chunk.finInterferenceId !== first.finInterferenceId) {
       throw new Error('runMonteCarlo: inconsistent fin-interference identity across chunks');
     }
+    if (chunk.axialDrag !== first.axialDrag) {
+      throw new Error('runMonteCarlo: inconsistent axial-drag source across chunks');
+    }
   }
   return {
     ...(first?.normalLawId === undefined ? {} : {
@@ -677,6 +684,7 @@ function ensembleNormalIdentity(
       boattailPolicy: first.boattailPolicy,
     }),
     ...(first?.finInterferenceId === undefined ? {} : { finInterferenceId: first.finInterferenceId }),
+    ...(first?.axialDrag === undefined ? {} : { axialDrag: first.axialDrag }),
   };
 }
 

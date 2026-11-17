@@ -173,6 +173,8 @@ fn core_options(o: &FlightOptionsDto) -> SixDofOptions {
         time_step: o.time_step,
         fin_cant_angle_deg: o.fin_cant_angle_deg,
         drag_cd_scale: o.drag_cd_scale,
+        launch_site_temperature_c: o.launch_site_temperature_c,
+        nozzle_exit_diameter: o.nozzle_exit_diameter,
         record_telemetry: true,
         record_moment_arm_history: true,
     }

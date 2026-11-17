@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { reportFailures } from './macos-smoke-check.mjs';
 
 const good = {
-  ok: true, failures: [], appVersion: '1.0.0', apogeeM: 533.2, maxMach: 0.62, railExitSpeedMps: 18.4,
+  ok: true, failures: [], appVersion: '1.0.0', apogeeM: 546.6, maxMach: 0.62, railExitSpeedMps: 18.4,
   terminationReason: 'touchdown', engine: { kind: 'wasm-worker', poolStarted: true }, pageErrors: [],
 };
 

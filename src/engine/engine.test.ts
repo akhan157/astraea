@@ -54,7 +54,10 @@ describe('WebAssembly engine against the TypeScript oracle', () => {
   it.each([
     ['Estes Alpha + C6', PRESET_ESTES_ALPHA, 'estes_c6'],
     ['NASA Student Launch + K550W', PRESET_NASA_STUDENT_LAUNCH, 'aerotech_k550w'],
-  ] as const)('flies %s like the oracle', async (_label, vehicle, motorId) => {
+  ] as const)('flies %s like the oracle', async (_label, preset, motorId) => {
+    // The TS oracle flies the legacy drag tables, so the engine is asked for them explicitly
+    // (an absent drag choice now means the built-up default).
+    const vehicle = { ...preset, flightDragSource: 'legacy' as const };
     const motor = CERTIFIED_MOTORS[motorId];
     const wasm = await simulateFlight(vehicle, motor, OPTIONS);
     const oracle = simulate6DofFlight(vehicle, motor, OPTIONS);
@@ -76,7 +79,8 @@ describe('WebAssembly engine against the TypeScript oracle', () => {
   it('reproduces a Monte Carlo chunk run for run', async () => {
     const motor = CERTIFIED_MOTORS.estes_c6;
     const sigmas = { windAzimuthDegSigma: 20, railAngleDegSigma: 1, impulsePctSigma: 3 };
-    const input = { vehicle: PRESET_ESTES_ALPHA, motor, options: OPTIONS };
+    // Legacy drag explicitly: the TS oracle has no built-up drag.
+    const input = { vehicle: { ...PRESET_ESTES_ALPHA, flightDragSource: 'legacy' as const }, motor, options: OPTIONS };
     const wasm = await runEnsembleChunk(input, sigmas, 100, 42, 10, 14);
     const oracle = runMonteCarloChunk(input, sigmas, 100, 42, 10, 14);
     expect(wasm.landings).toHaveLength(oracle.landings.length);
@@ -90,7 +94,7 @@ describe('WebAssembly engine against the TypeScript oracle', () => {
   it('reproduces a bound-touching Monte Carlo chunk run for run', async () => {
     const motor = CERTIFIED_MOTORS.estes_c6;
     const sigmas = { windAzimuthDegSigma: 20, railAngleDegSigma: 1, impulsePctSigma: 3 };
-    const input = { vehicle: PRESET_ESTES_ALPHA, motor, options: { ...OPTIONS, railElevationDeg: 90 } };
+    const input = { vehicle: { ...PRESET_ESTES_ALPHA, flightDragSource: 'legacy' as const }, motor, options: { ...OPTIONS, railElevationDeg: 90 } };
     const wasm = await runEnsembleChunk(input, sigmas, 100, 42, 10, 14);
     const oracle = runMonteCarloChunk(input, sigmas, 100, 42, 10, 14);
     expect(wasm.failedRuns).toBe(0);

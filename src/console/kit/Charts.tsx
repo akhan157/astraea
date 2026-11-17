@@ -245,7 +245,7 @@ export function LandingScatter({ landings, mean, rings }: { landings: { x: numbe
       <div ref={box} className="relative flex min-h-0 w-full flex-1 items-center justify-center">
         <div className="relative" style={{ width: S, height: S }}>
           <svg width={S} height={S} role="img" aria-label={`${landings.length} simulated landing points`}>
-            {tk.map((v) => <g key={v}><circle cx={half} cy={half} r={(v / ext) * (half - 14)} fill="none" stroke={C.line} /><text x={half + 3} y={half - (v / ext) * (half - 14) - 3} style={axisText}>{(v * f.value).toFixed(0)} {f.unit}</text></g>)}
+            {tk.map((v) => <g key={v}><circle cx={half} cy={half} r={(v / ext) * (half - 14)} fill="none" stroke={C.line} /><text x={half - 8} textAnchor="end" y={half - (v / ext) * (half - 14) - 3} style={axisText}>{(v * f.value).toFixed(0)} {f.unit}</text></g>)}
             <line x1={half} x2={half} y1={8} y2={S - 8} stroke={C.line} /><line x1={8} x2={S - 8} y1={half} y2={half} stroke={C.line} />
             <text x={half + 4} y={16} style={axisText}>N</text>
             {rings.map((r, i) => { const [cx, cy] = P(mean.x, mean.y); return <circle key={r.label} cx={cx} cy={cy} r={(r.r / ext) * (half - 14)} fill="none" stroke={[C.s1, C.s2, C.s3][i]} strokeWidth={1.5} strokeDasharray={i === 2 ? '4 3' : undefined} />; })}

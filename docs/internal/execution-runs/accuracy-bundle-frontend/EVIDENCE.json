@@ -1,0 +1,119 @@
+{
+  "sourceSha": "916519f",
+  "status": "three_gate_closeout_complete_parent_program_open",
+  "authorAcceptance": false,
+  "review": {
+    "initial": "Codex review found five issues; DeepSeek repairs; recheck closed2/3/5 and returned1/4",
+    "continuation": "Owner switched interrupted Claude reviewer to Chat. Codex continuation found runtime string guard defect, repaired by coordinator. Not a Claude-family verdict.",
+    "coordinatorResolution": "Final non-string guard is a coordinator repair supported by before/after regression failures. No independent reviewer acceptance of that final guard is claimed; owner-switched Codex review remains identified accurately.",
+    "finalGuard": {
+      "verdict": "ACCEPT",
+      "scope": "non-string provenance guard916519f only",
+      "reviewedPin": "482616d6bf6e7c0fba392863e30511b6058b7739",
+      "provider": "claudeAgent",
+      "executedModel": "claude-sonnet-5-5",
+      "effort": "high",
+      "focusedTests": 76,
+      "focusedExit": 0,
+      "tscExit": 0,
+      "probeExit": 0,
+      "reviewPath": "docs/internal/execution-runs/accuracy-bundle-frontend/REVIEW-GUARD-CLOSEOUT.md"
+    }
+  },
+  "checks": {
+    "changedTests": {
+      "command": "git diff --name-only c9a4476..HEAD -- src | rg '\\.test\\.tsx?$' | xargs pnpm -s exec vitest run --maxWorkers=2",
+      "files": 17,
+      "tests": 281,
+      "exit": 0
+    },
+    "archiveFocused": {
+      "files": 6,
+      "tests": 183,
+      "exit": 0
+    },
+    "tsc": {
+      "command": "pnpm -s exec tsc --noEmit",
+      "exit": 0
+    },
+    "build": {
+      "command": "pnpm -s build",
+      "exit": 0
+    },
+    "accuracyBrowser": {
+      "command": "ASTRAEA_ONLY_JOURNEYS=accuracy ASTRAEA_SHOTS_DIR=<external-evidence>/return3-shots node scripts/browser-smoke.mjs",
+      "exit": 0,
+      "assertions": [
+        "default UI unchanged",
+        "site temperature",
+        "nozzle back-pressure",
+        "built-up flight drag",
+        "Spaceport refused shape fallback"
+      ]
+    },
+    "fullBrowser": {
+      "command": "node scripts/browser-smoke.mjs",
+      "exit": 0,
+      "reload": "passed; prior timeout did not recur"
+    },
+    "wasm": {
+      "sha256": "21eea59ec76b494591aa546c43ceaf2d7cf296f82e8a28c2b7aa92f1efb2eb2e",
+      "bytes": 2035057,
+      "role": "historical integration-worktree build, not current frontend/design artifact"
+    }
+  },
+  "externalEvidence": "sibling evidence-accuracy-bundle-frontend/return3; return3-shots; return3-sha256.json",
+  "remaining": [],
+  "physicalQualification": "No scientific or physical gate promoted by these software checks.",
+  "integration": {
+    "branch": "frontend/design",
+    "mergeSha": "ebbaff8e852ec070e6ab7cb14094d048b73a9604",
+    "sourceSha": "916519f",
+    "buildExit": 0,
+    "changedTestFiles": 17,
+    "changedTests": 281,
+    "changedTestsExit": 0,
+    "scopedProductionBrowserExit": 0,
+    "wasmSha256": "91c94095bc76823ceebdf57ee26ca75325273a4d2c8c6fb4cc1e2a14bd3a3f32",
+    "wasmBytes": 2034544,
+    "failedAttempt": "Tests started before WASM rebuild finished:279 pass,2 reject new flightDragSource on old engine. Full281 pass after rebuild. Both logs retained.",
+    "push": false,
+    "mainMerge": false,
+    "wasmRole": "current frontend/design rebuilt artifact; hash rechecked at482616d"
+  },
+  "closeoutGates": {
+    "noseTipUI": "pass",
+    "optedInSavedFlightEnsembleDisplay": "pass",
+    "independentFinalGuard": "pass"
+  },
+  "closeoutVerification": {
+    "sourcePin": "482616d6bf6e7c0fba392863e30511b6058b7739",
+    "mergeSha": "330bb4aac40b42cc0c44932dbe6bf072f380e83a",
+    "productionSourceChanged": false,
+    "laneRun": {
+      "exit": 0,
+      "shots": 30,
+      "artifact": "closeout/coordinator-run-1.json"
+    },
+    "mergedRun": {
+      "exit": 0,
+      "shots": 34,
+      "artifact": "closeout/coordinator-merged-run-1.json",
+      "sha256": "f3e6445a11a31ab0023f6a59cc83721b55b8a7a7a5886336da127794374f752c",
+      "wasmSha256": "91c94095bc76823ceebdf57ee26ca75325273a4d2c8c6fb4cc1e2a14bd3a3f32",
+      "wasmBytes": 2034544,
+      "pageErrors": []
+    },
+    "command": "node scripts/accuracy-closeout.mjs",
+    "environmentPaths": "explicit closeout/coordinator-* paths under external evidence root; author files retained",
+    "review": "REVIEW-CLOSEOUT-COORDINATOR.md",
+    "parentArithmetic": {
+      "pass": 67,
+      "blocked": 59,
+      "not_applicable": 1,
+      "not_run": 1
+    },
+    "parentChecksUnchanged": true,
+    "fullSmokeRerun": false
+  }
+}

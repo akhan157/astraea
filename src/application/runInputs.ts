@@ -3,7 +3,7 @@ import type { RocketVehicle } from '../core/types';
 import type { MotorRecord, ProjectEnvelope, ProjectSnapshot } from '../formats/projectJson';
 import type { DragCalibration } from './dragCalibration';
 import type { AeroModelSelection } from './aeroModel';
-import { hashHex, stableStringify, type LaunchOptions } from './caseResolver';
+import { assertVehicleRunOptions, flightRunOptions, hashHex, stableStringify, withResolvedDragChoice, type LaunchOptions } from './caseResolver';
 import { WEATHER_SNAPSHOT_IDS } from './weatherSnapshots';
 import type { Workspace, EnsembleSettings } from './workspace';
 import type { Mission } from './mission';
@@ -20,8 +20,13 @@ interface RunInputPayload {
   /** Original record identity and source metadata, independent of the live catalog. */
   motorRecord: MotorRecord;
   launch: LaunchOptions;
-  /** Complete console options, including the production defaults at capture. */
-  engineOptions: Required<SixDofOptions>;
+  /**
+   * Complete console options, including the production defaults at capture.
+   * The four optional physics inputs this bundle adds stay optional: an
+   * archive written by a run that sent none carries none, byte for byte as
+   * before.
+   */
+  engineOptions: ArchivedEngineOptions;
   /** Actual command-level reporting request; absence on old captures stays absent. */
   reportMomentArmHistory?: boolean;
   finShearModulusPa?: number;
@@ -34,6 +39,16 @@ interface RunInputPayload {
   /** Only active manual/forecast profiles; historical case pins stay at project level. */
   context: { workspace: Workspace; mission: Mission; weather: ProjectSnapshot[] };
 }
+
+/**
+ * Archived engine options: every option the console pins at dispatch, plus the
+ * vehicle-owned physics inputs, which are optional because a run that sent none
+ * must archive exactly the pre-bundle payload.
+ */
+export type ArchivedEngineOptions = Required<
+  Omit<SixDofOptions, 'launchSiteTemperatureC' | 'nozzleExitDiameter' | 'flightDragSource'>
+> &
+  Pick<SixDofOptions, 'launchSiteTemperatureC' | 'nozzleExitDiameter' | 'flightDragSource'>;
 
 /** Historical captures stay version1; version2 explicitly pins the legacy model. */
 export type LegacyRunInputs = RunInputPayload & (
@@ -89,13 +104,30 @@ export function captureRunInputs(
   if (dispatchedOptions?.dragCdScale !== undefined && dispatchedOptions.dragCdScale !== dispatchScale) {
     throw new Error(`captureRunInputs: dispatched drag scale ${String(dispatchedOptions.dragCdScale)} does not match the resolved active calibration ${String(dispatchScale)}`);
   }
+  // K3: two vehicles, kept apart on purpose.
+  //  - `declared` is the project's vehicle exactly as the user left it. THIS is what the archive stores, so
+  //    "Load saved inputs" restores the user's own declaration: the restored vehicle keeps the fit key that a
+  //    calibration's recorded `uncalibratedRunKey` was computed on, and the calibration stays active.
+  //  - `vehicle` is the dispatch resolution: `calibration` is the ACTIVE calibration this run carries (never a
+  //    retained inactive artifact, which is history), so a run whose scale rides it and which made no explicit
+  //    drag choice flies the legacy tables the scale was fitted on. It drives the dispatched options only, and
+  //    archive validation re-derives the same resolution from the archived declaration plus the archived
+  //    calibration, so what was flown is always reproducible from the archive.
+  const declared = project.vehicle;
+  const vehicle = withResolvedDragChoice(declared, calibration);
+  assertVehicleRunOptions('captureRunInputs', vehicle, dispatchedOptions ?? {});
   const launch = project.workspace.launch;
+  // One derivation for the archive and the dispatch request: the vehicle owns
+  // the launch-site inputs and the two physics opt-ins. A caller-supplied
+  // value may not override them, so the archive cannot disagree with what the
+  // bridge derives for this exact vehicle.
+  const { launchAltitudeASL: derivedAltitude, ...derivedPhysics } = flightRunOptions(vehicle);
   const archive: RunInputs = structuredClone({
     version: 2 as const,
     flightModel,
     capturedAt: new Date().toISOString(),
     inputKey,
-    vehicle: project.vehicle,
+    vehicle: declared,
     motorRecord,
     launch,
     engineOptions: {
@@ -107,8 +139,12 @@ export function captureRunInputs(
       // Archive v1 pins those values instead of consulting a later project.
       timeStep: 0.01, dragCdScale: calibration?.scale ?? 1,
       ...dispatchedOptions,
-      // The bridge derives altitude from the vehicle, never workspace.site.
-      launchAltitudeASL: project.vehicle.launchSite?.altitudeM ?? 0,
+      // The physics opt-ins are vehicle-owned too: archive one only when the
+      // vehicle derives one, so a default run's payload is unchanged.
+      ...derivedPhysics,
+      // The bridge derives altitude from the vehicle, never workspace.site;
+      // the archive keeps pinning 0 for a site-less vehicle as it always has.
+      launchAltitudeASL: derivedAltitude ?? 0,
     },
     ...(finShearModulusPa === undefined ? {} : { finShearModulusPa }),
     ...(calibration === undefined ? {} : { dragCalibration: calibration }),

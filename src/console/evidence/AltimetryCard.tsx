@@ -5,6 +5,7 @@
  * import is reported upward so the calibration card works from the same bytes.
  */
 import { useRef, useState, type JSX } from 'react';
+import { useProjectStore } from '../../state/project';
 import { Activity, ClipboardPaste } from 'lucide-react';
 import { parseTrajectoryCsv, resample, type AltitudeSample, type LogUnitOverrides, type TrajectoryParse, type TrajectorySample } from '../../evidence/altimetry';
 import { buildLogProvenance, UNAVAILABLE_HASH, type LogProvenance } from '../../evidence/logProvenance';
@@ -18,6 +19,11 @@ import { Card, FIELD_STYLE, KvRow, Note, Notice, Well, toNumber } from './studio
 export type { ImportedLog };
 
 export function AltimetryCard(): JSX.Element {
+  const epoch = useProjectStore(state => state.projectEpoch);
+  return <ProjectAltimetryCard key={epoch} />;
+}
+
+function ProjectAltimetryCard(): JSX.Element {
   // A log imported earlier in the session comes back when the card is shown again.
   const remembered = useRef(currentLoadedLog()).current;
   const [csvText, setCsvText] = useState<string>(remembered?.csvText ?? '');
@@ -41,6 +47,7 @@ export function AltimetryCard(): JSX.Element {
     seq: number,
     result: TrajectoryParse,
   ): Promise<void> => {
+    const epoch = useProjectStore.getState().projectEpoch;
     const { samples, hasVelocity, ...units } = result;
     const originalBytes = fileBytes.current ?? new TextEncoder().encode(text);
     // Commit the new bytes only on success: a rejected input leaves the prior
@@ -49,7 +56,7 @@ export function AltimetryCard(): JSX.Element {
     setError(null);
     setResampled(null);
     const record = await buildLogProvenance({ rawText: text, rawBytes: originalBytes, fileName, rowCount: samples.length, units });
-    if (parseSeq.current !== seq) return;
+    if (parseSeq.current !== seq || useProjectStore.getState().projectEpoch !== epoch) return;
     setProvenance(record);
     rememberLoadedLog({
       log: { samples, hasVelocity, provenance: record, originalBytes },
@@ -74,11 +81,12 @@ export function AltimetryCard(): JSX.Element {
   };
 
   const handleFile = async (file: File) => {
+    const epoch = useProjectStore.getState().projectEpoch;
     const seq = ++parseSeq.current;
     const bytes = new Uint8Array(await file.arrayBuffer());
     const text = new TextDecoder().decode(bytes);
-    // A newer paste/import started while reading: keep its bytes.
-    if (parseSeq.current !== seq) return;
+    // A newer paste/import or project replacement wins over the file read.
+    if (parseSeq.current !== seq || useProjectStore.getState().projectEpoch !== epoch) return;
     try {
       const result = parseTrajectoryCsv(text, unitOverrides); // a rejected file throws before any state moves
       fileBytes.current = bytes;

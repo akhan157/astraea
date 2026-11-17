@@ -8,6 +8,7 @@
  */
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
+import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { RocketVehicle, RocketComponent, NoseconeComponent, TrapezoidFinSetComponent, EllipticalFinSetComponent, FreeformFinSetComponent } from '../../core/types';
 import type { VehicleMassRollup } from '../../core/mass';
 import type { AeroModelSelection } from '../../application/aeroModel';
@@ -86,6 +87,119 @@ export function useLayout(vehicle: RocketVehicle, aeroModel?: AeroModelSelection
   return useLayoutSnapshot(vehicle, aeroModel)?.layout ?? null;
 }
 
+/**
+ * Surface tessellation. A 76 mm tube subtends ~0.4° per segment at 128 radial
+ * steps, so the silhouette stays smooth at the closest zoom the fit allows;
+ * these are construction constants, not per-frame work — every geometry here is
+ * memoised on its part data.
+ */
+export const BODY_RADIAL_SEGMENTS = 128;
+export const NOSE_RADIAL_SEGMENTS = 128;
+/** Nose profile samples; cosine spacing packs them where the curvature is. */
+export const NOSE_PROFILE_SAMPLES = 128;
+/** Seam rings are pure outline: the around-the-ring count carries the smoothness. */
+export const SEAM_TUBULAR_SEGMENTS = 160;
+
+/**
+ * Cosine-spaced stations over [0, 1], dense at both ends. The nose tip and the
+ * shoulder are exactly where a lathe silhouette shows faceting at 48 uniform
+ * samples; across the middle a straight wall needs no samples at all, so the
+ * spacing is spent there instead. Endpoints stay exact: `stations[0] === 0` and
+ * `stations[last] === 1`, so the profile never moves the part's length.
+ */
+export function cosineStations(samples: number): number[] {
+  const stations: number[] = [];
+  for (let i = 0; i <= samples; i++) stations.push((1 - Math.cos((i / samples) * Math.PI)) / 2);
+  return stations;
+}
+
+export interface FinBevel {
+  /** Face-edge round radius, kept to <= 0.6 mm and <= 25% of the thickness. */
+  bevelSize: number;
+  bevelThickness: number;
+  bevelSegments: number;
+  /** Extrusion depth that, with the bevel, keeps the total thickness exact. */
+  depth: number;
+  /** Z translation that re-centres the bevelled solid on the fin's mid-plane. */
+  zOffset: number;
+}
+
+/**
+ * Bevel for an extruded fin. three's `ExtrudeGeometry` grows the outline by
+ * `bevelSize` and the depth by `2 * bevelThickness`; a negative `bevelOffset`
+ * puts the side wall back on the authored outline, so the planform (span and
+ * chord) is untouched and a freeform polygon needs no inward offsetting.
+ */
+export function finBevel(thickness: number): FinBevel {
+  const t = Math.max(thickness, 0);
+  const size = Math.min(0.25 * t, 0.0006);
+  return {
+    bevelSize: size,
+    bevelThickness: size,
+    bevelSegments: 3,
+    depth: Math.max(t - 2 * size, t * 0.1),
+    zOffset: size - t / 2,
+  };
+}
+
+/**
+ * Restore the exact face normal on every flat cap triangle of an extruded fin.
+ * `toCreasedNormals` averages the bevel ring into the lid vertices, and an
+ * extruded planform has no interior lid vertices — every lid vertex sits on the
+ * outline — so the whole face would shade as a shallow dome. Only the bevel is
+ * meant to be smooth; the faces must stay flat.
+ */
+export function flattenCapNormals(geo: THREE.BufferGeometry): THREE.BufferGeometry {
+  const position = geo.getAttribute('position');
+  const normal = geo.getAttribute('normal');
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), n = new THREE.Vector3();
+  for (let f = 0; f < position.count; f += 3) {
+    a.fromBufferAttribute(position, f);
+    b.fromBufferAttribute(position, f + 1);
+    c.fromBufferAttribute(position, f + 2);
+    n.copy(b).sub(a).cross(c.clone().sub(a)).normalize();
+    // Caps are the only triangles whose plane is exactly perpendicular to z.
+    if (Math.abs(n.z) < 0.9999) continue;
+    for (let v = 0; v < 3; v++) normal.setXYZ(f + v, n.x, n.y, n.z);
+  }
+  normal.needsUpdate = true;
+  return geo;
+}
+
+/**
+ * Extruded fin solid in shape coordinates, centred on its own mid-plane and
+ * offset to the body surface (`r * 0.995`, the existing overlap). The bevel is
+ * a face-edge round only: `bevelOffset` keeps the side wall on the authored
+ * outline, so span and chord are exactly the planform's.
+ */
+export function finExtrudeGeometry(c: TrapezoidFinSetComponent | EllipticalFinSetComponent | FreeformFinSetComponent, r: number): THREE.BufferGeometry {
+  const s = new THREE.Shape();
+  // Shape in (span, axial-up) coordinates, root leading edge at (0, 0), trailing edge at (0, -cr).
+  if (c.type === 'freeformfinset') {
+    c.points.forEach((q, i) => (i === 0 ? s.moveTo(q.y, -q.x) : s.lineTo(q.y, -q.x)));
+    s.closePath();
+  } else if (c.type === 'trapezoidfinset') {
+    const cr = c.rootChord;
+    s.moveTo(0, 0); s.lineTo(c.span, -c.sweepLength); s.lineTo(c.span, -c.sweepLength - c.tipChord); s.lineTo(0, -cr); s.lineTo(0, 0);
+  } else {
+    const cr = c.rootChord;
+    s.moveTo(0, 0);
+    for (let i = 0; i <= 32; i++) { const a = (i / 32) * Math.PI; s.lineTo(Math.sin(a) * c.span, -cr / 2 + (Math.cos(a) * cr) / 2 - cr / 2 + cr / 2); }
+  }
+  const bevel = finBevel(c.thickness);
+  const g = new THREE.ExtrudeGeometry(s, {
+    depth: bevel.depth,
+    bevelEnabled: bevel.bevelSize > 0,
+    bevelSize: bevel.bevelSize,
+    bevelThickness: bevel.bevelThickness,
+    bevelSegments: bevel.bevelSegments,
+    bevelOffset: -bevel.bevelSize,
+  });
+  g.translate(r * 0.995, 0, bevel.zOffset);
+  // Smooth within the bevel and the arc, flat across the 90° face/edge creases.
+  return flattenCapNormals(toCreasedNormals(g, Math.PI / 3));
+}
+
 export function noseR(c: NoseconeComponent, x: number): number {
   const R = c.baseDiameter / 2, Ln = c.length, u = Math.min(Math.max(x / Ln, 0), 1);
   switch (c.shape) {
@@ -95,6 +209,31 @@ export function noseR(c: NoseconeComponent, x: number): number {
     case 'vonkarman': { const th = Math.acos(1 - 2 * u); return (R / Math.sqrt(Math.PI)) * Math.sqrt(th - Math.sin(2 * th) / 2); }
     default: { const rho = (R * R + Ln * Ln) / (2 * R); return Math.sqrt(Math.max(0, rho * rho - (Ln - x) ** 2)) + R - rho; }
   }
+}
+
+/** Smallest drawn radius: a lathe needs a positive radius at the tip. */
+const NOSE_TIP_RADIUS = 0.0004;
+
+/**
+ * Profile points for a nose cone's lathe, tip first in world +Y at `L - x0`.
+ * Cosine spacing puts the samples at the tip and the shoulder, the two places a
+ * silhouette shows faceting; `u = 0` and `u = 1` are exact, so the drawn nose is
+ * still exactly `len` long and ends on the authored base radius.
+ */
+export function noseProfile(c: NoseconeComponent, x0: number, len: number, L: number): THREE.Vector2[] {
+  return cosineStations(NOSE_PROFILE_SAMPLES).map((u) => {
+    const x = u * len;
+    return new THREE.Vector2(Math.max(noseR(c, x), NOSE_TIP_RADIUS), L - (x0 + x));
+  });
+}
+
+export function noseLatheGeometry(c: NoseconeComponent, x0: number, len: number, L: number): THREE.LatheGeometry {
+  const geo = new THREE.LatheGeometry(noseProfile(c, x0, len, L), NOSE_RADIAL_SEGMENTS);
+  // LatheGeometry copies the last profile point's *unnormalised* tangent as the
+  // shoulder ring's normal, so that ring arrives near-zero and shades black.
+  // The direction is right; normalising is all the ring needs.
+  geo.normalizeNormals();
+  return geo;
 }
 
 export interface Look { selected?: string | null; hovered?: string | null; ghost?: boolean; xray?: boolean; changedParts?: Set<string>; opacity?: number }
@@ -142,9 +281,9 @@ export function VehicleModel({ vehicle, layout, motor, look = {}, cg, cp, onPick
     <group>
       {vehicle.components.map((c) => {
         const p = layout.parts[c.id]; if (!p) return null;
-        if (c.type === 'nosecone') return <Lathe key={c.id} profile={(x) => noseR(c, x)} x0={p.start} len={c.length} Y={Y} {...ev(c.id)}>{mat(c)}</Lathe>;
-        if (c.type === 'bodytube') return <mesh key={c.id} position={[0, Y((p.start + p.end) / 2), 0]} {...ev(c.id)}><cylinderGeometry args={[c.outerDiameter / 2, c.outerDiameter / 2, c.length, 64, 1, true]} />{mat(c)}</mesh>;
-        if (c.type === 'transition') return <mesh key={c.id} position={[0, Y((p.start + p.end) / 2), 0]} {...ev(c.id)}><cylinderGeometry args={[c.foreDiameter / 2, c.aftDiameter / 2, c.length, 64, 1, true]} />{mat(c)}</mesh>;
+        if (c.type === 'nosecone') return <Lathe key={c.id} c={c} x0={p.start} len={c.length} L={L} {...ev(c.id)}>{mat(c)}</Lathe>;
+        if (c.type === 'bodytube') return <mesh key={c.id} position={[0, Y((p.start + p.end) / 2), 0]} {...ev(c.id)}><cylinderGeometry args={[c.outerDiameter / 2, c.outerDiameter / 2, c.length, BODY_RADIAL_SEGMENTS, 1, true]} />{mat(c)}</mesh>;
+        if (c.type === 'transition') return <mesh key={c.id} position={[0, Y((p.start + p.end) / 2), 0]} {...ev(c.id)}><cylinderGeometry args={[c.foreDiameter / 2, c.aftDiameter / 2, c.length, BODY_RADIAL_SEGMENTS, 1, true]} />{mat(c)}</mesh>;
         if (c.type === 'trapezoidfinset' || c.type === 'ellipticalfinset' || c.type === 'freeformfinset') return <Fins key={c.id} c={c} start={p.start} r={layout.radiusAt(p.start + 0.001)} Y={Y} ev={ev(c.id)}>{mat(c)}</Fins>;
         if (c.type === 'parachute' || c.type === 'masscomponent') {
           if (!look.xray && look.selected !== c.id && look.hovered !== c.id) return null;
@@ -157,7 +296,7 @@ export function VehicleModel({ vehicle, layout, motor, look = {}, cg, cp, onPick
       {/* A thin unlit ring at each section joint: where a part starts and ends. */}
       {seams.map((seam) => (
         <mesh key={`seam-${seam.station.toFixed(5)}`} position={[0, Y(seam.station), 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[seam.radius, seamThickness, 8, 96]} />
+          <torusGeometry args={[seam.radius, seamThickness, 8, SEAM_TUBULAR_SEGMENTS]} />
           <meshBasicMaterial color={SEAM_COLOR} />
         </mesh>
       ))}
@@ -168,34 +307,15 @@ export function VehicleModel({ vehicle, layout, motor, look = {}, cg, cp, onPick
   );
 }
 
-function Lathe({ profile, x0, len, Y, children, ...rest }: { profile: (x: number) => number; x0: number; len: number; Y: (x: number) => number; children: React.ReactNode } & Record<string, unknown>) {
-  const geo = useMemo(() => {
-    const pts: THREE.Vector2[] = [];
-    for (let i = 0; i <= 48; i++) { const x = (i / 48) * len; pts.push(new THREE.Vector2(Math.max(profile(x), 0.0004), Y(x0 + x))); }
-    return new THREE.LatheGeometry(pts, 64);
-  }, [profile, x0, len, Y]);
+function Lathe({ c, x0, len, L, children, ...rest }: { c: NoseconeComponent; x0: number; len: number; L: number; children: React.ReactNode } & Record<string, unknown>) {
+  const geo = useMemo(() => noseLatheGeometry(c, x0, len, L), [c, x0, len, L]);
+  useEffect(() => () => geo.dispose(), [geo]);
   return <mesh geometry={geo} {...rest}>{children}</mesh>;
 }
 
 function Fins({ c, start, r, Y, ev, children }: { c: TrapezoidFinSetComponent | EllipticalFinSetComponent | FreeformFinSetComponent; start: number; r: number; Y: (x: number) => number; ev: Record<string, unknown>; children: React.ReactNode }) {
-  const geo = useMemo(() => {
-    const s = new THREE.Shape();
-    // Shape in (span, axial-up) coordinates, root leading edge at (0, 0), trailing edge at (0, -cr).
-    if (c.type === 'freeformfinset') {
-      c.points.forEach((q, i) => (i === 0 ? s.moveTo(q.y, -q.x) : s.lineTo(q.y, -q.x)));
-      s.closePath();
-    } else if (c.type === 'trapezoidfinset') {
-      const cr = c.rootChord;
-      s.moveTo(0, 0); s.lineTo(c.span, -c.sweepLength); s.lineTo(c.span, -c.sweepLength - c.tipChord); s.lineTo(0, -cr); s.lineTo(0, 0);
-    } else {
-      const cr = c.rootChord;
-      s.moveTo(0, 0);
-      for (let i = 0; i <= 32; i++) { const a = (i / 32) * Math.PI; s.lineTo(Math.sin(a) * c.span, -cr / 2 + (Math.cos(a) * cr) / 2 - cr / 2 + cr / 2); }
-    }
-    const g = new THREE.ExtrudeGeometry(s, { depth: c.thickness, bevelEnabled: false });
-    g.translate(r * 0.995, 0, -c.thickness / 2);
-    return g;
-  }, [c, r]);
+  const geo = useMemo(() => finExtrudeGeometry(c, r), [c, r]);
+  useEffect(() => () => geo.dispose(), [geo]);
   return (
     <group position={[0, Y(start), 0]}>
       {Array.from({ length: c.finCount }).map((_, i) => (

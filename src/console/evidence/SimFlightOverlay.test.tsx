@@ -2,9 +2,12 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act, cleanup, within } from '@testing-library/react';
 import { SimFlightOverlay } from './SimFlightOverlay';
+import { AltimetryCard } from './AltimetryCard';
 import { useProjectStore } from '../../state/project';
 import { useAnalysisStore } from '../../state/analysis';
 import { consoleActions, currentRunKey, designOf, type FlightPayload } from '../store';
+import { captureRunInputs } from '../../application/runInputs';
+import { CERTIFIED_MOTORS } from '../../propulsion/motorDatabase';
 import { toFlightRun } from '../data/adapter';
 import { flightResult, resetConsoleState } from '../testFixtures';
 import realExcerptCsv from '../../../docs/flight-validation/cosmic-cargo-2986-excerpt.csv?raw';
@@ -21,8 +24,9 @@ function commitSim(inputKey = currentRunKey()!, validity: 'PASS' | 'FAIL' | 'UNK
       position: { x: 0, y: 0, z: time <= 30 ? 10 * time : 10 * (60 - time) },
     })),
   });
-  const token = useAnalysisStore.getState().start('flight', inputKey);
-  const payload: FlightPayload = { design, run: toFlightRun(result, design.vehicle, undefined, inputKey, 1, 1), previous: null };
+  const inputs = captureRunInputs(store.project, { id: 'estes_c6', motor: CERTIFIED_MOTORS.estes_c6, provenance: { source: 'certified' } }, inputKey, undefined);
+  const token = useAnalysisStore.getState().start('flight', inputKey, null, inputs);
+  const payload: FlightPayload = { design, run: toFlightRun(result, design.vehicle, undefined, inputKey, 1, 1, undefined, undefined, undefined, { kind: 'production-rust-wasm', sha256: 'b'.repeat(64) }), previous: null };
   useAnalysisStore.getState().resolve('flight', token, payload);
   return token;
 }
@@ -63,6 +67,16 @@ describe('SimFlightOverlay inspect pane', () => {
     expect(screen.getByLabelText(/layer flight 1/i)).toBeTruthy();
     const plot = screen.getByRole('img', { name: /altitude overlay/i });
     expect(plot.getAttribute('aria-label')).toMatch(/sim.*flight 1/i);
+  });
+
+  it('draws the retained telemetry of an evicted run when selected', async () => {
+    const token = commitSim();
+    for (let i = 0; i < 5; i++) commitSim();
+    expect(useAnalysisStore.getState().history[0].payload).toBeNull();
+    render(<SimFlightOverlay />);
+    fireEvent.click(screen.getByRole('button', { name: `Make Flight ${token} current` }));
+    expect(screen.getByRole('img', { name: /altitude overlay/i })).toBeTruthy();
+    expect(screen.getByText(/sim curve: recorded native telemetry/)).toBeTruthy();
   });
 
   it('rejects garbage without discarding a previously ingested log', () => {
@@ -262,4 +276,15 @@ describe('SimFlightOverlay compare pane', () => {
     expect(screen.getByText(/\d+ match \//i)).toBeTruthy();
     expect(screen.getByRole('img', { name: /signed difference/i })).toBeTruthy();
   });
+});
+
+
+it('adds an Altimetry import to the overlay once, including after pasting the same log', async () => {
+  render(<><AltimetryCard /><SimFlightOverlay /></>);
+  const file = new File([CSV_260], 'flight.csv', { type: 'text/csv' });
+  Object.defineProperty(file, 'arrayBuffer', { value: async () => new TextEncoder().encode(CSV_260).buffer });
+  fireEvent.change(screen.getByLabelText('Flight log file'), { target: { files: [file] } });
+  await screen.findByLabelText(/layer flight 1/i);
+  addFlightLog(CSV_260);
+  expect(screen.queryByLabelText(/layer flight 2/i)).toBeNull();
 });

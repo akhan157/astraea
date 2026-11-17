@@ -75,13 +75,25 @@ try {
       }
       return gl;
     };
+    // Only draws that land on the screen count. Offscreen passes (the
+    // environment cube-map bake on every Canvas mount, any render target) bind
+    // a framebuffer first, so they must not satisfy a "the viewport drew" check.
     for (const proto of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
       if (!proto) continue;
+      const bind = proto.bindFramebuffer;
+      if (typeof bind === 'function' && !bind.__ctxProbeWrapped) {
+        proto.bindFramebuffer = function (target, framebuffer) {
+          // READ_FRAMEBUFFER (0x8CA8) does not change where draws go.
+          if (target !== 0x8CA8) this.__ctxProbeOffscreen = framebuffer !== null;
+          return bind.call(this, target, framebuffer);
+        };
+        proto.bindFramebuffer.__ctxProbeWrapped = true;
+      }
       for (const name of ['drawArrays', 'drawElements', 'drawArraysInstanced', 'drawElementsInstanced', 'drawRangeElements']) {
         const fn = proto[name];
         if (typeof fn !== 'function' || fn.__ctxProbeWrapped) continue;
         proto[name] = function (...args) {
-          probe.drawCalls += 1;
+          if (!this.__ctxProbeOffscreen) probe.drawCalls += 1;
           return fn.apply(this, args);
         };
         proto[name].__ctxProbeWrapped = true;
@@ -166,11 +178,18 @@ try {
     assert.equal(s.fallback, 0, `${label}: the WebGL fallback must not be showing`);
     return s;
   };
-  const expectDraws = async (label) => {
-    const before = (await state()).drawCalls;
+  // The viewport renders on demand: it draws in response to a change and then
+  // idles. So "still drawing" means an on-screen frame was drawn after the
+  // action that should have caused one; the caller marks the count before acting.
+  // The rule is "a frame is drawn", not "within N seconds": a remount on a
+  // software rasterizer recompiles the material shaders, and that can take
+  // longer than 10 s when another browser shares the CPU. The wait is a budget
+  // for that, not a relaxed assertion.
+  const drawMark = async () => (await state()).drawCalls;
+  const expectDraws = async (label, before) => {
     await expect.poll(async () => (await state()).drawCalls, {
       message: `${label}: the viewport must keep drawing frames`,
-      timeout: 10_000,
+      timeout: 25_000,
     }).toBeGreaterThan(before);
   };
   const expectNoNewContext = async (created, label) => {
@@ -192,9 +211,10 @@ try {
   await page.getByRole('banner').getByRole('button', { name: /Run simulation/ }).click({ timeout: 120_000 });
   await page.locator('[aria-label^="Apogee (committed run) "]').waitFor({ timeout: 120_000 });
   await waitForViewportSignal();
+  const initialMark = await drawMark();
   await stage('Airframe');
   await waitForActualCanvas();
-  await expectDraws('initial Airframe');
+  await expectDraws('initial Airframe', initialMark);
 
   const initial = await state();
   assert.ok(initial.created.length >= 1 && initial.created.length <= 2,
@@ -212,6 +232,7 @@ try {
 
   // ── Camera fit follows resize; the shared canvas is the measured one ─────
   for (const [width, height] of [[1280, 800], [1600, 1000]]) {
+    const resizeMark = await drawMark();
     await page.setViewportSize({ width, height });
     await expect.poll(async () => {
       const s = await state();
@@ -222,7 +243,7 @@ try {
         && Math.abs(s.cameraAspect - s.actual.rect.w / s.actual.rect.h) < 0.01;
     }, { message: `${width}×${height}: the fitted camera must follow the actual canvas size`, timeout: 20_000 }).toBe(true);
     await expectNoNewContext(initialCreated, `${width}×${height} resize`);
-    await expectDraws(`${width}×${height} resize`);
+    await expectDraws(`${width}×${height} resize`, resizeMark);
   }
 
   // ── Presets, orbit drag and viewcube still drive the shared renderer ─────
@@ -304,29 +325,33 @@ try {
   await expect.poll(async () => (await state()).cannii.length, { message: '2D must unmount the 3D canvas', timeout: 10_000 }).toBe(0);
   await expectNoNewContext(initialCreated, '2D view');
 
+  const splitMark = await drawMark();
   await view('3D + 2D');
   await waitForActualCanvas();
   await expect(page.getByRole('img', { name: 'Side and aft views with dimensions' })).toBeVisible();
   let split = await expectOneVisibleCanvas('split view');
   assert.equal(split.actual.ctxId, sharedCtx, 'split view must reuse the shared context');
   await expectNoNewContext(initialCreated, 'split view');
-  await expectDraws('split view');
+  await expectDraws('split view', splitMark);
 
+  const viewMark = await drawMark();
   await view('3D');
   await waitForActualCanvas();
   await expectOneVisibleCanvas('3D view');
   await expectNoNewContext(initialCreated, '3D view');
-  await expectDraws('3D view');
+  await expectDraws('3D view', viewMark);
 
+  const aeroMark = await drawMark();
   await stage('Aero');
   await waitForActualCanvas();
   const aero = await expectOneVisibleCanvas('Aero');
   assert.equal(aero.actual.ctxId, sharedCtx, 'Aero must reuse the shared context');
   await expect.poll(async () => (await state()).markers, { message: 'Aero must draw its markers on the shared renderer', timeout: 20_000 }).toBe('present');
   await expectNoNewContext(initialCreated, 'Aero');
-  await expectDraws('Aero');
+  await expectDraws('Aero', aeroMark);
   await expect.poll(async () => (await state()).bbox, { message: 'Aero must report the rocket box', timeout: 10_000 }).not.toBeNull();
 
+  const flightMark = await drawMark();
   await stage('Flight');
   await page.getByRole('tab', { name: 'Timeline', exact: true }).click();
   await waitForActualCanvas();
@@ -335,16 +360,19 @@ try {
   assert.equal(flight.cameraPose, 'upright', 'Flight must use the attitude-posed camera');
   assert.ok(flight.poseQ, 'Flight must report the drawn pose');
   await expectNoNewContext(initialCreated, 'Flight');
-  await expectDraws('Flight');
+  await expectDraws('Flight', flightMark);
   const scrubber = page.locator('input[aria-label="Flight scrubber"]');
   const max = Number(await scrubber.getAttribute('max'));
   assert.ok(Number.isFinite(max) && max > 0, 'Flight scrubber must expose its range');
   const poseBefore = (await state()).poseQ;
+  const scrubMark = await drawMark();
   await scrubber.evaluate((input, value) => {
     Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, String(value));
     input.dispatchEvent(new Event('input', { bubbles: true }));
   }, max * 0.5);
   await expect.poll(async () => (await state()).poseQ, { message: 'the Flight scrubber must re-pose the rocket', timeout: 10_000 }).not.toBe(poseBefore);
+  // A new pose is a new picture: the scrubber must repaint, not just re-report.
+  await expectDraws('Flight scrub', scrubMark);
   const posed = await state();
   assert.ok(posed.fit > 0.74 && posed.fit < 0.86, `Flight fit must stay near 80% (got ${posed.fit})`);
   const [bx0, by0, bx1, by1] = posed.bbox;
@@ -357,12 +385,14 @@ try {
   await expectNoNewContext(initialCreated, 'Aero/Flight round trip');
 
   // ── The failure reproducer: many stage mounts must create nothing ───────
+  let switchMark = 0;
   for (let i = 0; i < SWITCHES; i += 1) {
     await stage('Mission');
     await expect.poll(async () => (await state()).cannii.length, {
       message: `switch ${i + 1}: the non-3D stage must unmount the canvas`,
       timeout: 10_000,
     }).toBe(0);
+    switchMark = await drawMark();
     await stage('Airframe');
     await waitForActualCanvas();
     const s = await state();
@@ -371,7 +401,7 @@ try {
     assert.equal(s.visible, 1, `switch ${i + 1}: exactly one visible canvas expected`);
     assert.equal(s.placeholderCalls, 0, `switch ${i + 1}: R3F placeholder got a context`);
   }
-  await expectDraws('after 60 stage switches');
+  await expectDraws('after 60 stage switches', switchMark);
   console.log(`lifecycle ${browserName}: ${SWITCHES} stage switches, still ${initialCreated} contexts`);
 
   // ── Loss, fallback and restore: exactly one replacement context ─────────
@@ -400,6 +430,7 @@ try {
   assert.equal(remounted.fallback, 1, 're-entering a stage with a lost shared context must show the fallback');
   assert.equal(remounted.cannii.length, 0, 're-entering a stage with a lost shared context must not mount a dead canvas');
 
+  const restoreMark = await drawMark();
   await page.getByRole('button', { name: 'Restore viewport', exact: true }).click();
   await waitForActualCanvas();
   await expect.poll(async () => (await state()).fallback, { message: 'restore must leave the fallback', timeout: 20_000 }).toBe(0);
@@ -407,7 +438,7 @@ try {
   assert.equal(restored.created.length, beforeLoss.created.length + 1,
     `restore must create one replacement context, not a throwaway probe plus a renderer (created ${restored.created.length}, was ${beforeLoss.created.length})`);
   assert.notEqual(restored.actual.ctxId, beforeLoss.actual.ctxId, 'restore must replace the lost context');
-  await expectDraws('restored viewport');
+  await expectDraws('restored viewport', restoreMark);
   await expect.poll(async () => {
     const value = (await state()).fit;
     return value > 0.74 && value < 0.86;

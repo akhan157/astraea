@@ -27,6 +27,15 @@ const fit = (binding?: Record<string, string>, inputKey?: string, engineIdentity
 } as unknown as DragCalibration);
 
 describe('model & evidence status panel', () => {
+  it('warns when ensemble drag was refused', () => {
+    useAnalysisStore.setState((state) => ({ completed: { ...state.completed, ensemble: {
+      kind: 'ensemble', status: 'completed', inputKey: 'key', token: 1, startedAt: '', finishedAt: '', error: null,
+      payload: { dispersion: { axialDrag: 'legacy 25-station Mach drag tables; legacy drag used (refused: fins)', physicsOptions: { flightDragSource: 'calibrated' } } },
+    } as never } }));
+    render(<ModelStatusPanel />);
+    expect(panel().querySelector('[data-row="axial-drag"]')?.textContent).toContain('Built-up drag was requested but not used for this rocket.');
+  });
+
   it('states the resolved model contract without presenting it as a qualification', () => {
     render(<ModelStatusPanel />);
     const region = panel();

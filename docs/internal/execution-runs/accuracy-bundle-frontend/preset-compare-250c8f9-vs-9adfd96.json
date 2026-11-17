@@ -1,0 +1,242 @@
+{
+ "wasm": {
+  "old": {
+   "source": "250c8f9 (frontend/design and main before the merge)",
+   "builtIn": "detached worktree at 250c8f9, CARGO_TARGET_DIR outside the repo",
+   "bytes": 2004054,
+   "sha256": "c93a6ea992dc682b9c3f6898b0f1d92edaa1ec5716f05ca7b65b9ede1f0f1cc2"
+  },
+  "bundle": {
+   "source": "9adfd96 (merge of bundle 2472314; tree identical to 2472314)",
+   "builtIn": "repo root, node scripts/build-engine.mjs",
+   "bytes": 2024595,
+   "sha256": "6cb5c35e562755eb5a00d00ea5e59fd5b19b7e280da40f6fcb8d3db5109049a2"
+  }
+ },
+ "presets": {
+  "estesAlpha": {
+   "motor": "estes_c6",
+   "options": {
+    "railLength": 1,
+    "railElevationDeg": 85,
+    "railAzimuthDeg": 0,
+    "windSpeedSurface": 3,
+    "windAzimuthDeg": 0,
+    "finCantAngleDeg": 0,
+    "mainDeployAltitudeAGL": 60
+   },
+   "old": {
+    "apogeeAltitude": 299.1795257133733,
+    "maxVelocity": 100.09724075473446,
+    "maxMach": 0.29448646652700017,
+    "flightDuration": 82.26110211563453,
+    "landingVelocity": 4.929660257614853,
+    "railExitVelocity": 17.665363001040685,
+    "validity": "PASS",
+    "runManifest": {
+     "atmosphere": "ISA-1976 via getAtmosphereAt; power-law surface wind shear",
+     "boattailPolicy": "suppressed",
+     "depletion": "impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)",
+     "finInterferenceId": "fin-station-v2",
+     "frames": "ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis",
+     "ground": "flat z=0 AGL touchdown plane",
+     "normalLawId": "published-supersonic-normal-v1",
+     "railContact": "projected unilateral base contact with signed along-rail sliding; moments locked on rail",
+     "recovery": "canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent",
+     "unsupportedHandling": "continue-and-mark-UNKNOWN: classified out-of-domain loads continue with validity UNKNOWN and safety outputs closed; undefined normal-force CP (nonfinite, C < 1e-4, or C <= 64*epsilon*sumAbs) fails the command before arm use",
+     "unsupportedScope": [
+      "multi-stage separation and staging events",
+      "rail tip-off dynamics and rail friction",
+      "canopy inflation, attachment, and opening-shock loads",
+      "non-flat terrain and terrain-relative deployment",
+      "ensemble, uncertainty, and containment analysis",
+      "sensor, interoperability, and competition-rule engines"
+     ]
+    },
+    "maxTransonicCd": 1.2785045642386326
+   },
+   "bundle": {
+    "apogeeAltitude": 298.92375069659687,
+    "maxVelocity": 100.08281599715359,
+    "maxMach": 0.29444399571152263,
+    "flightDuration": 82.19359157562769,
+    "landingVelocity": 4.929660552299002,
+    "railExitVelocity": 17.66535237529297,
+    "validity": "PASS",
+    "runManifest": {
+     "atmosphere": "ISA-1976 via getAtmosphereAt; power-law surface wind shear",
+     "axialDrag": "legacy 25-station Mach drag tables from compute_aerodynamic_curves; calibrated drag not requested",
+     "boattailPolicy": "suppressed",
+     "depletion": "impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)",
+     "finInterferenceId": "fin-station-v2",
+     "frames": "ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis",
+     "ground": "flat z=0 AGL touchdown plane",
+     "normalLawId": "published-supersonic-normal-v1",
+     "railContact": "projected unilateral base contact with signed along-rail sliding; moments locked on rail",
+     "recovery": "canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent",
+     "thrustPressure": "no back-pressure term: no flight nozzleExitDiameter supplied (A_e = 0)",
+     "unsupportedHandling": "continue-and-mark-UNKNOWN: classified out-of-domain loads continue with validity UNKNOWN and safety outputs closed; undefined normal-force CP (nonfinite, C < 1e-4, or C <= 64*epsilon*sumAbs) fails the command before arm use",
+     "unsupportedScope": [
+      "multi-stage separation and staging events",
+      "rail tip-off dynamics and rail friction",
+      "canopy inflation, attachment, and opening-shock loads",
+      "non-flat terrain and terrain-relative deployment",
+      "ensemble, uncertainty, and containment analysis",
+      "sensor, interoperability, and competition-rule engines"
+     ]
+    },
+    "maxTransonicCd": 1.1872769379711339
+   }
+  },
+  "nasaStudent": {
+   "motor": "aerotech_k550w",
+   "options": {
+    "railLength": 3.66,
+    "railElevationDeg": 85,
+    "railAzimuthDeg": 0,
+    "windSpeedSurface": 3,
+    "windAzimuthDeg": 0,
+    "finCantAngleDeg": 0,
+    "mainDeployAltitudeAGL": 213
+   },
+   "old": {
+    "apogeeAltitude": 533.0760350112048,
+    "maxVelocity": 98.9263916728071,
+    "maxMach": 0.29117949481819017,
+    "flightDuration": 67.85318210601588,
+    "landingVelocity": 5.9502781495226085,
+    "railExitVelocity": 18.89868968377279,
+    "validity": "PASS",
+    "runManifest": {
+     "atmosphere": "ISA-1976 via getAtmosphereAt; power-law surface wind shear",
+     "boattailPolicy": "suppressed",
+     "depletion": "impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)",
+     "finInterferenceId": "fin-station-v2",
+     "frames": "ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis",
+     "ground": "flat z=0 AGL touchdown plane",
+     "normalLawId": "published-supersonic-normal-v1",
+     "railContact": "projected unilateral base contact with signed along-rail sliding; moments locked on rail",
+     "recovery": "canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent",
+     "unsupportedHandling": "continue-and-mark-UNKNOWN: classified out-of-domain loads continue with validity UNKNOWN and safety outputs closed; undefined normal-force CP (nonfinite, C < 1e-4, or C <= 64*epsilon*sumAbs) fails the command before arm use",
+     "unsupportedScope": [
+      "multi-stage separation and staging events",
+      "rail tip-off dynamics and rail friction",
+      "canopy inflation, attachment, and opening-shock loads",
+      "non-flat terrain and terrain-relative deployment",
+      "ensemble, uncertainty, and containment analysis",
+      "sensor, interoperability, and competition-rule engines"
+     ]
+    },
+    "maxTransonicCd": 0.7290109701801071
+   },
+   "bundle": {
+    "apogeeAltitude": 532.8435782954323,
+    "maxVelocity": 98.92149809230357,
+    "maxMach": 0.2911650769565252,
+    "flightDuration": 67.83963031768579,
+    "landingVelocity": 5.950277381099366,
+    "railExitVelocity": 18.898682609745265,
+    "validity": "PASS",
+    "runManifest": {
+     "atmosphere": "ISA-1976 via getAtmosphereAt; power-law surface wind shear",
+     "axialDrag": "legacy 25-station Mach drag tables from compute_aerodynamic_curves; calibrated drag not requested",
+     "boattailPolicy": "suppressed",
+     "depletion": "impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)",
+     "finInterferenceId": "fin-station-v2",
+     "frames": "ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis",
+     "ground": "flat z=0 AGL touchdown plane",
+     "normalLawId": "published-supersonic-normal-v1",
+     "railContact": "projected unilateral base contact with signed along-rail sliding; moments locked on rail",
+     "recovery": "canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent",
+     "thrustPressure": "no back-pressure term: no flight nozzleExitDiameter supplied (A_e = 0)",
+     "unsupportedHandling": "continue-and-mark-UNKNOWN: classified out-of-domain loads continue with validity UNKNOWN and safety outputs closed; undefined normal-force CP (nonfinite, C < 1e-4, or C <= 64*epsilon*sumAbs) fails the command before arm use",
+     "unsupportedScope": [
+      "multi-stage separation and staging events",
+      "rail tip-off dynamics and rail friction",
+      "canopy inflation, attachment, and opening-shock loads",
+      "non-flat terrain and terrain-relative deployment",
+      "ensemble, uncertainty, and containment analysis",
+      "sensor, interoperability, and competition-rule engines"
+     ]
+    },
+    "maxTransonicCd": 0.6093643583142843
+   }
+  },
+  "spaceport": {
+   "motor": "cesaroni_m1820",
+   "options": {
+    "railLength": 5.2,
+    "railElevationDeg": 85,
+    "railAzimuthDeg": 0,
+    "windSpeedSurface": 3,
+    "windAzimuthDeg": 0,
+    "finCantAngleDeg": 0,
+    "mainDeployAltitudeAGL": 300,
+    "launchAltitudeASL": 1400
+   },
+   "old": {
+    "apogeeAltitude": 5013.508465461415,
+    "maxVelocity": 521.5245830052356,
+    "maxMach": 1.5735566999229975,
+    "flightDuration": 225.8762041205026,
+    "landingVelocity": 7.900263928110479,
+    "railExitVelocity": 45.68552360053958,
+    "validity": "PASS",
+    "runManifest": {
+     "atmosphere": "ISA-1976 via getAtmosphereAt; power-law surface wind shear",
+     "boattailPolicy": "suppressed",
+     "depletion": "impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)",
+     "finInterferenceId": "fin-station-v2",
+     "frames": "ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis",
+     "ground": "flat z=0 AGL touchdown plane",
+     "normalLawId": "published-supersonic-normal-v1",
+     "railContact": "projected unilateral base contact with signed along-rail sliding; moments locked on rail",
+     "recovery": "canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent",
+     "unsupportedHandling": "continue-and-mark-UNKNOWN: classified out-of-domain loads continue with validity UNKNOWN and safety outputs closed; undefined normal-force CP (nonfinite, C < 1e-4, or C <= 64*epsilon*sumAbs) fails the command before arm use",
+     "unsupportedScope": [
+      "multi-stage separation and staging events",
+      "rail tip-off dynamics and rail friction",
+      "canopy inflation, attachment, and opening-shock loads",
+      "non-flat terrain and terrain-relative deployment",
+      "ensemble, uncertainty, and containment analysis",
+      "sensor, interoperability, and competition-rule engines"
+     ]
+    },
+    "maxTransonicCd": 0.7121142540094889
+   },
+   "bundle": {
+    "apogeeAltitude": 5175.198672623595,
+    "maxVelocity": 523.5979324652529,
+    "maxMach": 1.5798751103937856,
+    "flightDuration": 230.98542717569202,
+    "landingVelocity": 7.9002633683578285,
+    "railExitVelocity": 45.68552360053958,
+    "validity": "PASS",
+    "runManifest": {
+     "atmosphere": "ISA-1976 via getAtmosphereAt; power-law surface wind shear",
+     "axialDrag": "legacy 25-station Mach drag tables from compute_aerodynamic_curves; calibrated drag not requested",
+     "boattailPolicy": "suppressed",
+     "depletion": "impulse-proportional on thrust-curve integral (validateMotorSpec entry gate)",
+     "finInterferenceId": "fin-station-v2",
+     "frames": "ENU x-East y-North z-Up; body origin at instantaneous combined CG; body +Y_B along vehicle axis",
+     "ground": "flat z=0 AGL touchdown plane",
+     "normalLawId": "published-supersonic-normal-v1",
+     "railContact": "projected unilateral base contact with signed along-rail sliding; moments locked on rail",
+     "recovery": "canopy drag with declared empirical constant CD; zero airframe-CP static moment; inflation/shock absent",
+     "thrustPressure": "no back-pressure term: no flight nozzleExitDiameter supplied (A_e = 0)",
+     "unsupportedHandling": "continue-and-mark-UNKNOWN: classified out-of-domain loads continue with validity UNKNOWN and safety outputs closed; undefined normal-force CP (nonfinite, C < 1e-4, or C <= 64*epsilon*sumAbs) fails the command before arm use",
+     "unsupportedScope": [
+      "multi-stage separation and staging events",
+      "rail tip-off dynamics and rail friction",
+      "canopy inflation, attachment, and opening-shock loads",
+      "non-flat terrain and terrain-relative deployment",
+      "ensemble, uncertainty, and containment analysis",
+      "sensor, interoperability, and competition-rule engines"
+     ]
+    },
+    "maxTransonicCd": 0.7121142540094889
+   }
+  }
+ },
+ "note": "WASM bytes embed build paths, so the hash depends on where the engine is built; the flight numbers do not. No new option is set in any request."
+}

@@ -1,6 +1,6 @@
-import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls, Grid, GizmoHelper, GizmoViewcube } from '@react-three/drei';
+import { memo, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { OrbitControls, Grid, GizmoHelper, GizmoViewcube, Environment, Lightformer } from '@react-three/drei';
 import * as THREE from 'three';
 import type { RocketVehicle } from '../../core/types';
 import type { MotorSpec } from '../../propulsion/motorDatabase';
@@ -22,6 +22,46 @@ export type ViewPreset = 'iso' | 'side' | 'top' | 'aft';
 const FIT_FOV = 32;
 /** Degrees the camera must turn before the orbit probe counts a change. */
 const ORBIT_TURN_EPSILON = 1;
+
+/**
+ * Supersampling ceiling. The shared renderer's drawing buffer is resized with
+ * the Canvas dpr, so the picture is rendered above the display's own ratio and
+ * downsampled by the browser: that is what sharpens a 1x laptop panel. Capped at
+ * 2 so a high-ratio panel or a small GPU is never asked for more fill than that.
+ */
+const MAX_DPR = 2;
+/** Cube-map resolution for the procedural studio environment (CPU blend once). */
+const ENV_RESOLUTION = 256;
+
+/** The display's own ratio, clamped to the range the viewport will ever use. */
+function deviceDpr(): number {
+  const raw = typeof window === 'undefined' ? 1 : window.devicePixelRatio;
+  return Math.min(MAX_DPR, Math.max(1, Number.isFinite(raw) && raw > 0 ? raw : 1));
+}
+
+/**
+ * Supersampling never asks for more drawing-buffer pixels than this. A 1x
+ * ultrawide at 2x would otherwise allocate ~13 Mpx with 4x MSAA before the
+ * quality monitor ever sees a frame.
+ */
+export const PIXEL_BUDGET = 8_000_000;
+/** Highest quality level: the top rung of the ladder `renderDpr` builds. */
+export const MAX_QUALITY = 2;
+
+/**
+ * Render ratio for a quality level (0 = the display's own ratio, 2 = best).
+ * The ladder is the native ratio, then 1.5 and 2 where they exceed it: whole
+ * and half steps resample cleanly, where 1.1 or 1.9 blur. Rungs that would
+ * exceed `PIXEL_BUDGET` for the canvas's CSS area are dropped; the native ratio
+ * is always allowed.
+ */
+export function renderDpr(level: number, native: number, cssArea: number): number {
+  const base = Math.min(MAX_DPR, Math.max(1, Number.isFinite(native) && native > 0 ? native : 1));
+  const ladder = [base, ...[1.5, MAX_DPR].filter((ratio) => ratio > base + 1e-6)];
+  const fits = ladder.filter((ratio, index) => index === 0 || !(cssArea > 0) || ratio * ratio * cssArea <= PIXEL_BUDGET);
+  const wanted = Number.isFinite(level) ? Math.round(level) : MAX_QUALITY;
+  return fits[Math.min(fits.length - 1, Math.max(0, wanted))];
+}
 
 /** The four existing view directions, unchanged; only the framing is fitted. */
 const DIRECTIONS: Record<'horizontal' | 'upright', Record<ViewPreset, [number, number, number]>> = {
@@ -47,6 +87,113 @@ function sameRects(a: readonly Rect[], b: readonly Rect[]): boolean {
       || Math.abs(a[i].x1 - b[i].x1) > 0.5 || Math.abs(a[i].y1 - b[i].y1) > 0.5) return false;
   }
   return true;
+}
+
+/**
+ * Procedural studio environment. The part palette is mostly near-black gloss
+ * (the design's fibreglass is `#18181b`) and aluminium; with only punctual
+ * lights those surfaces have nothing to reflect and read as flat voids. A few
+ * emissive strips around the origin, baked once into a cube map by drei's
+ * `<Environment>`, give every standard/physical material a soft key highlight,
+ * a cool rim and a top lift — no file, no preset, no network.
+ *
+ * Memoised with no props: drei re-renders the cube map whenever its child
+ * elements change identity, and the Viewport re-renders on every slider tick.
+ * This keeps the bake to once per canvas mount.
+ */
+const StudioEnvironment = memo(function StudioEnvironment() {
+  const invalidate = useThree((state) => state.invalidate);
+  useEffect(() => { invalidate(); }, [invalidate]);
+  return (
+    <Environment resolution={ENV_RESOLUTION} frames={1} background={false} environmentIntensity={1}>
+      {/* Key: a broad horizontal strip above and ahead, long axis along the body. */}
+      <Lightformer form="rect" intensity={4} color="#FFFFFF" scale={[7, 1.2, 1]} position={[2.6, 2.2, 2.4]} />
+      {/* Rim: a tall cool strip behind the tail, to keep the cyan edge light. */}
+      <Lightformer form="rect" intensity={2.0} color="#CFE8FF" scale={[1.0, 6, 1]} position={[-3.0, 1.0, -2.6]} />
+      {/* Top: a wide soft box; the diffuse lift that keeps unlit faces readable. */}
+      <Lightformer form="rect" intensity={1.1} color="#FFFFFF" scale={[9, 9, 1]} position={[0.6, 6, 1.2]} />
+      {/* Low front fill: just enough that the underside is not a black edge. */}
+      <Lightformer form="rect" intensity={0.45} color="#9FB6CC" scale={[7, 3, 1]} position={[0, -2.6, 2.8]} />
+    </Environment>
+  );
+});
+
+/** Ref callback that keeps a mesh's material out of tone mapping. */
+function untoneMapped(mesh: THREE.Mesh | null): void {
+  const material = mesh?.material;
+  if (material && !Array.isArray(material) && material.toneMapped) {
+    material.toneMapped = false;
+    material.needsUpdate = true;
+  }
+}
+
+/** A frame interval longer than this is an idle gap of the demand loop, not a slow frame. */
+const IDLE_GAP_S = 0.1;
+/** Frame intervals averaged before the quality level moves. */
+const QUALITY_WINDOW = 30;
+
+/** Fast windows in a row needed before quality climbs one level. */
+export const CLIMB_AFTER = 3;
+
+export interface QualityState { level: number; fast: number }
+
+/**
+ * Next quality state from one window of real frame intervals (seconds). A
+ * window below ~45 fps drops one level at once; climbing needs `CLIMB_AFTER`
+ * consecutive windows above ~55 fps, so a borderline GPU settles instead of
+ * reallocating the drawing buffer back and forth.
+ */
+export function nextQuality(state: QualityState, meanInterval: number): QualityState {
+  if (!Number.isFinite(meanInterval) || meanInterval <= 0) return state;
+  if (meanInterval > 1 / 45) return { level: Math.max(0, state.level - 1), fast: 0 };
+  if (meanInterval < 1 / 55) {
+    const fast = state.fast + 1;
+    if (fast >= CLIMB_AFTER && state.level < MAX_QUALITY) return { level: state.level + 1, fast: 0 };
+    return { level: state.level, fast: Math.min(fast, CLIMB_AFTER) };
+  }
+  return { level: state.level, fast: 0 };
+}
+
+/**
+ * Adaptive quality. With `frameloop="demand"` most frames are one-off repaints
+ * (an edit, a hover) separated by idle time, and a generic FPS monitor reads
+ * those gaps as a slow GPU. This one samples only while the user is dragging the
+ * orbit controls, the one sustained animation where fill rate shows, and skips
+ * idle-length intervals.
+ */
+function QualityMonitor({ level, onChange }: { level: number; onChange: (level: number) => void }) {
+  const controls = useThree((state) => state.controls) as unknown as {
+    addEventListener?: (type: 'start' | 'end', listener: () => void) => void;
+    removeEventListener?: (type: 'start' | 'end', listener: () => void) => void;
+  } | null;
+  const active = useRef(false);
+  const samples = useRef<number[]>([]);
+  // The level lives in the Viewport (it survives a Canvas remount); the monitor
+  // always starts from it rather than from its own default.
+  const state = useRef<QualityState>({ level, fast: 0 });
+  if (state.current.level !== level) state.current = { level, fast: 0 };
+  useEffect(() => {
+    if (!controls?.addEventListener) return;
+    const start = () => { active.current = true; samples.current = []; };
+    const end = () => { active.current = false; samples.current = []; };
+    controls.addEventListener('start', start);
+    controls.addEventListener('end', end);
+    return () => {
+      controls.removeEventListener?.('start', start);
+      controls.removeEventListener?.('end', end);
+    };
+  }, [controls]);
+  useFrame((_, delta) => {
+    if (!active.current || delta <= 0 || delta > IDLE_GAP_S) return;
+    samples.current.push(delta);
+    if (samples.current.length < QUALITY_WINDOW) return;
+    const mean = samples.current.reduce((sum, value) => sum + value, 0) / samples.current.length;
+    samples.current = [];
+    const previous = state.current.level;
+    state.current = nextQuality(state.current, mean);
+    if (state.current.level !== previous) onChange(state.current.level);
+  });
+  return null;
 }
 
 /**
@@ -81,6 +228,7 @@ function CameraFit({ preset, nonce, bounds, points, upright, overlays, chromeRea
     controls: OrbitLike | null;
     size: { width: number; height: number };
   };
+  const invalidate = useThree((state) => state.invalidate);
   const lastKey = useRef<string | null>(null);
   const lastFit = useRef(0);
   const zoom = useRef(1);
@@ -183,6 +331,17 @@ function CameraFit({ preset, nonce, bounds, points, upright, overlays, chromeRea
     writing.current = true;
     controls?.update();
     writing.current = false;
+    // The fit writes the camera outside React. Until the next render the world
+    // matrix is stale, and R3F's pointer raycast (`Raycaster.setFromCamera`)
+    // reads it: a hover that lands before this frame would aim from the old
+    // camera and, on the demand frameloop, nothing would re-aim it afterwards
+    // unless the pointer moves again. Updating it here makes the very next
+    // pointer event agree with the frame this invalidates.
+    camera.updateMatrixWorld();
+    // With the demand frameloop the frame this changes has to be requested
+    // explicitly. The aspect-only write above does not dispatch a controls
+    // change, so this covers it too.
+    invalidate();
     lastKey.current = key;
 
     // The fitted camera, for the frame report and for re-projecting a new pose
@@ -223,7 +382,7 @@ function CameraFit({ preset, nonce, bounds, points, upright, overlays, chromeRea
       el.setAttribute('data-safe-region', `${region.x0.toFixed(1)},${region.y0.toFixed(1)},${region.x1.toFixed(1)},${region.y1.toFixed(1)}`);
       el.setAttribute('data-viewport-size', `${size.width.toFixed(1)},${size.height.toFixed(1)}`);
     }
-  }, [preset, nonce, bounds.halfLength, bounds.radius, points, upright, overlays, chromeReady, reserveGizmo, frame, attitude, camera, controls, size, size.width, size.height, probe]);
+  }, [preset, nonce, bounds.halfLength, bounds.radius, points, upright, overlays, chromeReady, reserveGizmo, frame, attitude, camera, controls, size, size.width, size.height, probe, invalidate]);
 
   return null;
 }
@@ -332,9 +491,39 @@ export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, loo
   // of mounting a canvas that cannot draw.
   const contextLost = shared !== null && shared.renderer.getContext().isContextLost();
   const fallback = lost || shared === null || contextLost;
+  // Renderer for the adaptive quality monitor: supersample while the GPU keeps
+  // up, settle towards the display's own ratio when it does not.
+  const [quality, setQuality] = useState(MAX_QUALITY);
+  // A fixed dpr stops R3F following display changes, so follow them here:
+  // browser zoom or a move to another monitor re-evaluates the ratio.
+  const [native, setNative] = useState(deviceDpr);
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    let query: MediaQueryList | null = null;
+    const watch = () => {
+      query?.removeEventListener('change', onChange);
+      query = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+      query.addEventListener('change', onChange);
+    };
+    function onChange() { setNative(deviceDpr()); watch(); }
+    watch();
+    return () => query?.removeEventListener('change', onChange);
+  }, []);
+  // Start from the window's area so the very first frame cannot allocate a
+  // drawing buffer the budget would reject; the shell measurement below is
+  // smaller and corrects it on the next commit.
+  const [cssArea, setCssArea] = useState(() => (typeof window === 'undefined' ? 0 : window.innerWidth * window.innerHeight));
+  const dpr = renderDpr(quality, native, cssArea);
+  // R3F exposes its frame request through `onCreated`; the pose write below is
+  // imperative, so the demand frameloop never sees it on its own.
+  const requestFrame = useRef<(() => void) | null>(null);
   useEffect(() => {
     // Pose about mid-length so the rocket stays framed while it turns.
-    if (pose.current && attitude) pose.current.quaternion.copy(attitudeToThree(attitude));
+    if (pose.current && attitude) {
+      pose.current.quaternion.copy(attitudeToThree(attitude));
+      // Flight scrubber playback: every sample is a new pose and a new frame.
+      requestFrame.current?.();
+    }
   }, [attitude]);
   // The shared canvas is not a React child (React must not destroy it when a
   // stage unmounts), so attach it to whichever viewport host is active. The
@@ -376,6 +565,7 @@ export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, loo
     let frame = 0;
     const measure = () => {
       frame = 0;
+      setCssArea(shellEl.clientWidth * shellEl.clientHeight);
       // The viewcube is painted in the HUD, so report the footprint the fit
       // reserves for it. Same helper, same numbers: the two cannot drift.
       const cube = viewcubeRect(shellEl.clientWidth, shellEl.clientHeight);
@@ -406,16 +596,21 @@ export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, loo
       <div ref={shell} className="relative min-w-0 flex-1" data-layout-state={layoutState} data-layout-length={snapshot?.layout.length ?? ''} data-layout-parts={snapshot === null ? '' : Object.keys(snapshot.layout.parts).length} data-markers={markerState} data-marker-cg={shownCg ?? ''} data-marker-cp={shownCp ?? ''} data-look-selected={look?.selected ?? ''} data-look-hovered={look?.hovered ?? ''}>
         <div ref={canvasHost} className="absolute inset-0">
           {!fallback && shared ? (
-            <Canvas key={epoch} gl={shared.renderer} eventSource={canvasHost} style={{ position: 'absolute', inset: 0 }} camera={{ fov: FIT_FOV, near: 0.01, far: 200, position: [2, 1.5, 2] }} dpr={[1, 2]} onPointerMissed={() => onPick?.('')}
-              onCreated={({ gl }) => {
-                // ACES is R3F's default; pinned here so a later `flat` cannot drop it.
-                gl.toneMapping = THREE.ACESFilmicToneMapping;
-                gl.toneMappingExposure = 1.05;
+            <Canvas key={epoch} gl={shared.renderer} eventSource={canvasHost} style={{ position: 'absolute', inset: 0 }} camera={{ fov: FIT_FOV, near: 0.01, far: 200, position: [2, 1.5, 2] }}
+              frameloop="demand" dpr={dpr} onPointerMissed={() => onPick?.('')}
+              onCreated={({ gl, invalidate }) => {
+                // Neutral tone mapping keeps the design colours true (ACES
+                // shifts cyan and red); sRGB output stays as it was.
+                gl.toneMapping = THREE.NeutralToneMapping;
+                gl.toneMappingExposure = 1;
+                requestFrame.current = invalidate;
               }}>
-              <hemisphereLight args={['#CFE8FF', '#1A1D22', 0.6]} />
-              <directionalLight position={[span * 0.85, (upright ? length * 0.55 : 0) + span * 0.95, span * 0.8]} intensity={2} />
-              <directionalLight color="#6EE7F7" position={[-span * 0.9, span * 0.35, -span * 0.8]} intensity={1.2} />
-              <directionalLight position={[-span * 0.4, -span * 0.3, span * 1.1]} intensity={0.35} />
+              <StudioEnvironment />
+              <QualityMonitor level={quality} onChange={setQuality} />
+              <hemisphereLight args={['#CFE8FF', '#1A1D22', 0.3]} />
+              <directionalLight position={[span * 0.85, (upright ? length * 0.55 : 0) + span * 0.95, span * 0.8]} intensity={1.2} />
+              <directionalLight color="#6EE7F7" position={[-span * 0.9, span * 0.35, -span * 0.8]} intensity={0.7} />
+              <directionalLight position={[-span * 0.4, -span * 0.3, span * 1.1]} intensity={0.2} />
               <Suspense fallback={null}>
                 {attitude ? (
                   <group position={[0, length / 2, 0]}>
@@ -433,7 +628,9 @@ export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, loo
                   </group>
                 )}
               </Suspense>
-              <Grid position={[0, groundY, 0]} args={[10, 10]} cellSize={0.1} cellThickness={0.5} cellColor="#1C2025" sectionSize={0.5} sectionThickness={0.8} sectionColor="#262B31" fadeDistance={length * 4 + 4} infiniteGrid />
+              {/* Untone-mapped: the grid shows its designed hex colours. Neutral tone
+                  mapping (for the rocket) would otherwise darken these near-black lines. */}
+              <Grid ref={untoneMapped} position={[0, groundY, 0]} args={[10, 10]} cellSize={0.1} cellThickness={0.5} cellColor="#1C2025" sectionSize={0.5} sectionThickness={0.8} sectionColor="#262B31" fadeDistance={length * 4 + 4} infiniteGrid />
               <OrbitControls makeDefault enableDamping dampingFactor={0.12} />
               <CameraFit preset={preset} nonce={nonce} bounds={bounds} points={points} upright={upright} overlays={chrome.rects} chromeReady={chrome.ready} reserveGizmo={upright} frame={frame} attitude={attitudeRef} probe={shell} />
               <RocketFrameProbe frame={frame} points={points} attitude={attitude} probe={shell} />

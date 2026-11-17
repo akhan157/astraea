@@ -11,6 +11,12 @@ const section = (heading: string, ...paragraphs: string[]): ExplainerSection => 
 
 export const COPILOT_TOPICS: readonly ExplainerTopic[] = [
   {
+    id: 'centre-of-pressure', title: 'Center of pressure',
+    summary: 'The center of pressure (CP) is the point where the resultant aerodynamic force acts on the rocket.',
+    sections: [section('Why it matters', 'Its position relative to the center of gravity helps determine static stability. Astraea measures both positions from the nose tip.')],
+    keywords: ['cp', 'center of pressure', 'centre of pressure'],
+  },
+  {
     id: 'overstability',
     title: 'Overstable and understable rockets',
     summary:

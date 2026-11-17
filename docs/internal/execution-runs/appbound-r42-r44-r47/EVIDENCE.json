@@ -1,0 +1,84 @@
+{
+  "schema": "astraea-appbound-bundle-evidence/1.0.0",
+  "lane": "appbound/r42-r44-r47",
+  "date": "2026-11-11",
+  "status": "candidate_independent_review_pending",
+  "base": "5f17db5520f5f0923faac5384ade7c2e42b6707f",
+  "source_commit": "b2c489644609113de4ce3c30222c0954d3388e0a",
+  "content": [
+    "R42 optional launchSiteTemperatureC and nozzleExitDiameter",
+    "R44 opt-in flightDragSource=calibrated and nose tipRadius",
+    "R47 metres-to-feet calibrated drag ladder fix",
+    "default-off R41 diagnostic seam required by R42/R44"
+  ],
+  "excluded": [
+    "E-1 8dc5de2",
+    "E-1b 2d44ff0 / 6c5d8da",
+    "E-7 e0d0d97 (including StabilityDto.parts and PartExtentDto)"
+  ],
+  "diff_stat_crates_src": {
+    "files": 11,
+    "insertions": 2374,
+    "deletions": 24,
+    "paths": [
+      "crates/astraea-core/src/aero.rs",
+      "crates/astraea-core/src/aero_model.rs",
+      "crates/astraea-core/src/flight_provider.rs",
+      "crates/astraea-core/src/six_dof.rs",
+      "crates/astraea-engine/src/commands.rs",
+      "crates/astraea-engine/src/models.rs",
+      "crates/astraea-engine/tests/appbound_bundle_cohort.rs",
+      "crates/astraea-engine/tests/freeform_fin_parity.rs",
+      "crates/astraea-engine/tests/p1_boattail_arm.rs",
+      "crates/astraea-engine/tests/p1_product_supersonic.rs",
+      "crates/astraea-engine/tests/telemetry_parity.rs"
+    ]
+  },
+  "identity": {
+    "probe": "docs/internal/execution-runs/accuracy-bundle-frontend/preset-compare.probe.ts",
+    "result": "/home/ak/astraea-evidence/appbound-r42-r44-r47/preset-compare.json",
+    "result_sha256": "7a98510345a284b9225572e18ba6cdce5e7d8de4495ba6b2d8a2cd73e01bf352",
+    "old_wasm": {"bytes": 2003605, "sha256": "5034fd48e37762b00e9d2757874e93e0d7d51980a9140971155f7b488a55924e"},
+    "new_wasm": {"bytes": 2033664, "sha256": "f6feb37f4e87378f8d94814398ae29b41d86d4129985642756e8ea750edf9620"},
+    "presets": [
+      {"name": "Estes Alpha III + C6", "apogee_m": 299.1795257133733, "delta_m": 0.0},
+      {"name": "NASA Student Launch + K550W", "apogee_m": 533.0760350112048, "delta_m": 0.0},
+      {"name": "Spaceport America + M1820", "apogee_m": 5013.508465461415, "delta_m": 0.0}
+    ],
+    "note": "all flight outputs bit-identical; runManifest gains only thrustPressure/axialDrag",
+    "parity_fixtures_unchanged": true
+  },
+  "suites": {
+    "core": {"passed": 269, "failed": 0, "ignored": 0, "suites": 5, "log_sha256": "2f8347075f84bafb6885280ddd11630ca85a01b6490c1554dcff32557d3fc040"},
+    "engine": {"passed": 156, "failed": 0, "ignored": 7, "suites": 19, "log_sha256": "fbe022d37df461b83db66da09b6834cd1787a2b83cb2cd4d5b712a67778714a6"}
+  },
+  "bundle_numbers": {
+    "primary_line": "20 airframes, qu8k excluded",
+    "app_bound": {"mae_pct": 5.62532460072746, "signed_pct": 0.23630386939544898, "within_10": 18},
+    "corrected_r41_stack": {"mae_pct": 5.612635502496195, "signed_pct": 0.23699950464295078, "within_10": 18},
+    "research_r44_bundle": {"mae_pct": 5.625057638362087, "signed_pct": 0.216044863242344, "within_10": 18},
+    "delta_vs_r41_stack_pp": 0.01268909823126485,
+    "delta_vs_research_bundle_pp": {"mae": 0.000266962365373, "bias": 0.02025890684510498},
+    "phase2_pass": true,
+    "cohort_sha256": "52516d4b5e9492a5f3926893d911b44245ef7ac07e4f9fbfe25deef304d76b04",
+    "wiring_sha256": "9b1eaf34d7f65615a0dcf5f789ca1b3b48416574493f2a86266efe8ea95729a0",
+    "wiring": {"e1a_tables_max_rel": 0.0, "e1a_apogee_max_rel": 0.0, "reported_vs_r41_table_max_rel": 0.0545020972846363, "reported_vs_r41_apogee_max_rel": 0.0036720939670661945, "r3": "not_run_app_engine"},
+    "dev_vehicles": {
+      "mini_dx3_g69n_median_pct": 29.010727594588577,
+      "cosmic_cargo_median_pct": 24.5847241771806,
+      "top_shot_median_pct": -2.401383176600018,
+      "adventurer_median_pct": -4.908001389791325,
+      "json_sha256": "fe08dec3a07d96d28194d031ed89f4a81f50a6c3ff77ea925bff04441cbd0a5f"
+    },
+    "ensembles": {"pass": true, "json_sha256": "f4132cba4c072edff70e3c8f1237920d2a9925364a765dc3701f5ed796c31c4c"}
+  },
+  "known_limitations": [
+    "aero_model_status still says flight is refused/legacy; no UI caller; not fixed",
+    "Spaceport America fins on the boattail transition are refused by the built-up method; template flies legacy drag with the option on",
+    "nose tip radius is inert below about Mach 0.9",
+    "no frontend wiring in this branch",
+    "E-7 StabilityDto.parts is excluded"
+  ],
+  "review": {"status": "pending", "reviewer": null},
+  "authorization": "no push; no edit to frontend/design or main"
+}

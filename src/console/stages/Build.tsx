@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { CheckCircle2, AlertTriangle, XCircle, Download, FileText } from 'lucide-react';
 import type { RocketVehicle } from '../../core/types';
 import type { MotorSpec } from '../../propulsion/motorDatabase';
@@ -177,9 +177,16 @@ export function BuildStage() {
   const { checks, trace } = useExportCheck(runKey);
   const [withTrace, setWithTrace] = useState<'yes' | 'no'>('yes');
   const [done, setDone] = useState<string | null>(null);
+  const reviewRef = useRef<HTMLElement>(null);
   const [review, setReview] = useState<{ format: Format; snapshot: ExportSnapshot } | null>(null);
   const blocked = checks.some((c) => c.state === 'bad');
   const warned = checks.some((c) => c.state !== 'ok');
+  useEffect(() => {
+    if (review && reviewRef.current) {
+      reviewRef.current.scrollIntoView?.({ block: 'nearest' });
+      reviewRef.current.focus();
+    }
+  }, [review]);
   const previews = useMemo(
     () => Object.fromEntries(FORMATS.map((f) => {
       const refused = (reason: string): OmissionPreview => ({
@@ -251,7 +258,7 @@ export function BuildStage() {
               </div>
             );
           })}
-          {review && <section aria-label="Reviewed export" className="space-y-2 border-t border-white/10 p-4"><h3>{review.format.label} · {review.snapshot.vehicle.name}</h3><p className="text-[12px]">Confirm exports this reviewed snapshot, even if you edit the live vehicle or change motors.</p>{review.snapshot.preview?.omissions.map((note) => <p key={note} className="text-[11px]">{note}</p>)}<Button onClick={() => void go()}>Confirm export</Button><Button onClick={() => setReview(null)}>Cancel export</Button></section>}
+          {review && <section ref={reviewRef} tabIndex={-1} aria-label="Reviewed export" className="space-y-2 border-t border-white/10 p-4"><h3>{review.format.label} · {review.snapshot.vehicle.name}</h3><p className="text-[12px]">Confirm exports this reviewed snapshot, even if you edit the live vehicle or change motors.</p>{review.snapshot.preview?.omissions.map((note) => <p key={note} className="text-[11px]">{note}</p>)}<Button onClick={() => void go()}>Confirm export</Button><Button onClick={() => setReview(null)}>Cancel export</Button></section>}
           {done && <div className="px-3.5 py-2 text-[12px]" style={{ color: done.startsWith('Export failed') ? C.bad : C.ok }}>{done.startsWith('Export failed') ? done : done.startsWith('Save cancelled') ? done : `Saved ${done}.`}</div>}
         </section>
 

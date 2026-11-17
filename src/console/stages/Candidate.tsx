@@ -282,7 +282,7 @@ export function CandidateModelPanel() {
 
   if (candidate) {
     return (
-      <section aria-label="Candidate model" className="space-y-2 rounded-md p-3 text-[11.5px]" style={{ background: C.panel, border: `1px solid ${C.line}` }}>
+      <section aria-label="Candidate model" className="min-w-0 space-y-2 rounded-md p-3 text-[11.5px]" style={{ background: C.panel, border: `1px solid ${C.line}` }}>
         <div className="flex items-center gap-2">
           <strong>Experimental candidate model</strong>
           <span className="rounded px-1.5 py-0.5 text-[10px]" style={{ background: 'rgba(245,181,68,.12)', color: C.warn }}>unqualified</span>
@@ -302,7 +302,7 @@ export function CandidateModelPanel() {
   }
 
   return (
-    <section aria-label="Candidate model" className="space-y-2 rounded-md p-3 text-[11.5px]" style={{ background: C.panel, border: `1px solid ${C.line}` }}>
+    <section aria-label="Candidate model" className="min-w-0 space-y-2 rounded-md p-3 text-[11.5px]" style={{ background: C.panel, border: `1px solid ${C.line}` }}>
       <div className="flex items-center gap-2"><strong>Use experimental candidate model</strong>
         <span className="rounded px-1.5 py-0.5 text-[10px]" style={{ background: 'rgba(245,181,68,.12)', color: C.warn }}>opt-in · unqualified</span>
       </div>

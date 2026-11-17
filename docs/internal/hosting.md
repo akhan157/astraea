@@ -59,7 +59,7 @@ CHROMIUM_PATH=/usr/bin/chromium pnpm test:browser
 The check serves `dist/`, applies the built Pages CSP to browser responses,
 runs the default NASA Student Launch case through the real UI and WebAssembly
 workers, and checks its rounded apogee against the packaged desktop baseline
-(~534 m). This is a regression check, not independent flight validation or a
+(~547 m with the built-up drag default; ~534 m on the legacy tables before K3). This is a regression check, not independent flight validation or a
 live Cloudflare deployment test. The same command additionally exercises
 editing, stale-result refusal, IndexedDB persistence, imports, all ten export
 downloads, Monte Carlo completion/cancellation, telemetry units and motor tools.

@@ -36,7 +36,9 @@ function telemetry(): SixDofTelemetryPoint[] {
 
 export function largeProject(caseCount: number): ProjectEnvelope {
   const base = createProjectEnvelope({
-    vehicle: PRESET_ESTES_ALPHA,
+    // The explicit legacy choice keeps these size fixtures what they were before the
+    // K3 default switch: cases with no drag option and no recorded drag line.
+    vehicle: { ...PRESET_ESTES_ALPHA, flightDragSource: 'legacy' as const },
     motorRecords: [{ id: 'estes_c6', motor: CERTIFIED_MOTORS.estes_c6, provenance: { source: 'certified' } }],
   });
   const cases = Array.from({ length: caseCount }, (_, i) => {

@@ -10,6 +10,8 @@ import { SURFACE_FINISH_NAMES } from '../../core/types';
 import { CANDIDATE_REFUSAL } from '../../application/candidate';
 import { isCandidateFlightModel, resolveFlightModel } from '../../application/flightModel';
 import { AERO_MODEL_VERSION, aeroModelDefect, type AeroModelSelection } from '../../application/aeroModel';
+import { builtUpDragRefusalText } from '../data/builtUpDrag';
+import { backPressureNozzleActive, effectiveFlightDragSource, nozzleInFlightDomain, NOZZLE_FLIGHT_EXIT_MAX_M } from '../../application/caseResolver';
 import { useProjectStore } from '../../state/project';
 import { AeroModelProvenanceButton } from '../evidence/AeroModelProvenance';
 
@@ -28,6 +30,11 @@ export function AeroControls() {
   const aeroModel = design.aeroModel;
   const defect = aeroModel === undefined ? null : aeroModelDefect(aeroModel);
   const commitStructural = useProjectStore((s) => s.commitStructural);
+  // K3: a project whose drag calibration is ACTIVE (its scale rides every run) and which made no drag
+  // choice flies the legacy tables the scale was fitted on (the design's vehicle already says so); the
+  // line below explains why. A retained inactive artifact is history and changes nothing here.
+  const holdsCalibration = design.dragCalibration !== undefined;
+  const storedDragChoice = useProjectStore((s) => s.project.vehicle.flightDragSource);
   const candidateSelected = useWS((s) => isCandidateFlightModel(resolveFlightModel(s.design.flightModel)));
   const stability = useStabilityOf(vehicle, aeroModel);
   const cpSupported = stability.breakdown !== null && Number.isFinite(stability.breakdown.cp.value);
@@ -74,18 +81,42 @@ export function AeroControls() {
   const setBetaModel = (on: boolean): void => {
     commitStructural(on ? 'Enable built-up aero model (hybrid beta)' : 'Use legacy aero model', (project) => {
       if (!on) {
+        // One undo entry: turning the model off also clears the flight-drag
+        // opt-in, so a document can never carry a flag with no model behind it.
         const { aeroModel: _removed, ...rest } = project;
-        return rest;
+        const vehicle = { ...rest.vehicle };
+        // An explicit 'legacy' choice is not an opt-in and survives.
+        if (vehicle.flightDragSource === 'calibrated') delete vehicle.flightDragSource;
+        return { ...rest, vehicle };
       }
       return { ...project, aeroModel: BETA_SELECTION };
     });
   };
   const setVehicle = (
     label: string,
-    patch: { surfaceFinish?: string; forceTurbulentFlow?: boolean; nozzleExitDiameter?: number },
+    patch: {
+      surfaceFinish?: string;
+      forceTurbulentFlow?: boolean;
+      nozzleExitDiameter?: number;
+      nozzleBackPressureThrust?: boolean;
+      flightDragSource?: 'calibrated' | 'legacy';
+    },
   ): void => {
     commitStructural(label, (project) => ({ ...project, vehicle: { ...project.vehicle, ...patch } }));
   };
+  // The flight-drag opt-in is a pair with the built-up model: show it when the
+  // model is selected, or when a loaded document already carries the flag (so
+  // it can always be seen and cleared). With neither, the Aero stage shows
+  // nothing new for this input.
+  const builtUpFlightDrag = effectiveFlightDragSource(vehicle) !== undefined;
+  // K3: built-up drag is the default, so the choice is always shown (it is how
+  // a team picks the legacy tables). Only the old explicit opt-in still needs
+  // the beta aero-model selection.
+  const showFlightDrag = true;
+  const flightDragRefusal = vehicle.flightDragSource === 'calibrated' ? builtUpDragRefusalText(aeroModel) : null;
+  // The built-up default carries a declared nozzle exit by itself (spec Amendment 4); only then can the
+  // back-pressure box be in the automatic state.
+  const nozzleAuto = vehicle.flightDragSource === undefined && nozzleInFlightDomain(vehicle);
   return <div className="p-4">
     <section className="mb-4" aria-label="Vehicle aero inputs">
       <div className="mb-1 text-[10.5px] tracking-[0.12em] uppercase" style={{ color: C.dim }}>Vehicle aero inputs</div>
@@ -114,7 +145,7 @@ export function AeroControls() {
           )}
         />
       </FieldRow>
-      <FieldRow label="Nozzle exit diameter" hint="Sustainer nozzle exit diameter in metres. Absent uses the method default of no nozzle exit.">
+      <FieldRow label="Nozzle exit diameter" hint="Sustainer nozzle exit diameter in metres. Absent uses the method default of no nozzle exit. Must not exceed the aft body diameter. Assumes a sea-level thrust curve.">
         {vehicle.nozzleExitDiameter === undefined
           ? <button
               aria-label="Add nozzle exit diameter"
@@ -132,13 +163,41 @@ export function AeroControls() {
               />
               <button
                 aria-label="Clear nozzle exit diameter"
-                onClick={() => setVehicle('Clear nozzle exit diameter', { nozzleExitDiameter: undefined })}
+                onClick={() => setVehicle('Clear nozzle exit diameter', { nozzleExitDiameter: undefined, nozzleBackPressureThrust: undefined })}
                 className="text-[11px]"
                 style={{ color: C.dim }}
                 title="Use the method default"
               >×</button>
             </span>}
       </FieldRow>
+      <FieldRow
+        label="Nozzle back-pressure thrust"
+        hint={vehicle.nozzleExitDiameter === undefined
+          ? 'Set a nozzle exit diameter above to use this.'
+          : 'Adds (101,325 Pa − ambient pressure) × nozzle exit area to thrust while the motor burns, using the diameter above. Off leaves flights unchanged.'
+            + (nozzleAuto ? ' On by default while a nozzle exit is set and built-up drag flies; untick it to turn it off.' : '')}
+      >
+        <Checkbox
+          ariaLabel="Nozzle back-pressure thrust"
+          disabled={vehicle.nozzleExitDiameter === undefined}
+          // The state a flight really flies: the automatic default counts as on.
+          checked={backPressureNozzleActive(vehicle)}
+          onChange={(checked) => setVehicle(
+            checked ? 'Use nozzle back-pressure thrust' : (nozzleAuto ? 'Turn off nozzle back-pressure thrust' : 'Clear nozzle back-pressure thrust'),
+            // Under the built-up default the field is the automatic state: unticking writes the explicit
+            // off (false), ticking again returns to the automatic default (absent). Under an explicit drag
+            // choice (or a held calibration) the old rule stays: ticked is true, unticked is absent.
+            nozzleAuto
+              ? { nozzleBackPressureThrust: checked ? undefined : false }
+              : { nozzleBackPressureThrust: checked ? true : undefined },
+          )}
+        />
+      </FieldRow>
+      {vehicle.nozzleExitDiameter !== undefined && vehicle.nozzleExitDiameter > NOZZLE_FLIGHT_EXIT_MAX_M && storedDragChoice === undefined && (
+        <p className="mt-1 text-[11px]" style={{ color: C.dim }} data-nozzle-out-of-domain="true">
+          This nozzle exit is above the {NOZZLE_FLIGHT_EXIT_MAX_M} m flight limit, so it is not sent as back-pressure thrust; it still sets the drag method&apos;s nozzle term.
+        </p>
+      )}
     </section>
     <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
       <Checkbox
@@ -150,6 +209,37 @@ export function AeroControls() {
       >
         Use built-up aero model (beta)
       </Checkbox>
+      {showFlightDrag && (
+        <Checkbox
+          checked={builtUpFlightDrag}
+          ariaLabel="Use built-up drag in flights"
+          onChange={(checked) => setVehicle(
+            checked ? 'Use built-up flight drag' : 'Use legacy flight drag',
+            // Checked is the default (no field); unchecked is the explicit legacy choice. While a drag
+            // calibration is held, no field means legacy, so choosing built-up is the explicit opt-in.
+            { flightDragSource: checked ? (holdsCalibration ? 'calibrated' : undefined) : 'legacy' },
+          )}
+          className="text-[12px]"
+          style={{ color: C.muted }}
+        >
+          Use built-up drag in flights (beta)
+        </Checkbox>
+      )}
+      {holdsCalibration && storedDragChoice === undefined && (
+        <span className="basis-full text-[11px]" style={{ color: C.dim }} data-drag-calibration-legacy="true">
+          Flying legacy drag: this project&apos;s drag calibration is active, and it was fitted on the legacy tables. Tick the box to use built-up drag instead (it needs the built-up aero model), or remove the calibration.
+        </span>
+      )}
+      {showFlightDrag && (
+        <span className="basis-full text-[11px]" style={{ color: C.dim }}>
+          Flight drag then comes from the built-up method at every Mach number, without the legacy override over Mach 0.80-1.20; lift and stability in flight stay legacy. A shape the method cannot model flies on legacy drag, and the result says so. Not a validated model.
+        </span>
+      )}
+      {flightDragRefusal !== null && (
+        <p role="alert" className="basis-full text-[11.5px]" style={{ color: C.warn }} data-built-up-drag-refusal="true">
+          {flightDragRefusal}
+        </p>
+      )}
       <span className="basis-full text-[11px]" style={{ color: C.dim }}>
         Hybrid: the built-up method with Astraea&apos;s legacy drag override over Mach 0.80-1.20; the component breakdown is unavailable inside that band.
       </span>

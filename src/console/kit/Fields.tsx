@@ -4,6 +4,7 @@ import { useSessionStore } from '../../state/session';
 import { C } from './theme';
 import { cn, show, toSI, type Kind } from './units';
 import { Range, Select } from './Controls';
+import { parseNumberInput } from './numberInput';
 
 /* ───────────── inspector section ───────────── */
 
@@ -49,33 +50,44 @@ export function NumberField({ value, kind, onChange, min, max, step, digits, wid
   const shown = show(value, kind, units, digits);
   const [text, setText] = useState(shown.text);
   const [focus, setFocus] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const cancelBlur = useRef(false);
   useEffect(() => { if (!focus) setText(shown.text); }, [shown.text, focus]);
   const clamp = (v: number) => Math.min(max ?? Infinity, Math.max(min ?? -Infinity, v));
   const commit = (t: string) => {
-    const n = parseFloat(t.replace(/,/g, ''));
-    if (!Number.isFinite(n)) { setText(shown.text); return; }
+    const n = parseNumberInput(t);
+    if (n === null) { setText(shown.text); setFeedback(`Not a number — kept ${shown.text} ${shown.unit}`.trim()); return; }
     // Blur must not rewrite a value the user never edited, even when a
     // cross-field cap now sits below it.
     if (n === shown.value) return;
-    const next = clamp(toSI(n, kind, units));
+    const requested = toSI(n, kind, units);
+    const next = clamp(requested);
+    if (next !== requested) {
+      const limited = show(next, kind, units, digits);
+      setFeedback(`Limited to ${limited.text} ${limited.unit}`.trim());
+    }
+    setText(show(next, kind, units, digits).text);
     if (next !== value) onChange(next);
   };
   const dispStep = step ?? (kind === 'len' ? (units === 'metric' ? 1 : 0.05) : 1);
   const drag = useRef<{ x: number; v: number } | null>(null);
   return (
-    <span className="flex items-center rounded" style={{ background: C.sunken, border: `1px solid ${focus ? 'rgba(110,231,247,.5)' : C.line}`, width }}>
+    <span className="relative flex items-center rounded" style={{ background: C.sunken, border: `1px solid ${focus ? 'rgba(110,231,247,.5)' : C.line}`, width }}>
       <input
         value={text}
         inputMode="decimal"
         onFocus={(e) => { setFocus(true); e.target.select(); }}
-        onBlur={() => { setFocus(false); commit(text); }}
-        onChange={(e) => setText(e.target.value)}
+        onBlur={() => { setFocus(false); if (cancelBlur.current) { cancelBlur.current = false; return; } commit(text); }}
+        onChange={(e) => { setFeedback(null); setText(e.target.value); }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-          if (e.key === 'Escape') { setText(shown.text); (e.target as HTMLInputElement).blur(); }
+          if (e.key === 'Escape') { cancelBlur.current = true; setText(shown.text); (e.target as HTMLInputElement).blur(); }
           if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
             e.preventDefault();
-            const displayValue = parseFloat(text.replace(/,/g, '')) + (e.key === 'ArrowUp' ? 1 : -1) * dispStep * (e.shiftKey ? 10 : 1);
+            const parsed = parseNumberInput(text);
+            if (parsed === null) return;
+            setFeedback(null);
+            const displayValue = parsed + (e.key === 'ArrowUp' ? 1 : -1) * dispStep * (e.shiftKey ? 10 : 1);
             const nextSI = clamp(toSI(displayValue, kind, units));
             setText(show(nextSI, kind, units, digits).text);
             if (nextSI !== value) onChange(nextSI);
@@ -84,12 +96,13 @@ export function NumberField({ value, kind, onChange, min, max, step, digits, wid
         className="w-full min-w-0 bg-transparent px-2 py-1 text-right font-geist-mono tnum text-[12.5px] outline-none"
         style={{ color: C.fg }}
       />
+      {feedback && <span role="status" className="pointer-events-none absolute right-0 bottom-full z-10 whitespace-nowrap rounded px-2 py-1 text-[10.5px]" style={{ background: C.raised, color: C.fg, border: `1px solid ${C.lineStrong}` }}>{feedback}</span>}
       {shown.unit && (
         <span
           className="cursor-ew-resize select-none pr-2 text-[10.5px]"
           style={{ color: C.dim }}
           title="Drag to scrub"
-          onPointerDown={(e) => { (e.target as HTMLElement).setPointerCapture(e.pointerId); drag.current = { x: e.clientX, v: parseFloat(text.replace(/,/g, '')) }; onGestureStart?.(); }}
+          onPointerDown={(e) => { (e.target as HTMLElement).setPointerCapture(e.pointerId); drag.current = { x: e.clientX, v: parseNumberInput(text) ?? shown.value }; onGestureStart?.(); }}
           onPointerMove={(e) => { if (!drag.current) return; const n = drag.current.v + Math.round((e.clientX - drag.current.x) / 4) * dispStep; onChange(clamp(toSI(n, kind, units))); }}
           onPointerUp={() => { if (!drag.current) return; drag.current = null; onGestureEnd?.(); }}
           onPointerCancel={() => { if (!drag.current) return; drag.current = null; onGestureEnd?.(); }}

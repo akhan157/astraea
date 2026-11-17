@@ -118,7 +118,7 @@ pub fn prepare_native_candidate(
     // table, no CP-dependent preparation.
     let mass_vehicle = models::to_mass_vehicle(vehicle)?;
     let rollup = astraea_core::mass::aggregate_mass(&mass_vehicle)?;
-    let core_motor: MotorSpec = models::to_motor(motor)?;
+    let core_motor: MotorSpec = models::to_motor_unvalidated(motor)?;
 
     // Note: the existing SB1 adapter refuses a DTO that flags a motor mount as
     // ambiguous internal/external topology. The candidate preparation therefore
@@ -1272,6 +1272,31 @@ mod tests {
         let native = prepare_native_candidate(&request.vehicle, &request.motor, &inputs)
             .expect("prepared candidate");
         native.prepared
+    }
+
+    /// A motor the shared validator refuses keeps the candidate's typed refusal:
+    /// the wire conversion does not pre-empt `PreparedCandidate::prepare`.
+    #[test]
+    fn zero_impulse_motor_keeps_typed_candidate_refusal() {
+        let mut request = request();
+        for point in request.motor.thrust_curve.iter_mut() { point.thrust = 0.0; }
+        request.motor.max_thrust = Some(0.0);
+        let inputs = NativeCandidateInputs {
+            adapter: map_adapter(&request.adapter).expect("adapter"),
+            mechanical_source_id: request.mechanical_source_id.clone(),
+            environment_source_id: request.environment_source_id.clone(),
+            axial_provider_id: request.axial.provider_id.clone(),
+            axial_input_identity: request.axial.input_identity.clone(),
+            axial_ca0: request.axial.ca0,
+            environment: CandidateEnvironment {
+                launch_altitude_asl_m: request.environment.launch_altitude_asl_m,
+                wind_speed_surface_mps: request.environment.wind_speed_surface_mps,
+                wind_azimuth_deg: request.environment.wind_azimuth_deg,
+            },
+            motor_aft_station_from_nose_m: request.motor_aft_station_from_nose_m,
+        };
+        let error = prepare_native_candidate(&request.vehicle, &request.motor, &inputs).err().expect("refused");
+        assert!(error.starts_with("native candidate preparation refused: invalid-input: motor thrust curve must deliver a finite positive total impulse"), "{error}");
     }
 
     /// The prepared candidate plus the first (exactly zero airspeed) and the last

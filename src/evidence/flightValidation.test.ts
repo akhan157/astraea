@@ -187,7 +187,8 @@ describe('real flight 2986 pipeline comparison', () => {
     const engine = await instantiateEngine(bytes);
     setTestEngine((async (command, args) => engine.call(command, args)) as EngineInvoke);
     try {
-      const vehicle = { ...cosmicCargoLike(), launchSite: { altitudeM: FLIGHT_CONDITIONS.launchAltitudeASL } };
+      // Legacy drag explicitly: the TS oracle below has no built-up drag.
+      const vehicle = { ...cosmicCargoLike(), launchSite: { altitudeM: FLIGHT_CONDITIONS.launchAltitudeASL }, flightDragSource: 'legacy' as const };
       const motor = CERTIFIED_MOTORS.estes_c6;
       const result = await simulateFlight(vehicle, motor, FLIGHT_CONDITIONS);
       const oracle = simulate6DofFlight(vehicle, motor, FLIGHT_CONDITIONS);

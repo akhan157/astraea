@@ -36,7 +36,7 @@ interface LoadedLogState {
   loaded: LoadedLog | null;
 }
 
-const useLoadedLogStore = create<LoadedLogState>(() => ({ loaded: null }));
+export const useLoadedLogStore = create<LoadedLogState>(() => ({ loaded: null }));
 
 /** Remember the log just imported for the open project. */
 export function rememberLoadedLog(entry: Omit<LoadedLog, 'epoch'>): void {
@@ -60,3 +60,7 @@ export function useLoadedLog(): LoadedLog | null {
   const epoch = useProjectStore((s) => s.projectEpoch);
   return loaded !== null && loaded.epoch === epoch ? loaded : null;
 }
+
+useProjectStore.subscribe((state, previous) => {
+  if (state.projectEpoch !== previous.projectEpoch) forgetLoadedLog();
+});

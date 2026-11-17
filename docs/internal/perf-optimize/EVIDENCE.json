@@ -1,0 +1,199 @@
+{
+  "lane": "perf-optimize",
+  "branch": "perf/optimize",
+  "base": {
+    "ref": "main",
+    "sha": "4916a4b48f35fad1e81d58c011acaca9ce9aa103"
+  },
+  "gate1_checkpoint": "74348210b04ae152c93fe0a2f0f54cd65f16b411",
+  "implementation_commit": "b51cd7c7b40f5a7fbeaeee804b4f0449ec67d2a7",
+  "hotspot": {
+    "surface": "public landing entry /",
+    "finding": "Landing entry imported a shared vendor chunk that pulled in three.js and React on a page with zero canvases: 1,493.2 kB decoded / 434.0 kB transfer JS, 6 scripts.",
+    "cause": "vite.config.ts global codeSplitting.groups with Rolldown entriesAware default false; the landing entry was linked to the vendor group chunk, which imports three and React.",
+    "fix": "entriesAware: true on the three, react and vendor groups; build.manifest: true for the static budget check.",
+    "user_visible": "Public site first load; unused JS parse/compile and 434 kB transfer removed on mobile, slow links and low-end CPUs."
+  },
+  "baseline": {
+    "machine": {
+      "cpu": "11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz",
+      "cores": 8,
+      "ram_gib": 15,
+      "kernel": "Linux 7.2.11-1-cachyos",
+      "gpu_renderer": "ANGLE (Intel, Mesa Intel(R) Iris(R) Xe Graphics (TGL GT2), OpenGL ES 3.2)"
+    },
+    "commands": {
+      "build": "env CARGO_BUILD_JOBS=2 pnpm build",
+      "engine_build": "env CARGO_BUILD_JOBS=2 pnpm build:engine",
+      "flight_benchmark": "node scripts/run-development-benchmark.mjs --data-root <data-root> --out-dir <evidence>/perf-optimize/flight/run<N>",
+      "flight_per_case": "node scripts/perf/measure-flight.mjs --data-root <data-root> --out <evidence>/perf-optimize/flight --runs 3",
+      "app_startup": "node scripts/perf/measure-ui.mjs --out <evidence>/perf-optimize/ui --label baseline-gpu --runs 3 --gpu",
+      "landing": "node scripts/perf/measure-landing.mjs --out <evidence>/perf-optimize/ui --runs 3",
+      "dev": "node scripts/perf/measure-dev.mjs --out <evidence>/perf-optimize/ui --runs 3 --port 5199 --gpu",
+      "tests": "env CARGO_BUILD_JOBS=2 pnpm test --maxWorkers=2"
+    },
+    "times_ms": {
+      "build": [9473, 11802, 10881],
+      "engine_build_cold": 62072,
+      "engine_build_warm": [1271, 1116, 970],
+      "tests": [260258, 232115, 228016],
+      "flight_benchmark_all_cases": [1850, 1061, 1058],
+      "flight_per_case": {
+        "mini-dx3-g69n-2017-06-30": [144.8, 111.7, 112.8],
+        "cosmic-cargo-2986": [194.4, 188.5, 191.7],
+        "top-shot-e12-2017-12-14": [76.9, 68.5, 61.4],
+        "adventurer-j510w-2021-04-17": [223.9, 192.7, 206.2]
+      },
+      "app_shell": [239, 203, 202],
+      "app_fcp": [332, 204, 204],
+      "app_committed_run": [686, 393, 393],
+      "app_engine_run": [473, 206, 204],
+      "dev_server_ready": 637,
+      "dev_shell": [1691, 666, 669],
+      "dev_committed_run": [2098, 901, 909]
+    },
+    "bundle": {
+      "dist_bytes": 5867520,
+      "js_raw_bytes": 2364281,
+      "three_js": { "bytes": 937124, "gzip_bytes": 258058, "sha256": "5b633baf476cad6e5b1766b5bb8941f235c38814e15a675122c6e41e6bd4bf4d" },
+      "app_js": { "bytes": 832575, "gzip_bytes": 247900, "sha256": "53d9a207b234d5739b4cfb99ad6ba0e906ee789214e9725f4e945ab12e7769eb" },
+      "vendor_js": { "bytes": 407514, "gzip_bytes": 134543, "sha256": "dcdb7d5eb0e0afa406c09bf5e3964ee528fd351e1f9a4602d96aa1d4d620cb13" },
+      "react_js": { "bytes": 181670, "gzip_bytes": 58511, "sha256": "97949cf1a978ca973953831ce6a0168bd8c69a15f94fdd5e781edea4247fd585" }
+    },
+    "landing": {
+      "canvas_count": 0,
+      "js_decoded_kb": 1493.2,
+      "js_transfer_kb": 434.0,
+      "js_scripts": 6,
+      "js_graph_bytes": 1528995,
+      "fcp_ms": [236, 48, 104],
+      "load_ms": [139, 81, 117],
+      "entry_imports": ["_modulepreload-polyfill-P2Xu9kJm.js", "_vendor-O2rVkaM2.js"],
+      "vendor_imports": ["three-mlv99RC0.js", "react-BsCGDdll.js"]
+    },
+    "ui": {
+      "canvas_median_frame_ms": 16.7,
+      "scrub_median_frame_ms": 16.7,
+      "scrub_long_tasks": 0,
+      "stage_switch_first_ms": { "aero": [31, 24.8, 23.8], "flight": [59.2, 49.3, 49.3], "verify": [35.2, 29.4, 31.2], "airframe": [42.8, 35.1, 35.1] }
+    },
+    "engine": {
+      "wasm_bytes": 2003935,
+      "wasm_sha256": "6dc1b10b21ee4d4cb310589412d9c45e2290c2e7a8e1674b29ee91fda0484d9e",
+      "cargo_profile": "opt-level=3, lto=true, codegen-units=1, strip=true",
+      "wasm_compile_ms": [2.4, 2.4, 2.3]
+    },
+    "tests": { "files": 168, "tests": 1967, "passed": true }
+  },
+  "after": {
+    "commands": {
+      "build": "env CARGO_BUILD_JOBS=2 pnpm build",
+      "budget": "node scripts/perf/check-landing-budget.mjs",
+      "budget_negative": "node scripts/perf/check-landing-budget.mjs --dist <baseline-dist>",
+      "landing": "node scripts/perf/measure-landing.mjs --out <evidence>/perf-optimize/after --runs 3",
+      "app_direct": "node scripts/perf/measure-ui.mjs --out <evidence>/perf-optimize/after --label after-gpu-2 --runs 3 --gpu",
+      "app_ab": "node scripts/perf/compare-app-ab.mjs --baseline-dist <baseline-dist> --after-root <lane-worktree> --runs 6 --out <evidence>/perf-optimize/after/app-ab.json",
+      "tests": "env CARGO_BUILD_JOBS=2 pnpm test --maxWorkers=2"
+    },
+    "build": {
+      "wall_ms": 2656,
+      "comparable_to_baseline": false,
+      "reason": "baseline build samples were cold without tsconfig incremental state; the after build reused it. No build-time claim."
+    },
+    "landing": {
+      "canvas_count": 0,
+      "js_decoded_kb": 1.4,
+      "js_transfer_kb": 2.0,
+      "js_scripts": 2,
+      "js_graph_bytes": 1398,
+      "fcp_ms": [240, 68, 76],
+      "load_ms": [51, 23, 70],
+      "entry_imports": ["_modulepreload-polyfill-P2Xu9kJm.js"],
+      "budget_pass": true
+    },
+    "budget": {
+      "landing_graph_bytes": 1398,
+      "budget_bytes": 10240,
+      "pass": true,
+      "negative_check": {
+        "dist": "<baseline-dist>",
+        "exit_code": 1,
+        "failures": [
+          "landing entry loads forbidden chunk assets/vendor-O2rVkaM2.js",
+          "landing entry loads forbidden chunk assets/three-mlv99RC0.js",
+          "landing entry loads forbidden chunk assets/react-BsCGDdll.js",
+          "dist/index.html still modulepreloads a three/react/vendor chunk",
+          "landing JS 1528995 B exceeds 10240 B"
+        ]
+      }
+    },
+    "app": {
+      "direct_batches": {
+        "after-gpu": { "committed_ms": [702, 399, 913], "median_ms": 702, "note": "literal +78.6% breach of the 10% falsifier; recorded, not excluded" },
+        "after-gpu-2": { "committed_ms": [765, 404, 415], "median_ms": 415, "change_pct": 5.6, "engine_ms": [463, 209, 225], "fcp_ms": [412, 208, 200] },
+        "reviewer_rerun": { "median_ms": 412, "change_pct": 4.8 }
+      },
+      "ab": {
+        "runs_per_variant": 6,
+        "baseline_committed_median_ms": 409,
+        "after_committed_median_ms": 399,
+        "change_pct": -2.4,
+        "baseline_engine_median_ms": 211,
+        "after_engine_median_ms": 201,
+        "falsifier_threshold_ms": 432.3,
+        "within_threshold": true,
+        "reviewer_rerun_baseline_median_ms": 645,
+        "reviewer_rerun_after_median_ms": 408,
+        "reviewer_rerun_change_pct": -36.7,
+        "note": "6-run median swung ~37% between lane and reviewer A/B runs; host cannot resolve 10% at N=3/6"
+      },
+      "timing_verdict": "inconclusive_on_this_host_at_n3_n6",
+      "structural_basis": "three chunk 5b633baf... identical to baseline; engine wasm 6dc1b10b... identical; app entry still loads three/React/vendor",
+      "entry_keeps": { "three": true, "react": true, "vendor": true, "wasm": true },
+      "canvas_median_frame_ms": 16.7,
+      "scrub_median_frame_ms": 16.7,
+      "scrub_long_tasks": 0
+    },
+    "engine": {
+      "wasm_bytes": 2003935,
+      "wasm_sha256": "6dc1b10b21ee4d4cb310589412d9c45e2290c2e7a8e1674b29ee91fda0484d9e",
+      "unchanged": true
+    },
+    "tests": { "files": 168, "tests": 1967, "passed": true, "wall_ms": 234854 }
+  },
+  "landing_css_change": "landing stylesheet splits to vendor~landing~app.css and drops 12 unused JetBrains Mono 500/700 @font-face rules (only 400 loads on / in either build); reviewer full-page screenshots at 1440 px and 390 px are byte-identical; recorded, not claimed as part of the JS win",
+  "falsifier_audit": {
+    "landing_still_preloads_three_react_vendor": false,
+    "landing_js_over_10kb": false,
+    "app_stopped_loading_three_react_wasm": false,
+    "app_committed_median_regressed_over_10pct": "inconclusive_n3_n6_host_cannot_resolve_10pct",
+    "tests_not_168_1967": false,
+    "engine_sha_changed": false,
+    "verdict": "structural falsifiers clear; timing inconclusive (batch 1 +78.6% breach recorded; batch 2 +5.6% and A/B inside threshold); no-regression basis is byte-identity, not timing"
+  },
+  "files_changed": [
+    "vite.config.ts",
+    "scripts/perf/check-landing-budget.mjs",
+    "scripts/perf/compare-app-ab.mjs",
+    "docs/internal/perf-optimize/RESULT.md",
+    "docs/internal/perf-optimize/EVIDENCE.json"
+  ],
+  "checks_run": [
+    { "command": "env CARGO_BUILD_JOBS=2 pnpm build", "exit_code": 0 },
+    { "command": "node scripts/perf/check-landing-budget.mjs", "exit_code": 0 },
+    { "command": "node scripts/perf/check-landing-budget.mjs --dist <baseline-dist>", "exit_code": 1, "expected": "regression proof" },
+    { "command": "node scripts/perf/measure-landing.mjs --out <evidence>/perf-optimize/after --runs 3", "exit_code": 0 },
+    { "command": "node scripts/perf/measure-ui.mjs --out <evidence>/perf-optimize/after --label after-gpu --runs 3 --gpu", "exit_code": 0 },
+    { "command": "node scripts/perf/measure-ui.mjs --out <evidence>/perf-optimize/after --label after-gpu-2 --runs 3 --gpu", "exit_code": 0 },
+    { "command": "node scripts/perf/compare-app-ab.mjs --baseline-dist <baseline-dist> --after-root <lane-worktree> --runs 6 --out <evidence>/perf-optimize/after/app-ab.json", "exit_code": 0 },
+    { "command": "env CARGO_BUILD_JOBS=2 pnpm test --maxWorkers=2", "exit_code": 0 }
+  ],
+  "not_done": [
+    "No push, tag, release or deploy.",
+    "No edits to the register, package manifest, task board or handoff.",
+    "No source, dependency, physics, threshold, tolerance or schema change.",
+    "WebKit/WebKitGTK (Tauri Linux) not measured: Playwright WebKit system dependencies require sudo.",
+    "No native Tauri rebuild or launch in this lane.",
+    "Landing budget check not wired into CI; standalone committed check only."
+  ]
+}

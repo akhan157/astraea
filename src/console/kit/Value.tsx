@@ -74,7 +74,7 @@ export function ResultValue({ r, kind, digits, size = 'md', label, className, ch
   if (style === 'A') {
     return (
       <ConfidenceTip r={r} label={label}>
-        <span tabIndex={0} title={tipTitle} className={cn('inline-flex cursor-help items-baseline gap-1 font-geist-mono tnum whitespace-nowrap outline-none', big, className)} aria-label={`${label ?? ''} ${v.text} ${v.unit}, ${CONF_LABEL[c]}`}>
+        <span tabIndex={0} title={tipTitle} className={cn('inline-flex cursor-help items-baseline gap-1 font-geist-mono tnum whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-[rgba(110,231,247,.5)]', big, className)} aria-label={`${label ?? ''} ${v.text} ${v.unit}, ${CONF_LABEL[c]}`}>
           <span style={{
             color: numColor, opacity: c === 'unknown' ? 0.75 : 1,
             textDecoration: c === 'extrapolated' ? `underline dotted ${C.warn}` : undefined, textUnderlineOffset: 3, textDecorationThickness: 1.5
@@ -89,7 +89,7 @@ export function ResultValue({ r, kind, digits, size = 'md', label, className, ch
   const rule = c === 'measured' || c === 'calibrated' ? `2px solid ${C.muted}` : c === 'extrapolated' ? `2px dashed ${C.warn}` : c === 'unknown' ? `2px dotted ${C.unknown}` : '2px solid transparent';
   return (
     <ConfidenceTip r={r} label={label}>
-      <span tabIndex={0} title={tipTitle} className={cn('inline-flex cursor-help items-baseline gap-1 pl-1.5 font-geist-mono tnum whitespace-nowrap outline-none', big, className)} style={{ borderLeft: rule }} aria-label={`${label ?? ''} ${v.text} ${v.unit}, ${CONF_LABEL[c]}`}>
+      <span tabIndex={0} title={tipTitle} className={cn('inline-flex cursor-help items-baseline gap-1 pl-1.5 font-geist-mono tnum whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-[rgba(110,231,247,.5)]', big, className)} style={{ borderLeft: rule }} aria-label={`${label ?? ''} ${v.text} ${v.unit}, ${CONF_LABEL[c]}`}>
         <span style={{ color: numColor }}>{v.text}</span>
         {v.unit && <span className="text-[0.78em]" style={{ color: C.dim }}>{v.unit}</span>}
         {CONF_TAG[c] && (c === 'extrapolated' || c === 'unknown') && <span className="ml-0.5 self-center rounded-sm px-1 text-[8.5px] font-semibold tracking-wider" style={{ color: c === 'extrapolated' ? C.warn : C.unknown, background: 'rgba(255,255,255,0.04)' }}>{CONF_TAG[c]}</span>}

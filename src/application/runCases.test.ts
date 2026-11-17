@@ -81,7 +81,13 @@ function ensembleRecordWithIdentity(token: number, finInterferenceId: string | u
   return record;
 }
 
-const base = () => useProjectStore.getState().project;
+// K3: these tests were written on the pre-switch flight (no drag option, no drag line), so the
+// base project carries the explicit legacy choice. The default's archive is tested in
+// flightDragLegacyChoice.test.ts and projectJson.test.ts.
+const base = () => {
+  const project = useProjectStore.getState().project;
+  return { ...project, vehicle: { ...project.vehicle, flightDragSource: 'legacy' as const } };
+};
 
 describe('run cases', () => {
   it('records completed flights and ensembles and round-trips through the envelope', () => {
@@ -339,4 +345,67 @@ describe('evidence refs', () => {
     expect(summary && 'finInterferenceId' in summary).toBe(false);
   });
 
+});
+
+describe('return1: engine-reported drag-source provenance is archived verbatim', () => {
+  const DRAG_LINE = 'calibrated build-up axial drag; not a validated model';
+  const REFUSED_LINE = "legacy 25-station Mach drag tables; legacy drag used (refused: calibrated unsupported feature: fin set 'fins')";
+  const motor = { id: 'estes_c6', motor: CERTIFIED_MOTORS.estes_c6, provenance: { source: 'certified' as const } };
+
+  function optedProject() {
+    return { ...base(), vehicle: { ...base().vehicle, flightDragSource: 'calibrated' as const } };
+  }
+
+  function flightRecordWithInputs(inputs: ReturnType<typeof captureRunInputs>, token: number, line: string): AnalysisRecord {
+    const run = {
+      ...toFlightRun(flightResult({ runManifest: { ...flightResult().runManifest, axialDrag: line } as never }),
+        inputs.vehicle, 'certified', inputs.inputKey, 1, 1),
+      engineIdentity: { kind: 'production-rust-wasm' as const, sha256: 'b'.repeat(64) },
+    };
+    return { kind: 'flight', status: 'completed', inputKey: inputs.inputKey, startedAt: inputs.capturedAt,
+      finishedAt: '2026-11-11T12:00:00.000Z', error: null, token, runInputs: inputs,
+      payload: { design: { motorId: 'estes_c6' }, run } };
+  }
+
+  function ensembleRecordWithInputs(inputs: ReturnType<typeof captureRunInputs>, token: number, line: string): AnalysisRecord {
+    return { kind: 'ensemble', status: 'completed', inputKey: inputs.inputKey, startedAt: inputs.capturedAt,
+      finishedAt: '2026-11-11T12:00:00.000Z', error: null, token, runInputs: inputs,
+      payload: { design: { motorId: 'estes_c6' }, dispersion: {
+        landings: [{ x: 1, y: 0 }, { x: 0, y: 1 }], mean: { x: 0.5, y: 0.5 },
+        sigma1: 1, sigma2: 0, r50: 1, r90: 1, r99: 1, ok: 2, failed: 0, axialDrag: line,
+      } } };
+  }
+
+  it('writes the recorded flight and ensemble lines only for opted-in archives, and round-trips them', () => {
+    const project = optedProject();
+    const flightInputs = captureRunInputs(project, motor, 'flight-key', undefined);
+    const ensembleInputs = captureRunInputs(project, motor, 'mc-key', undefined, undefined, {
+      nRuns: 2, seed: 7, version: 'per-run-v2',
+      windAzimuthDegSigma: 20, railAngleDegSigma: 1, impulsePctSigma: 3,
+    });
+    const saved = withRunCases(project, [
+      flightRecordWithInputs(flightInputs, 1, DRAG_LINE),
+      ensembleRecordWithInputs(ensembleInputs, 2, REFUSED_LINE),
+    ]);
+    expect(saved.cases[0].summary?.axialDrag).toBe(DRAG_LINE);
+    expect(saved.cases[1].summary?.axialDrag).toBe(REFUSED_LINE);
+    const reopened = readProject(writeProject(saved));
+    expect(reopened.cases[0].summary?.axialDrag).toBe(DRAG_LINE);
+    expect(reopened.cases[1].summary?.axialDrag).toBe(REFUSED_LINE);
+  });
+
+  it('writes nothing for a default run, even when a synthetic dispersion carries a line', () => {
+    const plainFlightInputs = captureRunInputs(base(), motor, 'flight-key', undefined);
+    const plainEnsembleInputs = captureRunInputs(base(), motor, 'mc-key', undefined, undefined, {
+      nRuns: 2, seed: 7, version: 'per-run-v2',
+      windAzimuthDegSigma: 20, railAngleDegSigma: 1, impulsePctSigma: 3,
+    });
+    const saved = withRunCases(base(), [
+      flightRecordWithInputs(plainFlightInputs, 1, DRAG_LINE),
+      ensembleRecordWithInputs(plainEnsembleInputs, 2, DRAG_LINE),
+    ]);
+    expect(saved.cases[0].summary).not.toHaveProperty('axialDrag');
+    expect(saved.cases[1].summary).not.toHaveProperty('axialDrag');
+    expect(() => readProject(writeProject(saved))).not.toThrow();
+  });
 });

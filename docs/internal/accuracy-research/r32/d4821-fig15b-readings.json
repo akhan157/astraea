@@ -1,0 +1,274 @@
+{
+ "schema": "r32-d4821-readings-1",
+ "source": {
+  "report": "NASA TN D-4821",
+  "title": "Effect on base drag of recessing the bases of conical afterbodies at subsonic and transonic speeds",
+  "author": "William B. Compton III",
+  "date": "October 1968",
+  "figure": "Fig. 15(b), beta = 0 deg curve, PDF p. 41 / printed p. 39",
+  "series": "flat base, c/Rb = 0 (open circle), L/Dm = 1.5, Ab/Am = 1.00",
+  "pdf_sha256": "255b27ed88fc2f2d05e7233f4ca2f9faa41ff95b12325fa63d714d0af7059532",
+  "note": "Only the flat-base beta=0 curve was read. The source states that data between M 0.95 and 1.20 were not faired because of normal and reflected shocks on the model and near the base (printed p. 8); those anchors carry 0.010 reading uncertainty."
+ },
+ "images": {
+  "600": {
+   "path": "/home/ak/astraea-evidence/R32-e1b-cylinder-base/digitisation/d4821-p39-600-41.png",
+   "sha256": "c45c84870c2f4ce26b78f59b3dcc493be3258849b6e377b667b40f62c1942a20",
+   "dpi": 600
+  },
+  "400": {
+   "path": "/home/ak/astraea-evidence/R32-e1b-cylinder-base/digitisation/d4821-p39-400-41.png",
+   "sha256": "c525fb161e3031cf5946daabe25c562a4cdf9a35243d2c1c928486f75e0b41cc",
+   "dpi": 400
+  }
+ },
+ "axis_calibration": {
+  "x600": [
+   [
+    962.0,
+    0.3
+   ],
+   [
+    3726.0,
+    1.3
+   ]
+  ],
+  "y600": [
+   [
+    1531.0,
+    0.12
+   ],
+   [
+    740.0,
+    0.24
+   ]
+  ],
+  "x400": [
+   [
+    641.5,
+    0.3
+   ],
+   [
+    2484.0,
+    1.3
+   ]
+  ],
+  "y400": [
+   [
+    1026.5,
+    0.12
+   ],
+   [
+    490.5,
+    0.24
+   ]
+  ]
+ },
+ "points": [
+  {
+   "mach": 0.3,
+   "value": 0.13032,
+   "value600": 0.13032,
+   "value400": 0.13153,
+   "second_pass_delta": 0.00121,
+   "uncertainty": 0.005,
+   "unfaired_in_source": false,
+   "pixel_uncertainty": 0.00038,
+   "plotted_x_mach600": 0.29747,
+   "plotted_x_mach400": 0.29756,
+   "px600": 955,
+   "py600": 1463,
+   "px400": 637,
+   "py400": 975,
+   "provenance": "source_station_chart_reading"
+  },
+  {
+   "mach": 0.4,
+   "value": 0.14655,
+   "value600": 0.14655,
+   "value400": 0.14743,
+   "second_pass_delta": 0.00088,
+   "uncertainty": 0.005,
+   "unfaired_in_source": false,
+   "pixel_uncertainty": 0.00038,
+   "plotted_x_mach600": 0.39841,
+   "plotted_x_mach400": 0.40393,
+   "px600": 1234,
+   "py600": 1356,
+   "px400": 833,
+   "py400": 904,
+   "provenance": "source_station_chart_reading"
+  },
+  {
+   "mach": 0.5,
+   "value": 0.14609,
+   "value600": 0.14609,
+   "value400": 0.14765,
+   "second_pass_delta": 0.00156,
+   "uncertainty": 0.005,
+   "unfaired_in_source": false,
+   "pixel_uncertainty": 0.00038,
+   "plotted_x_mach600": 0.50333,
+   "plotted_x_mach400": 0.5038,
+   "px600": 1524,
+   "py600": 1359,
+   "px400": 1017,
+   "py400": 903,
+   "provenance": "source_station_chart_reading"
+  },
+  {
+   "mach": 0.6,
+   "value": 0.14625,
+   "value600": 0.14625,
+   "value400": 0.1472,
+   "second_pass_delta": 0.00096,
+   "uncertainty": 0.005,
+   "unfaired_in_source": false,
+   "pixel_uncertainty": 0.00038,
+   "plotted_x_mach600": 0.60318,
+   "plotted_x_mach400": 0.60421,
+   "px600": 1800,
+   "py600": 1358,
+   "px400": 1202,
+   "py400": 905,
+   "provenance": "source_station_chart_reading"
+  },
+  {
+   "mach": 0.7,
+   "value": 0.14367,
+   "value600": 0.14367,
+   "value400": 0.14429,
+   "second_pass_delta": 0.00062,
+   "uncertainty": 0.005,
+   "unfaired_in_source": false,
+   "pixel_uncertainty": 0.00038,
+   "plotted_x_mach600": 0.69834,
+   "plotted_x_mach400": 0.6981,
+   "px600": 2063,
+   "py600": 1375,
+   "px400": 1375,
+   "py400": 918,
+   "provenance": "source_station_chart_reading"
+  },
+  {
+   "mach": 0.8,
+   "value": 0.14473,
+   "value600": 0.14473,
+   "value400": 0.14496,
+   "second_pass_delta": 0.00023,
+   "uncertainty": 0.005,
+   "unfaired_in_source": false,
+   "pixel_uncertainty": 0.00038,
+   "plotted_x_mach600": 0.79638,
+   "plotted_x_mach400": 0.80285,
+   "px600": 2334,
+   "py600": 1368,
+   "px400": 1568,
+   "py400": 915,
+   "provenance": "source_station_chart_reading"
+  },
+  {
+   "mach": 0.9,
+   "value": 0.15489,
+   "value600": 0.15489,
+   "value400": 0.15728,
+   "second_pass_delta": 0.00238,
+   "uncertainty": 0.005,
+   "unfaired_in_source": false,
+   "pixel_uncertainty": 0.00038,
+   "plotted_x_mach600": 0.90058,
+   "plotted_x_mach400": 0.89674,
+   "px600": 2622,
+   "py600": 1301,
+   "px400": 1741,
+   "py400": 860,
+   "provenance": "source_station_chart_reading"
+  },
+  {
+   "mach": 0.95,
+   "value": 0.16506,
+   "value600": 0.16506,
+   "value400": 0.16198,
+   "second_pass_delta": 0.00308,
+   "uncertainty": 0.01,
+   "unfaired_in_source": true,
+   "pixel_uncertainty": 0.00038,
+   "plotted_x_mach600": 0.94942,
+   "plotted_x_mach400": 0.95265,
+   "px600": 2757,
+   "py600": 1234,
+   "px400": 1844,
+   "py400": 839,
+   "provenance": "source_station_chart_reading"
+  },
+  {
+   "mach": 1.0,
+   "value": 0.18417,
+   "value600": 0.18417,
+   "value400": 0.18369,
+   "second_pass_delta": 0.00048,
+   "uncertainty": 0.01,
+   "unfaired_in_source": true,
+   "pixel_uncertainty": 0.00038,
+   "plotted_x_mach600": 0.99718,
+   "plotted_x_mach400": 1.00258,
+   "px600": 2889,
+   "py600": 1108,
+   "px400": 1936,
+   "py400": 742,
+   "provenance": "source_station_chart_reading"
+  },
+  {
+   "mach": 1.1,
+   "value": 0.20617,
+   "value600": 0.20617,
+   "value400": 0.20608,
+   "second_pass_delta": 9e-05,
+   "uncertainty": 0.01,
+   "unfaired_in_source": true,
+   "pixel_uncertainty": 0.00038,
+   "plotted_x_mach600": 1.10174,
+   "plotted_x_mach400": 1.09484,
+   "px600": 3178,
+   "py600": 963,
+   "px400": 2106,
+   "py400": 642,
+   "provenance": "source_station_chart_reading"
+  },
+  {
+   "mach": 1.2,
+   "value": 0.21406,
+   "value600": 0.21406,
+   "value400": 0.21369,
+   "second_pass_delta": 0.00036,
+   "uncertainty": 0.01,
+   "unfaired_in_source": true,
+   "pixel_uncertainty": 0.00038,
+   "plotted_x_mach600": 1.20123,
+   "plotted_x_mach400": 1.20176,
+   "px600": 3453,
+   "py600": 911,
+   "px400": 2303,
+   "py400": 608,
+   "provenance": "source_station_chart_reading"
+  },
+  {
+   "mach": 1.3,
+   "value": 0.20207,
+   "value600": 0.20207,
+   "value400": 0.20205,
+   "second_pass_delta": 2e-05,
+   "uncertainty": 0.005,
+   "unfaired_in_source": false,
+   "pixel_uncertainty": 0.00038,
+   "plotted_x_mach600": 1.29964,
+   "plotted_x_mach400": 1.2924,
+   "px600": 3725,
+   "py600": 990,
+   "px400": 2470,
+   "py400": 660,
+   "provenance": "source_station_chart_reading"
+  }
+ ],
+ "max_second_pass_delta": 0.00308
+}

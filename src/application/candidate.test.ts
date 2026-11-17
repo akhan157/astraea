@@ -74,3 +74,29 @@ describe('explicit candidate application contract', () => {
   });
 
 });
+
+describe('candidate refusals for the accuracy-bundle flight inputs', () => {
+  const vehicleWith = (patch: (v: typeof CANDIDATE_VEHICLE) => void): typeof CANDIDATE_VEHICLE => {
+    const v = structuredClone(CANDIDATE_VEHICLE) as typeof CANDIDATE_VEHICLE;
+    patch(v);
+    return v;
+  };
+
+  it('names every input the candidate contract cannot carry', () => {
+    const messages = (v: typeof CANDIDATE_VEHICLE): string[] =>
+      candidatePreflight(v, candidateSelection(), motor, launch).map((issue) => issue.message);
+
+    expect(messages(vehicleWith((v) => { v.launchSite = { altitudeM: 300, temperatureC: 30 }; })))
+      .toContain('The candidate model does not model the launch-site temperature (30 °C). Clear it, or switch to the legacy flight model.');
+    expect(messages(vehicleWith((v) => { v.nozzleBackPressureThrust = true; })))
+      .toContain('The candidate model does not model nozzle back-pressure thrust. Turn it off, or switch to the legacy flight model.');
+    expect(messages(vehicleWith((v) => { v.flightDragSource = 'calibrated'; })))
+      .toContain('The candidate model does not model built-up flight drag. Turn it off, or switch to the legacy flight model.');
+
+    const nose = CANDIDATE_VEHICLE.components.find((c) => c.type === 'nosecone')!;
+    const tip = messages(vehicleWith((v) => { (v.components[0] as { tipRadius?: number }).tipRadius = 0.003; }));
+    expect(tip.some((m) => m.startsWith("The candidate model does not model a blunt nose tip (0.003 m on '"))).toBe(true);
+    expect(tip.find((m) => m.includes('blunt nose tip'))).toContain(nose.name);
+    expect(tip.find((m) => m.includes('blunt nose tip'))).toContain('its declaration asserts a sharp physical tip');
+  });
+});

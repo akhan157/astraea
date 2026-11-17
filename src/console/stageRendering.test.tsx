@@ -66,7 +66,9 @@ describe('Console stages render', () => {
       // Every stage carries the beta label with its accuracy statement and a way to read more.
       const notice = container.querySelector('[data-beta-notice]');
       expect(notice?.textContent).toMatch(/^Beta\b/);
-      expect(notice?.textContent).toContain('6–10%');
+      expect(notice?.textContent).toContain('apogee error averaged 5.6–5.9%');
+      expect(notice?.textContent).toContain('development data');
+      expect(notice?.textContent).toContain('no blind test on those shapes');
       expect(notice?.textContent).toMatch(/not flight approval/i);
       expect(notice?.querySelector('a')?.getAttribute('href')).toMatch(/docs\/accuracy\.md$/);
       cleanup();

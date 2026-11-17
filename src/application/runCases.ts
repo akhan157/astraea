@@ -10,6 +10,8 @@
  * against the committed inputs.
  */
 
+import { stringifyReportJson } from '../formats/reportJson';
+import { gzipSync, gunzipSync, strToU8, strFromU8 } from 'fflate';
 import type { EvidenceRef, MotorRecord, ProjectEnvelope, ProjectSnapshot, SimCase } from '../formats/projectJson';
 import type { LedgerEntry } from './evidenceLedger';
 import { CERTIFIED_MOTORS, normalizeMotorId } from '../propulsion/motorDatabase';
@@ -69,10 +71,13 @@ export function caseId(record: AnalysisRecord): string {
   return `${record.kind}-${record.finishedAt ?? record.startedAt}-${record.token}`;
 }
 
-function flightSummary(run: FlightRun, inputKey: string): Record<string, Scalar> {
+function flightSummary(run: FlightRun, inputKey: string, builtUpDragArchived: boolean): Record<string, Scalar> {
   const s = run.summary;
   return {
     inputKey,
+    ...(builtUpDragArchived && typeof run.manifest?.axialDrag === 'string'
+      ? { axialDrag: run.manifest.axialDrag }
+      : {}),
     projectRevision: finite(run.rev),
     validity: String(s.validity),
     landingNominal: s.landingNominal,
@@ -124,18 +129,35 @@ function dispersionSnapshot(id: string, createdAt: string, dispersion: Dispersio
  * be resolved at all is left out, since the envelope refuses a case that
  * names an unknown motor record.
  */
-export function withRunCases(project: ProjectEnvelope, history: ReadonlyArray<AnalysisRecord>): ProjectEnvelope {
+export function withRunCases<T extends RunCaseArchive>(project: T, history: ReadonlyArray<AnalysisRecord>, knownMotorIds: readonly string[] = []): T {
   const cases: SimCase[] = [...project.cases];
   const snapshots: ProjectSnapshot[] = [...project.snapshots];
   const motorRecords: MotorRecord[] = [...project.motorRecords];
   const caseIds = new Set(cases.map((c) => c.id));
   const snapshotIds = new Set(snapshots.map((s) => s.id));
-  const recordIds = new Set(motorRecords.map((r) => normalizeMotorId(r.id)));
+  const recordIds = new Set([...motorRecords.map((r) => normalizeMotorId(r.id)), ...knownMotorIds]);
 
   for (const record of history) {
     if (record.status !== 'completed' || (record.kind !== 'flight' && record.kind !== 'ensemble')) continue;
     const id = caseId(record);
     if (caseIds.has(id)) continue;
+    if (record.archive) {
+      if (record.archive.exportError) throw new Error(record.archive.exportError);
+      const archived = readRunArchive(record);
+      const aliases = new Map<string, string>();
+      for (const motor of archived.motorRecords) {
+        let id = motor.id;
+        let suffix = 2;
+        while (recordIds.has(id) && stableStringify(motorRecords.find(r => r.id === id)) !== stableStringify({ ...motor, id })) id = `${motor.id}_${suffix++}`;
+        aliases.set(motor.id, id);
+        if (!recordIds.has(id)) { motorRecords.push({ ...motor, id }); recordIds.add(id); }
+      }
+      for (const entry of archived.cases) if (!caseIds.has(entry.id) && recordIds.has(aliases.get(entry.motorRecordId) ?? entry.motorRecordId)) {
+        cases.push({ ...entry, motorRecordId: aliases.get(entry.motorRecordId) ?? entry.motorRecordId }); caseIds.add(entry.id);
+      }
+      for (const entry of archived.snapshots) if (!snapshotIds.has(entry.id)) { snapshots.push(entry); snapshotIds.add(entry.id); }
+      continue;
+    }
     const payload = (record.payload ?? {}) as RunPayload;
     const inputs = record.runInputs;
     // A dedicated record preserves the old curve when a live same-ID motor changes.
@@ -181,9 +203,15 @@ export function withRunCases(project: ProjectEnvelope, history: ReadonlyArray<An
       continue;
     }
     let summary: Record<string, Scalar>;
+    // The archive preserves the engine's own drag-source/refusal line only for
+    // a run whose *archived* inputs carry the built-up drag opt-in. The line is
+    // copied verbatim; it is never reconstructed from requested options or the
+    // current engine, and a default run writes no new key at all.
+    const builtUpDragArchived = inputs !== undefined && inputs.version !== 3
+      && inputs.engineOptions.flightDragSource !== undefined;
     if (record.kind === 'flight') {
       if (!payload.run) continue;
-      summary = flightSummary(payload.run, record.inputKey);
+      summary = flightSummary(payload.run, record.inputKey, builtUpDragArchived);
     } else {
       const dispersion = payload.dispersion;
       if (!dispersion) continue;
@@ -193,6 +221,10 @@ export function withRunCases(project: ProjectEnvelope, history: ReadonlyArray<An
         ...(dispersion.normalLawId === undefined ? {} : { normalLawId: dispersion.normalLawId }),
         ...(dispersion.boattailPolicy === undefined ? {} : { boattailPolicy: dispersion.boattailPolicy }),
         ...(dispersion.finInterferenceId === undefined ? {} : { finInterferenceId: dispersion.finInterferenceId }),
+        // Only a run that opted in to built-up flight drag archives the source
+        // line, so a default ensemble's saved document is unchanged.
+        ...(builtUpDragArchived && typeof dispersion.axialDrag === 'string'
+          ? { axialDrag: dispersion.axialDrag } : {}),
         runsSucceeded: finite(dispersion.ok),
         runsFailed: finite(dispersion.failed),
         sigma1M: finite(dispersion.sigma1),
@@ -236,6 +268,60 @@ export function withRunCases(project: ProjectEnvelope, history: ReadonlyArray<An
     caseIds.add(id);
   }
   return { ...project, cases, snapshots, motorRecords };
+}
+
+/** In-memory encoding only; project files continue to use their existing schema. */
+export type RunCaseArchive = Pick<ProjectEnvelope, 'cases' | 'snapshots' | 'motorRecords'>;
+export interface CompressedRunArchive {
+  bytes: Uint8Array;
+  validity: string;
+  vehicleName: string;
+  /** Preserve the exporter's refusal for an opaque or malformed old payload. */
+  exportError?: string;
+  dragCalibration?: FlightRun['dragCalibration'];
+}
+
+const archivedRecords = new WeakMap<AnalysisRecord, AnalysisRecord>();
+// Undo may reuse a live record, but never owns it. After collection the saved
+// case remains historical and Flight correctly requires a fresh computation.
+const liveRecords = new WeakMap<AnalysisRecord, WeakRef<AnalysisRecord>>();
+
+export function archiveAnalysisRecord(record: AnalysisRecord): AnalysisRecord {
+  if (record.archive || record.payload === null) return record;
+  const cached = archivedRecords.get(record);
+  if (cached) return cached;
+  const payload = record.payload as { run?: FlightRun; design?: { motorId?: string; vehicle?: { name?: string } } };
+  // Old session records can reference an imported motor held only by the
+  // project. Preserve that reference without inventing a motor definition.
+  const id = payload.design?.motorId ? normalizeMotorId(payload.design.motorId) : null;
+  const projectMotorIds = !record.runInputs && id && !CERTIFIED_MOTORS[id] ? [id] : [];
+  let fragment: RunCaseArchive = { cases: [], snapshots: [], motorRecords: [] };
+  let exportError: string | undefined;
+  try { fragment = withRunCases(fragment, [record], projectMotorIds); }
+  catch (error) {
+    // Snapshotting/eviction must not make replacing a project impossible.
+    // Save still refuses exactly as before; no invalid case is repaired.
+    exportError = error instanceof Error ? error.message : String(error);
+  }
+  const compact: AnalysisRecord = { ...record, payload: null, archive: {
+    bytes: gzipSync(strToU8(stringifyReportJson(fragment, 0))),
+    ...(exportError === undefined ? {} : { exportError }),
+    validity: payload.run?.summary?.validity ?? 'UNKNOWN',
+    vehicleName: payload.design?.vehicle?.name ?? '',
+    ...(payload.run?.dragCalibration ? { dragCalibration: structuredClone(payload.run.dragCalibration) } : {}),
+  } };
+  archivedRecords.set(record, compact);
+  liveRecords.set(compact, new WeakRef(record));
+  return compact;
+}
+
+export function liveAnalysisRecord(record: AnalysisRecord): AnalysisRecord | null {
+  return record.archive ? liveRecords.get(record)?.deref() ?? null : record;
+}
+
+export function readRunArchive(record: AnalysisRecord): RunCaseArchive {
+  if (!record.archive) throw new Error('Run has no compact archive');
+  return JSON.parse(strFromU8(gunzipSync(record.archive.bytes))) as RunCaseArchive;
 }
 
 /** The run's exact timeline, or absent when it would not pass the saved-case parser; never repaired. */

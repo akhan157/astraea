@@ -24,7 +24,7 @@
 use crate::aero_coefficients as ac;
 use crate::six_dof::{
     axial_drag_body_force, drive_candidate, legacy_dimensional_rate_couple, live_canopy,
-    motor_total_impulse_value, recovered_rate_moment, stage_mechanics, validate_motor_spec,
+    recovered_rate_moment, stage_mechanics, validate_motor_spec,
     DriverFlags, DriverLoads, LiveCanopy, LoadContext, LoadPhase, Loads, MotorSpec, Parachute,
     RigidState, SimEvent, SixDofOptions, StageMechanics, StageValidity, Vec3, Vehicle, G0,
 };
@@ -203,6 +203,8 @@ impl CandidateOptions {
             time_step: Some(self.time_step_s),
             fin_cant_angle_deg: Some(0.0),
             drag_cd_scale: None,
+            launch_site_temperature_c: None,
+            nozzle_exit_diameter: None,
             record_telemetry: false,
             record_moment_arm_history: false,
         })
@@ -611,8 +613,8 @@ fn map_aero(error: ac::Error) -> CandidateLoadError {
 }
 
 /// Candidate-specific motor validation. `validate_motor_spec` is the legacy
-/// contract; it does not check finite dry/total mass or a positive integrated
-/// impulse, both of which the shared mechanical primitive assumes. Refuse those
+/// contract; it does not check finite dry/total mass, which the shared
+/// mechanical primitive assumes. Refuse those
 /// records here instead of reaching a legacy panic.
 fn validate_candidate_motor(motor: &MotorSpec) -> Result<(), CandidateLoadError> {
     validate_motor_spec(motor).map_err(|reason| CandidateLoadError {
@@ -631,10 +633,6 @@ fn validate_candidate_motor(motor: &MotorSpec) -> Result<(), CandidateLoadError>
     }
     if motor.max_thrust < 0.0 {
         return Err(invalid("motor max thrust must be nonnegative".to_string()));
-    }
-    let impulse = motor_total_impulse_value(motor);
-    if !impulse.is_finite() || impulse <= 0.0 {
-        return Err(invalid(format!("motor thrust curve must deliver a finite positive total impulse (got {impulse})")));
     }
     Ok(())
 }
@@ -708,14 +706,8 @@ impl PreparedCandidate {
             return Err(CandidateLoadError { kind: CandidateFailureKind::InconsistentPreparation,
                 reason: "motor length exceeds the declared vehicle length".to_string() });
         }
-        // Same expression as the legacy assembly's motor-placement assertion, so
-        // the candidate refuses exactly where the driver would otherwise panic.
-        let forward_end = (vehicle.motor_aft_station_from_nose - input.motor.length / 2.0) - input.motor.length / 2.0;
-        if !(forward_end >= 0.0) {
-            return Err(CandidateLoadError { kind: CandidateFailureKind::InconsistentPreparation,
-                reason: format!("motor forward end {} m lies outside the vehicle (mount station {} m, motor length {} m)",
-                    forward_end, vehicle.motor_aft_station_from_nose, input.motor.length) });
-        }
+        crate::six_dof::validate_motor_placement(vehicle.motor_aft_station_from_nose, input.motor.length)
+            .map_err(|reason| CandidateLoadError { kind: CandidateFailureKind::InconsistentPreparation, reason })?;
         // Structural SB1 support at the zero-Mach baseline, before any flow is
         // invented. This also checks declarations, interval continuity and fins.
         let sums = input.geometry.normal_sums(0.0, input.references).map_err(map_aero)?;
@@ -2428,7 +2420,8 @@ mod tests {
             rail_length: Some(1.0), rail_elevation_deg: Some(90.0), rail_azimuth_deg: Some(0.0),
             launch_altitude_asl: None, wind_speed_surface: Some(0.0), wind_azimuth_deg: Some(90.0),
             main_deploy_altitude_agl: Some(250.0), time_step: None, fin_cant_angle_deg: None,
-            drag_cd_scale: None, record_telemetry: false, record_moment_arm_history: false,
+            drag_cd_scale: None, launch_site_temperature_c: None, nozzle_exit_diameter: None,
+            record_telemetry: false, record_moment_arm_history: false,
         };
         let before = simulate_flight(&vehicle, &motor, &legacy_options).unwrap();
         assert_eq!(before.validity, "PASS");

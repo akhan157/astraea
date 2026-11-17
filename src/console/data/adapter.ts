@@ -35,6 +35,8 @@ import { explainStabilityAnalysis } from '../../aero/stabilityBreakdown';
 import { MATERIAL_SHEAR_MODULI, computeEllipticalFinFlutter, computeTrapezoidFinFlutter } from '../../aero/finFlutter';
 import { getAtmosphereAt } from '../../sim/flightSimulator';
 import { parseMomentArmHistory } from '../../application/momentArmHistory';
+import { dispatchVehicle, effectiveFlightDragSource, hasPhysicsOptions, physicsOptionsOf } from '../../application/caseResolver';
+import { builtUpDragStatus } from './builtUpDrag';
 import { EVENT_LABEL } from '../../application/flightEvents';
 import { describeDragCalibration, type DragCalibration } from '../../application/dragCalibration';
 import { aeroModelDefect, isUsableAeroModel, type AeroModelSelection } from '../../application/aeroModel';
@@ -119,6 +121,40 @@ export function aeroConfidence(
   return {
     confidence: 'modeled',
     reason: 'Barrowman/Hoerner slender-body model with modeled transonic drag curves; not checked against your flights.',
+  };
+}
+
+/**
+ * Flight-specific Basis for committed flights: what the dispatched flight
+ * actually flew, read from the recorded engine line. The panel Basis
+ * (`aeroConfidence`, unchanged) describes the aero-model selection; a flight
+ * that opted in to built-up axial drag must not claim the panel-only legacy
+ * override, and a shape the engine refused must be described as refused rather
+ * than as built-up drag flown. A fitted drag scale still applies on top of
+ * whichever table flies, so its existing calibrated label and reason stay.
+ */
+export function flightAeroConfidence(
+  vehicle: RocketVehicle,
+  calibration: DragCalibration | undefined,
+  aeroModel: AeroModelSelection | undefined,
+  manifest: Record<string, string> | undefined,
+): { confidence: Confidence; reason: string } {
+  if (effectiveFlightDragSource(vehicle) === undefined) return aeroConfidence(calibration, aeroModel);
+  const model = aeroModel === undefined
+    ? 'Built-up flight drag'
+    : `Built-up aero model ${aeroModel.modelId} ${aeroModel.modelVersion}`;
+  const scale = calibration === undefined ? '' : ` ${aeroConfidence(calibration).reason}`;
+  const status = builtUpDragStatus(manifest);
+  if (status === 'unknown') return {
+    confidence: 'unknown',
+    reason: `${model}: built-up axial drag was requested, but the recorded engine drag source is unknown. No flight drag model or refusal can be established from this record.${scale}`,
+  };
+  const refused = status === 'refused';
+  return {
+    confidence: calibration === undefined ? 'modeled' : 'calibrated',
+    reason: refused
+      ? `${model}: built-up axial drag was requested, but the engine refused this shape and the flight used legacy drag; lift and stability in flight use the legacy model. Not checked against your flights; not a validated model.${scale}`
+      : `${model}: flight axial drag comes from the built-up method at every Mach number, without the legacy override over Mach 0.80-1.20; lift and stability in flight use the legacy model. Not checked against your flights; not a validated model.${scale}`,
   };
 }
 
@@ -334,9 +370,12 @@ export async function runFlight(
   const t0 = performance.now();
   assertScaleMatchesCalibration('runFlight', options, calibration);
   await assertCalibrationEngine('runFlight', calibration);
-  const { value: res, engineIdentity } = await simulateFlightRecorded(vehicle, motor, sixDofOptions(options), reportMomentArmHistory);
+  // The vehicle this run flies, resolved once: the bridge request, its admission rule and the
+  // recorded metadata (physics options, confidence text) all use it, so they cannot disagree.
+  const flown = dispatchVehicle(vehicle, sixDofOptions(options), calibration);
+  const { value: res, engineIdentity } = await simulateFlightRecorded(flown, motor, sixDofOptions(options), reportMomentArmHistory, aeroModel);
   const durationMs = performance.now() - t0;
-  return toFlightRun(res, vehicle, motorProvenance, inputKey, rev, durationMs, shearOverridePa, calibration, options, engineIdentity, aeroModel);
+  return toFlightRun(res, flown, motorProvenance, inputKey, rev, durationMs, shearOverridePa, calibration, options, engineIdentity, aeroModel);
 }
 
 export function toFlightRun(
@@ -357,7 +396,7 @@ export function toFlightRun(
     || momentArmHistory.timeRangeS[1] > res.flightDuration)) {
     throw new Error('momentArmHistory: missing invocation identity or inconsistent flight clock');
   }
-  const aero = aeroConfidence(calibration, aeroModel);
+  const aero = flightAeroConfidence(vehicle, calibration, aeroModel, res.runManifest as unknown as Record<string, string>);
   const summaryLevel = flightLevel(res);
   const aero2 = aeroLevel(aero, res);
 
@@ -471,7 +510,7 @@ export function toFlightRun(
         ? `No nominal touchdown, so landing speed is not checked. ${TRIPOLI_LANDING_LIMIT} ${LANDING_ENERGY_NOTE}`
         : res.landingVelocity <= LANDING_SPEED_GATE
           ? `Touchdown is at or below the certification limit. ${TRIPOLI_LANDING_LIMIT} ${LANDING_ENERGY_NOTE}`
-          : `Touchdown exceeds the certification limit; use a larger main. ${TRIPOLI_LANDING_LIMIT} ${LANDING_ENERGY_NOTE}`,
+          : `Touchdown exceeds the certification limit; ${vehicle.components.some((c) => c.type === 'parachute') ? 'use a larger main' : 'add a parachute'}. ${TRIPOLI_LANDING_LIMIT} ${LANDING_ENERGY_NOTE}`,
     },
     {
       id: 'validity',
@@ -484,6 +523,11 @@ export function toFlightRun(
     },
   ];
 
+  // The physics options this run actually sent, derived from the same vehicle
+  // the bridge derived them from. Absent when none, so a default run adds no
+  // field and no display row.
+  const physicsOptions = physicsOptionsOf(vehicle);
+  const sentPhysicsOptions = hasPhysicsOptions(physicsOptions) ? physicsOptions : undefined;
   const manifest: Record<string, string> = {};
   for (const [key, value] of Object.entries(res.runManifest ?? {})) {
     manifest[key] = typeof value === 'string' ? value : JSON.stringify(value);
@@ -496,7 +540,8 @@ export function toFlightRun(
   if (calibration !== undefined) manifest.dragCalibration = describeDragCalibration(calibration);
 
   return {
-    rev, at: Date.now(), inputKey, ...(engineIdentity === undefined ? {} : { engineIdentity }), summary, terminationReason: res.terminationReason, events, telemetry, series, sampledMaxQ, flutter, gates, manifest, durationMs,
+    rev, at: Date.now(), inputKey, ...(engineIdentity === undefined ? {} : { engineIdentity }), summary, terminationReason: res.terminationReason, events, telemetry, series, sampledMaxQ, flutter, gates, manifest,
+    ...(sentPhysicsOptions === undefined ? {} : { physicsOptions: sentPhysicsOptions }), durationMs,
     ...(calibration === undefined ? {} : { dragCalibration: calibration }),
     ...(momentArmHistory === undefined ? {} : { momentArmHistory }),
   };
@@ -576,6 +621,12 @@ export interface McRunInput {
   sigmas?: PerturbationSigmas;
   /** The calibration the options' `dragCdScale` came from, recorded on the result. */
   dragCalibration?: DragCalibration;
+  /**
+   * The aero-model selection the committed ensemble is admitted against. It is
+   * an app-side admission input only (never a wire option); the bridge applies
+   * the shared selection × drag opt-in rule to every chunk.
+   */
+  aeroModel?: AeroModelSelection;
 }
 
 export interface McCallbacks {
@@ -595,7 +646,9 @@ export async function runMonteCarlo(input: McRunInput, signal: AbortSignal, cb: 
   const nRuns = Math.max(1, Math.floor(input.nRuns));
   const seed = input.seed ?? MC_SEED;
   const sigmas = input.sigmas ?? { windAzimuthDegSigma: 20, railAngleDegSigma: 1, impulsePctSigma: 3 };
-  const base = { vehicle: input.vehicle, motor: input.motor, options: sixDofOptions(input.options) };
+  // Resolved once: every chunk, its admission and the recorded physics options use this vehicle.
+  const flown = dispatchVehicle(input.vehicle, sixDofOptions(input.options), input.dragCalibration);
+  const base = { vehicle: flown, motor: input.motor, options: sixDofOptions(input.options) };
   // Every chunk goes to the engine pool at once, so the ensemble spreads over
   // the worker cores. Chunks are absolute run ranges of a per-run-v2 ensemble,
   // so completion order never changes the numbers; they are re-sorted before
@@ -607,7 +660,7 @@ export async function runMonteCarlo(input: McRunInput, signal: AbortSignal, cb: 
   for (let start = 0; start < nRuns; start += MC_CHUNK_RUNS) {
     const end = Math.min(nRuns, start + MC_CHUNK_RUNS);
     pending.push(
-      runEnsembleChunkRecorded(base, sigmas, nRuns, seed, start, end, 'per-run-v2', signal).then(({ value: chunk, engineIdentity }) => {
+      runEnsembleChunkRecorded(base, sigmas, nRuns, seed, start, end, 'per-run-v2', signal, input.aeroModel).then(({ value: chunk, engineIdentity }) => {
         if (signal.aborted) return;
         if (identities.some((identity) => compareEngineIdentity(identity, engineIdentity) === 'different')) {
           throw new Error('ensemble chunks used different engines; no combined result recorded');
@@ -646,6 +699,9 @@ export async function runMonteCarlo(input: McRunInput, signal: AbortSignal, cb: 
     dispersion.engineIdentity = identities.some((identity) => identity.sha256 === null)
       ? Object.freeze({ kind: first.kind, sha256: null }) : first;
   }
+  // What this ensemble actually sent, derived from the same vehicle as the bridge.
+  const physics = physicsOptionsOf(flown);
+  if (hasPhysicsOptions(physics)) dispersion.physicsOptions = physics;
   return input.dragCalibration === undefined ? dispersion : { ...dispersion, dragCalibration: input.dragCalibration };
 }
 
@@ -654,6 +710,7 @@ export function dispersionOf(result: DispersionResult | ClassifiedDispersionResu
     ...(result.normalLawId === undefined ? {} : { normalLawId: result.normalLawId }),
     ...(result.boattailPolicy === undefined ? {} : { boattailPolicy: result.boattailPolicy }),
     ...(result.finInterferenceId === undefined ? {} : { finInterferenceId: result.finInterferenceId }),
+    ...(result.axialDrag === undefined ? {} : { axialDrag: result.axialDrag }),
     landings: result.landings,
     mean: result.mean,
     sigma1: result.sigma1,

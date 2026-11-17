@@ -1,0 +1,71 @@
+{
+  "schema": "astraea-appbound-bundle-evidence/1.1.0",
+  "lane": "appbound/r42-r44-r47-e1b",
+  "date": "2026-11-11",
+  "status": "accepted_with_findings_frontend_proof_pending",
+  "base": "5f17db5520f5f0923faac5384ade7c2e42b6707f",
+  "option1_source": "b2c489644609113de4ce3c30222c0954d3388e0a",
+  "option2_source": "ea8d633",
+  "content": [
+    "R42 optional launchSiteTemperatureC and nozzleExitDiameter",
+    "R44 opt-in flightDragSource=calibrated and nose tipRadius",
+    "R47 metres-to-feet calibrated drag ladder fix",
+    "default-off R41 diagnostic seam required by R42/R44",
+    "E-1b 8134ec7, 9418e02, fded3bb, 6c5d8da"
+  ],
+  "excluded": [
+    "E-1 8dc5de2",
+    "E-7 e0d0d97 (including StabilityDto.parts and PartExtentDto)"
+  ],
+  "diff_stat_crates_src": {"files": 21, "insertions": 2949, "deletions": 90},
+  "identity": {
+    "probe_result_sha256": "e34a72b3c29c89dfaf989c74a6bc48524e3e96270593ac44b65fd3c3f70c8c4b",
+    "old_wasm": {"bytes": 2003605, "sha256": "5034fd48e37762b00e9d2757874e93e0d7d51980a9140971155f7b488a55924e"},
+    "new_wasm": {"bytes": 2034664, "sha256": "445098aea0f7ec5070a6864da3e850fdb3f6eeb65e7b2f9ba51d66653670cf60"},
+    "deltas": {
+      "estesAlpha_apogee_m": -0.25577501677645387,
+      "nasaStudent_apogee_m": -0.23245671577251414,
+      "spaceport_apogee_m": 0.0
+    },
+    "expected": {"alpha_m": -0.256, "nasa_m": -0.232, "spaceport_m": 0.0},
+    "note": "E-1b is the approved app default; runManifest gains only thrustPressure/axialDrag"
+  },
+  "suites": {
+    "core": {"passed": 273, "failed": 0, "ignored": 0, "suites": 5, "log_sha256": "61a17060d0a625a2e1763d75fa4151e5ebc2aefaf6146d826cb91acc3786fa54"},
+    "engine": {"passed": 156, "failed": 0, "ignored": 7, "suites": 19, "log_sha256": "31ba34e4d9773aeb520383eb1741486de629b4f0f2a27fdb41c0bbde1ee1b9c7"}
+  },
+  "bundle_numbers": {
+    "primary_line": "20 airframes, qu8k excluded",
+    "option2": {"mae_pct": 5.623962788961218, "signed_pct": 0.21716740126374884, "within_10": 18},
+    "corrected_r41_stack": {"mae_pct": 5.612635502496195, "signed_pct": 0.23699950464295078, "within_10": 18},
+    "research_r44_bundle": {"mae_pct": 5.625057638362087, "signed_pct": 0.216044863242344, "within_10": 18},
+    "delta_vs_r41_stack_pp": 0.011327286465022901,
+    "delta_vs_research_bundle_pp": {"mae": -0.001094849400869, "bias": 0.00112253802140484},
+    "phase2_pass": true,
+    "cohort_sha256": "97eb65cd67a1c4923bd49311badf14c6774a1b355143f6f4f0f602e250abdff4",
+    "wiring_sha256": "d26b731859cb88019c6b6d0bd3debbab5306c4fb3ff0b9393a1ee99394eb42ce",
+    "wiring": {"e1a_tables_max_rel": 0.0, "e1a_apogee_max_rel": 0.0, "r3": "not_run_app_engine"},
+    "dev_vehicles": {
+      "mini_dx3_g69n_median_pct": 29.009559287139293,
+      "cosmic_cargo_median_pct": 24.584730259187033,
+      "top_shot_median_pct": -2.4756642533886546,
+      "adventurer_median_pct": -4.908001389791325,
+      "json_sha256": "6d0eea8832a9c867d609db3021f39a1411b8a9b698eaf9fbcd08398de967c266"
+    },
+    "ensembles": {"pass": true, "json_sha256": "d2ca0c74a04902bbae90160c6a95b330a0abef069e2e17bf9f1005a011fc4e16"}
+  },
+  "review": {
+    "option1": {"reviewer": "Codex Sol gpt-6.1-sol", "verdict": "ACCEPT WITH FINDINGS", "blocking": 0, "file": "REVIEW-OPTION1.md"},
+    "option2": {"status": "accepted_with_findings", "reviewer": "Codex Sol gpt-6.1-sol", "blocking": 0, "file": "REVIEW.md"}
+  },
+  "known_limitations": [
+    "burnout event description uses ISA speed of sound under anchored air",
+    "launch sites above 11 km are not refused and the anchored pressure formula has a discontinuity",
+    "aero_model_status still says flight refused/legacy",
+    "Spaceport America fins on the boattail are refused; template flies legacy drag with the option on",
+    "nose tip radius is inert below about Mach 0.9",
+    "no frontend wiring in this branch",
+    "E-7 StabilityDto.parts is excluded"
+  ],
+  "authorization": "no push; no edit to frontend/design or main"
+}

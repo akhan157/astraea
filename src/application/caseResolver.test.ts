@@ -26,6 +26,7 @@ import {
   type McEnsembleInput,
   type WindLayerSnapshot,
 } from './caseResolver';
+import { backPressureNozzleActive } from './caseResolver';
 import { AERO_MODEL_VERSION, aeroModelKey, type AeroModelSelection } from './aeroModel';
 
 function mountTube(overrides: Record<string, unknown> = {}): Record<string, unknown> {
@@ -366,21 +367,104 @@ describe('caseResolver snapshots', () => {
   });
 });
 
+// K3: an absent drag choice is now the built-up default, which adds the drag option.
+// These derivation tests keep their exact pre-switch expectations on the explicit
+// legacy choice; the default's own expectations are the tests marked "default" below.
+const LEGACY = 'legacy' as const;
+
 describe('flight run options (launch site elevation)', () => {
   it('passes the pad elevation so the atmosphere is referenced to the site', () => {
     for (const vehicle of [PRESET_ESTES_ALPHA, PRESET_NASA_STUDENT_LAUNCH]) {
-      expect(flightRunOptions({ ...vehicle, launchSite: { altitudeM: 1143 } })).toEqual({
+      expect(flightRunOptions({ ...vehicle, flightDragSource: LEGACY, launchSite: { altitudeM: 1143 } })).toEqual({
         launchAltitudeASL: 1143,
       });
     }
   });
 
   it('passes no site options when the site is absent (engine defaults hold)', () => {
-    expect(flightRunOptions(PRESET_ESTES_ALPHA)).toEqual({});
+    expect(flightRunOptions({ ...PRESET_ESTES_ALPHA, flightDragSource: LEGACY })).toEqual({});
     expect(describeLaunchSite(PRESET_ESTES_ALPHA)).toMatch(/sea level/);
   });
 
+  it('default: the pad elevation is carried alongside the built-up drag option', () => {
+    expect(flightRunOptions({ ...PRESET_NASA_STUDENT_LAUNCH, launchSite: { altitudeM: 1143 } })).toEqual({
+      launchAltitudeASL: 1143, flightDragSource: 'calibrated',
+    });
+    expect(flightRunOptions(PRESET_ESTES_ALPHA)).toEqual({ flightDragSource: 'calibrated' });
+  });
+
   it('describes the site identity for run summaries', () => {
+    expect(describeLaunchSite({ ...PRESET_ESTES_ALPHA, launchSite: { altitudeM: 500 } })).toBe('500 m ASL');
+  });
+});
+
+describe('flight run options (vehicle-owned physics inputs)', () => {
+  it('derives the pad temperature and the flight nozzle only when each is declared', () => {
+    const base = { ...PRESET_NASA_STUDENT_LAUNCH, flightDragSource: LEGACY };
+    const warm = { ...base, launchSite: { altitudeM: 400, temperatureC: 30 } };
+    expect(flightRunOptions(warm)).toEqual({ launchAltitudeASL: 400, launchSiteTemperatureC: 30 });
+
+    // A nozzle declared for the aero method alone is NOT a flight option.
+    const aeroNozzle = { ...base, nozzleExitDiameter: 0.05 };
+    expect(flightRunOptions(aeroNozzle)).toEqual({});
+    // The back-pressure opt-in without a declared diameter derives nothing either.
+    expect(flightRunOptions({ ...base, nozzleBackPressureThrust: true })).toEqual({});
+    expect(flightRunOptions({ ...aeroNozzle, nozzleBackPressureThrust: true })).toEqual({
+      nozzleExitDiameter: 0.05,
+    });
+  });
+
+  it('default: temperature and a declared nozzle exit ride along with the built-up drag (spec Amendment 4)', () => {
+    const warm = { ...PRESET_NASA_STUDENT_LAUNCH, launchSite: { altitudeM: 400, temperatureC: 30 }, nozzleExitDiameter: 0.05 };
+    expect(flightRunOptions(warm)).toEqual({
+      launchAltitudeASL: 400, launchSiteTemperatureC: 30, nozzleExitDiameter: 0.05, flightDragSource: 'calibrated',
+    });
+    // Nothing is invented for a blank input.
+    expect(flightRunOptions(PRESET_NASA_STUDENT_LAUNCH)).toEqual({ flightDragSource: 'calibrated' });
+    // The explicit old opt-in keeps its old nozzle rule: a nozzle needs the back-pressure flag.
+    expect(flightRunOptions({ ...warm, flightDragSource: 'calibrated' })).toEqual({
+      launchAltitudeASL: 400, launchSiteTemperatureC: 30, flightDragSource: 'calibrated',
+    });
+  });
+
+  it('default: a declared nozzle exit is carried only inside the engine flight domain (0 to 1 m)', () => {
+    const at = (d: number, patch: object = {}) => flightRunOptions({ ...PRESET_NASA_STUDENT_LAUNCH, nozzleExitDiameter: d, ...patch }).nozzleExitDiameter;
+    expect(at(0.05)).toBe(0.05);
+    expect(at(1)).toBe(1); // the engine's bound is inclusive
+    expect(at(0)).toBe(0);
+    // Outside it the default drops the option instead of failing every flight; the drag input stays on the vehicle.
+    expect(at(1.0000001)).toBeUndefined();
+    expect(at(1.5)).toBeUndefined();
+    expect(at(Number.NaN)).toBeUndefined();
+    expect(at(-0.1)).toBeUndefined();
+    expect(flightRunOptions({ ...PRESET_NASA_STUDENT_LAUNCH, nozzleExitDiameter: 1.5 }).flightDragSource).toBe('calibrated');
+    // An explicit flag keeps its old rule and the engine its own refusal for an out-of-domain value.
+    expect(at(1.5, { nozzleBackPressureThrust: true })).toBe(1.5);
+  });
+
+  it('default: an explicit nozzleBackPressureThrust false turns the automatic nozzle off; true and the drag choices keep their rules', () => {
+    const base = { ...PRESET_NASA_STUDENT_LAUNCH, nozzleExitDiameter: 0.05 };
+    expect(flightRunOptions(base).nozzleExitDiameter).toBe(0.05);                                              // automatic
+    expect(flightRunOptions({ ...base, nozzleBackPressureThrust: false }).nozzleExitDiameter).toBeUndefined(); // explicit off
+    expect(flightRunOptions({ ...base, nozzleBackPressureThrust: false }).flightDragSource).toBe('calibrated'); // still built-up
+    expect(flightRunOptions({ ...base, nozzleBackPressureThrust: true }).nozzleExitDiameter).toBe(0.05);
+    for (const choice of ['legacy', 'calibrated'] as const) {
+      expect(flightRunOptions({ ...base, flightDragSource: choice, nozzleBackPressureThrust: false }).nozzleExitDiameter).toBeUndefined();
+      expect(flightRunOptions({ ...base, flightDragSource: choice, nozzleBackPressureThrust: true }).nozzleExitDiameter).toBe(0.05);
+      expect(flightRunOptions({ ...base, flightDragSource: choice }).nozzleExitDiameter).toBeUndefined();
+    }
+    // the box shows exactly what flies
+    expect(backPressureNozzleActive(base)).toBe(true);
+    expect(backPressureNozzleActive({ ...base, nozzleBackPressureThrust: false })).toBe(false);
+    expect(backPressureNozzleActive({ ...base, flightDragSource: 'legacy' })).toBe(false);
+    expect(backPressureNozzleActive({ ...base, flightDragSource: 'legacy', nozzleBackPressureThrust: true })).toBe(true);
+  });
+
+  it('describes the site temperature in the run identity line', () => {
+    expect(describeLaunchSite({ ...PRESET_ESTES_ALPHA, launchSite: { altitudeM: 500, temperatureC: 30 } })).toBe(
+      '500 m ASL, 30 °C',
+    );
+    // The absence of a temperature keeps the established string exactly.
     expect(describeLaunchSite({ ...PRESET_ESTES_ALPHA, launchSite: { altitudeM: 500 } })).toBe('500 m ASL');
   });
 });

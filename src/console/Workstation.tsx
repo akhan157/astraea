@@ -187,7 +187,7 @@ export default function Workstation() {
   }, [inspectorEmpty, compact, s.selectedId, s.stage]);
 
   useEffect(() => {
-    if (!hasToured()) s.set({ onboarding: 0 });
+    if (!hasToured()) s.set({ onboarding: 0, stage: 'mission' });
     const sc = () => setShortcuts(true);
     addEventListener('ws:shortcuts', sc);
     return () => removeEventListener('ws:shortcuts', sc);

@@ -567,6 +567,13 @@ h3 {
 }
 
 @media (max-width: 560px) {
+  .nav-inner .btn-sm,
+  .footer-inner a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
   .wrap {
     padding: 0 18px;
   }

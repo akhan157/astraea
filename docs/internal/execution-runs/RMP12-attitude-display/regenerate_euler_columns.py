@@ -25,13 +25,12 @@ FIELDS = ("pitchDeg", "rollDeg", "yawDeg")
 LOCK_COS_EPS = 1e-8
 ROW_RE = re.compile(r"\[(?:-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?,){25}-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\]")
 
-OLD_PROVENANCE = "npm run fixtures:telemetry (vitest + vite-node over the TS sources, node v24.21.0)"
+OLD_PROVENANCE = "pnpm fixtures:telemetry (vitest over the TS sources, node v26.12.1)"
 NEW_PROVENANCE = (
-    "trajectory/quaternions: npm run fixtures:telemetry (vitest + vite-node over the "
-    "TS sources, node v24.21.0); Euler columns (pitchDeg/rollDeg/yawDeg) regenerated "
-    "2026-10-29 by docs/internal/execution-runs/RMP12-attitude-display/"
-    "regenerate_euler_columns.py, an independent derivation that does not call the "
-    "Rust/TS code under test"
+    "trajectory/quaternions: pnpm fixtures:telemetry (vitest over the TS sources, node "
+    "v26.12.1); Euler columns (pitchDeg/rollDeg/yawDeg) regenerated 2026-11-09 by "
+    "docs/internal/execution-runs/RMP12-attitude-display/regenerate_euler_columns.py, "
+    "an independent derivation that does not call the Rust/TS code under test"
 )
 
 

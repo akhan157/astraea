@@ -207,6 +207,27 @@ export function candidatePreflight(
   if (currentVehicleSha256 !== undefined && currentVehicleSha256 !== selection.declarationVehicleSha256) {
     issues.push({ code: 'declaration', message: CANDIDATE_REFUSAL.modelChanged });
   }
+  // The accepted candidate contract carries none of these flight inputs. Each
+  // one is named, so a project can never run the candidate and silently drop
+  // an input the user set (the tip radius also contradicts the declaration's
+  // asserted sharp physical tip).
+  if (vehicle.launchSite?.temperatureC !== undefined) {
+    issues.push({ code: 'input', message: `The candidate model does not model the launch-site temperature (${vehicle.launchSite.temperatureC} \u00b0C). Clear it, or switch to the legacy flight model.` });
+  }
+  if (vehicle.nozzleBackPressureThrust === true) {
+    issues.push({ code: 'input', message: 'The candidate model does not model nozzle back-pressure thrust. Turn it off, or switch to the legacy flight model.' });
+  }
+  // The candidate model has its own axial model and never reads the vehicle's
+  // drag choice, so only the explicit opt-in is a contradiction; the default
+  // (no choice) is not applied to a candidate run.
+  if (vehicle.flightDragSource === 'calibrated') {
+    issues.push({ code: 'input', message: 'The candidate model does not model built-up flight drag. Turn it off, or switch to the legacy flight model.' });
+  }
+  for (const component of vehicle.components) {
+    if (component.type === 'nosecone' && component.tipRadius !== undefined) {
+      issues.push({ code: 'input', message: `The candidate model does not model a blunt nose tip (${component.tipRadius} m on '${component.name}'), and its declaration asserts a sharp physical tip. Clear it, or switch to the legacy flight model.` });
+    }
+  }
 
   const components = vehicle.components;
   if (components.length === 0) issues.push({ code: 'input', message: 'The vehicle has no components.' });

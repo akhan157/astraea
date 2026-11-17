@@ -12,10 +12,12 @@ import type { RocketVehicle } from '../../core/types';
 import { CERTIFIED_MOTORS } from '../../propulsion/motorDatabase';
 import type { MotorSpec } from '../../propulsion/motorDatabase';
 import { presetOf } from '../../state/project';
-import { aeroConfidence, MC_CHUNK_RUNS, runFlight, runMonteCarlo, shearConfidence, stabilityOfVehicle } from '../data/adapter';
+import { aeroConfidence, flightAeroConfidence, MC_CHUNK_RUNS, runFlight, runMonteCarlo, shearConfidence, stabilityOfVehicle, toFlightRun } from '../data/adapter';
 import type { Confidence } from '../data/contract';
 import type { LaunchConfig } from '../data/adapter';
-import { stubEngine, type Invocation } from '../testFixtures';
+import { stubEngine, flightResult, type Invocation } from '../testFixtures';
+import { AERO_MODEL_VERSION } from '../../application/aeroModel';
+import { savedFlightOutputs } from '../data/recoveryResults';
 
 /** Levels the adapter may assign from real engine signals. */
 const FlightLevels: Confidence[] = ['measured', 'calibrated', 'modeled', 'extrapolated', 'unknown'];
@@ -35,7 +37,8 @@ function fixtures(): { vehicle: RocketVehicle; motor: MotorSpec } {
   if (preset === null) throw new Error('the Student Launch preset is missing from the build');
   const motor = CERTIFIED_MOTORS.aerotech_k550w;
   if (motor === undefined) throw new Error('the K550W cert motor is missing from the build');
-  return { vehicle: preset.vehicle, motor };
+  // K3: these tests were written on the pre-switch flight; the explicit legacy choice keeps them there.
+  return { vehicle: { ...preset.vehicle, flightDragSource: 'legacy' as const }, motor };
 }
 
 describe('console data layer against the native bridge', () => {
@@ -174,4 +177,129 @@ describe('console data layer against the native bridge', () => {
     expect(shearConfidence(false, 'unobtainium', aero).confidence).toBe('unknown');
   });
 
+});
+
+
+describe('physics options actually sent (accuracy bundle)', () => {
+  let teardown: () => void;
+  beforeEach(() => { teardown = stubEngine().teardown; });
+  afterEach(() => teardown());
+
+  it('records the derived physics options on the run and leaves the field absent on the legacy choice', async () => {
+    const base = presetOf('nasaStudent')!;
+    const plain = await runFlight({ ...base.vehicle, flightDragSource: 'legacy' }, CERTIFIED_MOTORS[base.motorId], OPTIONS, 'certified', 'k', 1);
+    expect(plain.physicsOptions).toBeUndefined();
+
+    const warm = {
+      ...base.vehicle,
+      flightDragSource: 'legacy' as const,
+      launchSite: { altitudeM: 400, temperatureC: 30 },
+      nozzleExitDiameter: 0.05,
+      nozzleBackPressureThrust: true as const,
+    };
+    const run = await runFlight(warm, CERTIFIED_MOTORS[base.motorId], OPTIONS, 'certified', 'k', 1);
+    expect(run.physicsOptions).toEqual({ launchSiteTemperatureC: 30, nozzleExitDiameter: 0.05 });
+  });
+
+  it('default: the run records the built-up drag source (and a declared nozzle exit) it sent', async () => {
+    const base = presetOf('nasaStudent')!;
+    const run = await runFlight(base.vehicle, CERTIFIED_MOTORS[base.motorId], OPTIONS, 'certified', 'k', 1);
+    expect(run.physicsOptions).toEqual({ flightDragSource: 'calibrated' });
+    const withNozzle = await runFlight({ ...base.vehicle, nozzleExitDiameter: 0.05 }, CERTIFIED_MOTORS[base.motorId], OPTIONS, 'certified', 'k', 1);
+    expect(withNozzle.physicsOptions).toEqual({ flightDragSource: 'calibrated', nozzleExitDiameter: 0.05 });
+  });
+});
+
+describe('ensemble drag source through the adapter (accuracy bundle)', () => {
+  let teardown: () => void;
+  beforeEach(() => { teardown = stubEngine().teardown; });
+  afterEach(() => teardown());
+
+  it('keeps the dispersion free of physics metadata on the legacy choice', async () => {
+    const base = presetOf('nasaStudent')!;
+    const dispersion = await runMonteCarlo({ vehicle: { ...base.vehicle, flightDragSource: 'legacy' }, motor: CERTIFIED_MOTORS[base.motorId], options: OPTIONS, nRuns: 4, seed: 7 }, new AbortController().signal);
+    expect(dispersion.physicsOptions).toBeUndefined();
+    expect(dispersion.axialDrag).toBeUndefined();
+  });
+
+  it('default: the dispersion records that the built-up drag source was sent', async () => {
+    const base = presetOf('nasaStudent')!;
+    const dispersion = await runMonteCarlo({ vehicle: base.vehicle, motor: CERTIFIED_MOTORS[base.motorId], options: OPTIONS, nRuns: 4, seed: 7 }, new AbortController().signal);
+    expect(dispersion.physicsOptions).toEqual({ flightDragSource: 'calibrated' });
+  });
+});
+
+describe('return1: flight Basis describes the dispatched drag source', () => {
+  const BETA = Object.freeze({
+    modelId: 'aero-buildup' as const,
+    modelVersion: AERO_MODEL_VERSION,
+    terms: Object.freeze({ transonic: 'legacy' as const }),
+  });
+  let teardown: () => void;
+  beforeEach(() => { teardown = stubEngine().teardown; });
+  afterEach(() => teardown());
+
+  function optInVehicle(): RocketVehicle {
+    const base = presetOf('nasaStudent');
+    if (base === null) throw new Error('nasaStudent preset missing');
+    return { ...base.vehicle, flightDragSource: 'calibrated' };
+  }
+
+  function optedRun(line: string) {
+    const result = flightResult({ runManifest: { ...flightResult().runManifest, axialDrag: line } as never });
+    return toFlightRun(result, optInVehicle(), 'certified', 'key', 1, 1,
+      undefined, undefined, OPTIONS, undefined, BETA);
+  }
+
+  it('describes built-up axial drag when the recorded engine line says it flew', () => {
+    const run = optedRun('calibrated build-up axial drag; drag ladder from the nominal baseline flight; not a validated model');
+    expect(run.summary.apogee.reason).toContain('flight axial drag comes from the built-up method at every Mach number');
+    expect(run.summary.apogee.reason).toContain('without the legacy override over Mach 0.80-1.20');
+    expect(run.summary.apogee.reason).not.toContain('Hybrid aero model');
+    // The panel Basis is unchanged (selection-driven, never a flight claim).
+    expect(aeroConfidence(undefined, BETA).reason).toContain('legacy drag override in Mach 0.80-1.20');
+    // The archived canonical dictionary keeps the recorded flight reason.
+    expect(savedFlightOutputs(run).outputs.apogee?.reason).toBe(run.summary.apogee.reason);
+  });
+
+  it('describes a refused shape as refused, never as built-up drag flown', () => {
+    const run = optedRun("legacy 25-station Mach drag tables; legacy drag used (refused: calibrated unsupported feature: fin set 'fins' is elliptical)");
+    expect(run.summary.apogee.reason).toContain('the engine refused this shape and the flight used legacy drag');
+    expect(run.summary.apogee.reason).not.toContain('comes from the built-up method at every Mach number');
+  });
+
+  it('forwards the selection from runFlight so the bridge refuses a selection-only committed flight', async () => {
+    const base = presetOf('nasaStudent');
+    if (base === null) throw new Error('nasaStudent preset missing');
+    // K3: the refusal belongs to the explicit legacy choice; the default flies built-up drag.
+    await expect(runFlight({ ...base.vehicle, flightDragSource: 'legacy' }, CERTIFIED_MOTORS[base.motorId], OPTIONS, 'certified', 'key', 1,
+      undefined, undefined, undefined, BETA))
+      .rejects.toThrow(/flight coefficients still come from the legacy path/);
+  });
+
+  it('passes the selection to ensemble admission and refuses an opted-in ensemble without it', async () => {
+    const base = presetOf('nasaStudent');
+    if (base === null) throw new Error('nasaStudent preset missing');
+    const vehicle: RocketVehicle = { ...base.vehicle, flightDragSource: 'calibrated' };
+    const motor = CERTIFIED_MOTORS[base.motorId];
+    await expect(runMonteCarlo({ vehicle, motor, options: OPTIONS, nRuns: 2, seed: 7 }, new AbortController().signal))
+      .rejects.toThrow(/built-up aero model is not selected/);
+    const dispersion = await runMonteCarlo(
+      { vehicle, motor, options: OPTIONS, nRuns: 2, seed: 7, aeroModel: BETA },
+      new AbortController().signal,
+    );
+    expect(dispersion.physicsOptions).toEqual({ flightDragSource: 'calibrated' });
+  });
+});
+
+
+describe('return2: absent engine provenance is unknown', () => {
+  it.each<Record<string, string> | undefined>([undefined, {}, { axialDrag: 'unrecognized engine text' }, ...[42, null, true, [], {}].map(axialDrag => ({ axialDrag }) as unknown as Record<string, string>)])('does not invent flight behavior for %j', (manifest) => {
+    const base = presetOf('nasaStudent')!;
+    const basis = flightAeroConfidence({ ...base.vehicle, flightDragSource: 'calibrated' }, undefined, undefined, manifest);
+    expect(basis.confidence).toBe('unknown');
+    expect(basis.reason).toContain('drag source is unknown');
+    expect(basis.reason).not.toContain('the engine refused');
+    expect(basis.reason).not.toContain('comes from the built-up method');
+  });
 });

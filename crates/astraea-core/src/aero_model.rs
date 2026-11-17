@@ -50,7 +50,9 @@ fn component_input(
             exact_shape: None,
             length: Some(*length),
             base_diameter: Some(*base_diameter),
-            tip_radius: None,
+            // R44: the declared blunt tip travels through the adapter; absent
+            // stays `None`, which the method converts to a sharp tip (0 in).
+            tip_radius: design.and_then(|d| d.tip_radius),
             power_law_exponent: None,
             calibrated_location: None,
         },

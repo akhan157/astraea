@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { caseId } from '../../application/runCases';
+import { useEffect, useMemo, useState } from 'react';
 import { Tooltip } from 'radix-ui';
 import { exportableProject, useProjectStore } from '../../state/project';
 import { useAnalysisStore } from '../../state/analysis';
@@ -16,6 +17,7 @@ import { CONF_LABEL, DeltaChip, ResultValue } from '../kit/Value';
 import { kindOf } from '../kit/units';
 import { SAVED_FLIGHT_LANDING_OUTPUT_IDS, SAVED_FLIGHT_OUTPUT_IDS, SAVED_FLIGHT_OUTPUT_LABELS, SAVED_FLIGHT_OUTPUT_UNITS, type SavedFlightOutput, type SavedFlightOutputId, type SavedFlightOutputs } from '../../application/savedFlightOutputs';
 import { CANDIDATE_OUTPUT_LABELS, candidateLandingAvailability, candidateOutputDictionary, type CandidateResultArchive } from '../../application/candidateResult';
+import { BUILT_UP_DRAG_REFUSED, builtUpDragWasRefused } from '../data/builtUpDrag';
 import type { SimCase } from '../../formats/projectJson';
 
 /** Which direction a change is good in; the same map the live Flight table uses. */
@@ -148,6 +150,12 @@ export function SavedRuns() {
   const [baseline, setBaseline] = useState('');
   const [variant, setVariant] = useState('');
   const [message, setMessage] = useState('');
+  useEffect(() => {
+    const tokens = history.filter(record => [baseline, variant].includes(caseId(record))).map(record => record.token);
+    useAnalysisStore.getState().pinRuns('saved-compare', tokens);
+  }, [baseline, variant]);
+  useEffect(() => () => useAnalysisStore.getState().pinRuns('saved-compare', []), []);
+
   const left = cases.find((entry) => entry.id === baseline);
   const right = cases.find((entry) => entry.id === variant);
   const metrics = [...new Set([...Object.keys(left?.summary ?? {}), ...Object.keys(right?.summary ?? {})])]
@@ -170,6 +178,21 @@ export function SavedRuns() {
         : <div key={entry.id} data-saved-run-id={entry.id} className="space-y-1 border-t border-white/10 pt-2 text-[11.5px]">
         <div>{entry.kind === 'flight' ? 'Flight' : 'Ensemble'} · {entry.createdAt} · {entry.inputs?.vehicle.name ?? 'Earlier run'}</div>
         <div style={{ color: C.muted }}>{entry.inputs ? `Inputs archived · ${entry.inputs.motorRecord.motor.designation}${entry.inputs.version !== 3 && entry.inputs.ensemble ? ` · ${entry.inputs.ensemble.nRuns} runs · seed ${entry.inputs.ensemble.seed} · ${entry.inputs.ensemble.version}` : ''}` : 'Inputs unavailable (legacy summary)'} · {entry.engineIdentity?.kind === 'production-rust-wasm' && entry.engineIdentity.sha256 ? <span title={`Engine SHA-256 ${entry.engineIdentity.sha256}`}>Engine SHA-256 {entry.engineIdentity.sha256.slice(0, 12)}…</span> : 'Engine identity unknown'}</div>
+        {(() => {
+          // Archived drag-source provenance: shown only for a record whose
+          // archived inputs carry the opt-in, verbatim from the engine line
+          // saved with the case. Never re-derived from today's engine or from
+          // the requested options.
+          if (entry.inputs === undefined || entry.inputs.version === 3
+            || entry.inputs.engineOptions.flightDragSource === undefined) return null;
+          const text = entry.summary?.axialDrag;
+          if (typeof text !== 'string') return null;
+          const refused = builtUpDragWasRefused({ flightDragSource: 'calibrated' }, { axialDrag: text });
+          return <div data-archived-axial-drag className="break-words" style={{ color: C.muted }}>
+            {refused && <span style={{ color: C.warn }}>{BUILT_UP_DRAG_REFUSED} </span>}
+            Axial drag · <span className="font-geist-mono">{text}</span>
+          </div>;
+        })()}
         {entry.kind === 'monteCarlo' && entry.summary?.outcomePolicy === 'classified-v1' && (
           <div data-outcome-ledger style={{ color: C.muted }}>
             Outcome ledger · {String(entry.summary.runsRequested ?? '?')} requested · {String(entry.summary.runsEligible ?? '?')} supported nominal · {String(entry.summary.runsUnsupportedNominal ?? '?')} unsupported touchdown · {String(entry.summary.runsNonNominal ?? '?')} non-nominal · {String(entry.summary.runsTimeLimit ?? '?')} time-limit · {String(entry.summary.runsComputationalFailure ?? '?')} computational failures. Scenario-only; the footprint uses supported nominal terminals only.

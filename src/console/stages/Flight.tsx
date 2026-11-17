@@ -1,3 +1,4 @@
+import { expectedErrorLine } from '../data/expectedError';
 import { useMemo, type ReactNode } from 'react';
 import { Activity, ChevronDown } from 'lucide-react';
 import { useWS } from '../store';
@@ -22,6 +23,7 @@ import { consoleActions, currentRunKey, currentPreflight, airframeDraftPending, 
 import { stableStringify } from '../../application/caseResolver';
 import { RunReadiness } from '../shell/RunReadiness';
 import { DragCalibrationChip } from '../evidence/CalibrationChip';
+import { BUILT_UP_DRAG_REFUSED, axialDragText, builtUpDragWasRefused } from '../data/builtUpDrag';
 import { shortcutLabel } from '../../lib/platform';
 import { landingAvailability } from '../../application/flightLanding';
 import { isCandidateFlightModel, resolveFlightModel } from '../../application/flightModel';
@@ -34,12 +36,11 @@ function FlightModelChooser() {
     <Disclosure
       className="px-3 py-2 text-[11.5px]"
       style={{ borderBottom: `1px solid ${C.line}` }}
-      summaryClassName="inline-flex items-center gap-2 rounded-full py-1 pr-2 pl-2.5 hover:bg-white/5"
+      summaryClassName="inline-flex whitespace-nowrap items-center gap-2 rounded-full py-1 pr-2 pl-2.5 hover:bg-white/5"
       summaryStyle={{ border: `1px solid ${C.lineStrong}`, background: C.raised, color: C.fg }}
       chevron={false}
       summary={<>
-        <span>Flight model: Legacy (supported)</span>
-        <span style={{ color: C.muted }}>Change…</span>
+        <span style={{ color: C.muted }}>Change flight model…</span>
         <ChevronDown size={12} aria-hidden="true" className="transition-transform group-open:rotate-180" style={{ color: C.dim }} />
       </>}
     >
@@ -79,7 +80,7 @@ function FlightChrome({ compact }: { compact: boolean }) {
   if (!compact) return <><FlightModelChooser /><RunReadiness /></>;
   return (
     <div data-flight-chrome="row" className="flex shrink-0 items-stretch">
-      <div className="shrink-0"><FlightModelChooser /></div>
+      <div className="min-w-max flex-1 has-[details[open]]:min-w-0"><FlightModelChooser /></div>
       <RunReadiness inline />
     </div>
   );
@@ -142,7 +143,7 @@ export function FlightStage() {
   const allResults = Object.values(run.summary).filter((v): v is Result => typeof v === 'object' && v !== null);
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <StageHeader stage="flight" title="Flight" sub={fresh.state === 'current' ? <ValidityBadge v={run.summary.validity} enveloped={run.summary.enveloped} /> : <span style={{ color: C.changed }}>Stored validity: {run.summary.validity} · {fresh.state} — not a current result</span>}
+      <StageHeader stage="flight" title="Flight" inlineSub={fresh.state === 'current'} sub={fresh.state === 'current' ? <ValidityBadge v={run.summary.validity} enveloped={run.summary.enveloped} /> : <span style={{ color: C.changed }}>Stored validity: {run.summary.validity} · {fresh.state} — not a current result</span>}
         right={<ConfidenceSummary results={allResults} />} />
       <FlightChrome compact={compactChrome} />
       <WithDock storageKey="flight" initial={flightDockDefault}
@@ -181,6 +182,32 @@ function Events({ run }: { run: FlightRun }) {
           { key: 'v', label: 'Speed', align: 'right', width: '110px', render: (e) => <ValueUnit value={e.velocity} kind="speed" /> },
         ]} />
       {run.flutter && <p className="px-3 py-2 text-[11.5px]" style={{ color: C.dim }}>{run.flutter.provenance}</p>}
+    </div>
+  );
+}
+
+/**
+ * The engine's axial-drag source line: which drag model flew. Rendered whenever
+ * the run recorded the engine's line (K3: built-up drag is the default, so every
+ * live run says which model flew; a run restored from an older archive has no
+ * recorded line and shows none). A refused shape is named before the verbatim
+ * engine sentence (the one prose check lives in `builtUpDragWasRefused`).
+ */
+function AxialDragLine({ physics, manifest, value }: {
+  physics: FlightRun['physicsOptions'];
+  manifest: Record<string, string>;
+  value: string;
+}) {
+  return (
+    <div className="px-3 py-2 text-[11px]" data-axial-drag="true">
+      {builtUpDragWasRefused(physics, manifest) && (
+        <p role="status" className="mb-0.5" style={{ color: C.changed }}>
+          {BUILT_UP_DRAG_REFUSED}
+        </p>
+      )}
+      <p style={{ color: C.muted }}>
+        <span style={{ color: C.dim }}>Axial drag</span> {value}
+      </p>
     </div>
   );
 }
@@ -228,6 +255,9 @@ export function ResultsTable({ run }: { run: FlightRun }) {
           },
           { key: 'c', label: 'Basis', width: '1.6fr', render: (r) => { const res = run.summary[r.id] as Result; return <span data-result-basis className="block break-words text-[11.5px] leading-snug" style={{ color: C.dim }} title={res.reason}>{res.reason}</span>; } },
         ]} />
+      {axialDragText(run.manifest.axialDrag) === undefined
+        ? null
+        : <AxialDragLine physics={run.physicsOptions} manifest={run.manifest} value={axialDragText(run.manifest.axialDrag) ?? ''} />}
       <p className="px-3 py-2 text-[11.5px]" style={{ color: C.dim }}>
         Sampled Max-Q uses bounded, rounded display telemetry after decimation.
         {run.sampledMaxQ
@@ -281,6 +311,9 @@ function MonteCarlo() {
           </div>
         )}
         {d?.dragCalibration && <div><DragCalibrationChip calibration={d.dragCalibration} /></div>}
+        {d === undefined || axialDragText(d.axialDrag) === undefined
+          ? null
+          : <AxialDragLine physics={d.physicsOptions} manifest={{ axialDrag: axialDragText(d.axialDrag)! }} value={axialDragText(d.axialDrag)!} />}
         {job && <JobProgress job={job} onCancel={s.cancelMonteCarlo} onDismiss={s.dismissMonteCarlo} />}
         {stale && <p role="status" style={{ color: C.changed }}>Stale: ensemble or flight inputs changed. Rerun required.</p>}
         {d && statisticsAvailable && (
@@ -376,6 +409,12 @@ function LaunchSummary({ s }: { s: WSView }) {
       <div className="mt-3 mb-1 text-[10.5px] tracking-[0.12em] uppercase" style={{ color: C.dim }}>Site and wind</div>
       <ReadOnlyRow label="Surface wind"><ValueUnit value={o.windSpeedSurface} kind="speed" /></ReadOnlyRow>
       <ReadOnlyRow label="Wind from"><ValueUnit value={o.windAzimuthDeg} kind="angle" /></ReadOnlyRow>
+      {site?.temperatureC === undefined ? null : (
+        <div className="flex items-baseline justify-between gap-3 py-0.5 text-[12.5px]">
+          <span className="min-w-0" style={{ color: C.muted }}>Site temperature</span>
+          <span className="text-right font-geist-mono tnum">{site.temperatureC} °C</span>
+        </div>
+      )}
       <div className="flex items-baseline justify-between gap-3 py-0.5 text-[12.5px]">
         <span className="min-w-0" style={{ color: C.muted }}>Launch-site elevation</span>
         <span className="text-right font-geist-mono tnum">{site ? <ValueUnit value={site.altitudeM} kind="dist" /> : 'Not set'}</span>
@@ -402,6 +441,7 @@ export function FlightInspector() {
           <div className="grid grid-cols-2 gap-3">
             <Stat label="Apogee"><ResultValue r={run.summary.apogee} size="lg" label="Apogee" /></Stat>
             <Stat label="Max Mach"><ResultValue r={run.summary.maxMach} size="lg" label="Max Mach" /></Stat>
+            <div className="col-span-2 -mt-2 text-[10.5px] leading-snug" style={{ color: C.muted }}>{expectedErrorLine(run)}</div>
             <Stat label="Rail exit"><ResultValue r={run.summary.railExitSpeed} label="Rail exit speed" /></Stat>
             <Stat label="Drift"><ResultValue r={run.summary.drift} label="Drift" /></Stat>
           </div>

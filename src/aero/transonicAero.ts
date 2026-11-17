@@ -6,14 +6,17 @@
  *
  * Provenance (evidence per term in docs/internal/aero-provenance.md): this module was
  * written for Astraea on 2026-09-08 as the project's own model; it is not a
- * port of any third-party solver. Only these terms carry a located public
- * source: Schlichting's flat-plate law with the Van Driest II transform (skin
+ * port of any third-party solver. The cylindrical base-drag branch (r >= 1)
+ * is digitised from the measured NASA TN D-4821 Fig. 15(b) flat-base curve
+ * (its M > 1.3 tail is a stated development fit; record: accuracy/integration
+ * @ a10a82d, R32). Only these other terms carry a located public source:
+ * Schlichting's flat-plate law with the Van Driest II transform (skin
  * friction), Ackeret linear theory (fin wave drag), Hoerner form factors
- * (friction areas), and McCoy's boattail correlation. Every fitted coefficient
- * in this file — nosecone shape factors 0.55/0.72/0.85/1.25, base-drag
- * 0.12 / 0.13 / 0.38 peak / M^-1.2 decay, the 0.38 plume factor, and the
- * 0.45-caliber CP-shift heuristic — has no located primary source and is
- * unvalidated; each site is marked below.
+ * (friction areas), and McCoy's boattail correlation. Every other fitted
+ * coefficient in this file — nosecone shape factors 0.55/0.72/0.85/1.25, the
+ * historical boattail base-drag fit 0.12 / 0.13 / 0.38 peak / M^-1.2 decay,
+ * the 0.38 plume factor, and the 0.45-caliber CP-shift heuristic — has no
+ * located primary source and is unvalidated; each site is marked below.
  */
 
 import {
@@ -278,7 +281,24 @@ function finEdgeDragFromSweep(
 }
 
 /**
- * Calculates base drag coefficient with motor power-on plume and boattail reduction
+ * Base drag coefficient with motor power-on plume and boattail reduction.
+ *
+ * Cylinder bases (`baseDiameter >= bodyDiameter`, r >= 1) use the measured
+ * NASA TN D-4821 Fig. 15(b) beta = 0 flat-base amplitude (Ab/Am = 1.00),
+ * digitised at 600/400 dpi and frozen in the R32 record
+ * (`accuracy/integration` @ a10a82d,
+ * `docs/internal/accuracy-research/r32/pre_registration.json`); its M > 1.3
+ * tail is a stated development fit. Boattail bases (r < 1) keep this branch's
+ * historical project-authored law scaled by `(base/body)²`; below r = 0.9 that
+ * law, its amplitude and the 0.38 plume factor are bit-identical to
+ * `frontend/design` @ 8fd48f0. A held-out check (R33) shows this unvalidated
+ * boattail fit over-predicts base drag on small-base boattails.
+ *
+ * Base drag is continuous in r: between r = 0.9 and r = 1.0 the historical
+ * law and the cylinder law are blended with a smoothstep in r, so the r = 1
+ * dispatch no longer steps (R38 left a jump of 0.195 at M 1.0). The blend is
+ * an unsourced engineering continuity device (R39, owner-approved), not a
+ * measured law.
  */
 export function computeBaseDrag(
   mach: number,
@@ -286,6 +306,11 @@ export function computeBaseDrag(
   bodyDiameter: number,
   isMotorBurning: boolean = false
 ): number {
+  const diameterRatio = baseDiameter / Math.max(0.01, bodyDiameter);
+  if (diameterRatio >= 1.0) {
+    return baseDragCylinderRatio(mach, diameterRatio, isMotorBurning);
+  }
+
   const boattailFactor = Math.pow(baseDiameter / Math.max(0.01, bodyDiameter), 2);
 
   // PROVENANCE: every coefficient in this block (0.12, 0.13, the 0.38 peak,
@@ -318,7 +343,80 @@ export function computeBaseDrag(
   // Motor plume power-on effect: ~62% drop during burn
   const plumeReduction = isMotorBurning ? 0.38 : 1.0;
 
-  return baseCd * boattailFactor * plumeReduction;
+  const legacy = baseCd * boattailFactor * plumeReduction;
+
+  // Continuous in r: smoothstep blend from the historical law at r = 0.9
+  // (s = 0) to the cylinder law at r = 1.0 (s = 1, handled above).
+  if (diameterRatio >= 0.9) {
+    const t = (diameterRatio - 0.9) / 0.1;
+    const s = 3 * t * t - 2 * t * t * t;
+    const cylinder = baseDragCylinderRatio(mach, diameterRatio, isMotorBurning);
+    return (1 - s) * legacy + s * cylinder;
+  }
+
+  return legacy;
+}
+
+/**
+ * Measured cylinder-base law at an arbitrary base/body ratio.
+ *
+ * The arithmetic order `amplitude * baseFactor * plumeReduction` is the
+ * r >= 1 dispatch verbatim, so extracting it left the r >= 1 outputs
+ * bit-identical (proved against `84271a4` in the R39 evidence grid).
+ */
+function baseDragCylinderRatio(mach: number, diameterRatio: number, isMotorBurning: boolean): number {
+  const amplitude = baseDragAmplitudeCylinder(mach);
+  const baseFactor = Math.pow(diameterRatio, 2);
+  const plumeReduction = isMotorBurning ? 0.38 : 1.0;
+  return amplitude * baseFactor * plumeReduction;
+}
+
+/**
+ * NASA TN D-4821 Fig. 15(b) beta = 0 flat-base amplitude, C_D,b at r = 1.
+ *
+ * Frozen 600-dpi digitisation of the open-circle flat-base series
+ * (Ab/Am = 1.00, L/Dm = 1.5, power off); the source states that data between
+ * M 0.95 and 1.20 were not faired (+/-0.010 reading band). Below M = 0.30 a
+ * smoothstep joins the historical 0.120 low-Mach anchor; above M = 1.30 the
+ * tail is a stated development fit, `0.2021*(1.30/M)^0.716`, chosen to meet
+ * the legacy amplitude at M = 2.5. Mirrors
+ * `base_drag_amplitude_cylinder` in `crates/astraea-core/src/aero.rs`.
+ */
+function baseDragAmplitudeCylinder(mach: number): number {
+  const anchors: ReadonlyArray<readonly [number, number]> = [
+    [0.30, 0.1303],
+    [0.40, 0.1466],
+    [0.50, 0.1461],
+    [0.60, 0.1462],
+    [0.70, 0.1437],
+    [0.80, 0.1447],
+    [0.90, 0.1549],
+    [0.95, 0.1651],
+    [1.00, 0.1842],
+    [1.10, 0.2062],
+    [1.20, 0.2141],
+    [1.30, 0.2021],
+  ];
+  const tailExponent = 0.716;
+
+  if (mach < 0.30) {
+    const t = Math.min(1.0, Math.max(0.0, mach / 0.30));
+    const s = 3 * t * t - 2 * t * t * t;
+    return 0.120 + (anchors[0][1] - 0.120) * s;
+  }
+  if (mach > 1.30) {
+    return anchors[anchors.length - 1][1] * Math.pow(1.30 / mach, tailExponent);
+  }
+
+  let segment = 0;
+  while (segment + 1 < anchors.length && mach > anchors[segment + 1][0]) {
+    segment += 1;
+  }
+  const [m0, a0] = anchors[segment];
+  const [m1, a1] = anchors[segment + 1];
+  const t = (mach - m0) / (m1 - m0);
+  const s = 3 * t * t - 2 * t * t * t;
+  return a0 + (a1 - a0) * s;
 }
 
 /**

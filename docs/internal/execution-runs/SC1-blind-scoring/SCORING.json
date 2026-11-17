@@ -1,0 +1,651 @@
+{
+  "lane": "SC1-blind-scoring",
+  "generated_at_utc": "2026-11-17T01:52:44Z",
+  "status": "blind_not_available",
+  "blind": true,
+  "inputs": {
+    "predictions": {
+      "path": "docs/internal/execution-runs/BL1-blind-predictions/PREDICTIONS.json",
+      "sha256": "3d640e8addb2d7b30039dc507426612af5a8125210f56976b65beda3e613d6ac",
+      "frozen_source": "cbdef58"
+    },
+    "outcomes": {
+      "path": "docs/internal/execution-runs/BX1-blind-extraction/OUTCOMES.json",
+      "sha256": "24d4eefdb0701030a8cb1b3d310c81bc11a1dc6d7ddc626219c2122caee8046f",
+      "extraction_source": "c0f473a"
+    },
+    "copies_dir": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes",
+    "copies_hash_checked": true
+  },
+  "blind_result": {
+    "scorable": 0,
+    "total": 12,
+    "statement": "0 of 12 scorable under the frozen rules; no score",
+    "flights": [
+      {
+        "id": "V001-01",
+        "motor": "Estes C6-5",
+        "format": "pressure",
+        "excluded_by": [
+          "E6",
+          "E3"
+        ],
+        "reasons": {
+          "E6": "pad coverage 0.200 s < 5 s",
+          "E3": "impact sample yes (min post-apogee AGL -1.74 m); below-50 m descent >20 m/s: (52.195, -21.93)"
+        }
+      },
+      {
+        "id": "V001-02",
+        "motor": "Estes C6-5",
+        "format": "pressure",
+        "excluded_by": [
+          "E6"
+        ],
+        "reasons": {
+          "E6": "pad coverage 0.150 s < 5 s"
+        }
+      },
+      {
+        "id": "V001-03",
+        "motor": "Estes C6-5",
+        "format": "pressure",
+        "excluded_by": [
+          "E6"
+        ],
+        "reasons": {
+          "E6": "pad coverage 0.200 s < 5 s"
+        }
+      },
+      {
+        "id": "V001-04",
+        "motor": "Estes C6-7",
+        "format": "pressure",
+        "excluded_by": [
+          "E6"
+        ],
+        "reasons": {
+          "E6": "pad coverage 0.050 s < 5 s"
+        }
+      },
+      {
+        "id": "V001-05",
+        "motor": "Estes C6-7",
+        "format": "pressure",
+        "excluded_by": [
+          "E6"
+        ],
+        "reasons": {
+          "E6": "pad coverage 0.150 s < 5 s"
+        }
+      },
+      {
+        "id": "V001-06",
+        "motor": "Estes C6-7",
+        "format": "pressure",
+        "excluded_by": [
+          "E6"
+        ],
+        "reasons": {
+          "E6": "pad coverage 0.150 s < 5 s"
+        }
+      },
+      {
+        "id": "V001-07",
+        "motor": "AeroTech D13-10W",
+        "format": "pressure",
+        "excluded_by": [
+          "E6",
+          "E3"
+        ],
+        "reasons": {
+          "E6": "pad coverage 0.100 s < 5 s",
+          "E3": "impact sample yes (min post-apogee AGL -4.09 m); below-50 m descent >20 m/s: (56.995, -21.93)"
+        }
+      },
+      {
+        "id": "V001-08",
+        "motor": "Quest QC6-5",
+        "format": "pressure",
+        "excluded_by": [
+          "E6",
+          "E3"
+        ],
+        "reasons": {
+          "E6": "pad coverage 0.200 s < 5 s",
+          "E3": "impact sample yes (min post-apogee AGL -2.03 m); below-50 m descent >20 m/s: (29.145, -21.93)"
+        }
+      },
+      {
+        "id": "V001-09",
+        "motor": "Quest QC6-5",
+        "format": "pressure",
+        "excluded_by": [
+          "E6"
+        ],
+        "reasons": {
+          "E6": "pad coverage 0.100 s < 5 s"
+        }
+      },
+      {
+        "id": "V001-10",
+        "motor": "Quest QC6-5",
+        "format": "pressure",
+        "excluded_by": [
+          "E6",
+          "E3"
+        ],
+        "reasons": {
+          "E6": "pad coverage 0.150 s < 5 s",
+          "E3": "impact sample yes (min post-apogee AGL -1.01 m); below-50 m descent >20 m/s: (29.045, -21.93)"
+        }
+      },
+      {
+        "id": "V002-01",
+        "motor": "AeroTech HP-I140W-14",
+        "format": "gps",
+        "excluded_by": [
+          "E6",
+          "E3"
+        ],
+        "reasons": {
+          "E6": "pad coverage 3.900 s < 5 s",
+          "E3": "impact sample NO; min post-apogee AGL 1196.00 m; below-50 m descent >20 m/s: none"
+        }
+      },
+      {
+        "id": "V002-02",
+        "motor": "AeroTech HP-J270W-14",
+        "format": "gps",
+        "excluded_by": [
+          "E6",
+          "E3",
+          "E4"
+        ],
+        "reasons": {
+          "E6": "pad coverage 2.600 s < 5 s",
+          "E3": "impact sample NO; min post-apogee AGL 348.00 m; below-50 m descent >20 m/s: none",
+          "E4": "no barometric channel in this log; the E4 exemption is written for V002 I140W only"
+        }
+      }
+    ]
+  },
+  "development_comparison": {
+    "blind": false,
+    "label": "NON-BLIND development comparison; not a blind result",
+    "relaxed_rules": [
+      "(a) pad reference = median of all pre-liftoff samples, or the logger's own channel zero when fewer than 3",
+      "(b) E3 ballistic test uses a 1 s window, not adjacent samples",
+      "(c) GPS-only E4 exemption extended to V002-02 (vertical uncertainty unstated)",
+      "(d) a log that ends airborne stays excluded"
+    ],
+    "altitude_reference": {
+      "V002-01": {
+        "raw_max_msl_m": 6624.0,
+        "pad_median_msl_m": 2851.0,
+        "agl_m": 3773.0,
+        "arithmetic": "raw max MSL - pad median MSL"
+      },
+      "V002-02": {
+        "raw_max_msl_m": 9515.0,
+        "pad_median_msl_m": 2855.0,
+        "agl_m": 6660.0,
+        "arithmetic": "raw max MSL - pad median MSL",
+        "note": "the extraction value is already AGL above the pad; do not subtract twice"
+      }
+    },
+    "flights": [
+      {
+        "id": "V001-01",
+        "design": "V001",
+        "airframe": "Estes Emerald Streak",
+        "motor": "Estes C6-5",
+        "format": "pressure",
+        "liftoff_s": 0.244,
+        "pad_samples": 4,
+        "pad_window_s": 0.2,
+        "pad_median_m": 0.4387,
+        "pad_reference_m": 0.4387,
+        "pad_reference_source": "median of all pre-liftoff samples",
+        "measured_agl_m": 232.19,
+        "raw_max_agl_m": 234.05,
+        "last_agl_m": -1.38,
+        "impact": true,
+        "e3_fastest_1s_mps": -5.84,
+        "nominal_m": 158.64482146922478,
+        "interval_m": [
+          140.66479033716993,
+          177.1252110646571
+        ],
+        "signed_error_pct": -31.67,
+        "inside_interval": false,
+        "included": true,
+        "excluded_by_relaxed": [],
+        "relaxations_applied": [
+          "E3 removed by (b)",
+          "E6 removed by (a)"
+        ],
+        "caveat": null
+      },
+      {
+        "id": "V001-02",
+        "design": "V001",
+        "airframe": "Estes Emerald Streak",
+        "motor": "Estes C6-5",
+        "format": "pressure",
+        "liftoff_s": 0.194,
+        "pad_samples": 3,
+        "pad_window_s": 0.15,
+        "pad_median_m": 0.4115,
+        "pad_reference_m": 0.4115,
+        "pad_reference_source": "median of all pre-liftoff samples",
+        "measured_agl_m": 240.98,
+        "raw_max_agl_m": 240.98,
+        "last_agl_m": -0.32,
+        "impact": true,
+        "e3_fastest_1s_mps": -5.11,
+        "nominal_m": 158.64482146922478,
+        "interval_m": [
+          140.66479033716993,
+          177.1252110646571
+        ],
+        "signed_error_pct": -34.17,
+        "inside_interval": false,
+        "included": true,
+        "excluded_by_relaxed": [],
+        "relaxations_applied": [
+          "E6 removed by (a)"
+        ],
+        "caveat": null
+      },
+      {
+        "id": "V001-03",
+        "design": "V001",
+        "airframe": "Estes Emerald Streak",
+        "motor": "Estes C6-5",
+        "format": "pressure",
+        "liftoff_s": 0.244,
+        "pad_samples": 4,
+        "pad_window_s": 0.2,
+        "pad_median_m": 0.5993,
+        "pad_reference_m": 0.5993,
+        "pad_reference_source": "median of all pre-liftoff samples",
+        "measured_agl_m": 214.94,
+        "raw_max_agl_m": 214.94,
+        "last_agl_m": -0.13,
+        "impact": true,
+        "e3_fastest_1s_mps": -4.75,
+        "nominal_m": 158.64482146922478,
+        "interval_m": [
+          140.66479033716993,
+          177.1252110646571
+        ],
+        "signed_error_pct": -26.19,
+        "inside_interval": false,
+        "included": true,
+        "excluded_by_relaxed": [],
+        "relaxations_applied": [
+          "E6 removed by (a)"
+        ],
+        "caveat": null
+      },
+      {
+        "id": "V001-04",
+        "design": "V001",
+        "airframe": "Estes Emerald Streak",
+        "motor": "Estes C6-7",
+        "format": "pressure",
+        "liftoff_s": 0.094,
+        "pad_samples": 1,
+        "pad_window_s": 0.05,
+        "pad_median_m": 0.3517,
+        "pad_reference_m": 0.0,
+        "pad_reference_source": "logger channel zero (fewer than 3 pre-liftoff samples)",
+        "measured_agl_m": 201.2,
+        "raw_max_agl_m": 201.2,
+        "last_agl_m": -0.37,
+        "impact": true,
+        "e3_fastest_1s_mps": -5.47,
+        "nominal_m": 158.64482146922478,
+        "interval_m": [
+          140.66479033716993,
+          177.1252110646571
+        ],
+        "signed_error_pct": -21.15,
+        "inside_interval": false,
+        "included": true,
+        "excluded_by_relaxed": [],
+        "relaxations_applied": [
+          "E6 removed by (a)"
+        ],
+        "caveat": null
+      },
+      {
+        "id": "V001-05",
+        "design": "V001",
+        "airframe": "Estes Emerald Streak",
+        "motor": "Estes C6-7",
+        "format": "pressure",
+        "liftoff_s": 0.194,
+        "pad_samples": 3,
+        "pad_window_s": 0.15,
+        "pad_median_m": 0.1067,
+        "pad_reference_m": 0.1067,
+        "pad_reference_source": "median of all pre-liftoff samples",
+        "measured_agl_m": 201.22,
+        "raw_max_agl_m": 201.22,
+        "last_agl_m": -0.26,
+        "impact": true,
+        "e3_fastest_1s_mps": -5.48,
+        "nominal_m": 158.64482146922478,
+        "interval_m": [
+          140.66479033716993,
+          177.1252110646571
+        ],
+        "signed_error_pct": -21.16,
+        "inside_interval": false,
+        "included": true,
+        "excluded_by_relaxed": [],
+        "relaxations_applied": [
+          "E6 removed by (a)"
+        ],
+        "caveat": null
+      },
+      {
+        "id": "V001-06",
+        "design": "V001",
+        "airframe": "Estes Emerald Streak",
+        "motor": "Estes C6-7",
+        "format": "pressure",
+        "liftoff_s": 0.194,
+        "pad_samples": 3,
+        "pad_window_s": 0.15,
+        "pad_median_m": 0.2238,
+        "pad_reference_m": 0.2238,
+        "pad_reference_source": "median of all pre-liftoff samples",
+        "measured_agl_m": 216.08,
+        "raw_max_agl_m": 216.08,
+        "last_agl_m": -0.14,
+        "impact": true,
+        "e3_fastest_1s_mps": -4.75,
+        "nominal_m": 158.64482146922478,
+        "interval_m": [
+          140.66479033716993,
+          177.1252110646571
+        ],
+        "signed_error_pct": -26.58,
+        "inside_interval": false,
+        "included": true,
+        "excluded_by_relaxed": [],
+        "relaxations_applied": [
+          "E6 removed by (a)"
+        ],
+        "caveat": null
+      },
+      {
+        "id": "V001-07",
+        "design": "V001",
+        "airframe": "Estes Emerald Streak",
+        "motor": "AeroTech D13-10W",
+        "format": "pressure",
+        "liftoff_s": 0.144,
+        "pad_samples": 2,
+        "pad_window_s": 0.1,
+        "pad_median_m": -0.092,
+        "pad_reference_m": 0.0,
+        "pad_reference_source": "logger channel zero (fewer than 3 pre-liftoff samples)",
+        "measured_agl_m": 533.74,
+        "raw_max_agl_m": 533.74,
+        "last_agl_m": -0.46,
+        "impact": true,
+        "e3_fastest_1s_mps": -18.56,
+        "nominal_m": 315.88728452122143,
+        "interval_m": [
+          295.5613915213592,
+          341.9237728011707
+        ],
+        "signed_error_pct": -40.82,
+        "inside_interval": false,
+        "included": true,
+        "excluded_by_relaxed": [],
+        "relaxations_applied": [
+          "E3 removed by (b)",
+          "E6 removed by (a)"
+        ],
+        "caveat": null
+      },
+      {
+        "id": "V001-08",
+        "design": "V001",
+        "airframe": "Estes Emerald Streak",
+        "motor": "Quest QC6-5",
+        "format": "pressure",
+        "liftoff_s": 0.244,
+        "pad_samples": 4,
+        "pad_window_s": 0.2,
+        "pad_median_m": 0.5176,
+        "pad_reference_m": 0.5176,
+        "pad_reference_source": "median of all pre-liftoff samples",
+        "measured_agl_m": 230.62,
+        "raw_max_agl_m": 230.99,
+        "last_agl_m": -0.57,
+        "impact": true,
+        "e3_fastest_1s_mps": -12.04,
+        "nominal_m": 172.27569656462566,
+        "interval_m": [
+          153.03938250681023,
+          192.09846457424766
+        ],
+        "signed_error_pct": -25.3,
+        "inside_interval": false,
+        "included": true,
+        "excluded_by_relaxed": [],
+        "relaxations_applied": [
+          "E3 removed by (b)",
+          "E6 removed by (a)"
+        ],
+        "caveat": null
+      },
+      {
+        "id": "V001-09",
+        "design": "V001",
+        "airframe": "Estes Emerald Streak",
+        "motor": "Quest QC6-5",
+        "format": "pressure",
+        "liftoff_s": 0.144,
+        "pad_samples": 2,
+        "pad_window_s": 0.1,
+        "pad_median_m": -0.092,
+        "pad_reference_m": 0.0,
+        "pad_reference_source": "logger channel zero (fewer than 3 pre-liftoff samples)",
+        "measured_agl_m": 232.02,
+        "raw_max_agl_m": 232.39,
+        "last_agl_m": -0.46,
+        "impact": true,
+        "e3_fastest_1s_mps": -5.1,
+        "nominal_m": 172.27569656462566,
+        "interval_m": [
+          153.03938250681023,
+          192.09846457424766
+        ],
+        "signed_error_pct": -25.75,
+        "inside_interval": false,
+        "included": true,
+        "excluded_by_relaxed": [],
+        "relaxations_applied": [
+          "E6 removed by (a)"
+        ],
+        "caveat": null
+      },
+      {
+        "id": "V001-10",
+        "design": "V001",
+        "airframe": "Estes Emerald Streak",
+        "motor": "Quest QC6-5",
+        "format": "pressure",
+        "liftoff_s": 0.194,
+        "pad_samples": 3,
+        "pad_window_s": 0.15,
+        "pad_median_m": 0.0849,
+        "pad_reference_m": 0.0849,
+        "pad_reference_source": "median of all pre-liftoff samples",
+        "measured_agl_m": 234.0,
+        "raw_max_agl_m": 234.0,
+        "last_agl_m": -0.64,
+        "impact": true,
+        "e3_fastest_1s_mps": -11.66,
+        "nominal_m": 172.27569656462566,
+        "interval_m": [
+          153.03938250681023,
+          192.09846457424766
+        ],
+        "signed_error_pct": -26.38,
+        "inside_interval": false,
+        "included": true,
+        "excluded_by_relaxed": [],
+        "relaxations_applied": [
+          "E3 removed by (b)",
+          "E6 removed by (a)"
+        ],
+        "caveat": null
+      },
+      {
+        "id": "V002-01",
+        "design": "V002",
+        "airframe": "LOC DD Vulcanite",
+        "motor": "AeroTech HP-I140W-14",
+        "format": "gps",
+        "liftoff_s": 3.9,
+        "pad_samples": 32,
+        "pad_window_s": 3.9,
+        "pad_median_m": 2851.0,
+        "pad_reference_m": 2851.0,
+        "pad_reference_source": "median of all pre-liftoff samples",
+        "measured_agl_m": 3773.0,
+        "raw_max_agl_m": 3773.0,
+        "last_agl_m": 1196.0,
+        "impact": false,
+        "e3_fastest_1s_mps": null,
+        "nominal_m": 1079.71805405715,
+        "interval_m": [
+          949.3746123538143,
+          1214.5982875595034
+        ],
+        "signed_error_pct": null,
+        "inside_interval": null,
+        "included": false,
+        "excluded_by_relaxed": [
+          "E3 via rule (d): no impact sample, log ends airborne"
+        ],
+        "relaxations_applied": [
+          "E6 removed by (a)"
+        ],
+        "caveat": null
+      },
+      {
+        "id": "V002-02",
+        "design": "V002",
+        "airframe": "LOC DD Vulcanite",
+        "motor": "AeroTech HP-J270W-14",
+        "format": "gps",
+        "liftoff_s": 2.6,
+        "pad_samples": 26,
+        "pad_window_s": 2.6,
+        "pad_median_m": 2855.0,
+        "pad_reference_m": 2855.0,
+        "pad_reference_source": "median of all pre-liftoff samples",
+        "measured_agl_m": 6660.0,
+        "raw_max_agl_m": 6660.0,
+        "last_agl_m": 348.0,
+        "impact": false,
+        "e3_fastest_1s_mps": null,
+        "nominal_m": 1873.9911987839314,
+        "interval_m": [
+          1723.9021917925506,
+          2035.7343484173914
+        ],
+        "signed_error_pct": null,
+        "inside_interval": null,
+        "included": false,
+        "excluded_by_relaxed": [
+          "E3 via rule (d): no impact sample, log ends airborne"
+        ],
+        "relaxations_applied": [
+          "E4 removed by (c)",
+          "E6 removed by (a)"
+        ],
+        "caveat": "vertical uncertainty unstated"
+      }
+    ],
+    "summary": {
+      "included_flights": 10,
+      "total_flights": 12,
+      "per_airframe": [
+        {
+          "design": "V001",
+          "airframe": "Estes Emerald Streak",
+          "n": 10,
+          "median_signed_error_pct": -26.29,
+          "min_signed_error_pct": -40.82,
+          "max_signed_error_pct": -21.15,
+          "median_within_10pct": false,
+          "n_within_10pct": 0
+        }
+      ],
+      "per_motor": [
+        {
+          "motor": "AeroTech D13-10W",
+          "n": 1,
+          "median_signed_error_pct": -40.82
+        },
+        {
+          "motor": "Estes C6-5",
+          "n": 3,
+          "median_signed_error_pct": -31.67
+        },
+        {
+          "motor": "Estes C6-7",
+          "n": 3,
+          "median_signed_error_pct": -21.16
+        },
+        {
+          "motor": "Quest QC6-5",
+          "n": 3,
+          "median_signed_error_pct": -25.75
+        }
+      ],
+      "within_10pct": {
+        "n_within": 0,
+        "n": 10,
+        "vehicle_median_within_10pct": false,
+        "all_vehicles_median_within_10pct": false,
+        "pass": false
+      },
+      "mean_abs_error_pct": 27.92,
+      "mean_abs_target_pct": 5.0,
+      "mean_abs_pass": false,
+      "interval_coverage": {
+        "inside": 0,
+        "n": 10,
+        "fraction": 0.0,
+        "reference_rule_pct": 80.0
+      }
+    }
+  },
+  "interpretation": {
+    "drag_model": "legacy 25-station Mach drag tables for all 12 flights; the calibrated method refuses freeform fins",
+    "emerald_streak": {
+      "design": "V001",
+      "airframe": "Estes Emerald Streak",
+      "n": 10,
+      "median_signed_error_pct": -26.29,
+      "min_signed_error_pct": -40.82,
+      "max_signed_error_pct": -21.15,
+      "median_within_10pct": false,
+      "n_within_10pct": 0
+    },
+    "vulcanite_included": [],
+    "blind_claim": "pending"
+  },
+  "author": "cannot self-accept"
+}

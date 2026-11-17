@@ -36,7 +36,13 @@ fn analytic_components_and_reference_conversion_have_one_total() {
     let m2 = f.mach * f.mach;
     let ratio = (PI * 0.1_f64.powi(2) / 4.0) / 0.02;
     near(component(&r, "nose-pressure-offset").ca0.unwrap(), 0.005 * ratio);
-    near(component(&r, "body-base").ca0.unwrap(), (0.12 + 0.13*m2) * ratio);
+    // R32 frozen low-Mach join: smoothstep 0.120 -> 0.1303 over M 0 -> 0.30.
+    let base_amplitude = {
+        let t = (f.mach / 0.30).clamp(0.0, 1.0);
+        let s = 3.0*t*t - 2.0*t*t*t;
+        0.120 + (0.1303 - 0.120) * s
+    };
+    near(component(&r, "body-base").ca0.unwrap(), base_amplitude * ratio);
     let edge = 4.0 * 0.1 * 0.003 / 0.02;
     near(component(&r, "fin-leading-edge:fin").ca0.unwrap(), 0.85*(1.0+m2/4.0+m2*m2/40.0)*0.5*edge);
     near(component(&r, "fin-trailing-edge:fin").ca0.unwrap(), (0.12+0.13*m2)*edge);

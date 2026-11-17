@@ -22,7 +22,6 @@ const SEA_LEVEL_PSI: f64 = 14.6958;
 const SLUG_FT3_TO_KG_M3: f64 = 515.378818;
 const FT_TO_M: f64 = 0.3048;
 const PSI_TO_PA: f64 = 6894.757293;
-const IN2_TO_M2: f64 = 0.00064516;
 
 impl Site {
     /// Site setter with zero (standard) site pressure: pressure is standard at
@@ -220,12 +219,4 @@ pub fn flight_air(site: &Site, altitude_agl_m: f64) -> FlightAir {
         speed_of_sound: (2403.07606 * temperature_r(site.temperature_offset_ft + h_ft)).sqrt() * FT_TO_M,
         pressure: pressure_psi(site.pressure_offset_ft + h_ft) * PSI_TO_PA,
     }
-}
-
-/// calibrated's altitude thrust correction (N) while the motor burns: the RASP
-/// curve is a sea-level static thrust and the engine adds the nozzle-exit
-/// pressure term A_e * (14.6958 psi - p(h)) with the design's nozzle diameter.
-pub fn nozzle_pressure_thrust(nozzle_exit_diameter_in: f64, ambient_pressure_pa: f64) -> f64 {
-    let exit_area_m2 = std::f64::consts::PI * (nozzle_exit_diameter_in / 2.0).powi(2) * IN2_TO_M2;
-    exit_area_m2 * (SEA_LEVEL_PSI * PSI_TO_PA - ambient_pressure_pa)
 }

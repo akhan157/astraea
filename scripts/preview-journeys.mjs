@@ -113,7 +113,7 @@ export async function previewJourneys(page, origin) {
   await expect(page.getByText(/The Estes Cosmic Cargo comparison uses estimated fin geometry/)).toBeVisible();
   assert.equal(await page.locator('.eyebrow').textContent(), `Free · Beta ${appVersion} · Browser, Windows and Linux · macOS pending`, 'Landing version must come from package.json');
   const landingNotice = page.locator('[data-beta-notice]');
-  assert.match(await landingNotice.innerText(), /^Beta\b[\s\S]*6–10%[\s\S]*not flight approval/i, 'The landing page labels itself Beta and states its accuracy');
+  assert.match(await landingNotice.innerText(), /^Beta\b[\s\S]*5\.6%[\s\S]*not flight approval/i, 'The landing page labels itself Beta and states its accuracy');
   assert.match(await landingNotice.locator('a').getAttribute('href'), /docs\/accuracy\.md$/);
   // The desktop beta is a published pre-release: the three OS cards, and nothing else, link to the
   // release that matches package.json, so a version bump cannot leave stale download links.
@@ -127,7 +127,7 @@ export async function previewJourneys(page, origin) {
   await page.goto(new URL('app/', origin).href);
   const betaNotice = page.locator('[data-beta-notice]');
   await expect(betaNotice).toBeVisible();
-  assert.match(await betaNotice.innerText(), /^Beta\b[\s\S]*not flight approval[\s\S]*6–10%/i, 'The app labels itself Beta and states its accuracy');
+  assert.match(await betaNotice.innerText(), /^Beta\b[\s\S]*not flight approval[\s\S]*5\.6–5\.9%[\s\S]*development data/i, 'The app labels itself Beta and states its accuracy');
   assert.match(await betaNotice.locator('a').getAttribute('href'), /docs\/accuracy\.md$/);
   const isMac = await page.evaluate(() => /mac|iphone|ipad/i.test(navigator.userAgentData?.platform || navigator.platform || ''));
   const runButton = page.getByRole('banner').getByRole('button', { name: /Run simulation/ });
@@ -540,6 +540,30 @@ export async function previewJourneys(page, origin) {
     await page.getByRole('radio', { name: 'ISO', exact: true }).click();
     await page.waitForTimeout(400);
 
+    // The restore notice shrinks the canvas. Wait for both its resize and the
+    // renderer's updated safe region after dismissing it before measuring.
+    const notice = page.getByRole('button', { name: 'Dismiss working session notice' });
+    if (await notice.count()) {
+      const before = await page.evaluate(() => ({
+        height: document.querySelector('main canvas').getBoundingClientRect().height,
+        region: document.querySelector('[data-layout-state]')?.getAttribute('data-safe-region'),
+      }));
+      await notice.click();
+      await expect(notice).toHaveCount(0);
+      await expect.poll(() => page.evaluate(() => document.querySelector('main canvas').getBoundingClientRect().height), { timeout: 20_000 }).toBeGreaterThan(before.height);
+      await expect.poll(() => page.evaluate(() => document.querySelector('[data-layout-state]')?.getAttribute('data-safe-region')), { timeout: 20_000 }).not.toBe(before.region);
+    }
+    await expect(notice).toHaveCount(0);
+
+    // The fit report and safe region are written together; wait until that fit
+    // uses the canvas size after the notice is dismissed.
+    await expect.poll(() => page.evaluate(() => {
+      const reported = document.querySelector('[data-viewport-size]')?.getAttribute('data-viewport-size')?.split(',').map(Number);
+      const canvas = document.querySelector('main canvas')?.getBoundingClientRect();
+      return Boolean(canvas && reported?.length === 2 && reported.every(Number.isFinite)
+        && Math.abs(reported[0] - canvas.width) <= 0.1 && Math.abs(reported[1] - canvas.height) <= 0.1);
+    }), { message: 'the Flight fit must reflect the current canvas size', timeout: 20_000 }).toBe(true);
+
     // The upright, attitude-posed rocket must stay inside the canvas area the
     // stage's toolbar, pose readout and scrubber leave free — at every point of
     // the scrub range, including the most tilted pose near apogee.
@@ -565,6 +589,7 @@ export async function previewJourneys(page, origin) {
           local(document.querySelector('label:has(input[aria-label="Flight scrubber"])')),
         ].filter(Boolean),
         time: /T\+([\d.]+)/.exec(document.querySelector('[aria-label="Flight pose readout"]')?.textContent ?? '')?.[1] ?? null,
+        notice: Boolean(document.querySelector('[aria-label="Dismiss working session notice"]')),
       };
     });
     const scrub = page.locator('input[aria-label="Flight scrubber"]');
@@ -592,6 +617,9 @@ export async function previewJourneys(page, origin) {
         const [rx0, ry0, rx1, ry1] = state.region;
         assert.ok(x0 >= rx0 - 1.5 && y0 >= ry0 - 1.5 && x1 <= rx1 + 1.5 && y1 <= ry1 + 1.5, `Flight at ${state.time}s: the rocket must sit inside the free region (box ${state.bbox}, region ${state.region})`);
       }
+      // A restore notice that appears late (seen 9.6 s after reload under load)
+      // shrinks the canvas by its own height; fail on that, not on 220 px.
+      assert.ok(!state.notice, `Flight at ${state.time}s: the working-session notice reappeared during the layout measurement`);
       if (fraction === 0.5) { upright.regionH = state.region ? state.region[3] - state.region[1] : 0; upright.bboxH = y1 - y0; }
       seen.push(`${state.time}s ${state.bbox.map((v) => Math.round(v)).join(',')}`);
     }
@@ -1027,6 +1055,11 @@ export async function calibrationJourney(page, origin) {
   await stage('Mission');
   await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: 'cosmic-cargo-2986.astraea.json', mimeType: 'application/json', buffer: design });
   await expect(page.getByRole('textbox', { name: 'Vehicle name' })).toHaveValue('Cosmic Cargo (estimated)');
+  // K3: a drag fit is made against the legacy tables only, and built-up drag is the default, so the
+  // calibration journey chooses the legacy flight explicitly (the card says why it blocks otherwise).
+  await stage('Aero');
+  await page.getByRole('tab', { name: 'Aerodynamic inputs', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Use built-up drag in flights', exact: true }).uncheck();
   await run();
   let before = await readApogee();
   assert.equal(before.level, 'Modeled', 'An uncalibrated run reads Modeled');
@@ -1082,6 +1115,7 @@ export async function calibrationJourney(page, origin) {
   const synthetic = syntheticCalibrationCoast();
   const controlled = JSON.parse(design.toString());
   controlled.vehicle.name = 'Synthetic vertical calibration workflow';
+  controlled.vehicle.flightDragSource = 'legacy'; // K3: a drag fit needs the legacy flight, which is no longer the default
   controlled.workspace.launch.railElevationDeg = 90;
   controlled.workspace.launch.windSpeedMps = 0;
   controlled.workspace.launch.finCantDeg = 0;

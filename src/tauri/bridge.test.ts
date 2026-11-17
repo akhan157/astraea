@@ -9,13 +9,16 @@ import {
   ingredientLibrary,
   propellantPerformance,
   simulateFlight,
+  previewFlight,
   runEnsemble,
+  runEnsembleClassified,
   runEnsembleChunk,
 } from './bridge';
 import type { RocketVehicle } from '../core/types';
 import type { SixDofOptions } from '../sim/sixDofSimulator';
 import { PRESET_ESTES_ALPHA, PRESET_NASA_STUDENT_LAUNCH } from '../state/presets';
 import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
+import { AERO_MODEL_VERSION, AERO_MODEL_VERSION_METHOD_ONLY } from '../application/aeroModel';
 import { setTestEngine, type EngineInvoke } from '../engine';
 
 /**
@@ -198,5 +201,176 @@ describe('native bridge telemetry (bounded display series)', () => {
     expect(seen[0].args.req).not.toHaveProperty('options.recordTelemetry');
     // Ensemble paths never carry a telemetry series.
     expect(res).not.toHaveProperty('telemetry');
+  });
+});
+
+describe('vehicle-owned physics options', () => {
+  function captureOptions() {
+    const seen: Array<{ cmd: string; args: Record<string, unknown> }> = [];
+    setTestEngine((async (cmd: string, args?: Record<string, unknown>) => {
+      seen.push({ cmd, args: args ?? {} });
+      return {
+        apogeeAltitude: 1, apogeeTime: 1, apogeePosition: { x: 0, y: 0, z: 0 }, maxVelocity: 1, maxMach: 0.1,
+        maxAccelerationG: 1, burnoutAltitude: 1, burnoutVelocity: 1, burnoutTime: 1, railExitVelocity: 1,
+        isRailExitSafe: true, weathercockAngleDeg: 0, landingPosition: { x: 0, y: 0, z: 0 }, landingDistance: 0,
+        landingVelocity: 1, landingKineticEnergy: 1, isLandingSafe: true, isLandingVelocitySafe: true,
+        terminated: true, terminationReason: 'touchdown', touchdownNominal: true, unsupportedHandling: 'documented',
+        runManifest: {}, landingMass: 1, flightDuration: 1, validity: 'PASS', enveloped: true,
+        offNominalExcursion: false, events: [], telemetry: [],
+      } as never;
+    }) as EngineInvoke);
+    return seen;
+  }
+
+  it('derives the temperature and the back-pressure nozzle from the vehicle', async () => {
+    const seen = captureOptions();
+    // K3: the explicit legacy choice keeps the pre-switch request; the default test follows.
+    const warm: RocketVehicle = {
+      ...PRESET_NASA_STUDENT_LAUNCH,
+      flightDragSource: 'legacy',
+      launchSite: { altitudeM: 400, temperatureC: 30 },
+      nozzleExitDiameter: 0.05,
+      nozzleBackPressureThrust: true,
+    };
+    await simulateFlight(warm, CERTIFIED_MOTORS.estes_c6, {});
+    const options = seen[0].args.options as SixDofOptions;
+    expect(options).toMatchObject({ launchAltitudeASL: 400, launchSiteTemperatureC: 30, nozzleExitDiameter: 0.05 });
+    expect(options).not.toHaveProperty('flightDragSource');
+  });
+
+  it('default: temperature and a declared nozzle exit are sent with the built-up drag source', async () => {
+    const seen = captureOptions();
+    const warm: RocketVehicle = {
+      ...PRESET_NASA_STUDENT_LAUNCH,
+      launchSite: { altitudeM: 400, temperatureC: 30 },
+      nozzleExitDiameter: 0.05,
+    };
+    await simulateFlight(warm, CERTIFIED_MOTORS.estes_c6, {});
+    expect(seen[0].args.options as SixDofOptions).toMatchObject({
+      launchAltitudeASL: 400, launchSiteTemperatureC: 30, nozzleExitDiameter: 0.05, flightDragSource: 'calibrated',
+    });
+  });
+
+  it('fails closed when a caller restates a physics option the vehicle does not own', async () => {
+    captureOptions();
+    // The aero nozzle alone must not become a flight option, and a caller may not invent one.
+    await expect(
+      simulateFlight(
+        { ...PRESET_NASA_STUDENT_LAUNCH, flightDragSource: 'legacy', nozzleExitDiameter: 0.05 },
+        CERTIFIED_MOTORS.estes_c6,
+        { nozzleExitDiameter: 0.05 },
+      ),
+    ).rejects.toThrow(/options\.nozzleExitDiameter \(0\.05\) disagrees with the vehicle-derived value/);
+    await expect(
+      simulateFlight(PRESET_NASA_STUDENT_LAUNCH, CERTIFIED_MOTORS.estes_c6, { launchSiteTemperatureC: 30 }),
+    ).rejects.toThrow(/options\.launchSiteTemperatureC \(30\) disagrees with the vehicle-derived value/);
+  });
+
+  it('keeps the app-side opt-ins out of the vehicle DTO and forwards the declared nose tip radius', async () => {
+    const seen = captureOptions();
+    const vehicle: RocketVehicle = {
+      ...PRESET_NASA_STUDENT_LAUNCH,
+      nozzleExitDiameter: 0.05,
+      nozzleBackPressureThrust: true,
+    };
+    const withTip = structuredClone(vehicle);
+    const nose = withTip.components.find((c) => c.type === 'nosecone');
+    if (nose) (nose as { tipRadius?: number }).tipRadius = 0.003;
+    await simulateFlight(withTip, CERTIFIED_MOTORS.estes_c6, {});
+    const sent = seen[0].args.vehicle as Record<string, unknown>;
+    expect(sent).not.toHaveProperty('nozzleBackPressureThrust');
+    expect(sent).not.toHaveProperty('flightDragSource');
+    expect(sent.nozzleExitDiameter).toBe(0.05);
+    const components = sent.components as Array<Record<string, unknown>>;
+    expect(components[0].tipRadius).toBe(0.003);
+  });
+});
+
+describe('return1: committed flight and ensemble admission is the shared pairing', () => {
+  const BETA = Object.freeze({
+    modelId: 'aero-buildup' as const,
+    modelVersion: AERO_MODEL_VERSION,
+    terms: Object.freeze({ transonic: 'legacy' as const }),
+  });
+  const DEFECTIVE = Object.freeze({
+    modelId: 'aero-buildup' as const,
+    modelVersion: AERO_MODEL_VERSION_METHOD_ONLY,
+    terms: Object.freeze({ transonic: 'legacy' as const }),
+  });
+  const motor = CERTIFIED_MOTORS.estes_c6;
+
+  function stubInvoke(): Array<{ cmd: string; args: Record<string, unknown> }> {
+    const seen: Array<{ cmd: string; args: Record<string, unknown> }> = [];
+    setTestEngine((async (cmd: string, args?: Record<string, unknown>) => {
+      seen.push({ cmd, args: args ?? {} });
+      return {};
+    }) as EngineInvoke);
+    return seen;
+  }
+
+  function optIn(): RocketVehicle {
+    return { ...PRESET_NASA_STUDENT_LAUNCH, flightDragSource: 'calibrated' };
+  }
+
+  it('refuses a committed flight that opted in without a usable selection, before dispatch', async () => {
+    const seen = stubInvoke();
+    await expect(simulateFlight(optIn(), motor, {})).rejects.toThrow(/built-up aero model is not selected/);
+    await expect(simulateFlight(optIn(), motor, {}, DEFECTIVE)).rejects.toThrow(/never implemented the legacy-transonic composition/);
+    expect(seen).toHaveLength(0);
+  });
+
+  it('keeps the selection-only committed-flight refusal', async () => {
+    const seen = stubInvoke();
+    // K3: the refusal now belongs to the explicit legacy choice; the default flies built-up drag.
+    await expect(simulateFlight({ ...PRESET_NASA_STUDENT_LAUNCH, flightDragSource: 'legacy' }, motor, {}, BETA))
+      .rejects.toThrow(/flight coefficients still come from the legacy path/);
+    expect(seen).toHaveLength(0);
+  });
+
+  it('default: a selection with no drag choice is admitted and flies the built-up drag', async () => {
+    const seen = stubInvoke();
+    await simulateFlight(PRESET_NASA_STUDENT_LAUNCH, motor, {}, BETA);
+    await simulateFlight(PRESET_NASA_STUDENT_LAUNCH, motor, {});
+    expect(seen.map((s) => s.cmd)).toEqual(['simulate_flight', 'simulate_flight']);
+    for (const call of seen) expect((call.args.options as SixDofOptions).flightDragSource).toBe('calibrated');
+  });
+
+  it('dispatches the usable pairing without putting aeroModel on the wire', async () => {
+    const seen = stubInvoke();
+    await simulateFlight(optIn(), motor, {}, BETA);
+    expect(seen.map((s) => s.cmd)).toEqual(['simulate_flight']);
+    expect(seen[0].args).not.toHaveProperty('aeroModel');
+    expect((seen[0].args.options as SixDofOptions).flightDragSource).toBe('calibrated');
+  });
+
+  it('applies the same admission to the whole-ensemble and chunk entry points', async () => {
+    const seen = stubInvoke();
+    const base = { vehicle: optIn(), motor, options: {} };
+    await expect(runEnsemble(base, {}, 2, 7, 'per-run-v2'))
+      .rejects.toThrow(/built-up aero model is not selected/);
+    await expect(runEnsembleClassified(base, {}, 2, 7, 'per-run-v2'))
+      .rejects.toThrow(/built-up aero model is not selected/);
+    await expect(runEnsembleChunk(base, {}, 2, 7, 0, 2, 'per-run-v2'))
+      .rejects.toThrow(/built-up aero model is not selected/);
+    await expect(runEnsembleChunk({ vehicle: { ...PRESET_NASA_STUDENT_LAUNCH, flightDragSource: 'legacy' }, motor, options: {} }, {}, 2, 7, 0, 2, 'per-run-v2', undefined, BETA))
+      .rejects.toThrow(/flight coefficients still come from the legacy path/);
+    expect(seen).toHaveLength(0);
+  });
+
+  it('dispatches a paired ensemble chunk and sends the drag source', async () => {
+    const seen = stubInvoke();
+    await runEnsembleChunk({ vehicle: optIn(), motor, options: {} }, {}, 2, 7, 0, 2, 'per-run-v2', undefined, BETA);
+    expect(seen.map((s) => s.cmd)).toEqual(['run_ensemble_chunk']);
+    expect((seen[0].args.req as { options: SixDofOptions }).options.flightDragSource).toBe('calibrated');
+    expect(seen[0].args.req).not.toHaveProperty('aeroModel');
+  });
+
+  it('leaves the live preview ungated in both refusal-matrix states', async () => {
+    const seen = stubInvoke();
+    await previewFlight(optIn(), motor, {});
+    await previewFlight({ ...PRESET_NASA_STUDENT_LAUNCH, flightDragSource: 'legacy' }, motor, {});
+    expect(seen.map((s) => s.cmd)).toEqual(['flight_summary', 'flight_summary']);
+    expect((seen[0].args.options as SixDofOptions).flightDragSource).toBe('calibrated');
+    expect((seen[1].args.options as SixDofOptions)).not.toHaveProperty('flightDragSource');
   });
 });

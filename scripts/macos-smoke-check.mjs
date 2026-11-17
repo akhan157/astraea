@@ -4,9 +4,10 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-// NASA Student Launch baseline, the default project. Regression pin of the
+// NASA Student Launch baseline, the default project (K3 built-up drag default: 546.54 m;
+// 532.84 m on the legacy tables before K3, owner-approved at hard stop c 2026-11-15). Regression pin of the
 // engine's own output (not independent validation); see CHANGELOG 2026-10-21.
-export const BASELINE_APOGEE_M = 533;
+export const BASELINE_APOGEE_M = 547;
 export const APOGEE_TOLERANCE_M = 2;
 
 /** Every reason this report does not prove a good baseline flight. */

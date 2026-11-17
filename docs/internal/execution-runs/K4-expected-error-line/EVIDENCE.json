@@ -1,0 +1,24 @@
+{
+  "status": "in_progress",
+  "base": "442a9530fde2be5e823fba72534cbbcaa79e669e",
+  "manifest_sha256": "3bd280773404b406439dd4684ad0d5a7f484a8fd7e9f61aaf237b2afd1fe54f5",
+  "wasm_sha256": "bc19590b8e75091f1123cb497a388b47209c0461b0ecda7eb02d6064fead57ff",
+  "probe_sha256": "fa4b2cc50cd44eb1233bd04f86b67cbc3548c11ba9e9b667c7189ec78b97b24e",
+  "cohort_output_sha256": "be7d0ef2ddbff66295e848ef8463d6901eac9c0c58f93f13a1085665d7b3f7cd",
+  "cohort_output": "astraea-evidence/goal-collegiate-accuracy/K4/cand.json",
+  "self_accepted": false,
+  "revision_base": "58583e32d896596cf3f15a3f5aba5e92343495dd",
+  "qualifying_airframes": 20,
+  "qualifying_failures": [],
+  "revision_focused_tests": "2 files, 9 tests passed",
+  "revision_tsc": "exit 0",
+  "revision_vite_build": "exit 0",
+  "screenshots": {
+    "no_band_dark": "417fe089edb9f69a8087cd919e69d44850abeca94fad59b436a228b5eb1b3159",
+    "subsonic_dark": "fa4931b6f86b12d13eede5138cd3ebce4ed261b6d8dd511925236868b415b165",
+    "transonic_dark": "47ef1f8fdb42c24a515ac5253107348e3f09f312492ff71f070b1cd131e3e4a3",
+    "supersonic_dark": "4a0518decf9054fef6753384a1a891fcad4aad413282532cd2397aabcdba379f"
+  },
+  "light_theme": "unavailable: fixed dark workstation tokens",
+  "phone": "not applicable: desktop-size warning"
+}

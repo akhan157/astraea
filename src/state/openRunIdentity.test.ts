@@ -12,13 +12,14 @@ import { importProjectFile } from './projectIo';
 import { writeProject } from '../formats/projectJson';
 import { consoleActions, useConsoleJobs } from '../console/store';
 import { useFlightQualification } from '../console/hooks';
-import { stubEngine } from '../console/testFixtures';
+import { pinLegacyFlightDrag, stubEngine } from '../console/testFixtures';
 
 describe('open project keeps the committed run honest', () => {
   let teardown: () => void;
   beforeEach(() => {
     teardown = stubEngine().teardown;
     useProjectStore.getState().loadPreset('nasaStudent');
+    pinLegacyFlightDrag();
     useAnalysisStore.getState().reset();
   });
   afterEach(() => teardown());

@@ -1,0 +1,66 @@
+{
+ "status": "accepted_with_findings_by_orchestrator_after_independent_review",
+ "commands": [
+  {
+   "command": "free -h (before each run)",
+   "exit": 0
+  },
+  {
+   "command": "pnpm exec vitest run --config docs/internal/execution-runs/L0-benchmark-harness/vitest.config.ts > out/L0/vitest.log 2>&1",
+   "exit": 0
+  },
+  {
+   "command": "cargo test --offline -j 2 --manifest-path crates/astraea-engine/Cargo.toml --test l0_arm_c -- --test-threads=2 > out/L0/cargo.log 2>&1",
+   "exit": 0
+  },
+  {
+   "command": "node docs/internal/execution-runs/L0-benchmark-harness/summarize.cjs > out/L0/summary.log 2>&1",
+   "exit": 0
+  }
+ ],
+ "sha256": {
+  "out/L0/cargo.log": "8f08dce3b617349d3051a1bd4fb66bcfd23945944e221104f9a629103838ca6d",
+  "out/L0/native-c.json": "2ccf34b3db0af25cf626dd8ee0d7b619fd671d0f2097a4703bbf12b7c46d92cc",
+  "out/L0/summary.json": "134dbefdd918bfe1a51a46abd68108a14f1e61a715341d92073fd446e763eb4d",
+  "out/L0/summary.log": "5e68a45a2657245ef2372e140cbe77f063e9529e40c9e244edb83cbef05852af",
+  "out/L0/vitest.log": "aaa739fc90306e1bfbc40e281b5baf29da74c37033b976c18134fb24f4d2e70a",
+  "out/L0/wasm.json": "4194b0f5f080468d521482e8d5d7c5a140bdf549cef08140c618e4116c5011c9"
+ },
+ "maximum_relative_difference": {
+  "A": 6.429887758712166e-16,
+  "B": 3.701413998791302e-16,
+  "C": 3.6831855994100735e-16
+ },
+ "wasm_sha256": "bc19590b8e75091f1123cb497a388b47209c0461b0ecda7eb02d6064fead57ff",
+ "orchestrator_rerun_2026_11_15": {
+  "commands": [
+   {
+    "command": "pnpm exec vitest run --config docs/internal/execution-runs/L0-benchmark-harness/vitest.config.ts",
+    "exit": 0
+   },
+   {
+    "command": "cargo test --offline -j 2 --manifest-path crates/astraea-engine/Cargo.toml --test l0_arm_c -- --ignored --test-threads=2",
+    "exit": 0
+   },
+   {
+    "command": "cargo test --offline -j 2 --manifest-path crates/astraea-engine/Cargo.toml --test l0_arm_c -- --test-threads=2 (default suite: 1 ignored)",
+    "exit": 0
+   },
+   {
+    "command": "node docs/internal/execution-runs/L0-benchmark-harness/summarize.cjs",
+    "exit": 0
+   },
+   {
+    "command": "guard test: wasm.json rows[5].B *= 1+1e-9 then summarize.cjs",
+    "exit": 1
+   }
+  ],
+  "sha256": {
+   "out/L0/wasm.json": "55ca56b9b202fd41d64bef4d568cffba08280836aa1ca8149018266e4d94c7fa",
+   "out/L0/summary.json": "474947bfa8dc8fc7303efac5812154b7574f0bf5129c7177a7495138bc591f68",
+   "out/L0/native-c.json": "2ccf34b3db0af25cf626dd8ee0d7b619fd671d0f2097a4703bbf12b7c46d92cc"
+  },
+  "evidence_sha256sums": "/home/ak/astraea-evidence/goal-collegiate-accuracy/L0/SHA256SUMS sha256 9ba342d6b3027f8939d66d8ac1eab0f50ebe0d1161c926fbb7be4257b4cc0975",
+  "identical_to_author_run": "rows, summaries and max differences"
+ }
+}

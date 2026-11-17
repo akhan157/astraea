@@ -1,0 +1,188 @@
+{
+  "request": {
+    "vehicle": {
+      "components": [
+        {
+          "id": "nsl-nc",
+          "name": "Von Kármán Nosecone",
+          "type": "nosecone",
+          "materialId": "fiberglass",
+          "shape": "conical",
+          "length": 0.65,
+          "baseDiameter": 0.152,
+          "wallThickness": 0.0035,
+          "isHollow": true,
+          "color": "#06b6d4"
+        },
+        {
+          "id": "nsl-bt1",
+          "name": "Payload & Avionics Bay",
+          "type": "bodytube",
+          "materialId": "fiberglass",
+          "length": 0.75,
+          "outerDiameter": 0.152,
+          "innerDiameter": 0.145,
+          "color": "#18181b",
+          "isMotorMount": false
+        },
+        {
+          "id": "nsl-trans",
+          "name": "Airframe Coupler",
+          "type": "bodytube",
+          "materialId": "aluminum",
+          "length": 0.12,
+          "outerDiameter": 0.152,
+          "innerDiameter": 0.146,
+          "color": "#71717a",
+          "isMotorMount": false
+        },
+        {
+          "id": "nsl-bt2",
+          "name": "Booster & Motor Section",
+          "type": "bodytube",
+          "materialId": "fiberglass",
+          "length": 1.45,
+          "outerDiameter": 0.152,
+          "innerDiameter": 0.145,
+          "isMotorMount": false,
+          "color": "#18181b"
+        },
+        {
+          "id": "nsl-fins",
+          "name": "High-Power Clipped Delta Fins",
+          "type": "trapezoidfinset",
+          "materialId": "carbonfiber",
+          "finCount": 4,
+          "rootChord": 0.32,
+          "tipChord": 0.12,
+          "span": 0.18,
+          "sweepLength": 0.18,
+          "thickness": 0.0048,
+          "crossSection": "airfoil",
+          "axialOffset": 1.1,
+          "color": "#06b6d4"
+        },
+        {
+          "id": "nsl-drogue",
+          "name": "Drogue Parachute (Apogee)",
+          "type": "parachute",
+          "materialId": "cardboard",
+          "diameter": 0.6,
+          "cd": 1.2,
+          "mass": 0.18,
+          "axialOffset": 0.2
+        },
+        {
+          "id": "nsl-main",
+          "name": "Main Parachute (700ft AGL)",
+          "type": "parachute",
+          "materialId": "cardboard",
+          "diameter": 2.4,
+          "cd": 1.5,
+          "mass": 0.75,
+          "axialOffset": 0.85
+        }
+      ]
+    },
+    "motor": {
+      "id": "aerotech_k550w",
+      "designation": "AeroTech K550W (54mm)",
+      "manufacturer": "AeroTech",
+      "impulseClass": "K",
+      "diameter": 0.054,
+      "length": 0.52,
+      "burnTime": 2.82,
+      "totalImpulse": 1550,
+      "avgThrust": 550,
+      "propellantMass": 0.81,
+      "totalMass": 1.58,
+      "dryMass": 0.77,
+      "maxThrust": 720,
+      "thrustCurve": [
+        {
+          "time": 0,
+          "thrust": 0
+        },
+        {
+          "time": 0.08,
+          "thrust": 350
+        },
+        {
+          "time": 0.2,
+          "thrust": 720
+        },
+        {
+          "time": 0.6,
+          "thrust": 680
+        },
+        {
+          "time": 1.2,
+          "thrust": 620
+        },
+        {
+          "time": 1.8,
+          "thrust": 550
+        },
+        {
+          "time": 2.4,
+          "thrust": 420
+        },
+        {
+          "time": 2.82,
+          "thrust": 0
+        }
+      ]
+    },
+    "adapter": {
+      "sourceIdentity": "astraea-project-vehicle|design-sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "declarations": {
+        "provenance": "Synthetic candidate fixture declarations; no measurement implied.",
+        "sharpPhysicalTip": true,
+        "circularAxisymmetricBody": true,
+        "smoothSlenderProfile": true,
+        "identicalEquallySpacedThinUncantedFins": true,
+        "noOtherExternalFeaturesOrUnmodeledInterferences": true,
+        "sourceRepresentsCompleteExternalGeometry": true
+      },
+      "transitionInterpretation": null,
+      "ogiveInterpretation": null,
+      "aftTermination": "flatExposedBaseAtFinalStation",
+      "internalNonGeometryIds": [
+        "nsl-drogue",
+        "nsl-main"
+      ],
+      "quadrature": {
+        "absoluteToleranceM3": 1e-14,
+        "relativeTolerance": 1e-10,
+        "maxPanels": 4096
+      }
+    },
+    "mechanicalSourceId": "astraea-project-mass-rollup|legacy-primitive-mass-inertia/1.0.0",
+    "environmentSourceId": "astraea-project-site|legacy-isa1976-powerlaw-wind/1.0.0",
+    "axial": {
+      "ca0": 0.35,
+      "providerId": "fixture-prescribed-CA0",
+      "inputIdentity": "coast; prescribed CA0 0.35; synthetic fixture declaration, not a source export"
+    },
+    "environment": {
+      "launchAltitudeASL": 0,
+      "windSpeedSurfaceMps": 0,
+      "windAzimuthDeg": 0
+    },
+    "motorAftStationFromNoseM": 2.9699999999999998,
+    "launch": {
+      "railLengthM": 3,
+      "railElevationDeg": 85,
+      "railAzimuthDeg": 0,
+      "mainDeployAltitudeAglM": 300,
+      "timeStepS": 0.01,
+      "dragCdScale": null,
+      "finCantAngleDeg": null
+    },
+    "horizonSeconds": 0.1,
+    "curveMachs": [
+      0.1
+    ],
+    "query": null
+  }
+}

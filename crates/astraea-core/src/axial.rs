@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use std::f64::consts::PI;
 
 pub const MODEL_ID: &str = "local-subsonic-inherited-total-axial/1.0.0";
-pub const PRESSURE_SOURCE_ID: &str = "astraea-core:aero.rs:compute_nosecone_wave_drag+compute_fin_wave_drag+compute_fin_edge_drag+compute_base_drag@3d9ca93";
+pub const PRESSURE_SOURCE_ID: &str = "astraea-core:aero.rs:compute_nosecone_wave_drag+compute_fin_wave_drag+compute_fin_edge_drag+compute_base_drag@r39-blend-0.9-1.0";
 pub const MAX_MACH_EXCLUSIVE: f64 = 0.8;
 pub const CONFIGURATION_ID: &str = "clean-nose-cylinder-trapezoid-fins-unobstructed-base/1.0.0";
 pub const COVERAGE_ID: &str = "nose-cylinder-plus-all-fin-faces-friction-no-pressure-in-form-factors/1.0.0";

@@ -7,7 +7,7 @@ import { adoptProject, exportableProject, useProjectStore } from '../state/proje
 import { useAnalysisStore, type AnalysisRecord } from '../state/analysis';
 import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
 import { toFlightRun } from '../console/data/adapter';
-import { flightResult } from '../console/testFixtures';
+import { flightResult, pinLegacyFlightDrag } from '../console/testFixtures';
 import { designOf } from '../console/design';
 import { LEGACY_FLIGHT_MODEL } from './flightModel';
 import type { DragCalibration } from './dragCalibration';
@@ -27,6 +27,7 @@ function completed(inputs: LegacyRunInputs, token = 1): AnalysisRecord {
 let project: ProjectEnvelope;
 beforeEach(() => {
   useProjectStore.getState().loadPreset('estesAlpha');
+  pinLegacyFlightDrag(); // these archive tests are about the archive, on the pre-switch (legacy) flight
   useAnalysisStore.getState().reset();
   project = structuredClone(exportableProject());
 });
@@ -353,4 +354,110 @@ describe('dispatch input archives', () => {
     expect(() => captureRunInputs(project, record, 'key', undefined, undefined, undefined, { dragCdScale: 0.8 })).toThrow(/does not match/);
   });
 
+});
+
+
+describe('archive of the vehicle-owned physics options (accuracy bundle)', () => {
+  it('pins the derived options only when the vehicle derives one', () => {
+    const plainProject: ProjectEnvelope = { ...project, vehicle: { ...project.vehicle, launchSite: undefined } };
+    const plain = captureRunInputs(plainProject, motorRecord(), 'plain', undefined);
+    expect(plain.engineOptions).not.toHaveProperty('launchSiteTemperatureC');
+    expect(plain.engineOptions).not.toHaveProperty('nozzleExitDiameter');
+    expect(plain.engineOptions).not.toHaveProperty('flightDragSource');
+
+    const warmProject: ProjectEnvelope = {
+      ...project,
+      vehicle: {
+        ...project.vehicle,
+        launchSite: { altitudeM: 400, temperatureC: 30 },
+        nozzleExitDiameter: 0.05,
+        nozzleBackPressureThrust: true,
+      },
+    };
+    const warm = captureRunInputs(warmProject, motorRecord(), 'warm', undefined);
+    expect(warm.engineOptions).toMatchObject({
+      launchAltitudeASL: 400,
+      launchSiteTemperatureC: 30,
+      nozzleExitDiameter: 0.05,
+    });
+    expect(warm.engineOptions).not.toHaveProperty('flightDragSource');
+
+    // The loader cross-checks every archived physics option against the archived vehicle.
+    const reopened = readProject(writeProject(withRunCases(warmProject, [completed(warm)])));
+    expect(reopened.cases[0].inputs).toEqual(warm);
+    const broken = JSON.parse(writeProject(withRunCases(warmProject, [completed(warm)]))) as Record<string, any>;
+    broken.cases[0].inputs.engineOptions.launchSiteTemperatureC = 31;
+    expect(() => readProject(JSON.stringify(broken))).toThrow(/launchSiteTemperatureC.*disagree/);
+  });
+});
+
+describe('return1: captured dispatch options are the shared vehicle derivation', () => {
+  const DRAG_LINE = 'calibrated build-up axial drag; not a validated model';
+
+  function optedProject(): ProjectEnvelope {
+    return { ...project, vehicle: { ...project.vehicle, flightDragSource: 'calibrated' } };
+  }
+
+  function flightRecord(inputs: LegacyRunInputs, token: number): AnalysisRecord {
+    const run = {
+      ...toFlightRun(
+        flightResult({ runManifest: { ...flightResult().runManifest, axialDrag: DRAG_LINE } as never }),
+        inputs.vehicle, 'import', inputs.inputKey, 1, 1,
+      ),
+      engineIdentity: { kind: 'production-rust-wasm' as const, sha256: 'b'.repeat(64) },
+    };
+    return { kind: 'flight', status: 'completed', inputKey: inputs.inputKey, startedAt: inputs.capturedAt,
+      finishedAt: '2026-11-11T12:00:00.000Z', error: null, token, runInputs: inputs,
+      payload: { design: { motorId: inputs.motorRecord.id }, run } };
+  }
+
+  function ensembleRecordFor(inputs: LegacyRunInputs, token: number): AnalysisRecord {
+    return { kind: 'ensemble', status: 'completed', inputKey: inputs.inputKey, startedAt: inputs.capturedAt,
+      finishedAt: '2026-11-11T12:00:00.000Z', error: null, token, runInputs: inputs,
+      payload: { design: { motorId: inputs.motorRecord.id }, dispersion: {
+        landings: [{ x: 1, y: 0 }, { x: 0, y: 1 }], mean: { x: 0.5, y: 0.5 },
+        sigma1: 1, sigma2: 0, r50: 1, r90: 1, r99: 1, ok: 2, failed: 0, axialDrag: DRAG_LINE,
+      } } };
+  }
+
+  it('captures, saves and reopens the requested drag source for a flight and an ensemble', () => {
+    const opted = optedProject();
+    const flightInputs = captureRunInputs(opted, motorRecord(), 'flight-key', undefined);
+    expect(flightInputs.engineOptions.flightDragSource).toBe('calibrated');
+    const ensembleInputs = captureRunInputs(opted, motorRecord(), 'mc-key', undefined, undefined, {
+      nRuns: 2, seed: 7, version: 'per-run-v2',
+      windAzimuthDegSigma: 20, railAngleDegSigma: 1, impulsePctSigma: 3,
+    });
+    expect(ensembleInputs.engineOptions.flightDragSource).toBe('calibrated');
+
+    const reopened = readProject(writeProject(withRunCases(opted,
+      [flightRecord(flightInputs, 1), ensembleRecordFor(ensembleInputs, 2)])));
+    const [flight, ensemble] = reopened.cases;
+    expect(flight.inputs?.version).not.toBe(3);
+    expect(ensemble.inputs?.version).not.toBe(3);
+    expect((flight.inputs as LegacyRunInputs).engineOptions.flightDragSource).toBe('calibrated');
+    expect((ensemble.inputs as LegacyRunInputs).engineOptions.flightDragSource).toBe('calibrated');
+    // The engine's own recorded line is archived for both kinds, verbatim.
+    expect(flight.summary?.axialDrag).toBe(DRAG_LINE);
+    expect(ensemble.summary?.axialDrag).toBe(DRAG_LINE);
+  });
+
+  it('adds no drag-source key when the vehicle did not opt in', () => {
+    const flightInputs = captureRunInputs(project, motorRecord(), 'flight-key', undefined);
+    expect(flightInputs.engineOptions).not.toHaveProperty('flightDragSource');
+    const saved = withRunCases(project, [flightRecord(flightInputs, 1)]);
+    expect(saved.cases[0].summary).not.toHaveProperty('axialDrag');
+  });
+});
+
+
+describe('return2: capture and dispatch agree on derived options', () => {
+  it.each([{ launchSiteTemperatureC: 30 }, { nozzleExitDiameter: 0.05 }, { flightDragSource: 'calibrated' as const }])('rejects unexpected caller option %j', (options) => {
+    expect(() => captureRunInputs(project, motorRecord(), 'key', undefined, undefined, undefined, options)).toThrow(/disagrees/);
+  });
+  it('rejects a contradictory caller temperature and accepts its exact restatement', () => {
+    const warm = { ...project, vehicle: { ...project.vehicle, launchSite: { altitudeM: 400, temperatureC: 30 } } };
+    expect(() => captureRunInputs(warm, motorRecord(), 'key', undefined, undefined, undefined, { launchSiteTemperatureC: 40 })).toThrow(/disagrees/);
+    expect(captureRunInputs(warm, motorRecord(), 'key', undefined, undefined, undefined, { launchSiteTemperatureC: 30 }).engineOptions.launchSiteTemperatureC).toBe(30);
+  });
 });

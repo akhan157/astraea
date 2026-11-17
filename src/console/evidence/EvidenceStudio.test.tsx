@@ -30,7 +30,7 @@ import { createProjectEnvelope } from '../../formats/projectJson';
 import { DEFAULT_WORKSPACE } from '../../application/workspace';
 import { parseTrajectoryCsv } from '../../evidence/altimetry';
 import { cosmicCargoLike, COSMIC_CARGO_CONDITIONS } from '../../evidence/cosmicCargoFixture';
-import { resetConsoleState } from '../testFixtures';
+import { pinLegacyFlightDrag, resetConsoleState } from '../testFixtures';
 import type { DragCalibration } from '../../application/dragCalibration';
 
 /** Historical adjustment fixture, with no claim of reviewed physical eligibility. */
@@ -92,7 +92,9 @@ function loadCosmicCargo(): void {
   act(() => {
     adoptProject(
       createProjectEnvelope({
-        vehicle: { ...cosmicCargoLike(), launchSite: { altitudeM: COSMIC_CARGO_CONDITIONS.launchAltitudeASL } },
+        // K3: a drag fit is made against the legacy tables only (the card blocks it under the
+        // built-up default), so the fit tests choose the legacy flight explicitly.
+        vehicle: { ...cosmicCargoLike(), launchSite: { altitudeM: COSMIC_CARGO_CONDITIONS.launchAltitudeASL }, flightDragSource: 'legacy' as const },
         workspace,
       }),
     );
@@ -125,6 +127,7 @@ describe('EvidenceStudio', () => {
   beforeEach(() => {
     resetConsoleState();
     useProjectStore.getState().loadPreset('estesAlpha');
+    pinLegacyFlightDrag();
     render(<EvidenceStudio />);
   });
 

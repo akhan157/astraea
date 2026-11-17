@@ -378,3 +378,18 @@ describe('6-DOF production adversarial sweeps (Round-17 audit §7/§10)', () => 
     expect(res.events.some((e) => e.name === 'Ground Touchdown')).toBe(true);
   });
 });
+
+describe('TypeScript oracle: flight physics options (accuracy bundle)', () => {
+  it('fails closed on every option it does not implement', () => {
+    const motor = CERTIFIED_MOTORS.estes_c6;
+    for (const option of [
+      { launchSiteTemperatureC: 30 },
+      { nozzleExitDiameter: 0.05 },
+      { flightDragSource: 'calibrated' },
+    ]) {
+      expect(() => simulate6DofFlight(PRESET_ESTES_ALPHA, motor, { railLength: 1, ...option })).toThrow(
+        /not implemented by the TypeScript oracle/,
+      );
+    }
+  });
+});

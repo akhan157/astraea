@@ -74,6 +74,13 @@ const LEGACY_VEHICLE: RocketVehicle = {
   ],
 };
 
+/**
+ * K3: an absent drag choice is now the built-up default, whose archived runs carry a drag option
+ * and a recorded drag line. These fixtures capture runs on the explicit legacy choice, the
+ * pre-switch flight, so they stay what they were: cases with no drag option and no drag line.
+ */
+const PRE_SWITCH_VEHICLE: RocketVehicle = { ...LEGACY_VEHICLE, flightDragSource: 'legacy' };
+
 const T = '2026-09-14T12:00:00.000Z';
 const SHA = 'a'.repeat(64);
 const SHA2 = 'b'.repeat(64);
@@ -882,7 +889,7 @@ describe('projectJson 1.10 retained display telemetry', () => {
     cases: [{
       id: 'flight-1', kind: 'flight', createdAt: T, motorRecordId: 'estes_c6',
       summary: { inputKey: 'key-1', apogeeM: 100 },
-      inputs: captureRunInputs(envelope(), envelope().motorRecords[0], 'key-1', undefined),
+      inputs: captureRunInputs(envelope({ vehicle: PRE_SWITCH_VEHICLE }), envelope().motorRecords[0], 'key-1', undefined),
       engineIdentity: { kind: 'production-rust-wasm', sha256: SHA },
       ...extra,
     }],
@@ -972,7 +979,7 @@ describe('projectJson 1.11 archived canonical outputs', () => {
     cases: [{
       id: 'flight-1', kind: 'flight', createdAt: T, motorRecordId: 'estes_c6',
       summary: { inputKey: 'key-1', apogeeM: 1371 },
-      inputs: captureRunInputs(envelope(), envelope().motorRecords[0], 'key-1', undefined),
+      inputs: captureRunInputs(envelope({ vehicle: PRE_SWITCH_VEHICLE }), envelope().motorRecords[0], 'key-1', undefined),
       engineIdentity: { kind: 'production-rust-wasm', sha256: SHA },
       ...extra,
     }],
@@ -1032,7 +1039,7 @@ describe('projectJson 1.13 aero-model selection', () => {
   } as const;
 
   it('round-trips the envelope and the case-pinned selection byte-exactly', () => {
-    const env = envelope({ aeroModel: selection });
+    const env = envelope({ aeroModel: selection, vehicle: PRE_SWITCH_VEHICLE });
     const inputs = captureRunInputs(env, env.motorRecords[0], 'key-1', undefined);
     expect(inputs.aeroModel).toEqual(selection);
     const withCase: ProjectEnvelope = {
@@ -1063,5 +1070,136 @@ describe('projectJson 1.13 aero-model selection', () => {
   it('refuses an unknown model version instead of substituting', () => {
     const env = envelope({ aeroModel: { ...selection, modelVersion: '9.9.9' } });
     expect(() => writeProject(env)).toThrow(/unknown to this build/);
+  });
+});
+
+describe('projectJson vehicle physics opt-ins (accuracy bundle)', () => {
+  const base = (): ProjectEnvelope => createProjectEnvelope({ vehicle: { ...LEGACY_VEHICLE } });
+
+  it('round-trips a site temperature and accepts any finite value (the engine owns the domain)', () => {
+    for (const temperatureC of [30, -100, 0.5]) {
+      const project = base();
+      project.vehicle.launchSite = { altitudeM: 400, temperatureC };
+      const reread = readProject(writeProject(project));
+      expect(reread.vehicle.launchSite).toEqual({ altitudeM: 400, temperatureC });
+    }
+    const project = base();
+    project.vehicle.launchSite = { altitudeM: 400, temperatureC: Number.NaN };
+    expect(() => writeProject(project)).toThrow(/temperatureC/);
+  });
+
+  it('round-trips the nozzle back-pressure opt-in and fails closed on any other value', () => {
+    const project = base();
+    project.vehicle.nozzleExitDiameter = 0.05;
+    (project.vehicle as { nozzleBackPressureThrust?: true }).nozzleBackPressureThrust = true;
+    expect(readProject(writeProject(project)).vehicle.nozzleBackPressureThrust).toBe(true);
+
+    // K3 review: `false` is now the explicit "off" of the automatic default, so it round-trips; any
+    // other value still fails closed (old meaning: false was refused too).
+    project.vehicle.nozzleBackPressureThrust = false;
+    expect(readProject(writeProject(project)).vehicle.nozzleBackPressureThrust).toBe(false);
+    expect(writeProject(project)).toContain('"nozzleBackPressureThrust": false');
+
+    const doc = JSON.parse(writeProject(base())) as { vehicle: Record<string, unknown> };
+    for (const bad of [0, 'yes', null]) {
+      doc.vehicle.nozzleBackPressureThrust = bad;
+      expect(() => readProject(JSON.stringify(doc))).toThrow(/nozzleBackPressureThrust must be true or false when present/);
+    }
+  });
+
+  it('writes no new vehicle key when no physics opt-in is set', () => {
+    const text = writeProject(base());
+    expect(text).not.toContain('temperatureC');
+    expect(text).not.toContain('nozzleBackPressureThrust');
+    expect(text).not.toContain('flightDragSource');
+  });
+});
+
+describe('return1: archived engine options must equal the archived vehicle derivation', () => {
+  const MOTOR_RECORD = { id: 'estes_c6', motor: CERTIFIED_MOTORS.estes_c6, provenance: { source: 'certified' as const } };
+  const DRAG_LINE = 'calibrated build-up axial drag; not a validated model';
+
+  /** A valid saved flight whose inputs were captured from this exact vehicle. */
+  function savedCase(
+    patch: (vehicle: RocketVehicle) => void,
+    summary: Record<string, unknown> = {},
+  ): Record<string, any> {
+    const vehicle = structuredClone(PRE_SWITCH_VEHICLE);
+    patch(vehicle);
+    const project = createProjectEnvelope({ vehicle });
+    const inputs = captureRunInputs(project, MOTOR_RECORD, 'key', undefined);
+    const document = JSON.parse(writeProject(project)) as Record<string, any>;
+    document.cases = [{
+      id: 'case-1', kind: 'flight', createdAt: '2026-11-11T00:00:00.000Z', motorRecordId: 'estes_c6',
+      inputs: structuredClone(inputs), summary: { inputKey: 'key', ...summary },
+    }];
+    return document;
+  }
+
+  const optedIn = (vehicle: RocketVehicle): void => { vehicle.flightDragSource = 'calibrated'; };
+
+  it('accepts the exact derivation and refuses a deleted or changed drag source', () => {
+    const doc = savedCase(optedIn, { axialDrag: DRAG_LINE });
+    expect(readProject(JSON.stringify(doc)).cases[0].summary?.axialDrag).toBe(DRAG_LINE);
+    // A default capture has no new key, so an old document stays loadable.
+    const plain = savedCase(() => {});
+    expect(plain.cases[0].inputs.engineOptions).not.toHaveProperty('flightDragSource');
+    expect(() => readProject(JSON.stringify(plain))).not.toThrow();
+
+    const deleted = structuredClone(doc);
+    delete deleted.cases[0].inputs.engineOptions.flightDragSource;
+    expect(() => readProject(JSON.stringify(deleted))).toThrow(/flightDragSource is missing/);
+
+    const changed = structuredClone(doc);
+    changed.cases[0].inputs.engineOptions.flightDragSource = 'legacy';
+    expect(() => readProject(JSON.stringify(changed))).toThrow(/flightDragSource/);
+  });
+
+  it('refuses an option the archived vehicle does not derive', () => {
+    const plain = savedCase(() => {});
+    plain.cases[0].inputs.engineOptions.flightDragSource = 'calibrated';
+    expect(() => readProject(JSON.stringify(plain))).toThrow(/flightDragSource is not derived/);
+
+    const nozzleOnly = savedCase((vehicle) => { vehicle.nozzleExitDiameter = 0.05; });
+    nozzleOnly.cases[0].inputs.engineOptions.nozzleExitDiameter = 0.05;
+    expect(() => readProject(JSON.stringify(nozzleOnly))).toThrow(/nozzleExitDiameter is not derived/);
+
+    const temperatureOnly = savedCase(() => {});
+    temperatureOnly.cases[0].inputs.engineOptions.launchSiteTemperatureC = 30;
+    expect(() => readProject(JSON.stringify(temperatureOnly))).toThrow(/launchSiteTemperatureC is not derived/);
+  });
+
+  it('requires both presence and value for temperature and the back-pressure nozzle', () => {
+    const warm = savedCase((vehicle) => { vehicle.launchSite = { altitudeM: 400, temperatureC: 30 }; });
+    expect(readProject(JSON.stringify(warm)).cases[0].inputs).toMatchObject({ engineOptions: { launchSiteTemperatureC: 30 } });
+    const noTemperature = structuredClone(warm);
+    delete noTemperature.cases[0].inputs.engineOptions.launchSiteTemperatureC;
+    expect(() => readProject(JSON.stringify(noTemperature))).toThrow(/launchSiteTemperatureC is missing/);
+    const wrongTemperature = structuredClone(warm);
+    wrongTemperature.cases[0].inputs.engineOptions.launchSiteTemperatureC = 31;
+    expect(() => readProject(JSON.stringify(wrongTemperature))).toThrow(/launchSiteTemperatureC disagrees/);
+
+    const nozzle = savedCase((vehicle) => {
+      vehicle.nozzleExitDiameter = 0.05;
+      vehicle.nozzleBackPressureThrust = true;
+    });
+    expect(readProject(JSON.stringify(nozzle)).cases[0].inputs).toMatchObject({ engineOptions: { nozzleExitDiameter: 0.05 } });
+    const noNozzle = structuredClone(nozzle);
+    delete noNozzle.cases[0].inputs.engineOptions.nozzleExitDiameter;
+    expect(() => readProject(JSON.stringify(noNozzle))).toThrow(/nozzleExitDiameter is missing/);
+    const wrongNozzle = structuredClone(nozzle);
+    wrongNozzle.cases[0].inputs.engineOptions.nozzleExitDiameter = 0.06;
+    expect(() => readProject(JSON.stringify(wrongNozzle))).toThrow(/nozzleExitDiameter disagrees/);
+  });
+
+  it('refuses a missing, empty or unproven recorded drag-source line', () => {
+    const missing = savedCase(optedIn);
+    expect(() => readProject(JSON.stringify(missing))).toThrow(/axialDrag is missing/);
+
+    const empty = savedCase(optedIn, { axialDrag: '' });
+    expect(() => readProject(JSON.stringify(empty))).toThrow(/axialDrag must be a non-empty string/);
+
+    const unproven = savedCase(() => {}, { axialDrag: DRAG_LINE });
+    expect(() => readProject(JSON.stringify(unproven))).toThrow(/axialDrag requires archived inputs/);
   });
 });

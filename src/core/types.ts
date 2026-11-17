@@ -65,6 +65,12 @@ export interface NoseconeComponent extends BaseComponent {
   baseDiameter: number;    // meters
   wallThickness: number;   // meters
   isHollow: boolean;
+  /**
+   * Blunt tip radius, meters. Absent is a sharp tip. Used by the built-up
+   * method's wave-drag term above about Mach 0.9; it changes neither the drawn
+   * nose, the mass nor the legacy model.
+   */
+  tipRadius?: number;
 }
 
 export interface BodyTubeComponent extends BaseComponent {
@@ -236,6 +242,26 @@ export interface RocketVehicle {
   forceTurbulentFlow?: boolean;
   /** Nozzle exit diameter, meters; absent = no sustainer nozzle. */
   nozzleExitDiameter?: number;
+  /**
+   * Use the declared nozzle exit diameter for the in-flight back-pressure
+   * thrust term. `true` = on, for every drag choice. Absent = the drag choice
+   * decides: under the built-up default (no `flightDragSource`) a declared nozzle
+   * exit inside the engine's flight domain is carried automatically (spec
+   * Amendment 4); under an explicit drag choice the flight never reads the aero
+   * nozzle. `false` = the explicit "off", written only to turn that automatic
+   * default off; it is the one value an older build refuses (see RESULT.md).
+   */
+  nozzleBackPressureThrust?: boolean;
+  /**
+   * Fly this rocket's axial drag with the built-up method (beta) instead of the
+   * legacy 25-station build-up tables. Absent = the legacy tables, exactly as
+   * before. `'calibrated'` is only usable together with a built-up aero-model
+   * selection. `'legacy'` is the explicit choice of the legacy tables; it flies
+   * exactly like an absent field today and keeps meaning legacy if the default
+   * for an absent field ever changes. Read it only through
+   * `effectiveFlightDragSource` (application/caseResolver).
+   */
+  flightDragSource?: 'calibrated' | 'legacy';
 }
 
 /**
@@ -245,6 +271,12 @@ export interface RocketVehicle {
 export interface LaunchSite {
   /** meters above sea level */
   altitudeM: number;
+  /**
+   * Pad air temperature, °C. Absent = the product standard atmosphere (ISA-1976).
+   * The engine owns the supported domain and refuses an out-of-domain value
+   * with its own text; this value is never clamped.
+   */
+  temperatureC?: number;
 }
 
 export interface ComponentContribution {

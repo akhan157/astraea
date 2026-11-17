@@ -69,7 +69,7 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: 'Astraea v__VERSION__'
-          releaseBody: 'Beta (0.10). Apogee was tested blind on one small subsonic rocket: predictions ran 6–10% high. Other vehicles and supersonic flight are untested. Not flight approval. See docs/accuracy.md and CHANGELOG.md.'
+          releaseBody: 'Default model: apogee error averaged 5.6% across 20 published rockets (18 of 20 within 10%) with site temperature set and the nozzle exit set where the design has one, 5.9% (16 of 20) with them blank. Development data: the model was chosen on these flights; blind test pending. Shapes it cannot model use legacy drag, which has no blind test on those shapes; on one small rocket with freeform fins it predicted about 26% low (10 flights, development comparison). Not flight approval. See docs/accuracy.md and CHANGELOG.md.'
           releaseDraft: true
           prerelease: true
           args: ${{ matrix.args }}

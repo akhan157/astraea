@@ -22,13 +22,14 @@ describe('aero model provenance data', () => {
   it('lists every legacy constant exactly, all unvalidated', () => {
     const expected: Record<string, string> = {
       'Nose shape factors': '0.55 / 0.72 / 0.85 / 1.25',
-      'Base drag, subsonic': '0.12 + 0.13·M²',
-      'Base drag, supersonic': '0.38 / M^1.2',
+      'Base drag, cylinder (r ≥ 1)': 'TN D-4821 Fig. 15(b) flat-base fit, M 0.3–1.3',
+      'Base drag, cylinder tail (r ≥ 1)': '0.2021·(1.30/M)^0.716 (M > 1.3)',
+      'Base drag, boattail (r < 1)': 'historical unvalidated 0.12/0.13/0.38 fit × (Db/D)²',
       'Motor-plume multiplier': '0.38 while burning',
       'Supersonic CP shift': 'min(0.8, 0.45·(1 − 1/M)) calibers forward',
       'Fin body-lift CP station': '0.45·rootChord',
     };
-    expect(P.legacyConstants).toHaveLength(6);
+    expect(P.legacyConstants).toHaveLength(7);
     for (const [name, value] of Object.entries(expected)) {
       const entry = P.legacyConstants.find((constant) => constant.name === name);
       expect(entry, name).toBeDefined();
@@ -36,6 +37,7 @@ describe('aero model provenance data', () => {
       expect(entry!.status).toBe('unvalidated');
     }
     expect(P.legacyConstants.find((c) => c.name === 'Supersonic CP shift')!.note).toContain('aft trend');
+    expect(P.legacyConstants.find((c) => c.name === 'Base drag, boattail (r < 1)')!.note).toContain('over-predicts');
   });
 
   it('scopes the engine parity to the method alone', () => {
@@ -56,7 +58,11 @@ describe('aero model provenance data', () => {
     expect(limits).toContain('no nozzle exit');
     expect(limits).toContain('no rail hardware');
     expect(limits).toContain("Fin cross-section 'airfoil' maps to Subsonic NACA");
-    expect(limits).toContain('flights still use the legacy model');
+    // Amended by accuracy-bundle-frontend (Gate 1 review, amendment 7): a
+    // flight can now use the built-up axial drag when the vehicle opts in, so
+    // the old sentence "flights still use the legacy model" became false.
+    expect(limits).toContain('Flights use its axial drag only when');
+    expect(limits).toContain('Lift and stability in flight always use the legacy model');
     expect(limits).toContain('off by default');
     expect(limits).toContain('held-out real flights');
     expect(limits).toContain('sea-level standard-day reference');

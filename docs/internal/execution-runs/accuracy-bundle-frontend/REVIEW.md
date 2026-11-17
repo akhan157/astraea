@@ -1,0 +1,5 @@
+# Integration disposition — 2026-11-12
+
+Bounded in_progress integration only. Engine handoff independent review is in appbound-r42-r44-r47-e1b/REVIEW.md. Frontend DeepSeek implementation received Codex independent review with five findings; repairs and repeated stops are recorded. Owner selected Claude, then manually swapped its interrupted review to Chat; continuation is Codex, not a Claude verdict. Last finding (non-string provenance crash) is repaired with four failing-before regressions and a runtime typeof guard. No new independent verdict claimed for that coordinator correction.
+
+Coordinator reviewed source, dispatch/archive consumers, exact engine manifest prefixes and screenshot results; full production smoke and changed-file checks pass. Parent register stays unchanged: no broad or physical gate becomes PASS. Local integration remains in_progress until remaining checks in RESULT.md are satisfied. No author self-acceptance recorded; no main merge/push/release authority exercised.

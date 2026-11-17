@@ -361,6 +361,19 @@ struct AdaptiveResult {
 
 const MAX_ADAPT_CONSECUTIVE_REJECTIONS: u32 = 500;
 const MAX_ADAPT_TRIALS: u32 = 5_000;
+#[cfg(feature = "e1-test-hooks")]
+static TEST_MAX_ADAPT_TRIALS: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(MAX_ADAPT_TRIALS);
+/// Test-only injection; not compiled into ordinary engine builds.
+#[cfg(feature = "e1-test-hooks")]
+#[doc(hidden)]
+pub fn e1_test_set_trial_limit(limit: u32) {
+    TEST_MAX_ADAPT_TRIALS.store(limit, std::sync::atomic::Ordering::SeqCst);
+}
+#[cfg(feature = "e1-test-hooks")]
+fn adaptive_trial_limit() -> u32 { TEST_MAX_ADAPT_TRIALS.load(std::sync::atomic::Ordering::SeqCst) }
+#[cfg(not(feature = "e1-test-hooks"))]
+fn adaptive_trial_limit() -> u32 { MAX_ADAPT_TRIALS }
+
 /// Reported driver limits; values are the historical literals, named only so the
 /// diagnostic sidecar can report the actual applied settings.
 pub const MAX_ADAPTIVE_STEP_CAP_S: f64 = 0.05;
@@ -393,7 +406,7 @@ fn b_dp(i: usize) -> &'static [f64] {
     }
 }
 
-fn validate_loads(l: &Loads) {
+fn validate_loads(l: &Loads) -> Result<(), String> {
     let finite = l.force_n.x.is_finite()
         && l.force_n.y.is_finite()
         && l.force_n.z.is_finite()
@@ -407,17 +420,26 @@ fn validate_loads(l: &Loads) {
         && l.inertia_dot_b.y.is_finite()
         && l.inertia_dot_b.z.is_finite();
     if !finite {
-        panic!("adaptive integrator: stage load callback returned a non-finite component");
+        return Err("adaptive integrator: stage load callback returned a non-finite component".to_string());
     }
     if !(l.mass > 0.0 && l.mass.is_finite()) {
-        panic!("adaptive integrator: stage load callback returned non-positive or non-finite mass");
+        return Err("adaptive integrator: stage load callback returned non-positive or non-finite mass".to_string());
     }
     if l.inertia_b.x <= 0.0 || l.inertia_b.y <= 0.0 || l.inertia_b.z <= 0.0 {
-        panic!("adaptive integrator: stage load callback returned non-positive principal inertia");
+        return Err("adaptive integrator: stage load callback returned non-positive principal inertia".to_string());
     }
+    Ok(())
 }
 
-fn validate_accepted_state(st: &RigidState) {
+pub fn validate_motor_placement(station: f64, length: f64) -> Result<(), String> {
+    let forward_end = (station - length / 2.0) - length / 2.0;
+    if !(forward_end >= 0.0) {
+        return Err(format!("motor forward end {} m lies outside the vehicle (mount station {} m, motor length {} m)", forward_end, station, length));
+    }
+    Ok(())
+}
+
+fn validate_accepted_state(st: &RigidState) -> Result<(), String> {
     let finite = st.r.x.is_finite()
         && st.r.y.is_finite()
         && st.r.z.is_finite()
@@ -432,12 +454,13 @@ fn validate_accepted_state(st: &RigidState) {
         && st.q.y.is_finite()
         && st.q.z.is_finite();
     if !finite {
-        panic!("adaptive integrator: accepted state is non-finite");
+        return Err("adaptive integrator: accepted state is non-finite".into());
     }
     let qn = (st.q.w * st.q.w + st.q.x * st.q.x + st.q.y * st.q.y + st.q.z * st.q.z).sqrt();
     if (qn - 1.0).abs() > 1e-6 {
-        panic!("adaptive integrator: accepted attitude is not unit-norm");
+        return Err("adaptive integrator: accepted attitude is not unit-norm".into());
     }
+    Ok(())
 }
 
 fn worst_validity(vs: &[StageValidity]) -> StageValidity {
@@ -488,7 +511,7 @@ fn integrate_rigid_adaptive(
         panic!("adaptive integrator: attitude must be a near-unit quaternion (|q|=1) at entry; normalize it at the caller boundary");
     }
     let mut s = RigidState { r: s0.r, v: s0.v, q: normalize_quaternion(&s0.q), w: s0.w };
-    validate_accepted_state(&s);
+    validate_accepted_state(&s)?;
     let mut t = t0;
     let mut dt = dt_init.min(max_step);
     let mut steps: u32 = 0;
@@ -511,8 +534,8 @@ fn integrate_rigid_adaptive(
     };
 
     while t < t_end {
-        if steps + rejected >= MAX_ADAPT_TRIALS {
-            panic!("adaptive integrator: exceeded total trial limit");
+        if steps + rejected >= adaptive_trial_limit() {
+            return Err("adaptive integrator: exceeded total trial limit".to_string());
         }
         let remaining = t_end - t;
         let mut h = dt.min(max_step).min(remaining);
@@ -553,7 +576,7 @@ fn integrate_rigid_adaptive(
             }
         }
         if !next_time.is_finite() || next_time <= t {
-            panic!("adaptive integrator: trial cannot make representable progress");
+            return Err("adaptive integrator: trial cannot make representable progress".to_string());
         }
 
         let mut trial_validity: Vec<StageValidity> = Vec::with_capacity(7);
@@ -588,9 +611,9 @@ fn integrate_rigid_adaptive(
                     w: Vec3 { x: s.w.x + ww.x, y: s.w.y + ww.y, z: s.w.z + ww.z },
                 };
             }
-            validate_accepted_state(&sti);
+            validate_accepted_state(&sti)?;
             let l = loads_at(ti, &sti)?;
-            validate_loads(&l);
+            validate_loads(&l)?;
             trial_validity.push(l.validity);
             ks.push(deriv(&sti, &l));
         }
@@ -641,11 +664,11 @@ fn integrate_rigid_adaptive(
             rejected += 1;
             reject_streak += 1;
             if reject_streak > MAX_ADAPT_CONSECUTIVE_REJECTIONS {
-                panic!("adaptive integrator: 500 consecutive rejections with non-finite error estimates; loads model is not integrable");
+                return Err("adaptive integrator: 500 consecutive rejections with non-finite error estimates; loads model is not integrable".to_string());
             }
             let shrunk = h * 0.2;
             if shrunk <= floor {
-                panic!("adaptive integrator: non-finite error estimate at the representable step floor; tolerance/loads combination is not integrable");
+                return Err("adaptive integrator: non-finite error estimate at the representable step floor; tolerance/loads combination is not integrable".to_string());
             }
             dt = shrunk;
             continue;
@@ -676,11 +699,11 @@ fn integrate_rigid_adaptive(
             rejected += 1;
             reject_streak += 1;
             if reject_streak > MAX_ADAPT_CONSECUTIVE_REJECTIONS {
-                panic!("adaptive integrator: 500 consecutive rejected trials at nondecreasing size; tolerance/loads combination is not integrable");
+                return Err("adaptive integrator: 500 consecutive rejected trials at nondecreasing size; tolerance/loads combination is not integrable".to_string());
             }
             let dt_new = h * (0.2f64.max(0.9 * rho));
             if dt_new <= floor {
-                panic!("adaptive integrator: rejected step cannot make representable progress; tolerance is unachievable with this loads model");
+                return Err("adaptive integrator: rejected step cannot make representable progress; tolerance is unachievable with this loads model".to_string());
             }
             dt = dt_new;
         }
@@ -1173,7 +1196,7 @@ pub fn estes_c6_motor() -> MotorSpec {
     }
 }
 
-pub(crate) fn validate_motor_spec(motor: &MotorSpec) -> Result<(), String> {
+pub fn validate_motor_spec(motor: &MotorSpec) -> Result<(), String> {
     let what = if motor.designation.is_empty() { "motor".to_string() } else { format!("motor '{}'", motor.designation) };
     if !(motor.burn_time.is_finite() && motor.burn_time > 0.0) {
         return Err(format!("motor validation: {} burnTime must be finite and positive (got {})", what, motor.burn_time));
@@ -1211,6 +1234,10 @@ pub(crate) fn validate_motor_spec(motor: &MotorSpec) -> Result<(), String> {
     }
     if motor.thrust_curve[0].thrust != 0.0 || motor.thrust_curve[motor.thrust_curve.len() - 1].thrust != 0.0 {
         return Err(format!("motor validation: {} thrust curve endpoints must be zero (mass-flow continuity)", what));
+    }
+    let impulse = motor_total_impulse_value(motor);
+    if !impulse.is_finite() || impulse <= 0.0 {
+        return Err(format!("motor thrust curve must deliver a finite positive total impulse (got {impulse})"));
     }
     Ok(())
 }
@@ -1265,9 +1292,7 @@ fn integrate_thrust_curve(motor: &MotorSpec, t: f64) -> f64 {
     impulse
 }
 
-/// Total curve impulse without the legacy panic. Used by candidate validation to
-/// reject a motor record whose integrated thrust is nonfinite or nonpositive
-/// before the shared driver's mass-flow query can reach `motor_impulse_total`.
+/// Total curve impulse without the legacy panic, for shared motor validation.
 pub(crate) fn motor_total_impulse_value(motor: &MotorSpec) -> f64 {
     integrate_thrust_curve(motor, motor.burn_time)
 }
@@ -1919,6 +1944,245 @@ pub(crate) struct StageMechanics {
     pub(crate) cg_from_nose: f64,
 }
 
+/// Optional physics inputs a product run may select (R42). `None` terms are the
+/// ordinary product path; the resolver below is the single source of truth for
+/// which terms are active and for what the result's run manifest reports.
+#[doc(hidden)]
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct DiagnosticTerms {
+    /// Add `A_e * (p_ref - p_amb(h))` to motor thrust while powered, with
+    /// `p_amb` taken from the active atmosphere: the product ISA pressure when
+    /// `atmosphere` is absent, the anchored pressure when present.
+    pub thrust_pressure: Option<ThrustPressureTerm>,
+    /// Replace the retained ISA density, speed of sound and pressure with the
+    /// hydrostatically consistent, launch-temperature-anchored lapse.
+    pub atmosphere: Option<LaunchAnchoredAtmosphere>,
+}
+
+#[doc(hidden)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ThrustPressureTerm {
+    pub exit_area_m2: f64,
+    pub reference_pressure_pa: f64,
+}
+
+/// Site-anchored standard atmosphere: `T(h) = T_s - L (h - h_s)` from the site
+/// to 11 km ASL, isothermal above; pressure from the same lapse so the column
+/// is hydrostatically consistent (R41 amendment 1).
+#[doc(hidden)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct LaunchAnchoredAtmosphere {
+    pub site_altitude_m: f64,
+    pub site_temperature_k: f64,
+}
+
+impl DiagnosticTerms {
+    /// Fail closed: a malformed term is an error, never a silent fallback to
+    /// the product path.
+    pub fn validate(&self) -> Result<(), String> {
+        if let Some(t) = &self.thrust_pressure {
+            if !(t.exit_area_m2.is_finite() && t.exit_area_m2 >= 0.0) {
+                return Err("diagnostic thrust pressure: exit area must be finite and >= 0".into());
+            }
+            if !(t.reference_pressure_pa.is_finite() && t.reference_pressure_pa > 0.0) {
+                return Err("diagnostic thrust pressure: reference pressure must be finite and > 0".into());
+            }
+        }
+        if let Some(a) = &self.atmosphere {
+            if !(a.site_altitude_m.is_finite() && a.site_temperature_k.is_finite()) {
+                return Err("diagnostic atmosphere: site altitude and temperature must be finite".into());
+            }
+            if !(a.site_temperature_k > 0.0) {
+                return Err("diagnostic atmosphere: site temperature must be above absolute zero".into());
+            }
+        }
+        Ok(())
+    }
+}
+
+/// ISA-1976 pressure only (Pa); the product density/speed-of-sound path is
+/// untouched. Used by the R41 back-pressure term and the anchored column.
+fn isa_pressure_at(altitude: f64) -> f64 {
+    let h = altitude.max(0.0);
+    let t0 = 288.15f64;
+    let p0 = 101325.0f64;
+    let lapse = 0.0065f64;
+    let g0 = 9.80665f64;
+    let r = 287.05287f64;
+    if h <= 11000.0 {
+        let t = t0 - lapse * h;
+        p0 * (t / t0).powf(g0 / (r * lapse))
+    } else {
+        let t11 = 216.65f64;
+        let p11 = 22632.1f64;
+        p11 * ((-g0 * (h - 11000.0)) / (r * t11)).exp()
+    }
+}
+
+/// `(density kg/m3, speed of sound m/s, pressure Pa)` of the site-anchored
+/// lapse. Below the pad the temperature holds at the site value and the
+/// pressure at the site value (only reachable on a descent below the pad).
+fn anchored_air_at(a: &LaunchAnchoredAtmosphere, altitude_asl_m: f64) -> (f64, f64, f64) {
+    let lapse = 0.0065f64;
+    let r = 287.05287f64;
+    let gamma = 1.4f64;
+    let h = altitude_asl_m;
+    let hs = a.site_altitude_m;
+    let ts = a.site_temperature_k;
+    let t11 = if hs < 11000.0 { ts - lapse * (11000.0 - hs) } else { ts };
+    let t = if h <= hs {
+        ts
+    } else if h <= 11000.0 {
+        ts - lapse * (h - hs)
+    } else {
+        t11
+    };
+    let ps = isa_pressure_at(hs);
+    let p = if h <= hs {
+        ps
+    } else if h <= 11000.0 {
+        ps * (t / ts).powf(9.80665 / (r * lapse))
+    } else {
+        let p11 = if hs < 11000.0 {
+            ps * (t11 / ts).powf(9.80665 / (r * lapse))
+        } else {
+            ps
+        };
+        p11 * ((-9.80665 * (h - 11000.0)) / (r * t11)).exp()
+    };
+    (p / (r * t), (gamma * r * t).sqrt(), p)
+}
+
+/// Supported launch-site air-temperature domain, °C (R42). A value outside it is
+/// a unit error or a typo, not a site: the anchored formula would happily build
+/// a fictitious column, so the run is refused instead.
+pub const LAUNCH_SITE_TEMPERATURE_MIN_C: f64 = -60.0;
+pub const LAUNCH_SITE_TEMPERATURE_MAX_C: f64 = 60.0;
+/// Supported flight nozzle-exit-diameter domain, metres (R42). A sanity bound
+/// only: the largest exit diameter in the frozen cohort is 0.1524 m and a 1 m
+/// exit could add ≈ 79.6 kN in a near-vacuum, far outside anything this app models.
+pub const NOZZLE_EXIT_DIAMETER_MAX_M: f64 = 1.0;
+
+/// Resolved optional flight-physics inputs for one run (R42).
+///
+/// `terms == None` means the product path is exactly the pre-R42 path: every
+/// optional input was absent. When present, `terms` carries exactly the same
+/// types the R41 research arms used, so the product and the arms cannot drift.
+#[doc(hidden)]
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct FlightPhysicsInputs {
+    /// Site altitude that anchors the column (m ASL): the unchanged
+    /// `launchAltitudeASL` option, default 0.0.
+    pub site_altitude_m: f64,
+    /// `Some` when `launchSiteTemperatureC` selected the anchored atmosphere.
+    pub site_temperature_k: Option<f64>,
+    /// The flight nozzle exit diameter as supplied, verbatim. `None` = not
+    /// supplied; `Some(0.0)` = supplied but inactive.
+    pub nozzle_exit_diameter_m: Option<f64>,
+    /// `Some` when a positive exit diameter adds the back-pressure term.
+    pub exit_area_m2: Option<f64>,
+    /// `None` when both inputs are absent.
+    pub terms: Option<DiagnosticTerms>,
+}
+
+/// Resolve and validate the optional product physics inputs.
+///
+/// Fail closed: a malformed input is an error, never a silent fallback to the
+/// product path. This is the single decision point for the flight loads and for
+/// the result's run manifest, so the two cannot disagree.
+pub fn flight_physics_inputs(options: &SixDofOptions) -> Result<FlightPhysicsInputs, String> {
+    let site_altitude_m = options.launch_altitude_asl.unwrap_or(0.0);
+    if !site_altitude_m.is_finite() {
+        // Same text the shared option validator uses, so an invalid input keeps
+        // the pre-R42 message even though the resolver now reads it first.
+        return Err(format!(
+            "simulate6DofFlight: option launchAltitudeASL must be finite (got {})",
+            format_js_num(site_altitude_m)
+        ));
+    }
+
+    let site_temperature_k = match options.launch_site_temperature_c {
+        None => None,
+        Some(c) => {
+            if !c.is_finite() {
+                return Err(format!(
+                    "simulate6DofFlight: launchSiteTemperatureC must be finite (got {})",
+                    format_js_num(c)
+                ));
+            }
+            if c < LAUNCH_SITE_TEMPERATURE_MIN_C || c > LAUNCH_SITE_TEMPERATURE_MAX_C {
+                return Err(format!(
+                    "simulate6DofFlight: launchSiteTemperatureC {} °C is outside the supported launch-site domain [-60, 60] °C",
+                    format_js_num(c)
+                ));
+            }
+            let ts = c + 273.15;
+            // Same domain as `anchored_air_at`: an isothermal branch needs a
+            // positive temperature at 11 km ASL.
+            let t11 = if site_altitude_m < 11000.0 {
+                ts - 0.0065 * (11000.0 - site_altitude_m)
+            } else {
+                ts
+            };
+            if !(ts > 0.0) || !(t11 > 0.0) {
+                return Err(format!(
+                    "simulate6DofFlight: launchSiteTemperatureC {} °C at launchAltitudeASL {} m leaves no positive lapse column at 11 km ASL",
+                    format_js_num(c), format_js_num(site_altitude_m)
+                ));
+            }
+            Some(ts)
+        }
+    };
+
+    let (nozzle_exit_diameter_m, exit_area_m2) = match options.nozzle_exit_diameter {
+        None => (None, None),
+        Some(d) => {
+            if !d.is_finite() {
+                return Err(format!(
+                    "simulate6DofFlight: nozzleExitDiameter must be finite (got {})",
+                    format_js_num(d)
+                ));
+            }
+            if d < 0.0 {
+                return Err(format!(
+                    "simulate6DofFlight: nozzleExitDiameter must be nonnegative (got {})",
+                    format_js_num(d)
+                ));
+            }
+            if d > NOZZLE_EXIT_DIAMETER_MAX_M {
+                return Err(format!(
+                    "simulate6DofFlight: nozzleExitDiameter {} m is outside the supported domain (0…1.0 m)",
+                    format_js_num(d)
+                ));
+            }
+            // The exact expression the R41 arms used, so equalities stay bit-level.
+            let ae = PI * (d / 2.0).powi(2);
+            (Some(d), if ae > 0.0 { Some(ae) } else { None })
+        }
+    };
+
+    let atmosphere = site_temperature_k.map(|site_temperature_k| LaunchAnchoredAtmosphere {
+        site_altitude_m,
+        site_temperature_k,
+    });
+    let thrust_pressure = exit_area_m2.map(|exit_area_m2| ThrustPressureTerm {
+        exit_area_m2,
+        reference_pressure_pa: 101325.0,
+    });
+    let terms = if atmosphere.is_none() && thrust_pressure.is_none() {
+        None
+    } else {
+        Some(DiagnosticTerms { thrust_pressure, atmosphere })
+    };
+    Ok(FlightPhysicsInputs {
+        site_altitude_m,
+        site_temperature_k,
+        nozzle_exit_diameter_m,
+        exit_area_m2,
+        terms,
+    })
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn stage_mechanics(
     t_stage: f64,
@@ -1929,8 +2193,31 @@ pub(crate) fn stage_mechanics(
     vehicle: &Vehicle,
     motor: &MotorSpec,
 ) -> StageMechanics {
+    stage_mechanics_with_terms(
+        t_stage, st, launch_altitude_asl, wind_speed_surface, wind_azimuth_deg,
+        vehicle, motor, None,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn stage_mechanics_with_terms(
+    t_stage: f64,
+    st: &RigidState,
+    launch_altitude_asl: f64,
+    wind_speed_surface: f64,
+    wind_azimuth_deg: f64,
+    vehicle: &Vehicle,
+    motor: &MotorSpec,
+    terms: Option<&DiagnosticTerms>,
+) -> StageMechanics {
     let alt_asl = launch_altitude_asl + st.r.z;
-    let (density, sos) = atmosphere_at(alt_asl);
+    let (density, sos) = match terms.and_then(|t| t.atmosphere.as_ref()) {
+        None => atmosphere_at(alt_asl),
+        Some(a) => {
+            let (rho, sos, _) = anchored_air_at(a, alt_asl);
+            (rho, sos)
+        }
+    };
     let wind = wind_vector_at(st.r.z, wind_speed_surface, wind_azimuth_deg);
     stage_mechanics_with_flow(t_stage, st, alt_asl, density, sos, wind, None, vehicle, motor)
 }
@@ -1952,13 +2239,8 @@ pub(crate) fn stage_mechanics_with_flow(
     let m_rad = motor.diameter / 2.0;
     let m_len = motor.length;
     let x_mot = vehicle.motor_aft_station_from_nose - m_len / 2.0;
-    if !(x_mot - m_len / 2.0 >= 0.0) {
-        panic!(
-            "loads assembly: motor forward end {} m lies outside the vehicle (mount station {} m, motor length {} m)",
-            x_mot - m_len / 2.0,
-            vehicle.motor_aft_station_from_nose,
-            m_len
-        );
+    if let Err(reason) = validate_motor_placement(vehicle.motor_aft_station_from_nose, m_len) {
+        panic!("loads assembly: {}", reason);
     }
     let x_dry = vehicle.cg_from_nose;
     let x_c = (m_dry * x_dry + m_mot * x_mot) / mass;
@@ -2111,18 +2393,51 @@ fn compute_flight_loads(
     motor: &MotorSpec,
     drag_cd_scale: f64,
 ) -> Result<FlightLoads, String> {
+    compute_flight_loads_with_terms(
+        t_stage, st, drogue_deployed, main_deployed, rail_bound, launch_altitude_asl,
+        wind_speed_surface, wind_azimuth_deg, fin_cant_rad, vehicle, motor, drag_cd_scale, None,
+    )
+}
+
+/// R41 diagnostic seam. `terms = None` is the ordinary loads assembly; every
+/// branch below is additive and leaves the product value untouched when absent.
+#[allow(clippy::too_many_arguments)]
+fn compute_flight_loads_with_terms(
+    t_stage: f64,
+    st: &RigidState,
+    drogue_deployed: bool,
+    main_deployed: bool,
+    rail_bound: bool,
+    launch_altitude_asl: f64,
+    wind_speed_surface: f64,
+    wind_azimuth_deg: f64,
+    fin_cant_rad: f64,
+    vehicle: &Vehicle,
+    motor: &MotorSpec,
+    drag_cd_scale: f64,
+    terms: Option<&DiagnosticTerms>,
+) -> Result<FlightLoads, String> {
     if !t_stage.is_finite() {
         panic!("loads assembly: stage time must be finite");
     }
     if !fin_cant_rad.is_finite() || !wind_speed_surface.is_finite() || !wind_azimuth_deg.is_finite() {
         panic!("loads assembly: wind/cant configuration must be finite");
     }
-    let mech = stage_mechanics(t_stage, st, launch_altitude_asl, wind_speed_surface,
-        wind_azimuth_deg, vehicle, motor);
+    let mech = stage_mechanics_with_terms(t_stage, st, launch_altitude_asl, wind_speed_surface,
+        wind_azimuth_deg, vehicle, motor, terms);
     let alt_asl = mech.alt_asl;
     let density = mech.density;
     let powered = mech.powered;
-    let thrust = mech.thrust;
+    let mut thrust = mech.thrust;
+    if let Some(term) = terms.and_then(|t| t.thrust_pressure.as_ref()) {
+        if powered && thrust > 0.0 {
+            let p_amb = match terms.and_then(|t| t.atmosphere.as_ref()) {
+                Some(a) => anchored_air_at(a, alt_asl).2,
+                None => isa_pressure_at(alt_asl),
+            };
+            thrust += term.exit_area_m2 * (term.reference_pressure_pa - p_amb);
+        }
+    }
     let mass = mech.mass;
     let inertia_dot_b = mech.inertia_dot_b;
     let ixx = mech.inertia_b.y;
@@ -2288,6 +2603,16 @@ pub struct SixDofOptions {
     pub main_deploy_altitude_agl: Option<f64>,
     pub time_step: Option<f64>,
     pub fin_cant_angle_deg: Option<f64>,
+    /// Launch-site air temperature, °C (R42). `None` keeps the product ISA-1976
+    /// atmosphere in every bit; `Some` selects the site-anchored hydrostatic
+    /// column anchored at `launch_altitude_asl`.
+    pub launch_site_temperature_c: Option<f64>,
+    /// Nozzle exit diameter for the in-flight back-pressure term, metres (R42).
+    /// `None` (or `0.0`) keeps the motor curve exactly; `Some(d > 0)` adds
+    /// `A_e (p_ref − p_amb)` while burning. Deliberately NOT the vehicle design
+    /// input of the same name: that one stays the aero method's input and the
+    /// flight path never reads it, so no existing project changes.
+    pub nozzle_exit_diameter: Option<f64>,
     /// Airframe axial-drag multiplier (default 1.0: model curves unchanged).
     /// A field calibration applied to the airframe branch only — never to a
     /// live canopy's declared Cd. Must be a positive finite number.
@@ -2418,17 +2743,49 @@ fn apply_fsm_transition(prev: &EventState, name: &AstraeaEvent, fsm: &EventState
 }
 
 /// Coarse-grained 6-DOF flight simulation (mirrors `simulate6DofFlight`).
+///
+/// R42: when `SixDofOptions` carries a launch-site temperature and/or a flight
+/// nozzle exit diameter, the same loads seam the R41 research arms used is
+/// selected for that run; when both are absent the assembly is the unchanged
+/// product path. See [`flight_physics_inputs`].
 pub fn simulate_flight(
     vehicle: &Vehicle,
     motor: &MotorSpec,
     options: &SixDofOptions,
 ) -> Result<SimulationResult, String> {
+    let physics = flight_physics_inputs(options)?;
+    let terms = physics.terms.as_ref();
     let evaluator = |context: LoadContext, state: &RigidState| {
-        compute_flight_loads(
+        compute_flight_loads_with_terms(
             context.time, state, context.drogue_deployed, context.main_deployed,
             context.rail_bound, context.launch_altitude_asl,
             context.wind_speed_surface, context.wind_azimuth_deg,
             context.fin_cant_rad, vehicle, motor, context.drag_cd_scale,
+            terms,
+        ).map(|fl| fl.into_driver(options.record_moment_arm_history
+            && context.phase == LoadPhase::MacroSample))
+    };
+    simulate_flight_with_evaluator(vehicle, motor, options, &evaluator)
+}
+
+/// R41 diagnostic entry only. Identical driver, options and product loads as
+/// [`simulate_flight`]; the supplied `DiagnosticTerms` are the only difference
+/// and `DiagnosticTerms::default()` is bit-identical to `simulate_flight`. No
+/// command, DTO, wasm worker or ensemble path calls this.
+pub fn simulate_flight_diagnostic(
+    vehicle: &Vehicle,
+    motor: &MotorSpec,
+    options: &SixDofOptions,
+    terms: &DiagnosticTerms,
+) -> Result<SimulationResult, String> {
+    terms.validate()?;
+    let evaluator = |context: LoadContext, state: &RigidState| {
+        compute_flight_loads_with_terms(
+            context.time, state, context.drogue_deployed, context.main_deployed,
+            context.rail_bound, context.launch_altitude_asl,
+            context.wind_speed_surface, context.wind_azimuth_deg,
+            context.fin_cant_rad, vehicle, motor, context.drag_cd_scale,
+            Some(terms),
         ).map(|fl| fl.into_driver(options.record_moment_arm_history
             && context.phase == LoadPhase::MacroSample))
     };
@@ -3526,6 +3883,20 @@ mod tests {
     }
 
     #[test]
+    fn trial_limit_is_returned_as_an_error() {
+        let state = RigidState { r: Vec3::zero(), v: Vec3::zero(),
+            q: Quat { w: 1.0, x: 0.0, y: 0.0, z: 0.0 }, w: Vec3::zero() };
+        let times = std::cell::RefCell::new(Vec::<f64>::new());
+        let evaluator = constant_loads_evaluator(&times);
+        let rail = Vec3 { x: 0.0, y: 0.0, z: 1.0 };
+        let loads = stage_loads_closure(true, false, false, &rail, 0.0, 0.0, 90.0, 0.0,
+            snap_for_refine(true, false, false), 1.0, LoadPhase::EndpointProbe, &evaluator);
+        let tol = AbsoluteTolerancePolicy::Inherited.tolerances();
+        let err = integrate_rigid_adaptive(&state, &loads, 0.0, 6.0, &tol, 0.001, 0.001, &[], false, None).unwrap_err();
+        assert!(err.contains("exceeded total trial limit"), "{err}");
+    }
+
+    #[test]
     fn split_controls_land_exactly_on_knots_and_no_split_records_the_straddle() {
         let state = RigidState { r: Vec3::zero(), v: Vec3::zero(),
             q: Quat { w: 1.0, x: 0.0, y: 0.0, z: 0.0 }, w: Vec3::zero() };
@@ -3898,6 +4269,34 @@ mod tests {
     }
 
     #[test]
+    fn extreme_and_invalid_wind_returns_errors() {
+        for wind in [1e9, 1e300, f64::NAN, -1.0] {
+            let mut opts = default_opts(); opts.wind_speed_surface = Some(wind);
+            let result = simulate_flight(&estes_alpha_vehicle(), &estes_c6_motor(), &opts);
+            let err = result.expect_err("wind must return an error without a panic");
+            if wind.is_nan() || wind < 0.0 { assert!(err.contains("windSpeedSurface"), "{err}"); }
+            else { assert!(err.contains("adaptive integrator"), "{err}"); }
+        }
+    }
+
+    #[test]
+    fn pressure_correction_requires_positive_motor_thrust() {
+        let vehicle = estes_alpha_vehicle();
+        let mut motor = estes_c6_motor();
+        motor.burn_time = 2.0;
+        motor.thrust_curve = vec![ThrustPoint { time: 0.0, thrust: 0.0 },
+            ThrustPoint { time: 0.5, thrust: 0.0 }, ThrustPoint { time: 1.0, thrust: 10.0 },
+            ThrustPoint { time: 1.5, thrust: 0.0 }, ThrustPoint { time: 2.0, thrust: 0.0 }];
+        let state = RigidState { r: Vec3 { x: 0.0, y: 0.0, z: 1000.0 }, v: Vec3::zero(),
+            q: Quat { w: 1.0, x: 0.0, y: 0.0, z: 0.0 }, w: Vec3::zero() };
+        let terms = DiagnosticTerms { thrust_pressure: Some(ThrustPressureTerm { exit_area_m2: 0.01, reference_pressure_pa: 101325.0 }), atmosphere: None };
+        let at = |t, terms| compute_flight_loads_with_terms(t, &state, false, false, false,
+            0.0, 0.0, 0.0, 0.0, &vehicle, &motor, 1.0, terms).unwrap().thrust;
+        for t in [0.0, 0.25, 1.75] { assert_eq!(at(t, Some(&terms)), 0.0); }
+        assert!(at(1.0, Some(&terms)) > at(1.0, None));
+    }
+
+    #[test]
     fn moment_arm_mechanics_matches_independent_two_mass_triangle_depletion() {
         let vehicle = estes_alpha_vehicle();
         let mut motor = estes_c6_motor();
@@ -3970,6 +4369,8 @@ mod tests {
             time_step: None,
             fin_cant_angle_deg: None,
             drag_cd_scale: None,
+            launch_site_temperature_c: None,
+            nozzle_exit_diameter: None,
             record_telemetry: false,
             record_moment_arm_history: false,
         }
@@ -4343,7 +4744,8 @@ mod tests {
         // flight 89.69833984375896 s, landing 3.9873074760726985 m/s.
         // Kernel parity on FROZEN inputs: `estes_alpha_vehicle()` carries the
         // drag tables TS produced before the 2026-10-11 body-friction
-        // correction. The live-aero oracle (320.5894538955301 m since the fin edge drag) is
+        // correction. The live-aero oracle (320.3159751148401 m since the R38
+        // E-1b cylinder base drag) is
         // `ipc_flight_matches_zero_wind_alpha_c6_oracle` in src-tauri.
         // Documented tolerance: apogee <= 0.5% relative, landing drift
         // <= 5 m absolute.

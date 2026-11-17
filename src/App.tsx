@@ -12,12 +12,23 @@ import React from 'react';
 import Workstation from './console/Workstation';
 import { BrowserPreviewBanner, ImportReportBanner } from './console/shell/ProjectChrome';
 import { UpdateBanner } from './desktop/UpdateBanner';
+import { useRecoveryNote } from './state/workingSession';
+import { C } from './console/kit/theme';
+
+export function WorkingSessionNote() {
+  const { message, dismiss } = useRecoveryNote();
+  if (!message) return null;
+  return <div role="status" className="flex shrink-0 items-center gap-3 px-3 py-1 text-[11px]" style={{ color: C.muted, borderBottom: `1px solid ${C.line}` }}>
+    <span className="flex-1">{message}</span><button onClick={dismiss} aria-label="Dismiss working session notice">Dismiss</button>
+  </div>;
+}
 
 export const App: React.FC = () => (
   <div className="flex flex-col h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100 relative">
     <UpdateBanner />
     <BrowserPreviewBanner />
     <ImportReportBanner />
+    <WorkingSessionNote />
     <Workstation />
   </div>
 );

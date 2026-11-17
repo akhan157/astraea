@@ -115,11 +115,12 @@ describe('Flight chrome on short windows', () => {
     expect(row).not.toBeNull();
     expect(within(row as HTMLElement).getByLabelText('Run readiness')).toBeTruthy();
     expect(row?.textContent).toContain('Whole-design readiness');
-    expect(row?.textContent).toContain('Flight model: Legacy (supported)');
+    expect(row?.textContent).not.toContain('Flight model: Legacy (supported)');
     // The disclosure is still a real control inside the row.
-    expect(within(row as HTMLElement).getByText('Change…')).toBeTruthy();
+    expect(within(row as HTMLElement).getByText('Change flight model…').closest('summary')?.textContent).toBe('Change flight model…');
     // Only the merged row carries the chooser: it is not rendered twice.
-    expect(screen.getAllByText('Flight model: Legacy (supported)')).toHaveLength(1);
+    expect(screen.getAllByText('Change flight model…')).toHaveLength(1);
+    expect(screen.queryByText('Flight model: Legacy (supported)')).toBeNull();
   });
 
   it('keeps two rows on a tall window', () => {
@@ -127,6 +128,6 @@ describe('Flight chrome on short windows', () => {
     render(<FlightStage />);
     expect(document.querySelector('[data-flight-chrome="row"]')).toBeNull();
     expect(screen.getByLabelText('Run readiness')).toBeTruthy();
-    expect(screen.getByText('Flight model: Legacy (supported)')).toBeTruthy();
+    expect(screen.queryByText('Flight model: Legacy (supported)')).toBeNull();
   });
 });

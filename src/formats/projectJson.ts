@@ -50,9 +50,9 @@ import { DEFAULT_MISSION, parseMission, type Mission } from '../application/miss
 import { parseLedgerEntry, type LedgerEntry } from '../application/evidenceLedger';
 import { parseDragCalibration, type DragCalibration } from '../application/dragCalibration';
 import { parseAeroModelSelection, type AeroModelSelection } from '../application/aeroModel';
-import type { RunInputs, CandidateRunInputs } from '../application/runInputs';
+import type { RunInputs, CandidateRunInputs, ArchivedEngineOptions } from '../application/runInputs';
 import { parseEngineIdentity, type EngineIdentity } from '../engine/identity';
-import { stableStringify } from '../application/caseResolver';
+import { flightRunOptions, preSwitchFlightRunOptions, stableStringify, withResolvedDragChoice } from '../application/caseResolver';
 import { parseFlightModel, parseLegacyFlightModel, parseCandidateFlightModel, resolveFlightModel, CANDIDATE_FLIGHT_MODEL, type FlightModelSelection, type CandidateFlightModelSelection, type LegacyFlightModelSelection } from '../application/flightModel';
 import { parseCandidateResultArchive, type CandidateResultArchive } from '../application/candidateResult';
 import { assertCandidateInvocationConsistent, parseCandidateInvocation, type CandidateInvocation, type CandidateMotorDerivation } from '../application/candidate';
@@ -848,6 +848,21 @@ function validateVehicle(value: unknown): RocketVehicle {
       'vehicle.nozzleExitDiameter',
     );
   }
+  if (value.nozzleBackPressureThrust !== undefined) {
+    // `true` is the explicit "on" and `false` the explicit "off" of the automatic default
+    // (K3); both are written only when the user chose them. Anything else is a hand-edited
+    // file and fails closed. A build from before K3 refuses `false` (forward compatibility).
+    if (value.nozzleBackPressureThrust !== true && value.nozzleBackPressureThrust !== false) {
+      throw new InvalidProjectError('vehicle.nozzleBackPressureThrust must be true or false when present');
+    }
+    vehicle.nozzleBackPressureThrust = value.nozzleBackPressureThrust;
+  }
+  if (value.flightDragSource !== undefined) {
+    if (value.flightDragSource !== 'calibrated' && value.flightDragSource !== 'legacy') {
+      throw new InvalidProjectError("vehicle.flightDragSource must be 'calibrated' or 'legacy' when present");
+    }
+    vehicle.flightDragSource = value.flightDragSource;
+  }
   verifyUniqueIds(vehicle.components, 'component');
   return vehicle;
 }
@@ -859,9 +874,16 @@ function validateVehicle(value: unknown): RocketVehicle {
  */
 function validateLaunchSite(value: unknown): RocketVehicle['launchSite'] {
   if (!isRecord(value)) throw new InvalidProjectError('vehicle.launchSite must be an object');
-  return {
+  const site: NonNullable<RocketVehicle['launchSite']> = {
     altitudeM: requireFinite(value.altitudeM, 'vehicle.launchSite.altitudeM'),
   };
+  if (value.temperatureC !== undefined) {
+    // Finite only. The engine owns the supported domain and refuses an
+    // out-of-domain value with its own text; a value the editor can commit must
+    // never make the saved project unloadable.
+    site.temperatureC = requireFinite(value.temperatureC, 'vehicle.launchSite.temperatureC');
+  }
+  return site;
 }
 
 function validateComponent(value: unknown, index: number): RocketComponent {
@@ -914,6 +936,11 @@ function validateComponentGeometry(
         baseDiameter: requirePositive(comp.baseDiameter, `${ctx}.baseDiameter`),
         wallThickness: requirePositive(comp.wallThickness, `${ctx}.wallThickness`),
         isHollow: comp.isHollow,
+        // Finite only: the engine owns the supported range and refuses with its
+        // own text, and a value the editor can commit must not block the load.
+        ...(comp.tipRadius !== undefined
+          ? { tipRadius: requireFinite(comp.tipRadius, `${ctx}.tipRadius`) }
+          : {}),
       };
     case 'bodytube':
       return {
@@ -1264,6 +1291,23 @@ function validateCases(
       }
       out.summary = raw.summary as SimCase['summary'];
     }
+    // Engine-reported drag-source/refusal provenance. It is preserved only for
+    // a case whose archived inputs carry the built-up drag opt-in, and this
+    // build's engine always emits the line for such a run; a missing, empty or
+    // unproven line is refused rather than reconstructed.
+    const archivedAxialDrag = out.summary?.axialDrag;
+    // The archived options are exactly what was dispatched (validated against
+    // the vehicle above), so the drag line is expected iff a drag option was sent.
+    const archivedDragOptIn = legacyInputs !== null && legacyInputs.engineOptions.flightDragSource !== undefined;
+    if (archivedAxialDrag !== undefined && (typeof archivedAxialDrag !== 'string' || archivedAxialDrag.length === 0)) {
+      throw new InvalidProjectError(`cases[${i}].summary.axialDrag must be a non-empty string when present`);
+    }
+    if (archivedAxialDrag !== undefined && !archivedDragOptIn) {
+      throw new InvalidProjectError(`cases[${i}].summary.axialDrag requires archived inputs whose vehicle opted in to built-up flight drag`);
+    }
+    if (archivedDragOptIn && typeof archivedAxialDrag !== 'string') {
+      throw new InvalidProjectError(`cases[${i}].summary.axialDrag is missing; the archived vehicle opted in to built-up flight drag`);
+    }
     return out;
   });
 }
@@ -1320,6 +1364,67 @@ function validateRunInputs(raw: unknown): RunInputs {
   };
   const expected = [launch.railLengthM, launch.railElevationDeg, launch.railAzimuthDeg, launch.windSpeedMps, launch.windAzimuthDeg, launch.finCantDeg, launch.mainDeployAltitudeM, vehicle.launchSite?.altitudeM ?? 0, 0.01, dragCalibration?.scale ?? 1];
   if (Object.values(engineOptions).some((value, i) => value !== expected[i])) throw new InvalidProjectError('case inputs engine options disagree with console inputs/defaults');
+  // Vehicle-owned physics opt-ins. The archive must be exactly the request the
+  // app's one derivation would dispatch for the archived vehicle: presence and
+  // value both checked, so a deleted key, a changed value or an option the
+  // vehicle does not own is refused. A document with no opt-in derives nothing
+  // and stays byte-identical and loadable.
+  //
+  // K3 default switch: a vehicle with no drag choice derives the default
+  // (built-up drag) today, but the same document written by an earlier build
+  // recorded no drag option. Recorded runs are never rewritten, so a case that
+  // carries no drag option under an absent vehicle field is checked against the
+  // pre-switch derivation, and one that carries it against the current one.
+  // An explicit vehicle choice is always checked against the current rule.
+  //
+  // A run that carried a drag calibration under an absent vehicle field flew the legacy tables
+  // (the scale is fitted on them), so that case is checked as an explicit legacy vehicle.
+  const flown = withResolvedDragChoice(vehicle, dragCalibration);
+  const derivedPhysics = flown.flightDragSource === undefined && options.flightDragSource === undefined
+    ? preSwitchFlightRunOptions(flown)
+    : flightRunOptions(flown);
+  const physicsOptions: Pick<ArchivedEngineOptions, 'launchSiteTemperatureC' | 'nozzleExitDiameter' | 'flightDragSource'> = {};
+  if (derivedPhysics.launchSiteTemperatureC === undefined) {
+    if (options.launchSiteTemperatureC !== undefined) {
+      throw new InvalidProjectError('case inputs engine option launchSiteTemperatureC is not derived by the archived vehicle launch site');
+    }
+  } else {
+    if (options.launchSiteTemperatureC === undefined) {
+      throw new InvalidProjectError('case inputs engine option launchSiteTemperatureC is missing; the archived vehicle launch site derives it');
+    }
+    const value = requireFinite(options.launchSiteTemperatureC, 'inputs.engineOptions.launchSiteTemperatureC');
+    if (value !== derivedPhysics.launchSiteTemperatureC) {
+      throw new InvalidProjectError('case inputs engine option launchSiteTemperatureC disagrees with the archived vehicle launch site');
+    }
+    physicsOptions.launchSiteTemperatureC = value;
+  }
+  if (derivedPhysics.nozzleExitDiameter === undefined) {
+    if (options.nozzleExitDiameter !== undefined) {
+      throw new InvalidProjectError('case inputs engine option nozzleExitDiameter is not derived by the archived vehicle');
+    }
+  } else {
+    if (options.nozzleExitDiameter === undefined) {
+      throw new InvalidProjectError('case inputs engine option nozzleExitDiameter is missing; the archived vehicle nozzle opt-in derives it');
+    }
+    const value = requireNonNegative(options.nozzleExitDiameter, 'inputs.engineOptions.nozzleExitDiameter');
+    if (value !== derivedPhysics.nozzleExitDiameter) {
+      throw new InvalidProjectError('case inputs engine option nozzleExitDiameter disagrees with the archived vehicle nozzle');
+    }
+    physicsOptions.nozzleExitDiameter = value;
+  }
+  if (derivedPhysics.flightDragSource === undefined) {
+    if (options.flightDragSource !== undefined) {
+      throw new InvalidProjectError('case inputs engine option flightDragSource is not derived by the archived vehicle');
+    }
+  } else {
+    if (options.flightDragSource === undefined) {
+      throw new InvalidProjectError('case inputs engine option flightDragSource is missing; the archived vehicle derives it');
+    }
+    if (options.flightDragSource !== 'calibrated' || options.flightDragSource !== derivedPhysics.flightDragSource) {
+      throw new InvalidProjectError('case inputs engine option flightDragSource disagrees with the archived vehicle drag source');
+    }
+    physicsOptions.flightDragSource = 'calibrated';
+  }
   const weather = validateSnapshots(raw.context.weather);
   if (weather.some((s) => s.kind !== 'weather')) throw new InvalidProjectError('case input context contains non-weather snapshots');
   verifyUniqueIds(weather, 'case weather snapshot');
@@ -1327,7 +1432,7 @@ function validateRunInputs(raw: unknown): RunInputs {
     ...model,
     capturedAt: requireIso(raw.capturedAt, 'inputs.capturedAt'),
     inputKey: requireString(raw.inputKey, 'inputs.inputKey'),
-    vehicle, motorRecord: validateMotorRecord(raw.motorRecord, 0), launch, engineOptions,
+    vehicle, motorRecord: validateMotorRecord(raw.motorRecord, 0), launch, engineOptions: { ...engineOptions, ...physicsOptions },
     ...(Object.hasOwn(raw, 'reportMomentArmHistory') ? { reportMomentArmHistory: raw.reportMomentArmHistory as boolean } : {}),
     weatherModel: requireOneOf(raw.weatherModel, ['surface-power-law-only'] as const, 'inputs.weatherModel'),
     context: { workspace, mission, weather },

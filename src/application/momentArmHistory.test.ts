@@ -9,11 +9,11 @@ import { CERTIFIED_MOTORS } from '../propulsion/motorDatabase';
 import { withRunCases } from './runCases';
 import { compareRunInputs } from './runComparison';
 import { toFlightRun } from '../console/data/adapter';
-import { flightResultForRequest } from '../console/testFixtures';
+import { flightResultForRequest, pinLegacyFlightDrag } from '../console/testFixtures';
 
 let project: ProjectEnvelope;
 beforeEach(() => {
-  useProjectStore.getState().loadPreset('estesAlpha'); useAnalysisStore.getState().reset();
+  useProjectStore.getState().loadPreset('estesAlpha'); pinLegacyFlightDrag(); useAnalysisStore.getState().reset();
   project = structuredClone(exportableProject());
 });
 function archived(): any {

@@ -115,7 +115,7 @@ export function PartsTree() {
       </div>
 
       <div className="space-y-1.5 px-2 pb-2">
-        <input value={nameFilter} onChange={(e) => setNameFilter(e.target.value)} placeholder="Filter parts by name" aria-label="Filter parts by name" className="w-full rounded px-2 py-1 text-[12px] outline-none" style={{ background: C.sunken, border: `1px solid ${C.line}`, color: C.fg }} />
+        <input value={nameFilter} onChange={(e) => setNameFilter(e.target.value)} placeholder="Filter parts by name" aria-label="Filter parts by name" className="w-full rounded px-2 py-1 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-[rgba(110,231,247,.5)]" style={{ background: C.sunken, border: `1px solid ${C.line}`, color: C.fg }} />
         <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Filter parts by type">
           {FILTER_OPTIONS.map((opt) => {
             const active = filter === opt.id;

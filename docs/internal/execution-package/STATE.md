@@ -82,3 +82,11 @@ The initial SB1 computational policy M<0.8/incidence<=5deg is not the intended
 collegiate mission boundary and is not a physically validated envelope. Primary
 use is the target; an initially companion-only product needs an explicit promise
 and release decision, not an autonomous relabeling of an incomplete result.
+
+### 2026-11-12 local frontend integration (bounded, in_progress)
+
+Local frontend/design merge ebbaff8 carries owner option2 app-bound engine plus opt-in frontend inputs. Source916519f; evidence docs/internal/execution-runs/accuracy-bundle-frontend/EVIDENCE.json and RESULT.md. Build/281 changed-file tests/scoped production browser pass in merged tree; full smoke passes in integration tree. Acceptance-register arithmetic and release manifest deliberately unchanged: software checks do not close physical gates, and final bounded UI/review items remain. No main merge/push/release.
+
+### 2026-11-13 bounded three-gate closure
+
+Nose-tip production UI, opted-in saved flight/ensemble display, and independent final provenance guard accepted within their bounded software scopes (3pass/0open). Local integration330bb4a; detailed RESULT-CLOSEOUT-COORDINATOR.md, REVIEW-CLOSEOUT-COORDINATOR.md and REGISTER-CLOSEOUT.md under execution-runs/accuracy-bundle-frontend. Parent128check arithmetic unchanged67pass59blocked1not_applicable1not_run; no physics/release qualification. Supervising coordinator inspection remains external authority step; no push/release or cleanup performed.

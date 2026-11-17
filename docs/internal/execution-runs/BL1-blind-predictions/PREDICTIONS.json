@@ -1,0 +1,1854 @@
+{
+  "lane": "BL1-blind-predictions",
+  "phase": 1,
+  "status": "frozen_before_opening",
+  "opened": false,
+  "sourceSha": "f7a893489c5c7063653beaa810b81c84a3b1dcba",
+  "wasm": {
+    "path": "src/engine/astraea_engine.wasm",
+    "sha256": "4c1ec4ed7192f0f0eab9206481e74d2627c3a2f8010376a69f9194df10824535",
+    "bytes": 2075363
+  },
+  "designs": [
+    {
+      "key": "V001",
+      "path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/design/V001-Estes_Emerald_Streak.design.xml",
+      "sha256": "275a50c5f5318aec031066af216c9719a724d55b15740b0b3b26cbf8ceec5e98",
+      "declaredStage": {
+        "structuralMassKg": 0.07161000000000001,
+        "cgM": 0.31496,
+        "cgOverridden": false
+      },
+      "appImportRefusal": "Invalid OpenRocket (.ork) file: Unsupported mass/CG override on 'Sustainer'; import refused rather than changing the mass properties.",
+      "reconstruction": {
+        "projectionRemoved": [
+          "stage/overridemass",
+          "stage/overridesubcomponentsmass",
+          "stage/overridecg",
+          "stage/overridesubcomponentscg"
+        ],
+        "finSeatsApplied": [
+          {
+            "name": "Freeform Fin Set",
+            "seatM": 0.21889999999999998,
+            "designMethod": "bottom",
+            "designValueM": -0.006999999999999999
+          }
+        ],
+        "componentCgApplied": [],
+        "stagePointMass": {
+          "deltaKg": 0.016090000000000007,
+          "offsetM": 0.053274287103746376
+        },
+        "finalMassKg": 0.07161000000000001,
+        "finalCgM": 0.31481428710374637,
+        "staticMarginCalibers": 2.75193605017214,
+        "unreconstructed": {
+          "staticMarginCalibers": -0.5000594158805793,
+          "cg": 0.2839427633285302,
+          "cp": 0.2589397925345012,
+          "apogeeAGL": 20.106790364084254,
+          "maxMach": 0.0958536132492146
+        }
+      },
+      "axialDrag": "legacy 25-station Mach drag tables from compute_aerodynamic_curves; legacy drag used (refused: calibrated unsupported feature: fin set 'ork-freeformfinset-twkh7f4' is a freeform planform; the calibrated method models trapezoidal fins only — convert it to root chord, tip chord, span and sweep to use this method)"
+    },
+    {
+      "key": "V002",
+      "path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/design/V002-DDVulcanite.design.xml",
+      "sha256": "18e54445961696bb1ffc9af670816faa2febd3b94a439ad8429b79c25230ad67",
+      "declaredStage": {
+        "structuralMassKg": 1.0552000000000001,
+        "cgM": 0.739775,
+        "cgOverridden": true
+      },
+      "appImportRefusal": "Invalid OpenRocket (.ork) file: Unsupported mass/CG override on 'Stage'; import refused rather than changing the mass properties.",
+      "reconstruction": {
+        "projectionRemoved": [
+          "stage/overridemass",
+          "stage/overridesubcomponentsmass",
+          "stage/overridecg",
+          "stage/overridesubcomponentscg",
+          "component/overridecg",
+          "component/overridecg",
+          "component/overridecg",
+          "component/overridecg"
+        ],
+        "finSeatsApplied": [
+          {
+            "name": "Fin set",
+            "seatM": 0.7366,
+            "designMethod": "bottom",
+            "designValueM": -0.0127
+          }
+        ],
+        "componentCgApplied": [
+          {
+            "name": "Nose cone",
+            "cgM": 0.1524
+          },
+          {
+            "name": "Parachute",
+            "cgM": 0
+          }
+        ],
+        "stagePointMass": {
+          "deltaKg": 0.6573114414667155,
+          "offsetM": 0.12703672269117727
+        },
+        "finalMassKg": 1.0552000000000001,
+        "finalCgM": 0.739775,
+        "staticMarginCalibers": 8.801491980466192,
+        "unreconstructed": {
+          "staticMarginCalibers": -0.43670677799624075,
+          "cg": 0.6399107789459415,
+          "cp": 0.6148420630618453,
+          "apogeeAGL": null,
+          "maxMach": null
+        }
+      },
+      "axialDrag": null
+    }
+  ],
+  "appDefaults": {
+    "launch": {
+      "railLength": 3,
+      "railElevationDeg": 85,
+      "railAzimuthDeg": 0,
+      "windSpeedSurface": 3,
+      "windAzimuthDeg": 0,
+      "finCantAngleDeg": 0,
+      "mainDeployAltitudeAGL": 300
+    },
+    "monteCarlo": {
+      "seed": 20260927,
+      "sigmas": {
+        "windAzimuthDegSigma": 10,
+        "railAngleDegSigma": 1,
+        "impulsePctSigma": 5
+      },
+      "nRunsPerScenario": 1000
+    }
+  },
+  "scenarios": [
+    {
+      "id": "app-default",
+      "why": "the app new-design defaults: sea level, ISA, rail 3.0 m/85 deg, wind 3 m/s",
+      "launch": {
+        "railLength": 3,
+        "railElevationDeg": 85,
+        "railAzimuthDeg": 0,
+        "windSpeedSurface": 3,
+        "windAzimuthDeg": 0,
+        "finCantAngleDeg": 0,
+        "mainDeployAltitudeAGL": 300
+      },
+      "site": null,
+      "stageMassDeltaKg": 0
+    },
+    {
+      "id": "site-400m-0C",
+      "why": "unrecorded site: 400 m ASL, 0 degC",
+      "launch": {
+        "railLength": 3,
+        "railElevationDeg": 85,
+        "railAzimuthDeg": 0,
+        "windSpeedSurface": 3,
+        "windAzimuthDeg": 0,
+        "finCantAngleDeg": 0,
+        "mainDeployAltitudeAGL": 300
+      },
+      "site": {
+        "altitudeM": 400,
+        "temperatureC": 0
+      },
+      "stageMassDeltaKg": 0
+    },
+    {
+      "id": "site-400m-30C",
+      "why": "unrecorded site: 400 m ASL, 30 degC",
+      "launch": {
+        "railLength": 3,
+        "railElevationDeg": 85,
+        "railAzimuthDeg": 0,
+        "windSpeedSurface": 3,
+        "windAzimuthDeg": 0,
+        "finCantAngleDeg": 0,
+        "mainDeployAltitudeAGL": 300
+      },
+      "site": {
+        "altitudeM": 400,
+        "temperatureC": 30
+      },
+      "stageMassDeltaKg": 0
+    },
+    {
+      "id": "wind-0",
+      "why": "unrecorded weather: calm",
+      "launch": {
+        "railLength": 3,
+        "railElevationDeg": 85,
+        "railAzimuthDeg": 0,
+        "windSpeedSurface": 0,
+        "windAzimuthDeg": 0,
+        "finCantAngleDeg": 0,
+        "mainDeployAltitudeAGL": 300
+      },
+      "site": null,
+      "stageMassDeltaKg": 0
+    },
+    {
+      "id": "wind-5",
+      "why": "unrecorded weather: 5 m/s surface wind",
+      "launch": {
+        "railLength": 3,
+        "railElevationDeg": 85,
+        "railAzimuthDeg": 0,
+        "windSpeedSurface": 5,
+        "windAzimuthDeg": 0,
+        "finCantAngleDeg": 0,
+        "mainDeployAltitudeAGL": 300
+      },
+      "site": null,
+      "stageMassDeltaKg": 0
+    },
+    {
+      "id": "rail-1.2m",
+      "why": "unrecorded rail: 1.2 m rod",
+      "launch": {
+        "railLength": 1.2,
+        "railElevationDeg": 85,
+        "railAzimuthDeg": 0,
+        "windSpeedSurface": 3,
+        "windAzimuthDeg": 0,
+        "finCantAngleDeg": 0,
+        "mainDeployAltitudeAGL": 300
+      },
+      "site": null,
+      "stageMassDeltaKg": 0
+    },
+    {
+      "id": "mass-plus-1g",
+      "why": "page-vs-ORK mass gap, +1 g",
+      "launch": {
+        "railLength": 3,
+        "railElevationDeg": 85,
+        "railAzimuthDeg": 0,
+        "windSpeedSurface": 3,
+        "windAzimuthDeg": 0,
+        "finCantAngleDeg": 0,
+        "mainDeployAltitudeAGL": 300
+      },
+      "site": null,
+      "stageMassDeltaKg": 0.001
+    },
+    {
+      "id": "mass-minus-1g",
+      "why": "page-vs-ORK mass gap, -1 g",
+      "launch": {
+        "railLength": 3,
+        "railElevationDeg": 85,
+        "railAzimuthDeg": 0,
+        "windSpeedSurface": 3,
+        "windAzimuthDeg": 0,
+        "finCantAngleDeg": 0,
+        "mainDeployAltitudeAGL": 300
+      },
+      "site": null,
+      "stageMassDeltaKg": -0.001
+    }
+  ],
+  "intervalMethod": "nearest-rank p5/p95 over the union of all scenario runs (ceil(p/100*n)-1), the engine's own percentile rule; the qualified interval is the union over the scenario set, the product interval is the app-default scenario alone",
+  "flights": [
+    {
+      "id": "V001-01",
+      "design": "V001",
+      "flown": "2017-03-09",
+      "motor": "Estes C6-5",
+      "motorSha256Prefix": "013c6fd5",
+      "motorInAppDatabase": true,
+      "dragModel": "legacy 25-station Mach drag tables (calibrated refuses freeform fins)",
+      "nominalApogeeAGL_m": 158.64482146922478,
+      "interval5to95AGL_m": [
+        140.66479033716993,
+        177.1252110646571
+      ],
+      "productInterval5to95AGL_m": [
+        142.31726936360076,
+        174.2840269405228
+      ],
+      "productMedianAGL_m": 159.40822969760617,
+      "qualification": "qualified",
+      "reason": "app bundled Estes C6; legacy drag; declared-design reconstruction"
+    },
+    {
+      "id": "V001-02",
+      "design": "V001",
+      "flown": "2017-03-09",
+      "motor": "Estes C6-5",
+      "motorSha256Prefix": "cbb9fb42",
+      "motorInAppDatabase": true,
+      "dragModel": "legacy 25-station Mach drag tables (calibrated refuses freeform fins)",
+      "nominalApogeeAGL_m": 158.64482146922478,
+      "interval5to95AGL_m": [
+        140.66479033716993,
+        177.1252110646571
+      ],
+      "productInterval5to95AGL_m": [
+        142.31726936360076,
+        174.2840269405228
+      ],
+      "productMedianAGL_m": 159.40822969760617,
+      "qualification": "qualified",
+      "reason": "app bundled Estes C6; legacy drag; declared-design reconstruction"
+    },
+    {
+      "id": "V001-03",
+      "design": "V001",
+      "flown": "2017-03-09",
+      "motor": "Estes C6-5",
+      "motorSha256Prefix": "de709932",
+      "motorInAppDatabase": true,
+      "dragModel": "legacy 25-station Mach drag tables (calibrated refuses freeform fins)",
+      "nominalApogeeAGL_m": 158.64482146922478,
+      "interval5to95AGL_m": [
+        140.66479033716993,
+        177.1252110646571
+      ],
+      "productInterval5to95AGL_m": [
+        142.31726936360076,
+        174.2840269405228
+      ],
+      "productMedianAGL_m": 159.40822969760617,
+      "qualification": "qualified",
+      "reason": "app bundled Estes C6; legacy drag; declared-design reconstruction"
+    },
+    {
+      "id": "V001-04",
+      "design": "V001",
+      "flown": "2017-03-09",
+      "motor": "Estes C6-7",
+      "motorSha256Prefix": "6069b319",
+      "motorInAppDatabase": true,
+      "dragModel": "legacy 25-station Mach drag tables (calibrated refuses freeform fins)",
+      "nominalApogeeAGL_m": 158.64482146922478,
+      "interval5to95AGL_m": [
+        140.66479033716993,
+        177.1252110646571
+      ],
+      "productInterval5to95AGL_m": [
+        142.31726936360076,
+        174.2840269405228
+      ],
+      "productMedianAGL_m": 159.40822969760617,
+      "qualification": "qualified",
+      "reason": "app bundled Estes C6; legacy drag; declared-design reconstruction"
+    },
+    {
+      "id": "V001-05",
+      "design": "V001",
+      "flown": "2017-03-09",
+      "motor": "Estes C6-7",
+      "motorSha256Prefix": "70ca39f9",
+      "motorInAppDatabase": true,
+      "dragModel": "legacy 25-station Mach drag tables (calibrated refuses freeform fins)",
+      "nominalApogeeAGL_m": 158.64482146922478,
+      "interval5to95AGL_m": [
+        140.66479033716993,
+        177.1252110646571
+      ],
+      "productInterval5to95AGL_m": [
+        142.31726936360076,
+        174.2840269405228
+      ],
+      "productMedianAGL_m": 159.40822969760617,
+      "qualification": "qualified",
+      "reason": "app bundled Estes C6; legacy drag; declared-design reconstruction"
+    },
+    {
+      "id": "V001-06",
+      "design": "V001",
+      "flown": "2017-03-09",
+      "motor": "Estes C6-7",
+      "motorSha256Prefix": "7bef1aff",
+      "motorInAppDatabase": true,
+      "dragModel": "legacy 25-station Mach drag tables (calibrated refuses freeform fins)",
+      "nominalApogeeAGL_m": 158.64482146922478,
+      "interval5to95AGL_m": [
+        140.66479033716993,
+        177.1252110646571
+      ],
+      "productInterval5to95AGL_m": [
+        142.31726936360076,
+        174.2840269405228
+      ],
+      "productMedianAGL_m": 159.40822969760617,
+      "qualification": "qualified",
+      "reason": "app bundled Estes C6; legacy drag; declared-design reconstruction"
+    },
+    {
+      "id": "V001-07",
+      "design": "V001",
+      "flown": "2017-03-09",
+      "motor": "AeroTech D13-10W",
+      "motorSha256Prefix": "331cb649",
+      "motorInAppDatabase": false,
+      "motorFile": "AeroTech_D13W.eng",
+      "motorFileSha256": "1940ce3c415493c8a6ee11d1755ab1ed255b5dc11eb5108697953cd6ba1cf325",
+      "motorDataSource": "cert",
+      "thrustcurveMotorId": "5f4294d20002310000000021",
+      "motorParsed": {
+        "designation": "D13W",
+        "diameterM": 0.018,
+        "lengthM": 0.07,
+        "totalImpulseNs": 19.263356,
+        "burnTimeS": 1.52,
+        "maxThrustN": 23.61,
+        "propellantMassKg": 0.0098,
+        "totalMassKg": 0.0326,
+        "dryMassKg": 0.022799999999999997,
+        "curvePoints": 32
+      },
+      "dragModel": "legacy 25-station Mach drag tables (calibrated refuses freeform fins)",
+      "nominalApogeeAGL_m": 315.88728452122143,
+      "interval5to95AGL_m": [
+        295.5613915213592,
+        341.9237728011707
+      ],
+      "productInterval5to95AGL_m": [
+        295.605550498635,
+        335.1355837975023
+      ],
+      "productMedianAGL_m": 316.72977317971396,
+      "qualification": "qualified",
+      "reason": "downloaded NAR cert curve, imported through parseRaspEng; legacy drag; declared-design reconstruction"
+    },
+    {
+      "id": "V001-08",
+      "design": "V001",
+      "flown": "2017-03-09",
+      "motor": "Quest QC6-5",
+      "motorSha256Prefix": "9be8158f",
+      "motorInAppDatabase": false,
+      "motorFile": "Quest_C6.eng",
+      "motorFileSha256": "08d25d4fd9778d1fdc9419e0bc2c1ee76655d31d3f83d7a5020b3a585f340b71",
+      "motorDataSource": "cert",
+      "thrustcurveMotorId": "5f4294d20002310000000016",
+      "motorParsed": {
+        "designation": "C6-0",
+        "diameterM": 0.018,
+        "lengthM": 0.07,
+        "totalImpulseNs": 9.185595499999998,
+        "burnTimeS": 2.247,
+        "maxThrustN": 23.234,
+        "propellantMassKg": 0.0083,
+        "totalMassKg": 0.0216,
+        "dryMassKg": 0.013300000000000001,
+        "curvePoints": 30
+      },
+      "dragModel": "legacy 25-station Mach drag tables (calibrated refuses freeform fins)",
+      "nominalApogeeAGL_m": 172.27569656462566,
+      "interval5to95AGL_m": [
+        153.03938250681023,
+        192.09846457424766
+      ],
+      "productInterval5to95AGL_m": [
+        154.20989306998658,
+        189.5560219172358
+      ],
+      "productMedianAGL_m": 173.14294466740978,
+      "qualification": "qualified",
+      "motorCurveNote": "Quest_C6.eng is the C6-0 curve; used for QC6-5 because apogee is delay-independent in this engine",
+      "reason": "downloaded NAR cert curve, imported through parseRaspEng; legacy drag; declared-design reconstruction"
+    },
+    {
+      "id": "V001-09",
+      "design": "V001",
+      "flown": "2017-03-09",
+      "motor": "Quest QC6-5",
+      "motorSha256Prefix": "11f0326a",
+      "motorInAppDatabase": false,
+      "motorFile": "Quest_C6.eng",
+      "motorFileSha256": "08d25d4fd9778d1fdc9419e0bc2c1ee76655d31d3f83d7a5020b3a585f340b71",
+      "motorDataSource": "cert",
+      "thrustcurveMotorId": "5f4294d20002310000000016",
+      "motorParsed": {
+        "designation": "C6-0",
+        "diameterM": 0.018,
+        "lengthM": 0.07,
+        "totalImpulseNs": 9.185595499999998,
+        "burnTimeS": 2.247,
+        "maxThrustN": 23.234,
+        "propellantMassKg": 0.0083,
+        "totalMassKg": 0.0216,
+        "dryMassKg": 0.013300000000000001,
+        "curvePoints": 30
+      },
+      "dragModel": "legacy 25-station Mach drag tables (calibrated refuses freeform fins)",
+      "nominalApogeeAGL_m": 172.27569656462566,
+      "interval5to95AGL_m": [
+        153.03938250681023,
+        192.09846457424766
+      ],
+      "productInterval5to95AGL_m": [
+        154.20989306998658,
+        189.5560219172358
+      ],
+      "productMedianAGL_m": 173.14294466740978,
+      "qualification": "qualified",
+      "motorCurveNote": "Quest_C6.eng is the C6-0 curve; used for QC6-5 because apogee is delay-independent in this engine",
+      "reason": "downloaded NAR cert curve, imported through parseRaspEng; legacy drag; declared-design reconstruction"
+    },
+    {
+      "id": "V001-10",
+      "design": "V001",
+      "flown": "2017-03-09",
+      "motor": "Quest QC6-5",
+      "motorSha256Prefix": "09e271ff",
+      "motorInAppDatabase": false,
+      "motorFile": "Quest_C6.eng",
+      "motorFileSha256": "08d25d4fd9778d1fdc9419e0bc2c1ee76655d31d3f83d7a5020b3a585f340b71",
+      "motorDataSource": "cert",
+      "thrustcurveMotorId": "5f4294d20002310000000016",
+      "motorParsed": {
+        "designation": "C6-0",
+        "diameterM": 0.018,
+        "lengthM": 0.07,
+        "totalImpulseNs": 9.185595499999998,
+        "burnTimeS": 2.247,
+        "maxThrustN": 23.234,
+        "propellantMassKg": 0.0083,
+        "totalMassKg": 0.0216,
+        "dryMassKg": 0.013300000000000001,
+        "curvePoints": 30
+      },
+      "dragModel": "legacy 25-station Mach drag tables (calibrated refuses freeform fins)",
+      "nominalApogeeAGL_m": 172.27569656462566,
+      "interval5to95AGL_m": [
+        153.03938250681023,
+        192.09846457424766
+      ],
+      "productInterval5to95AGL_m": [
+        154.20989306998658,
+        189.5560219172358
+      ],
+      "productMedianAGL_m": 173.14294466740978,
+      "qualification": "qualified",
+      "motorCurveNote": "Quest_C6.eng is the C6-0 curve; used for QC6-5 because apogee is delay-independent in this engine",
+      "reason": "downloaded NAR cert curve, imported through parseRaspEng; legacy drag; declared-design reconstruction"
+    },
+    {
+      "id": "V002-01",
+      "design": "V002",
+      "flown": "2023-02-11",
+      "motor": "AeroTech HP-I140W-14",
+      "motorSha256Prefix": "0d43f917",
+      "motorInAppDatabase": false,
+      "motorFile": "AeroTech_HP-I140W.eng",
+      "motorFileSha256": "7986dc11a24863383fe0ac631683c986fe2a96bea7aa6f43bd24a98eeddd098d",
+      "motorDataSource": "mfr",
+      "thrustcurveMotorId": "5f4294d200023100000003f5",
+      "motorParsed": {
+        "designation": "I140W",
+        "diameterM": 0.038,
+        "lengthM": 0.2027,
+        "totalImpulseNs": 339.2630285000001,
+        "burnTimeS": 2.478,
+        "maxThrustN": 179.023,
+        "propellantMassKg": 0.183,
+        "totalMassKg": 0.356,
+        "dryMassKg": 0.173,
+        "curvePoints": 24
+      },
+      "dragModel": "legacy 25-station Mach drag tables (calibrated refuses freeform fins)",
+      "nominalApogeeAGL_m": 1079.71805405715,
+      "interval5to95AGL_m": [
+        949.3746123538143,
+        1214.5982875595034
+      ],
+      "productInterval5to95AGL_m": [
+        984.3272825263606,
+        1171.5638432360258
+      ],
+      "productMedianAGL_m": 1083.7794376030502,
+      "qualification": "qualified",
+      "extraction": "GPS-only: max GPS altitude above the pad median; vertical uncertainty unstated (spec 6.4)",
+      "reason": "downloaded manufacturer curve (no cert file), imported through parseRaspEng; impulse bracket +/-10 % added to the qualified interval; legacy drag; declared-design reconstruction"
+    },
+    {
+      "id": "V002-02",
+      "design": "V002",
+      "flown": "2023-07-08",
+      "motor": "AeroTech HP-J270W-14",
+      "motorSha256Prefix": "bf706a9e",
+      "motorInAppDatabase": false,
+      "motorFile": "AeroTech_HP-J270W.eng",
+      "motorFileSha256": "602eda39374796cfa4b72afec2b29b44fd57bd3b992daed1f0d5fbc8f0c2e3ad",
+      "motorDataSource": "mfr",
+      "thrustcurveMotorId": "5f4294d200023100000003f7",
+      "motorParsed": {
+        "designation": "J270W",
+        "diameterM": 0.038,
+        "lengthM": 0.3564,
+        "totalImpulseNs": 701.47043,
+        "burnTimeS": 2.563,
+        "maxThrustN": 367.585,
+        "propellantMassKg": 0.381,
+        "totalMassKg": 0.642,
+        "dryMassKg": 0.261,
+        "curvePoints": 39
+      },
+      "dragModel": "legacy 25-station Mach drag tables (calibrated refuses freeform fins)",
+      "nominalApogeeAGL_m": 1873.9911987839314,
+      "interval5to95AGL_m": [
+        1723.9021917925506,
+        2035.7343484173914
+      ],
+      "productInterval5to95AGL_m": [
+        1764.8630263441607,
+        1969.9609442084738
+      ],
+      "productMedianAGL_m": 1878.808406504024,
+      "qualification": "qualified",
+      "reason": "downloaded manufacturer curve (no cert file), imported through parseRaspEng; impulse bracket +/-10 % added to the qualified interval; legacy drag; declared-design reconstruction"
+    }
+  ],
+  "motorAvailability": {
+    "bundled": [
+      "Estes C6",
+      "AeroTech H128W",
+      "Cesaroni I205",
+      "AeroTech K550W",
+      "Cesaroni M1820"
+    ],
+    "suppliedForSealedFlights": [
+      {
+        "key": "d13w",
+        "file": "AeroTech_D13W.eng",
+        "sha256": "1940ce3c415493c8a6ee11d1755ab1ed255b5dc11eb5108697953cd6ba1cf325",
+        "source": "cert"
+      },
+      {
+        "key": "questC6",
+        "file": "Quest_C6.eng",
+        "sha256": "08d25d4fd9778d1fdc9419e0bc2c1ee76655d31d3f83d7a5020b3a585f340b71",
+        "source": "cert"
+      },
+      {
+        "key": "i140w",
+        "file": "AeroTech_HP-I140W.eng",
+        "sha256": "7986dc11a24863383fe0ac631683c986fe2a96bea7aa6f43bd24a98eeddd098d",
+        "source": "mfr"
+      },
+      {
+        "key": "j270w",
+        "file": "AeroTech_HP-J270W.eng",
+        "sha256": "602eda39374796cfa4b72afec2b29b44fd57bd3b992daed1f0d5fbc8f0c2e3ad",
+        "source": "mfr"
+      }
+    ],
+    "missingForSealedFlights": [],
+    "ownerAuthorization": "2026-11-16, stop (b) question: download 4 motor curves (ThrustCurve.org API, downloaded by the orchestrator)"
+  },
+  "sets": [
+    {
+      "design": "V001",
+      "motorId": "estes_c6",
+      "nRunsPerScenario": 1000,
+      "scenarios": 8,
+      "totalRuns": 8000,
+      "seed": 20260927,
+      "sigmas": {
+        "windAzimuthDegSigma": 10,
+        "railAngleDegSigma": 1,
+        "impulsePctSigma": 5
+      },
+      "sampler": "per-run-v2 (subSeedOf + mulberry32); engine draw order wind-azimuth -> folded rail-elevation -> impulse",
+      "product": {
+        "n": 1000,
+        "p5": 142.31726936360076,
+        "p50": 159.40822969760617,
+        "p95": 174.2840269405228,
+        "min": 124.88991282211336,
+        "max": 189.82750798859286,
+        "failed": 0
+      },
+      "qualified": {
+        "n": 8000,
+        "p5": 140.66479033716993,
+        "p50": 159.6865346331445,
+        "p95": 177.1252110646571,
+        "min": 115.87089089009375,
+        "max": 198.65907436303706,
+        "failed": 0
+      },
+      "perScenario": [
+        {
+          "id": "app-default",
+          "why": "the app new-design defaults: sea level, ISA, rail 3.0 m/85 deg, wind 3 m/s",
+          "launch": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 3,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300
+          },
+          "site": null,
+          "stageMassDeltaKg": 0,
+          "options": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 3,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300,
+            "flightDragSource": "calibrated"
+          },
+          "stats": {
+            "n": 1000,
+            "p5": 142.31726936360076,
+            "p50": 159.40822969760617,
+            "p95": 174.2840269405228,
+            "min": 124.88991282211336,
+            "max": 189.82750798859286,
+            "failed": 0
+          }
+        },
+        {
+          "id": "site-400m-0C",
+          "why": "unrecorded site: 400 m ASL, 0 degC",
+          "launch": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 3,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300
+          },
+          "site": {
+            "altitudeM": 400,
+            "temperatureC": 0
+          },
+          "stageMassDeltaKg": 0,
+          "options": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 3,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300,
+            "launchAltitudeASL": 400,
+            "launchSiteTemperatureC": 0,
+            "flightDragSource": "calibrated"
+          },
+          "stats": {
+            "n": 1000,
+            "p5": 142.19822174555432,
+            "p50": 159.23719646433003,
+            "p95": 174.06800182159265,
+            "min": 124.80543228771346,
+            "max": 189.56999147611182,
+            "failed": 0
+          }
+        },
+        {
+          "id": "site-400m-30C",
+          "why": "unrecorded site: 400 m ASL, 30 degC",
+          "launch": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 3,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300
+          },
+          "site": {
+            "altitudeM": 400,
+            "temperatureC": 30
+          },
+          "stageMassDeltaKg": 0,
+          "options": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 3,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300,
+            "launchAltitudeASL": 400,
+            "launchSiteTemperatureC": 30,
+            "flightDragSource": "calibrated"
+          },
+          "stats": {
+            "n": 1000,
+            "p5": 148.01719075923722,
+            "p50": 166.20767368546746,
+            "p95": 182.07692608908064,
+            "min": 129.52602408336418,
+            "max": 198.65907436303706,
+            "failed": 0
+          }
+        },
+        {
+          "id": "wind-0",
+          "why": "unrecorded weather: calm",
+          "launch": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 0,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300
+          },
+          "site": null,
+          "stageMassDeltaKg": 0,
+          "options": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 0,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300,
+            "flightDragSource": "calibrated"
+          },
+          "stats": {
+            "n": 1000,
+            "p5": 150.3163205067743,
+            "p50": 167.59407476765057,
+            "p95": 182.46212746553547,
+            "min": 133.7053902689605,
+            "max": 197.1110844995682,
+            "failed": 0
+          }
+        },
+        {
+          "id": "wind-5",
+          "why": "unrecorded weather: 5 m/s surface wind",
+          "launch": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 5,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300
+          },
+          "site": null,
+          "stageMassDeltaKg": 0,
+          "options": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 5,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300,
+            "flightDragSource": "calibrated"
+          },
+          "stats": {
+            "n": 1000,
+            "p5": 133.29798218425114,
+            "p50": 150.5358650015171,
+            "p95": 165.7526998409238,
+            "min": 115.87089089009375,
+            "max": 181.70426709358966,
+            "failed": 0
+          }
+        },
+        {
+          "id": "rail-1.2m",
+          "why": "unrecorded rail: 1.2 m rod",
+          "launch": {
+            "railLength": 1.2,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 3,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300
+          },
+          "site": null,
+          "stageMassDeltaKg": 0,
+          "options": {
+            "railLength": 1.2,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 3,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300,
+            "flightDragSource": "calibrated"
+          },
+          "stats": {
+            "n": 1000,
+            "p5": 139.86114214518108,
+            "p50": 157.1722530972872,
+            "p95": 172.30421643328452,
+            "min": 122.14965490809713,
+            "max": 188.0169951048416,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mass-plus-1g",
+          "why": "page-vs-ORK mass gap, +1 g",
+          "launch": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 3,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300
+          },
+          "site": null,
+          "stageMassDeltaKg": 0.001,
+          "options": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 3,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300,
+            "flightDragSource": "calibrated"
+          },
+          "stats": {
+            "n": 1000,
+            "p5": 140.9704684002729,
+            "p50": 158.10090883286927,
+            "p95": 173.02224218746645,
+            "min": 123.53155413555437,
+            "max": 188.62048605542782,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mass-minus-1g",
+          "why": "page-vs-ORK mass gap, -1 g",
+          "launch": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 3,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300
+          },
+          "site": null,
+          "stageMassDeltaKg": -0.001,
+          "options": {
+            "railLength": 3,
+            "railElevationDeg": 85,
+            "railAzimuthDeg": 0,
+            "windSpeedSurface": 3,
+            "windAzimuthDeg": 0,
+            "finCantAngleDeg": 0,
+            "mainDeployAltitudeAGL": 300,
+            "flightDragSource": "calibrated"
+          },
+          "stats": {
+            "n": 1000,
+            "p5": 143.66134079743375,
+            "p50": 160.70995999876328,
+            "p95": 175.53780385286507,
+            "min": 126.25078231338166,
+            "max": 191.02432055929296,
+            "failed": 0
+          }
+        }
+      ]
+    },
+    {
+      "design": "V001",
+      "motorKey": "d13w",
+      "flights": [
+        "V001-07"
+      ],
+      "motorFile": "AeroTech_D13W.eng",
+      "motorSha256": "1940ce3c415493c8a6ee11d1755ab1ed255b5dc11eb5108697953cd6ba1cf325",
+      "dataSource": "cert",
+      "nRunsPerScenario": 1000,
+      "scenarios": 8,
+      "totalRuns": 8000,
+      "seed": 20260927,
+      "sigmas": {
+        "windAzimuthDegSigma": 10,
+        "railAngleDegSigma": 1,
+        "impulsePctSigma": 5
+      },
+      "product": {
+        "n": 1000,
+        "p5": 295.605550498635,
+        "p50": 316.72977317971396,
+        "p95": 335.1355837975023,
+        "min": 273.2535418355438,
+        "max": 353.5042719077989,
+        "failed": 0
+      },
+      "qualified": {
+        "n": 8000,
+        "p5": 295.5613915213592,
+        "p50": 318.05437547112746,
+        "p95": 341.9237728011707,
+        "min": 267.9002454791918,
+        "max": 375.1701219278104,
+        "failed": 0
+      },
+      "perScenario": [
+        {
+          "id": "app-default",
+          "why": "the app new-design defaults: sea level, ISA, rail 3.0 m/85 deg, wind 3 m/s",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 295.605550498635,
+            "p50": 316.72977317971396,
+            "p95": 335.1355837975023,
+            "min": 273.2535418355438,
+            "max": 353.5042719077989,
+            "failed": 0
+          }
+        },
+        {
+          "id": "site-400m-0C",
+          "why": "unrecorded site: 400 m ASL, 0 degC",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 295.01863420073664,
+            "p50": 316.05863675439963,
+            "p95": 334.4033013527546,
+            "min": 272.7942971076565,
+            "max": 352.71596868219046,
+            "failed": 0
+          }
+        },
+        {
+          "id": "site-400m-30C",
+          "why": "unrecorded site: 400 m ASL, 30 degC",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 312.72196105245604,
+            "p50": 335.5058393869734,
+            "p95": 355.36629092049606,
+            "min": 288.60875443050685,
+            "max": 375.1701219278104,
+            "failed": 0
+          }
+        },
+        {
+          "id": "wind-0",
+          "why": "unrecorded weather: calm",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 300.0091192046991,
+            "p50": 321.6537059426155,
+            "p95": 339.98718953658755,
+            "min": 278.5426417003887,
+            "max": 357.92978360431357,
+            "failed": 0
+          }
+        },
+        {
+          "id": "wind-5",
+          "why": "unrecorded weather: 5 m/s surface wind",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 290.35440495216903,
+            "p50": 311.74953419204564,
+            "p95": 330.0772896555757,
+            "min": 267.9002454791918,
+            "max": 349.05165784101536,
+            "failed": 0
+          }
+        },
+        {
+          "id": "rail-1.2m",
+          "why": "unrecorded rail: 1.2 m rod",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 293.8163078710285,
+            "p50": 315.1527172941288,
+            "p95": 333.4412660055187,
+            "min": 271.435651743364,
+            "max": 352.1651998389586,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mass-plus-1g",
+          "why": "page-vs-ORK mass gap, +1 g",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 295.09911442787677,
+            "p50": 316.3422266376248,
+            "p95": 334.8521356053063,
+            "min": 272.6143054823658,
+            "max": 353.32267475932895,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mass-minus-1g",
+          "why": "page-vs-ORK mass gap, -1 g",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 296.09429982545805,
+            "p50": 317.09726720354314,
+            "p95": 335.4004452393641,
+            "min": 273.87768465891014,
+            "max": 353.6667327030801,
+            "failed": 0
+          }
+        }
+      ]
+    },
+    {
+      "design": "V001",
+      "motorKey": "questC6",
+      "flights": [
+        "V001-08",
+        "V001-09",
+        "V001-10"
+      ],
+      "motorFile": "Quest_C6.eng",
+      "motorSha256": "08d25d4fd9778d1fdc9419e0bc2c1ee76655d31d3f83d7a5020b3a585f340b71",
+      "dataSource": "cert",
+      "nRunsPerScenario": 1000,
+      "scenarios": 8,
+      "totalRuns": 8000,
+      "seed": 20260927,
+      "sigmas": {
+        "windAzimuthDegSigma": 10,
+        "railAngleDegSigma": 1,
+        "impulsePctSigma": 5
+      },
+      "product": {
+        "n": 1000,
+        "p5": 154.20989306998658,
+        "p50": 173.14294466740978,
+        "p95": 189.5560219172358,
+        "min": 134.96258004127753,
+        "max": 206.46581497981254,
+        "failed": 0
+      },
+      "qualified": {
+        "n": 8000,
+        "p5": 153.03938250681023,
+        "p50": 173.6716655404969,
+        "p95": 192.09846457424766,
+        "min": 126.24390693442624,
+        "max": 215.91873654803572,
+        "failed": 0
+      },
+      "perScenario": [
+        {
+          "id": "app-default",
+          "why": "the app new-design defaults: sea level, ISA, rail 3.0 m/85 deg, wind 3 m/s",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 154.20989306998658,
+            "p50": 173.14294466740978,
+            "p95": 189.5560219172358,
+            "min": 134.96258004127753,
+            "max": 206.46581497981254,
+            "failed": 0
+          }
+        },
+        {
+          "id": "site-400m-0C",
+          "why": "unrecorded site: 400 m ASL, 0 degC",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 154.12374556539206,
+            "p50": 172.99974450093995,
+            "p95": 189.36083531030383,
+            "min": 134.8707937601151,
+            "max": 206.2175206394823,
+            "failed": 0
+          }
+        },
+        {
+          "id": "site-400m-30C",
+          "why": "unrecorded site: 400 m ASL, 30 degC",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 160.2966185083469,
+            "p50": 180.40348597382263,
+            "p95": 197.90031169902443,
+            "min": 139.90034191037512,
+            "max": 215.91873654803572,
+            "failed": 0
+          }
+        },
+        {
+          "id": "wind-0",
+          "why": "unrecorded weather: calm",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 161.75768263714892,
+            "p50": 180.576632523318,
+            "p95": 196.7619426730115,
+            "min": 143.70766018313634,
+            "max": 212.7365082152184,
+            "failed": 0
+          }
+        },
+        {
+          "id": "wind-5",
+          "why": "unrecorded weather: 5 m/s surface wind",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 145.9244190939423,
+            "p50": 165.25625221830614,
+            "p95": 182.17432821585155,
+            "min": 126.24390693442624,
+            "max": 199.68067419864383,
+            "failed": 0
+          }
+        },
+        {
+          "id": "rail-1.2m",
+          "why": "unrecorded rail: 1.2 m rod",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 153.3177611621788,
+            "p50": 172.33858344153973,
+            "p95": 188.79145568474806,
+            "min": 133.939865540702,
+            "max": 205.86841240891732,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mass-plus-1g",
+          "why": "page-vs-ORK mass gap, +1 g",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 152.68541340248888,
+            "p50": 171.66157806410524,
+            "p95": 188.12470804011284,
+            "min": 133.4309836198758,
+            "max": 205.1012871273053,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mass-minus-1g",
+          "why": "page-vs-ORK mass gap, -1 g",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 155.73469317787186,
+            "p50": 174.61827319567828,
+            "p95": 190.9793409573021,
+            "min": 136.49703755491274,
+            "max": 207.8195893622354,
+            "failed": 0
+          }
+        }
+      ]
+    },
+    {
+      "design": "V002",
+      "motorKey": "i140w",
+      "flights": [
+        "V002-01"
+      ],
+      "motorFile": "AeroTech_HP-I140W.eng",
+      "motorSha256": "7986dc11a24863383fe0ac631683c986fe2a96bea7aa6f43bd24a98eeddd098d",
+      "dataSource": "mfr",
+      "nRunsPerScenario": 1000,
+      "scenarios": 10,
+      "totalRuns": 10000,
+      "seed": 20260927,
+      "sigmas": {
+        "windAzimuthDegSigma": 10,
+        "railAngleDegSigma": 1,
+        "impulsePctSigma": 5
+      },
+      "product": {
+        "n": 1000,
+        "p5": 984.3272825263606,
+        "p50": 1083.7794376030502,
+        "p95": 1171.5638432360258,
+        "min": 881.8873491242608,
+        "max": 1261.4029437381278,
+        "failed": 0
+      },
+      "qualified": {
+        "n": 10000,
+        "p5": 949.3746123538143,
+        "p50": 1087.4378758516546,
+        "p95": 1214.5982875595034,
+        "min": 777.9449044785661,
+        "max": 1375.8682747095072,
+        "failed": 0
+      },
+      "perScenario": [
+        {
+          "id": "app-default",
+          "why": "the app new-design defaults: sea level, ISA, rail 3.0 m/85 deg, wind 3 m/s",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 984.3272825263606,
+            "p50": 1083.7794376030502,
+            "p95": 1171.5638432360258,
+            "min": 881.8873491242608,
+            "max": 1261.4029437381278,
+            "failed": 0
+          }
+        },
+        {
+          "id": "site-400m-0C",
+          "why": "unrecorded site: 400 m ASL, 0 degC",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 983.1532384557553,
+            "p50": 1082.510614077725,
+            "p95": 1170.24323841878,
+            "min": 880.8815488397396,
+            "max": 1259.9103574267774,
+            "failed": 0
+          }
+        },
+        {
+          "id": "site-400m-30C",
+          "why": "unrecorded site: 400 m ASL, 30 degC",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 1030.7683116991052,
+            "p50": 1137.4463566071588,
+            "p95": 1231.9049526438675,
+            "min": 921.0539317296249,
+            "max": 1328.3320997571304,
+            "failed": 0
+          }
+        },
+        {
+          "id": "wind-0",
+          "why": "unrecorded weather: calm",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 1011.0773367802894,
+            "p50": 1113.0980495995711,
+            "p95": 1201.0108385223605,
+            "min": 912.208350749719,
+            "max": 1288.1201847042046,
+            "failed": 0
+          }
+        },
+        {
+          "id": "wind-5",
+          "why": "unrecorded weather: 5 m/s surface wind",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 953.8366239655835,
+            "p50": 1053.9237714772382,
+            "p95": 1142.0407862078068,
+            "min": 851.4115828870097,
+            "max": 1233.7114291536561,
+            "failed": 0
+          }
+        },
+        {
+          "id": "rail-1.2m",
+          "why": "unrecorded rail: 1.2 m rod",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 978.6281917661944,
+            "p50": 1078.791639800207,
+            "p95": 1166.0806354258666,
+            "min": 876.1446963752327,
+            "max": 1257.0847912825814,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mass-plus-1g",
+          "why": "page-vs-ORK mass gap, +1 g",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 983.9036399881531,
+            "p50": 1083.3805162988763,
+            "p95": 1171.1914183329422,
+            "min": 881.4425823853677,
+            "max": 1261.0568594904312,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mass-minus-1g",
+          "why": "page-vs-ORK mass gap, -1 g",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 984.7506409376284,
+            "p50": 1084.177994294094,
+            "p95": 1171.9358467181944,
+            "min": 882.331925965364,
+            "max": 1261.7484064140635,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mfr-impulse-plus-10pct",
+          "why": "manufacturer data: base impulse +10 % (declared assumption, no cert data)",
+          "baseImpulseScale": 1.1,
+          "stats": {
+            "n": 1000,
+            "p5": 1088.407366484184,
+            "p50": 1192.2691690607999,
+            "p95": 1283.446657230198,
+            "min": 981.1471041654055,
+            "max": 1375.8682747095072,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mfr-impulse-minus-10pct",
+          "why": "manufacturer data: base impulse -10 % (declared assumption, no cert data)",
+          "baseImpulseScale": 0.9,
+          "stats": {
+            "n": 1000,
+            "p5": 874.7027891013089,
+            "p50": 969.1928222977303,
+            "p95": 1052.88051231101,
+            "min": 777.9449044785661,
+            "max": 1138.5903566485786,
+            "failed": 0
+          }
+        }
+      ]
+    },
+    {
+      "design": "V002",
+      "motorKey": "j270w",
+      "flights": [
+        "V002-02"
+      ],
+      "motorFile": "AeroTech_HP-J270W.eng",
+      "motorSha256": "602eda39374796cfa4b72afec2b29b44fd57bd3b992daed1f0d5fbc8f0c2e3ad",
+      "dataSource": "mfr",
+      "nRunsPerScenario": 1000,
+      "scenarios": 10,
+      "totalRuns": 10000,
+      "seed": 20260927,
+      "sigmas": {
+        "windAzimuthDegSigma": 10,
+        "railAngleDegSigma": 1,
+        "impulsePctSigma": 5
+      },
+      "product": {
+        "n": 1000,
+        "p5": 1764.8630263441607,
+        "p50": 1878.808406504024,
+        "p95": 1969.9609442084738,
+        "min": 1639.6293934878422,
+        "max": 2060.562816303428,
+        "failed": 0
+      },
+      "qualified": {
+        "n": 10000,
+        "p5": 1723.9021917925506,
+        "p50": 1885.1960289343137,
+        "p95": 2035.7343484173914,
+        "min": 1502.0336312259865,
+        "max": 2194.5032262730474,
+        "failed": 0
+      },
+      "perScenario": [
+        {
+          "id": "app-default",
+          "why": "the app new-design defaults: sea level, ISA, rail 3.0 m/85 deg, wind 3 m/s",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 1764.8630263441607,
+            "p50": 1878.808406504024,
+            "p95": 1969.9609442084738,
+            "min": 1639.6293934878422,
+            "max": 2060.562816303428,
+            "failed": 0
+          }
+        },
+        {
+          "id": "site-400m-0C",
+          "why": "unrecorded site: 400 m ASL, 0 degC",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 1758.7625160912482,
+            "p50": 1869.4471323323542,
+            "p95": 1958.9201875734175,
+            "min": 1635.0746904307323,
+            "max": 2047.864232983948,
+            "failed": 0
+          }
+        },
+        {
+          "id": "site-400m-30C",
+          "why": "unrecorded site: 400 m ASL, 30 degC",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 1871.7853379506532,
+            "p50": 1996.3913935436494,
+            "p95": 2096.3616085667586,
+            "min": 1735.7453571821115,
+            "max": 2194.5032262730474,
+            "failed": 0
+          }
+        },
+        {
+          "id": "wind-0",
+          "why": "unrecorded weather: calm",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 1797.7509125410434,
+            "p50": 1911.787574203984,
+            "p95": 2002.8606465879473,
+            "min": 1676.3662013123444,
+            "max": 2086.208810749682,
+            "failed": 0
+          }
+        },
+        {
+          "id": "wind-5",
+          "why": "unrecorded weather: 5 m/s surface wind",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 1729.4468309925633,
+            "p50": 1845.7991976229255,
+            "p95": 1938.98028143345,
+            "min": 1604.0310411905916,
+            "max": 2032.859725644565,
+            "failed": 0
+          }
+        },
+        {
+          "id": "rail-1.2m",
+          "why": "unrecorded rail: 1.2 m rod",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 1760.0430555327807,
+            "p50": 1873.9519660069757,
+            "p95": 1966.048888172028,
+            "min": 1634.5189012286737,
+            "max": 2057.1674538073134,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mass-plus-1g",
+          "why": "page-vs-ORK mass gap, +1 g",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 1764.8109420181686,
+            "p50": 1878.8682708890267,
+            "p95": 1970.103750271591,
+            "min": 1639.4946691660832,
+            "max": 2060.7682205711762,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mass-minus-1g",
+          "why": "page-vs-ORK mass gap, -1 g",
+          "baseImpulseScale": 1,
+          "stats": {
+            "n": 1000,
+            "p5": 1764.9142567879296,
+            "p50": 1878.7476154452436,
+            "p95": 1969.8172970054707,
+            "min": 1639.7632705785234,
+            "max": 2060.356582818789,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mfr-impulse-plus-10pct",
+          "why": "manufacturer data: base impulse +10 % (declared assumption, no cert data)",
+          "baseImpulseScale": 1.1,
+          "stats": {
+            "n": 1000,
+            "p5": 1882.4976791380136,
+            "p50": 1989.8978232886996,
+            "p95": 2077.7854265418046,
+            "min": 1760.6121325149068,
+            "max": 2170.8055028549898,
+            "failed": 0
+          }
+        },
+        {
+          "id": "mfr-impulse-minus-10pct",
+          "why": "manufacturer data: base impulse -10 % (declared assumption, no cert data)",
+          "baseImpulseScale": 0.9,
+          "stats": {
+            "n": 1000,
+            "p5": 1630.6836077048008,
+            "p50": 1748.105823407142,
+            "p95": 1845.0245787965657,
+            "min": 1502.0336312259865,
+            "max": 1939.746588991061,
+            "failed": 0
+          }
+        }
+      ]
+    }
+  ],
+  "exclusionRules": [
+    "E1 logger loss: no continuous sample through apogee (truncated file, ascent gap > 1 s, or unparsable)",
+    "E2 CATO / no flight: apogee < 10 m AGL, ascent < 1 s, or no altitude step above the pad median + 6 sigma noise",
+    "E3 recovery failure: ballistic descent (post-apogee vertical speed > 20 m/s below 50 m AGL) or missing impact sample",
+    "E4 no usable altitude channel: no barometric channel, non-finite, outside -100..10000 m AGL, or not zeroed at the pad (GPS-only V002 I140W is exempt and uses E9)",
+    "E5 multiple apogees: more than one local maximum above 50 m AGL (staging, second burn, two flights in one file)",
+    "E6 pad reference unusable: fewer than 5 s pre-liftoff samples or the pre-liftoff median drifts more than 10 m",
+    "E7 liftoff undefined: no ascent above 3 m/s for at least 0.2 s in the first 10 s",
+    "E8 declared design mismatch: the log metadata names a different motor or airframe than the sealed record",
+    "E9 GPS-only loss (V002 I140W only): fewer than 10 ascent GPS samples, no fix/quality flag, or the maximum is the last sample"
+  ],
+  "extractionRules": {
+    "pressure": "altitude above pad = sample - median(5 s before liftoff); apogee = max of a centred 5-sample running median; AGL",
+    "gpsOnly": "max GPS altitude above the pad median, reported with \"vertical uncertainty unstated\" (V002 I140W only)"
+  },
+  "assumptions": [
+    "Both designs are flown as declared; the app import refuses the stage mass/CG overrides, so fin seats, component CG overrides and stage mass/CG are re-applied from the design XML (probe-lib.ts).",
+    "Launch site is not recorded: sea level (engine default), standard-day temperature (no launchSiteTemperatureC), site 0-400 m ASL and 0-30 degC in the scenario set.",
+    "Rail and wind are not recorded: app defaults 3.0 m / 85 deg rail and 3.0 m/s surface wind, with 1.2-3.0 m rail and 0-5 m/s wind in the scenario set (rail angle stays 85 deg plus the 1 deg MC sigma); the app MC perturbs rail angle by 1 deg sigma and wind azimuth by 10 deg sigma.",
+    "Structural mass uncertainty is +/-1 g (spec page-vs-ORK gap), applied as a stage point-mass delta in the scenario set.",
+    "The app Monte Carlo has no site, temperature, rail-length or mass sigma; those enter only through the scenario set, and the qualified interval is the union over scenarios.",
+    "Drag is the legacy 25-station table for both airframes (calibrated drag refuses freeform fins), confirmed from each flight runManifest.axialDrag.",
+    "The Estes C6 is the app bundled record (8.8 N*s, 24-point NAR cert curve); the design names the same motor but no curve is in the ORK.",
+    "Ejection delay does not enter apogee: deployment is altitude/apogee-driven in this engine, so C6-5 and C6-7 share one trajectory.",
+    "Predictions are AGL; launch altitude ASL is 0 in the product default.",
+    "The app importer drops the innertube motor mount; the engine seats the motor at the airframe aft end (prepare_flight_vehicle fallback). The design mount is aft-seated, so the motor station differs by at most about 20 mm and the apogee effect is below the interval resolution.",
+    "V001 CG is the app computed value 0.314814 m; the design stage overridecg 0.31496 is inert with overridesubcomponentscg=false. The 0.02 m difference is carried as CG uncertainty and does not move apogee materially.",
+    "No app, engine, threshold or fixture was changed; the only product code used is the released WASM and the app modules imported read-only by the probes.",
+    "Round 2 curves: four ThrustCurve.org RASP files supplied under the owner authorization, hashes asserted against the folder SHA256SUMS and parsed with the app parseRaspEng. D13W and Quest C6 are cert-sourced; I140W and J270W are manufacturer-sourced (no cert file).",
+    "Manufacturer curves have no published tolerance: the qualified interval for I140W and J270W adds a declared base-impulse bracket of +/-10 % to the app 5 % sigma. The product interval is unchanged at the app settings. The bracket is an assumption, not measured, and is not tuned to any outcome.",
+    "V002 drag: both Vulcanite flights fly the legacy 25-station tables, not the built-up model; the calibrated method refuses the freeform fin set (confirmed from runManifest.axialDrag). The set therefore does NOT exercise the new built-up drag.",
+    "The six round-1 rows are unchanged from commit bee7329; no error was found in them.",
+    "The design motor designations and downloaded files share the declared diameter/length; the ORK motor digests are not ThrustCurve ids, so the curve identity rests on designation plus geometry plus the ThrustCurve records in PROVENANCE.json."
+  ],
+  "evidence": {
+    "qualify": {
+      "file": "BL1-blind-predictions/out/qualify.json",
+      "sha256": "8e6966895ae1853d7f274cfd72239826439965ba3cf089d4fb87e765d22aef41"
+    },
+    "ensemble": {
+      "file": "BL1-blind-predictions/out/ensemble.json",
+      "sha256": "b3c3632e035f3cc5b53c40a4ae747e1bf8d9a6d0cdf07beed59e665b64b71a09"
+    },
+    "ensembleMeta": {
+      "file": "BL1-blind-predictions/out/ensemble-meta.json",
+      "sha256": "0b395d5c55fdd72da92b2089664560e07bb1896d7d022d2924e19632bae1533d"
+    },
+    "qualifyExtra": {
+      "file": "BL1-blind-predictions/out/qualify-extra.json",
+      "sha256": "7ea506b2957904568050989696e1aa40e76a5cae470bf6f251323e4998242365"
+    },
+    "ensembleEmeraldExtra": {
+      "file": "BL1-blind-predictions/out/ensemble-emerald-extra.json",
+      "sha256": "3acc837bf9105fa1e2ab597bea83cdebf43b318ab313cdda7f2fbd232f8d55ca"
+    },
+    "ensembleVulcanite": {
+      "file": "BL1-blind-predictions/out/ensemble-vulcanite.json",
+      "sha256": "693328ebd5d241d89cd507d94f127c43e9f722a193d1a7fd7df074c87a468e7b"
+    },
+    "motorSha256sums": {
+      "file": "step4-blind/motors/SHA256SUMS",
+      "sha256": "a603c4ba8e10fa13b3ba351be1f5f43a2bf65b1307677d5f53edd9b281c3b6fb"
+    }
+  },
+  "round": 2,
+  "previouslyFrozen": {
+    "commit": "bee73292ade53a0ff25c3a26ab355391381ea103",
+    "unchangedFlights": [
+      "V001-01",
+      "V001-02",
+      "V001-03",
+      "V001-04",
+      "V001-05",
+      "V001-06"
+    ],
+    "verification": "rows copied verbatim from the committed PREDICTIONS.json and asserted JSON-identical; not recomputed, no error found"
+  },
+  "motors": [
+    {
+      "key": "d13w",
+      "file": "AeroTech_D13W.eng",
+      "path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/motors/AeroTech_D13W.eng",
+      "sha256": "1940ce3c415493c8a6ee11d1755ab1ed255b5dc11eb5108697953cd6ba1cf325",
+      "thrustcurveMotorId": "5f4294d20002310000000021",
+      "dataSource": "cert",
+      "parsed": {
+        "id": "d13w",
+        "designation": "D13W",
+        "manufacturer": "RASP Import",
+        "diameterM": 0.018,
+        "lengthM": 0.07,
+        "totalImpulseNs": 19.263356,
+        "burnTimeS": 1.52,
+        "avgThrustN": 12.67326052631579,
+        "maxThrustN": 23.61,
+        "propellantMassKg": 0.0098,
+        "totalMassKg": 0.0326,
+        "dryMassKg": 0.022799999999999997,
+        "points": 32,
+        "first": {
+          "time": 0,
+          "thrust": 0
+        },
+        "last": {
+          "time": 1.52,
+          "thrust": 0
+        }
+      },
+      "designGeometryMatches": true,
+      "certified": true,
+      "impulseBracket": "none (cert curve, app 5 % sigma)"
+    },
+    {
+      "key": "questC6",
+      "file": "Quest_C6.eng",
+      "path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/motors/Quest_C6.eng",
+      "sha256": "08d25d4fd9778d1fdc9419e0bc2c1ee76655d31d3f83d7a5020b3a585f340b71",
+      "thrustcurveMotorId": "5f4294d20002310000000016",
+      "dataSource": "cert",
+      "parsed": {
+        "id": "c6_0",
+        "designation": "C6-0",
+        "manufacturer": "RASP Import",
+        "diameterM": 0.018,
+        "lengthM": 0.07,
+        "totalImpulseNs": 9.185595499999998,
+        "burnTimeS": 2.247,
+        "avgThrustN": 4.087937472185135,
+        "maxThrustN": 23.234,
+        "propellantMassKg": 0.0083,
+        "totalMassKg": 0.0216,
+        "dryMassKg": 0.013300000000000001,
+        "points": 30,
+        "first": {
+          "time": 0,
+          "thrust": 0
+        },
+        "last": {
+          "time": 2.247,
+          "thrust": 0
+        }
+      },
+      "designGeometryMatches": true,
+      "certified": true,
+      "impulseBracket": "none (cert curve, app 5 % sigma)"
+    },
+    {
+      "key": "i140w",
+      "file": "AeroTech_HP-I140W.eng",
+      "path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/motors/AeroTech_HP-I140W.eng",
+      "sha256": "7986dc11a24863383fe0ac631683c986fe2a96bea7aa6f43bd24a98eeddd098d",
+      "thrustcurveMotorId": "5f4294d200023100000003f5",
+      "dataSource": "mfr",
+      "parsed": {
+        "id": "i140w",
+        "designation": "I140W",
+        "manufacturer": "RASP Import",
+        "diameterM": 0.038,
+        "lengthM": 0.2027,
+        "totalImpulseNs": 339.2630285000001,
+        "burnTimeS": 2.478,
+        "avgThrustN": 136.91001957223568,
+        "maxThrustN": 179.023,
+        "propellantMassKg": 0.183,
+        "totalMassKg": 0.356,
+        "dryMassKg": 0.173,
+        "points": 24,
+        "first": {
+          "time": 0,
+          "thrust": 0
+        },
+        "last": {
+          "time": 2.478,
+          "thrust": 0
+        }
+      },
+      "designGeometryMatches": true,
+      "certified": false,
+      "impulseBracket": "base impulse +/-10 % as a declared scenario bracket on top of the app 5 % sigma; no published cert tolerance"
+    },
+    {
+      "key": "j270w",
+      "file": "AeroTech_HP-J270W.eng",
+      "path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/motors/AeroTech_HP-J270W.eng",
+      "sha256": "602eda39374796cfa4b72afec2b29b44fd57bd3b992daed1f0d5fbc8f0c2e3ad",
+      "thrustcurveMotorId": "5f4294d200023100000003f7",
+      "dataSource": "mfr",
+      "parsed": {
+        "id": "j270w",
+        "designation": "J270W",
+        "manufacturer": "RASP Import",
+        "diameterM": 0.038,
+        "lengthM": 0.3564,
+        "totalImpulseNs": 701.47043,
+        "burnTimeS": 2.563,
+        "avgThrustN": 273.6911548966055,
+        "maxThrustN": 367.585,
+        "propellantMassKg": 0.381,
+        "totalMassKg": 0.642,
+        "dryMassKg": 0.261,
+        "points": 39,
+        "first": {
+          "time": 0,
+          "thrust": 0
+        },
+        "last": {
+          "time": 2.563,
+          "thrust": 0
+        }
+      },
+      "designGeometryMatches": true,
+      "certified": false,
+      "impulseBracket": "base impulse +/-10 % as a declared scenario bracket on top of the app 5 % sigma; no published cert tolerance"
+    }
+  ],
+  "motorDir": {
+    "path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/motors",
+    "sha256sumsFile": "SHA256SUMS",
+    "sha256sumsSha256": "a603c4ba8e10fa13b3ba351be1f5f43a2bf65b1307677d5f53edd9b281c3b6fb",
+    "provenanceSha256": "16b6f2233b7460e1bd0ad597befb9a95db7b7db21dbefc24e31a2a87b8f74b2a"
+  }
+}

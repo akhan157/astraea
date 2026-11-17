@@ -61,6 +61,12 @@ pub fn dispatch(cmd: &str, args: &Value) -> Result<Value, String> {
         }
     } else { false };
     match cmd {
+        #[cfg(feature = "e1-test-hooks")]
+        "e1_test_set_trial_limit" => {
+            let limit: u32 = arg(args, "limit", cmd)?;
+            astraea_core::six_dof::e1_test_set_trial_limit(limit);
+            Ok(Value::Null)
+        }
         "evaluate_sb1_diagnostic" => sb1_diagnostic::evaluate(args),
         "evaluate_supplied_aero_diagnostic" => supplied_aero::evaluate(args),
         "evaluate_environment_diagnostic" => environment_diagnostic::evaluate(args),

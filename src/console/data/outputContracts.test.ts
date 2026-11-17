@@ -47,6 +47,10 @@ describe('console output scope and provenance', () => {
     // internal 6 m/s / 20 J convenience flags.
     const fast = convert(flightResult({ landingVelocity: 12, isLandingVelocitySafe: true, isLandingSafe: true }));
     expect(fast.gates.find((g) => g.id === 'landing_speed')?.status).toBe('fail');
+    expect(fast.gates.find((g) => g.id === 'landing_speed')?.reason).toContain('use a larger main');
+    const noChutes = { ...vehicle, components: vehicle.components.filter((c) => c.type !== 'parachute') };
+    const unprotected = toFlightRun(flightResult({ landingVelocity: 12 }), noChutes, undefined, 'key', 1, 0);
+    expect(unprotected.gates.find((g) => g.id === 'landing_speed')?.reason).toContain('add a parachute');
     const slow = convert(flightResult({ landingVelocity: 10.6, isLandingVelocitySafe: false, isLandingSafe: false }));
     expect(slow.gates.find((g) => g.id === 'landing_speed')?.status).toBe('pass');
     // Kept for the energy value itself: it still reaches the summary and trace.

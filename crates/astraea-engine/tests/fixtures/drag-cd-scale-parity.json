@@ -181,10 +181,10 @@
     "launchAltitudeASL": 1143,
     "dragCdScale": 0.6118
    },
-   "tsApogeeAltitude": 421.2080420830291,
-   "tsFlightDuration": 108.21349376680311,
-   "tsLandingVelocity": 4.215243028982188,
-   "tsLandingDistance": 1.5160150563632937e-13
+   "tsApogeeAltitude": 420.9244905965941,
+   "tsFlightDuration": 108.14335849763805,
+   "tsLandingVelocity": 4.2152430289637515,
+   "tsLandingDistance": 1.5146265842655767e-13
   },
   {
    "case": "astraea/0.44",
@@ -198,10 +198,10 @@
     "launchAltitudeASL": 1143,
     "dragCdScale": 0.44
    },
-   "tsApogeeAltitude": 480.62918822228755,
-   "tsFlightDuration": 122.76805332186427,
-   "tsLandingVelocity": 4.215243029009222,
-   "tsLandingDistance": 1.7863317391467838e-13
+   "tsApogeeAltitude": 480.35933327285335,
+   "tsFlightDuration": 122.70158748629296,
+   "tsLandingVelocity": 4.215243028992255,
+   "tsLandingDistance": 1.7849158639373856e-13
   }
  ]
 }

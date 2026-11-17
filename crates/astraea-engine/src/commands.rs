@@ -36,6 +36,8 @@ fn opts(o: &FlightOptionsDto) -> astraea_core::six_dof::SixDofOptions {
         time_step: o.time_step,
         fin_cant_angle_deg: o.fin_cant_angle_deg,
         drag_cd_scale: o.drag_cd_scale,
+        launch_site_temperature_c: o.launch_site_temperature_c,
+        nozzle_exit_diameter: o.nozzle_exit_diameter,
         // Internal: never a wire field. Only `simulate_flight` opts in.
         record_telemetry: false,
         record_moment_arm_history: false,
@@ -61,6 +63,65 @@ fn scaled_motor(
     Ok(motor)
 }
 
+/// R44: fill the two 25-station drag tables from the calibrated method, using
+/// one baseline pass for the altitude ladder.
+///
+/// Returns `Ok(None)` when the legacy source is in force, so the absent path runs
+/// exactly one flight and touches no table. The baseline pass records telemetry
+/// (it is the only in-engine source of the ascent rows) but never moment-arm
+/// history; its result is discarded except for the ladder.
+fn calibrated_tables(
+    drag: &models::ResolvedFlightDrag,
+    vehicle: &Vehicle,
+    motor: &astraea_core::six_dof::MotorSpec,
+    options: &astraea_core::six_dof::SixDofOptions,
+) -> Result<Option<(Vec<f64>, Vec<f64>)>, String> {
+    if !matches!(drag, models::ResolvedFlightDrag::Calibrated { .. }) {
+        return Ok(None);
+    }
+    let mut pass1_options = options.clone();
+    pass1_options.record_telemetry = true;
+    pass1_options.record_moment_arm_history = false;
+    let pass1 = astraea_core::six_dof::simulate_flight(vehicle, motor, &pass1_options).map_err(|e| {
+        format!(
+            "simulate6DofFlight: calibrated axial drag needs a baseline ascent pass and it failed \
+             ({e}); no flight was run"
+        )
+    })?;
+    let tables = drag.tables(&pass1, motor.burn_time)?;
+    if let (Some((mut powered, mut coasting)), models::ResolvedFlightDrag::Calibrated { design, .. }) = (tables, drag) {
+        let ratio = design.max_diameter * 0.0254 / vehicle.ref_diameter;
+        let factor = ratio * ratio;
+        for cd in powered.iter_mut().chain(coasting.iter_mut()) { *cd *= factor; }
+        Ok(Some((powered, coasting)))
+    } else { Ok(None) }
+}
+
+/// R44 evidence seam (non-product): the two tables this command would fly for
+/// these inputs, plus the manifest string, produced by the **same private
+/// `calibrated_tables` function the commands call** so the seam cannot drift
+/// from what ships.
+///
+/// No command, wasm route or frontend path references this; it exists so the
+/// evidence harness can compare the product's tables with an independent build
+/// of the shipped rule (pre-registration amendment 2, E1a'-tables).
+#[doc(hidden)]
+pub fn evidence_calibrated_tables(
+    vehicle: &FrontendVehicle,
+    motor: &FrontendMotor,
+    options: &FlightOptionsDto,
+) -> Result<Option<((Vec<f64>, Vec<f64>), String)>, String> {
+    models::validate_nozzle_geometry(vehicle, options)?;
+    let flight_vehicle = models::prepare_flight_vehicle(vehicle, motor)?;
+    let core_motor = models::to_motor(motor)?;
+    let core_options = opts(options);
+    let physics = astraea_core::six_dof::flight_physics_inputs(&core_options)?;
+    let drag = models::resolve_flight_drag(vehicle, options, &physics)?;
+    let tables = calibrated_tables(&drag, &flight_vehicle, &core_motor, &core_options)?;
+    let text = drag.manifest_text(models::FlightDragScope::Single);
+    Ok(tables.map(|tables| (tables, text)))
+}
+
 pub fn simulate_flight(
     vehicle: FrontendVehicle,
     motor: FrontendMotor,
@@ -74,7 +135,8 @@ pub fn simulate_flight_with_history(
     vehicle: FrontendVehicle, motor: FrontendMotor, options: FlightOptionsDto,
     report_moment_arm_history: bool,
 ) -> Result<FlightResultDto, String> {
-    let flight_vehicle = models::prepare_flight_vehicle(&vehicle, &motor)?;
+    models::validate_nozzle_geometry(&vehicle, &options)?;
+    let mut flight_vehicle = models::prepare_flight_vehicle(&vehicle, &motor)?;
     let core_motor = models::to_motor(&motor)?;
     // Telemetry is opt-in inside the core so ensembles pay nothing; this is the
     // one command that asks for it, then decimates it to the bounded wire
@@ -82,8 +144,21 @@ pub fn simulate_flight_with_history(
     let mut core_options = opts(&options);
     core_options.record_telemetry = true;
     core_options.record_moment_arm_history = report_moment_arm_history;
+    // R44: resolve the optional flight physics once, so the drag air, the
+    // manifest and the flight cannot disagree.
+    let physics = astraea_core::six_dof::flight_physics_inputs(&core_options)?;
+    let drag = models::resolve_flight_drag(&vehicle, &options, &physics)?;
+    if let Some((powered, coasting)) =
+        calibrated_tables(&drag, &flight_vehicle, &core_motor, &core_options)?
+    {
+        flight_vehicle.aero_powered_cd = powered;
+        flight_vehicle.aero_coasting_cd = coasting;
+    }
     let result = astraea_core::six_dof::simulate_flight(&flight_vehicle, &core_motor, &core_options)?;
     let mut dto = models::to_flight_dto(&result);
+    // R42: same resolved inputs the flight used, so the manifest cannot drift.
+    models::apply_flight_physics(&mut dto, &physics);
+    models::apply_axial_drag(&mut dto, &drag.manifest_text(models::FlightDragScope::Single));
     dto.telemetry = models::flight_telemetry_dto(&result)?;
     if report_moment_arm_history {
         dto.moment_arm_history = Some(crate::moment_arm_history::to_dto(&result, &flight_vehicle)?);
@@ -115,10 +190,23 @@ pub fn flight_summary(
     motor: FrontendMotor,
     options: FlightOptionsDto,
 ) -> Result<FlightResultDto, String> {
-    let flight_vehicle = models::prepare_flight_vehicle(&vehicle, &motor)?;
+    models::validate_nozzle_geometry(&vehicle, &options)?;
+    let mut flight_vehicle = models::prepare_flight_vehicle(&vehicle, &motor)?;
     let core_motor = models::to_motor(&motor)?;
-    let result = astraea_core::six_dof::simulate_flight(&flight_vehicle, &core_motor, &opts(&options))?;
-    Ok(models::to_flight_dto(&result))
+    let core_options = opts(&options);
+    let physics = astraea_core::six_dof::flight_physics_inputs(&core_options)?;
+    let drag = models::resolve_flight_drag(&vehicle, &options, &physics)?;
+    if let Some((powered, coasting)) =
+        calibrated_tables(&drag, &flight_vehicle, &core_motor, &core_options)?
+    {
+        flight_vehicle.aero_powered_cd = powered;
+        flight_vehicle.aero_coasting_cd = coasting;
+    }
+    let result = astraea_core::six_dof::simulate_flight(&flight_vehicle, &core_motor, &core_options)?;
+    let mut dto = models::to_flight_dto(&result);
+    models::apply_flight_physics(&mut dto, &physics);
+    models::apply_axial_drag(&mut dto, &drag.manifest_text(models::FlightDragScope::Single));
+    Ok(dto)
 }
 
 pub fn run_ensemble(req: EnsembleRequest) -> Result<DispersionResultDto, String> {
@@ -140,7 +228,11 @@ pub fn run_ensemble(req: EnsembleRequest) -> Result<DispersionResultDto, String>
         parts.version,
         &fly,
     )?;
-    Ok(models::to_dispersion_dto(&result, parts.vehicle.normal_law_identity()))
+    Ok(models::to_dispersion_dto(
+        &result,
+        parts.vehicle.normal_law_identity(),
+        &parts.axial_drag,
+    ))
 }
 
 /// One absolute run range of a `per-run-v2` ensemble (S5 background host).
@@ -195,6 +287,7 @@ pub fn run_ensemble_chunk(req: EnsembleChunkRequest) -> Result<ChunkResultDto, S
         normal_law_id: parts.vehicle.normal_law_identity().0.to_string(),
         boattail_policy: parts.vehicle.normal_law_identity().1.to_string(),
         fin_interference_id: astraea_core::aero::FIN_INTERFERENCE_ID.to_string(),
+        axial_drag: parts.axial_drag.clone(),
         outcome_policy: models::CLASSIFIED_OUTCOME_POLICY.to_string(),
     })
 }
@@ -221,7 +314,11 @@ pub fn run_ensemble_classified(req: EnsembleRequest) -> Result<ClassifiedDispers
         parts.version,
         &fly,
     )?;
-    Ok(models::to_classified_dispersion_dto(&result, parts.vehicle.normal_law_identity()))
+    Ok(models::to_classified_dispersion_dto(
+        &result,
+        parts.vehicle.normal_law_identity(),
+        &parts.axial_drag,
+    ))
 }
 
 /// Prepared ensemble inputs shared by the whole-ensemble and chunk commands.
@@ -232,6 +329,8 @@ struct EnsembleParts {
     options: astraea_core::six_dof::SixDofOptions,
     motor: FrontendMotor,
     version: SamplingVersion,
+    /// R44: the resolved axial-drag identity these runs flew (always present).
+    axial_drag: String,
 }
 
 impl EnsembleParts {
@@ -287,6 +386,21 @@ fn ensemble_parts(
     sigmas: &SigmasDto,
     version: &str,
 ) -> Result<EnsembleParts, String> {
+    models::validate_nozzle_geometry(vehicle, options)?;
+    let expanded_motor = models::to_motor(motor)?;
+    let mut flight_vehicle = models::prepare_flight_vehicle(vehicle, motor)?;
+    let core_options = opts(options);
+    // R44: one drag decision and one altitude ladder per command. The ladder is
+    // sampled from the nominal (unperturbed) flight and shared by every member,
+    // because `EnsembleParts` shares one prepared vehicle; the manifest says so.
+    let physics = astraea_core::six_dof::flight_physics_inputs(&core_options)?;
+    let drag = models::resolve_flight_drag(vehicle, options, &physics)?;
+    if let Some((powered, coasting)) =
+        calibrated_tables(&drag, &flight_vehicle, &expanded_motor, &core_options)?
+    {
+        flight_vehicle.aero_powered_cd = powered;
+        flight_vehicle.aero_coasting_cd = coasting;
+    }
     Ok(EnsembleParts {
         base: PerturbedParams {
             wind_azimuth_deg: options.wind_azimuth_deg,
@@ -298,10 +412,11 @@ fn ensemble_parts(
             rail_angle_deg_sigma: sigmas.rail_angle_deg_sigma.unwrap_or(0.0),
             impulse_pct_sigma: sigmas.impulse_pct_sigma.unwrap_or(0.0),
         },
-        vehicle: models::prepare_flight_vehicle(vehicle, motor)?,
-        options: opts(options),
+        vehicle: flight_vehicle,
+        options: core_options,
         motor: motor.clone(),
         version: astraea_core::monte_carlo::parse_sampling_version(version)?,
+        axial_drag: drag.manifest_text(models::FlightDragScope::Ensemble),
     })
 }
 
@@ -481,6 +596,47 @@ mod ensemble_chunk_tests {
             time_step: None,
             fin_cant_angle_deg: None,
             drag_cd_scale: None,
+            launch_site_temperature_c: None,
+            nozzle_exit_diameter: None,
+            flight_drag_source: None,
+        }
+    }
+
+    #[test]
+    fn empty_ladders_use_legacy_with_refused_manifest() {
+        let v = vehicle(); let m = motor();
+        let o = FlightOptionsDto { flight_drag_source: Some("calibrated".into()), wind_speed_surface: Some(0.0), ..options() };
+        let prepared = models::prepare_flight_vehicle(&v, &m).unwrap();
+        let cm = models::to_motor(&m).unwrap(); let mut co = opts(&o); co.record_telemetry = true;
+        let physics = astraea_core::six_dof::flight_physics_inputs(&co).unwrap();
+        let drag = models::resolve_flight_drag(&v, &o, &physics).unwrap();
+        let mut flight = astraea_core::six_dof::simulate_flight(&prepared, &cm, &co).unwrap();
+        flight.telemetry.clear();
+        assert!(drag.tables(&flight, cm.burn_time).unwrap().is_none());
+        assert!(drag.manifest_text(models::FlightDragScope::Single).contains("legacy drag used (refused: no eligible ascent ladder rows"));
+    }
+
+    #[test]
+    fn calibrated_drag_force_survives_reference_area_change() {
+        let mut v = vehicle();
+        v.components[0].base_diameter = Some(0.03);
+        let m = motor();
+        let o = FlightOptionsDto { flight_drag_source: Some("calibrated".into()), wind_speed_surface: Some(0.0), ..options() };
+        let prepared = models::prepare_flight_vehicle(&v, &m).unwrap();
+        assert_eq!(prepared.ref_diameter, 0.0248);
+        let cm = models::to_motor(&m).unwrap();
+        let co = opts(&o);
+        let physics = astraea_core::six_dof::flight_physics_inputs(&co).unwrap();
+        let drag = models::resolve_flight_drag(&v, &o, &physics).unwrap();
+        let mut baseline_opts = co.clone(); baseline_opts.record_telemetry = true;
+        let flight = astraea_core::six_dof::simulate_flight(&prepared, &cm, &baseline_opts).unwrap();
+        let raw = drag.tables(&flight, cm.burn_time).unwrap().unwrap();
+        let scaled = calibrated_tables(&drag, &prepared, &cm, &co).unwrap().unwrap();
+        for (r, s) in raw.0.iter().chain(raw.1.iter()).zip(scaled.0.iter().chain(scaled.1.iter())) {
+            let original_force_factor = r * 0.03_f64.powi(2);
+            let solver_force_factor = s * prepared.ref_diameter.powi(2);
+            assert!((original_force_factor - solver_force_factor).abs() < 1e-14,
+                "raw={r} scaled={s}, force {original_force_factor} != {solver_force_factor}");
         }
     }
 
@@ -771,6 +927,7 @@ mod aero_provider_command_tests {
         assert!(json.get("modelId").is_none());
         assert!(json.get("modelVersion").is_none());
         assert!(json.get("breakdownUnavailable").is_none());
+        assert!(json.get("parts").is_none(), "legacy bytes must not gain a parts key");
         assert!(!dto.contributions.is_empty());
     }
 
@@ -782,6 +939,22 @@ mod aero_provider_command_tests {
         assert!(dto.breakdown_unavailable);
         assert!(dto.contributions.is_empty());
         assert!(dto.cp.is_finite() && dto.total_cna > 0.0);
+    }
+
+    #[test]
+    fn provider_stability_withholds_breakdown_and_keeps_cp() {
+        let vehicle = alpha();
+        let legacy = stability(vehicle.clone(), None).expect("legacy");
+        for selection in [method_only(), composed()] {
+            let provider = stability(vehicle.clone(), Some(selection)).expect("provider");
+            assert!(provider.contributions.is_empty());
+            assert!(provider.breakdown_unavailable);
+            assert_ne!(
+                provider.cp.to_bits(),
+                legacy.cp.to_bits(),
+                "provider CP must stay the selected model's value"
+            );
+        }
     }
 
     #[test]

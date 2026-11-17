@@ -14,7 +14,10 @@ export const FIELD_LABELS: Record<string, string> = {
   foreDiameter: 'Fore diameter', aftDiameter: 'Aft diameter', finCount: 'Fin count', rootChord: 'Root chord', tipChord: 'Tip chord', span: 'Span', sweepLength: 'Sweep',
   thickness: 'Thickness', crossSection: 'Cross-section', axialOffset: 'Position', materialId: 'Material', massOverride: 'Weighed mass', mass: 'Mass', diameter: 'Diameter', cd: 'Cd',
   railLength: 'Rail length', railElevationDeg: 'Rail angle', railAzimuthDeg: 'Rail azimuth', launchAltitudeASL: 'Site elevation', windSpeedSurface: 'Wind', windAzimuthDeg: 'Wind from',
-  mainDeployAltitudeAGL: 'Main deploy', motorId: 'Motor', motorCurve: 'Motor curve', shearPa: 'Fin shear modulus', dragCalibration: 'Drag calibration'
+  mainDeployAltitudeAGL: 'Main deploy', motorId: 'Motor', motorCurve: 'Motor curve', shearPa: 'Fin shear modulus', dragCalibration: 'Drag calibration',
+  altitudeM: 'Site elevation', temperatureC: 'Site temperature', nozzleExitDiameter: 'Nozzle exit diameter',
+  nozzleBackPressureThrust: 'Nozzle back-pressure thrust', flightDragSource: 'Built-up flight drag',
+  tipRadius: 'Nose tip radius',
 };
 
 function inputFor(type: string, field: string): Input {
@@ -60,6 +63,25 @@ export function diffDesigns(a: Design, b: Design): Change[] {
     // The drag scale is reported once, as the calibration, below.
     if (k === 'dragCdScale') continue;
     if (a.options[k] !== b.options[k]) out.push({ id: `opt:${k}`, field: k, label: FIELD_LABELS[k] ?? k, from: a.options[k], to: b.options[k], input: k === 'mainDeployAltitudeAGL' ? 'recovery' : 'launch' });
+  }
+  // Vehicle-level inputs: a run reads them (the run key already moves with the
+  // vehicle), so a change here must mark the committed result stale instead of
+  // leaving the banner on "current" while the badge says "stale".
+  const siteBefore = a.vehicle.launchSite;
+  const siteAfter = b.vehicle.launchSite;
+  if (siteBefore?.altitudeM !== siteAfter?.altitudeM) {
+    out.push({ id: 'vehicle:altitudeM', field: 'altitudeM', label: FIELD_LABELS.altitudeM, from: siteBefore?.altitudeM, to: siteAfter?.altitudeM, input: 'launch' });
+  }
+  if (siteBefore?.temperatureC !== siteAfter?.temperatureC) {
+    out.push({ id: 'vehicle:temperatureC', field: 'temperatureC', label: FIELD_LABELS.temperatureC, from: siteBefore?.temperatureC ?? null, to: siteAfter?.temperatureC ?? null, input: 'launch' });
+  }
+  const vehicleFields = ['surfaceFinish', 'forceTurbulentFlow', 'nozzleExitDiameter', 'nozzleBackPressureThrust', 'flightDragSource'] as const;
+  for (const field of vehicleFields) {
+    const before = a.vehicle[field];
+    const after = b.vehicle[field];
+    if (before !== after) {
+      out.push({ id: `vehicle:${field}`, field, label: FIELD_LABELS[field] ?? field, from: before ?? null, to: after ?? null, input: 'geometry' });
+    }
   }
   if (a.shearPa !== b.shearPa) out.push({ id: 'shear', field: 'shearPa', label: FIELD_LABELS.shearPa, from: a.shearPa, to: b.shearPa, input: 'fin material' });
   if (stableStringify(a.dragCalibration ?? null) !== stableStringify(b.dragCalibration ?? null)) {

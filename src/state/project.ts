@@ -21,7 +21,7 @@ import {
 import { caseId, withEvidenceRefs, withRunCases } from '../application/runCases';
 import { restoreRunWeatherContext } from '../application/runInputs';
 import { parseLegacyFlightModel, parseCandidateFlightModel, resolveFlightModel, type FlightModelSelection } from '../application/flightModel';
-import { detachCurrentAnalysis, terminalAnalysisSnapshot, useAnalysisStore, type AnalysisSnapshot } from './analysis';
+import { restoreAnalysisSnapshot, detachCurrentAnalysis, terminalAnalysisSnapshot, useAnalysisStore, type AnalysisSnapshot } from './analysis';
 import { useSessionStore } from './session';
 import { isProfileInvocation } from '../application/candidate';
 import { DEFAULT_WORKSPACE, type Workspace } from '../application/workspace';
@@ -602,7 +602,7 @@ export const useProjectStore = create<ProjectState>((set, get) => {
       const last = past[past.length - 1];
       if (!last) return;
       const analysisContext = last.analysisContext ? terminalAnalysisSnapshot() : undefined;
-      if (last.analysisContext) useAnalysisStore.setState(last.analysisContext);
+      if (last.analysisContext) restoreAnalysisSnapshot(last.analysisContext);
       set({
         project: last.project,
         motors: last.motors,
@@ -621,7 +621,7 @@ export const useProjectStore = create<ProjectState>((set, get) => {
       const next = future[future.length - 1];
       if (!next) return;
       const analysisContext = next.analysisContext ? terminalAnalysisSnapshot() : undefined;
-      if (next.analysisContext) useAnalysisStore.setState(next.analysisContext);
+      if (next.analysisContext) restoreAnalysisSnapshot(next.analysisContext);
       set({
         project: next.project,
         motors: next.motors,
@@ -642,7 +642,7 @@ export const useProjectStore = create<ProjectState>((set, get) => {
 
     replaceProject: (project, motors) => {
       const cases = new Map(project.cases.map((entry) => [entry.id, entry.summary?.inputKey]));
-      useAnalysisStore.setState(terminalAnalysisSnapshot((record) =>
+      restoreAnalysisSnapshot(terminalAnalysisSnapshot((record) =>
         record.status === 'completed' && cases.get(caseId(record)) === record.inputKey,
       ));
       set({
@@ -828,16 +828,18 @@ export function serializeProject(): string {
 /**
  * Adopt a parsed envelope as the whole project: the vehicle, the workspace,
  * the ledger and the motor records it carries. Non-certified records are
- * re-registered so a reloaded project's bound custom motors stay usable;
- * certified records are already in the bundled library.
+ * re-registered so a reloaded project's bound custom motors stay usable.
+ * Certified records are skipped only when their ID is in the bundled library;
+ * a restored copy under its own content-pinned ID is re-registered.
  */
 export function adoptProject(project: ProjectEnvelope): { name: string; revision: number } {
   // Guard direct typed callers too, before clearing history or replacing state.
   resolveFlightModel(project.flightModel);
   const motors: Record<string, MotorRecord> = {};
   for (const rec of project.motorRecords) {
-    if (rec.provenance.source === 'certified') continue;
-    motors[normalizeMotorId(rec.id)] = rec;
+    const key = normalizeMotorId(rec.id);
+    if (rec.provenance.source === 'certified' && CERTIFIED_MOTORS[key] !== undefined) continue;
+    motors[key] = rec;
   }
   useProjectStore.getState().replaceProject(project, motors);
   return { name: project.vehicle.name, revision: project.revision };

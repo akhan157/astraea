@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue"></a>
-  <a href="CHANGELOG.md"><img alt="Status: 0.10 beta" src="https://img.shields.io/badge/status-0.10%20beta-orange"></a>
+  <a href="CHANGELOG.md"><img alt="Status: 0.11 beta" src="https://img.shields.io/badge/status-0.11%20beta-orange"></a>
   <img alt="Engine: Rust + WebAssembly" src="https://img.shields.io/badge/engine-Rust%20%2B%20WebAssembly-5c4ee5">
   <img alt="UI: React + TypeScript" src="https://img.shields.io/badge/UI-React%20%2B%20TypeScript-3178c6">
 </p>
@@ -20,7 +20,7 @@
 <p align="center">
   <a href="https://astraea-5e2.pages.dev/app/"><strong>Open in your browser</strong></a> ·
   <a href="https://astraea-5e2.pages.dev/">Website</a> ·
-  <a href="https://github.com/akhan157/astraea/releases/tag/v0.10.1">Desktop beta downloads</a>
+  <a href="https://github.com/akhan157/astraea/releases/tag/v0.11.0">Desktop beta downloads</a>
 </p>
 
 Astraea is a high-power rocketry workstation with one computational engine for
@@ -28,11 +28,15 @@ the browser and the desktop. It covers the whole loop: parametric airframe
 design, mass and stability, motor selection, 6-DOF flight, recovery, Monte Carlo
 dispersion, and evidence from real flight logs.
 
-> **0.10 beta — not flight approval.** The legacy flight model was tested blind
-> on one small subsonic rocket, where predictions ran 6–10 % high. The built-up
-> aero model is a panels-only beta; its flight path is held while validation
-> continues. See the [accuracy record](docs/accuracy.md) for tested cases and
-> known limits before using any number operationally.
+> **0.11 beta.** Default model: apogee error averaged 5.6% across 20 published
+> rockets (18 of 20 within 10%) with site temperature set and the nozzle exit
+> set where the design has one, 5.9% (16 of 20) with them blank. Development
+> data: the model was chosen on these flights; blind test pending. Shapes it
+> cannot model use legacy drag, which has no blind test on those shapes; on one
+> small rocket with freeform fins it predicted about 26% low (10 flights,
+> development comparison). Not flight approval. See the
+> [accuracy record](docs/accuracy.md) for tested cases and known limits
+> before using any number operationally.
 
 ## Screenshots
 
@@ -102,7 +106,7 @@ pnpm tauri build     # MSI/NSIS on Windows, bundles on macOS/Linux
 ```
 
 Prebuilt beta installers for Windows, macOS and Linux are on the
-[v0.10.1 release](https://github.com/akhan157/astraea/releases/tag/v0.10.1).
+[v0.11.0 release](https://github.com/akhan157/astraea/releases/tag/v0.11.0).
 They are not code-signed yet.
 
 **Checks**
@@ -148,9 +152,9 @@ format. A `.astraea.json` project opens in either one.
 
 ## Project status
 
-- **0.10 beta.** The web app is live at
+- **0.11 beta.** The web app is live at
   [astraea-5e2.pages.dev](https://astraea-5e2.pages.dev/); desktop installers are a
-  [pre-release](https://github.com/akhan157/astraea/releases/tag/v0.10.1). Not flight approval.
+  [pre-release](https://github.com/akhan157/astraea/releases/tag/v0.11.0). Not flight approval.
 - **Windows** is verified in a Windows 11 VM (install, launch, production CSP,
   flight, persistence). **macOS** acceptance is still pending. The Linux desktop
   build needs WebKitGTK; the browser app is the supported Linux path today.

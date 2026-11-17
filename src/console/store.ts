@@ -27,6 +27,7 @@ import type { Workspace } from '../application/workspace';
 import type { DragCalibration } from '../application/dragCalibration';
 import { captureRunInputs, captureCandidateRunInputs, type CandidateRunInputs, type RunInputs } from '../application/runInputs';
 import { isCandidateFlightModel, resolveFlightModel, type CandidateFlightModelSelection, type FlightModelSelection } from '../application/flightModel';
+import { flightAdmissionRefusal } from '../application/flightAdmission';
 import { candidatePreflight, candidateInputKey, candidateInvocationCanonical, declarationVehicleSha256, buildCandidateRequest, buildProfileInvocation, deriveMotorStation, isProfileInvocation, CANDIDATE_REFUSAL, type CandidateInvocation, type CandidateIssue } from '../application/candidate';
 import { candidateResultFromReport, type CandidateResultArchive } from '../application/candidateResult';
 import type { EngineIdentity } from '../engine/identity';
@@ -71,12 +72,14 @@ export interface CommittedRun {
   engineIdentity?: EngineIdentity;
 }
 
+export type PreviousFlightSummary = Pick<FlightRun, 'summary' | 'rev' | 'terminationReason'>;
+
 /** Payload of the committed flight record in `useAnalysisStore`. */
 export interface LegacyFlightPayload {
   model?: 'legacy';
   design: Design;
   run: FlightRun;
-  previous: FlightRun | null;
+  previous: PreviousFlightSummary | null;
 }
 
 export interface CandidateFlightPayload {
@@ -111,6 +114,9 @@ function launchCaseInput(project: ProjectEnvelope, design: Design): LaunchCase {
     // The active (binding-compatible) calibration only: a retained incompatible
     // artifact must never join run identity or input keys.
     ...(design.dragCalibration === undefined ? {} : { dragCalibration: design.dragCalibration }),
+    // K3: a vehicle with no drag choice flies the built-up default. Its results must not
+    // read as current for a result computed before that default existed.
+    ...(design.vehicle.flightDragSource === undefined ? { defaultDragSource: 'built-up' as const } : {}),
   };
 }
 
@@ -267,7 +273,7 @@ function payloadOf(record: { payload: unknown } | null): FlightPayload | null {
   const value = payload as {
     model?: 'legacy' | 'candidate'; design?: Design; run?: FlightRun;
     result?: CandidateResultArchive; request?: CandidateInvocation; engineIdentity?: EngineIdentity;
-    previous?: FlightRun | null;
+    previous?: PreviousFlightSummary | null;
   };
   if (value.design === undefined) return null;
   if (value.model === 'candidate' && value.result !== undefined && value.request !== undefined && value.engineIdentity !== undefined) {
@@ -309,11 +315,11 @@ export function motorProvenance(id: string): string | undefined {
   return CERTIFIED_MOTORS[key] === undefined ? undefined : 'certified';
 }
 
-export function previousRun(): FlightRun | null {
+export function previousRun(): PreviousFlightSummary | null {
   return payloadOf(useAnalysisStore.getState().completed.flight)?.previous ?? null;
 }
 
-export function usePreviousRun(): FlightRun | null {
+export function usePreviousRun(): PreviousFlightSummary | null {
   const record = useAnalysisStore((s) => s.completed.flight);
   return useMemo(() => payloadOf(record)?.previous ?? null, [record]);
 }
@@ -560,13 +566,17 @@ let runAdmission = 0;
 
 /**
  * A flight must never carry a built-up aero identity while consuming the
- * legacy coefficient path (1b wires the panels only). Refuse before any case,
- * archive, analysis record or engine invocation exists.
+ * legacy coefficient path. Refuse before any case, archive, analysis record or
+ * engine invocation exists.
+ *
+ * The one exception is a vehicle that opted in to the built-up flight drag
+ * (`flightDragSource`) together with a usable built-up aero-model selection;
+ * every other combination keeps a pre-run refusal with its own exact text.
+ * This is the same shared rule (`application/flightAdmission`) the bridge
+ * applies as the last gate, so the two cannot disagree.
  */
-function aeroModelFlightRefusal(selection: Design['aeroModel']): string | null {
-  if (selection === undefined) return null;
-  return `${selection.modelId} ${selection.modelVersion} drives stability and aero panels in this build; `
-    + 'flight coefficients still come from the legacy path. Turn the beta aero model off to fly.';
+function aeroModelFlightRefusal(vehicle: Design['vehicle'], selection: Design['aeroModel']): string | null {
+  return flightAdmissionRefusal(vehicle, selection);
 }
 
 export const useConsoleJobs = create<ConsoleJobState>((set, get) => ({
@@ -679,7 +689,7 @@ export const useConsoleJobs = create<ConsoleJobState>((set, get) => ({
       return;
     }
     const design = designOf(store.project, store.mission, store.shearPa, undefined, store.motors);
-    const refusal = aeroModelFlightRefusal(design.aeroModel);
+    const refusal = aeroModelFlightRefusal(design.vehicle, design.aeroModel);
     if (refusal !== null) {
       set({ jobs: { ...get().jobs, running: false, runError: refusal } });
       return;
@@ -750,7 +760,7 @@ export const useConsoleJobs = create<ConsoleJobState>((set, get) => ({
     get().mcAbort?.abort();
     const epoch = store.projectEpoch;
     const design = designOf(store.project, store.mission, store.shearPa, undefined, store.motors);
-    const mcRefusal = aeroModelFlightRefusal(design.aeroModel);
+    const mcRefusal = aeroModelFlightRefusal(design.vehicle, design.aeroModel);
     if (mcRefusal !== null) {
       set({ jobs: { ...get().jobs, runError: mcRefusal } });
       return;
@@ -789,7 +799,7 @@ export const useConsoleJobs = create<ConsoleJobState>((set, get) => ({
     const withJob = (patch: Partial<Job<Dispersion>>): void =>
       set((s) => (useProjectStore.getState().projectEpoch === epoch && s.jobs.mc?.id === job.id ? { jobs: { ...s.jobs, mc: { ...s.jobs.mc, ...patch } } } : {}));
     runMonteCarlo(
-      { vehicle: runInputs!.vehicle, motor: runInputs!.motorRecord.motor, options: { ...design.options }, nRuns: total, seed: runInputs!.ensemble!.seed, sigmas: { windAzimuthDegSigma: config.windAzimuthDegSigma, railAngleDegSigma: config.railAngleDegSigma, impulsePctSigma: config.impulsePctSigma }, dragCalibration: runInputs!.dragCalibration },
+      { vehicle: runInputs!.vehicle, motor: runInputs!.motorRecord.motor, options: { ...design.options }, nRuns: total, seed: runInputs!.ensemble!.seed, sigmas: { windAzimuthDegSigma: config.windAzimuthDegSigma, railAngleDegSigma: config.railAngleDegSigma, impulsePctSigma: config.impulsePctSigma }, dragCalibration: runInputs!.dragCalibration, aeroModel: design.aeroModel },
       abort.signal,
       {
         onProgress: (done, landings, failed, runs) => withJob({ done, progress: done / total, partial: partialDispersion(landings, failed, design.dragCalibration, runs, total) }),
@@ -881,7 +891,7 @@ export interface WSView extends ConsoleSessionView {
   past: number;
   future: number;
   committed: CommittedRun | null;
-  previous: FlightRun | null;
+  previous: PreviousFlightSummary | null;
   running: boolean;
   runError: string | null;
   mc: Job<Dispersion> | null;

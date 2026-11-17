@@ -4,7 +4,9 @@ import type { MotorSpec } from '../../propulsion/motorDatabase';
 import { impulseClassFor, normalizeMotorId, validateMotorSpec } from '../../propulsion/motorDatabase';
 import { parseRaspEng, parseRseXml } from '../../formats/engParser';
 import { assessMounts, reasonMotorExcluded, type MountAssessment } from '../../application/caseResolver';
-import { motorProvenance, engineIsAvailable, useWS } from '../store';
+import { motorProvenance, engineIsAvailable, useWS, useSessionStore } from '../store';
+import { show } from '../kit/units';
+import type { Units } from '../../state/session';
 import { useChanges } from '../hooks';
 import { C } from '../kit/theme';
 import { motorConfidence } from '../data/adapter';
@@ -30,7 +32,7 @@ const APCP_REFERENCE_PRESSURE_BAR = 100;
  * bore constraint), an ambiguous or solid set of mounts blocks seating, and a
  * motor wider than the bore is reported with the exact numbers.
  */
-function fitOf(motor: MotorSpec | undefined, mounts: MountAssessment): { fits: boolean; label: string; title: string } {
+export function fitOf(motor: MotorSpec | undefined, mounts: MountAssessment, units: Units): { fits: boolean; label: string; title: string } {
   if (motor === undefined) return { fits: false, label: '—', title: 'motor record missing from the catalog' };
   if (mounts.ambiguous) {
     return { fits: false, label: 'check mount', title: `${mounts.mounts.length} tubes are flagged as motor mounts — flag exactly one` };
@@ -43,14 +45,21 @@ function fitOf(motor: MotorSpec | undefined, mounts: MountAssessment): { fits: b
   }
   const reason = reasonMotorExcluded(mounts, motor);
   if (reason === null) {
-    return { fits: true, label: 'fits', title: `⌀${(motor.diameter * 1000).toFixed(0)} mm in a ⌀${(mounts.boreM * 1000).toFixed(0)} mm bore` };
+    const diameter = show(motor.diameter, 'len', units);
+    const bore = show(mounts.boreM, 'len', units);
+    return { fits: true, label: 'fits', title: `⌀${diameter.text} ${diameter.unit} in a ⌀${bore.text} ${bore.unit} bore` };
   }
   const tooWide = motor.diameter > mounts.boreM;
-  return { fits: false, label: tooWide ? 'too wide' : 'too long', title: reason };
+  const length = (value: number) => { const v = show(value, 'len', units); return `${v.text} ${v.unit}`; };
+  const title = tooWide
+    ? `motor ⌀${length(motor.diameter)} exceeds mount '${mounts.mounts[0].name}' bore ⌀${length(mounts.boreM)}`
+    : `motor length ${length(motor.length)} is not retained by mount '${mounts.mounts[0].name}' (needs >= 50% of ${length(mounts.mounts[0].length)})`;
+  return { fits: false, label: tooWide ? 'too wide' : 'too long', title }; 
 }
 
 export function MotorStage() {
   const s = useWS();
+  const units = useSessionStore((state) => state.units);
   const [importOpen, setImportOpen] = useState(false);
   const [preview, setPreview] = useState<string>(s.design.motorId);
   const [tool, setTool] = useState<ToolId>('thrustcurve');
@@ -68,7 +77,7 @@ export function MotorStage() {
   const motorLevel = shown === null ? null : motorConfidence(motorProvenance(shown.id));
   const offline = !engineIsAvailable();
   const chamber = useChamberState(parseFloat(pcMPa) * 1e6, parseFloat(peKPa) * 1e3, parseFloat(paKPa) * 1e3, offline);
-  const shownFit = fitOf(shown ?? undefined, mounts);
+  const shownFit = fitOf(shown ?? undefined, mounts, units);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -84,10 +93,10 @@ export function MotorStage() {
                 { key: 'i', label: 'Impulse', align: 'right', width: '78px', render: (m) => <span className="font-geist-mono">{m.totalImpulse.toFixed(0)}<span className="text-[10.5px]" style={{ color: C.dim }}> N·s</span></span> },
                 { key: 'b', label: 'Burn', align: 'right', width: '58px', render: (m) => <ValueUnit value={m.burnTime} kind="time" digits={2} /> },
                 { key: 'dia', label: 'Dia', align: 'right', width: '62px', render: (m) => <ValueUnit value={m.diameter} kind="len" /> },
-                { key: 'fit', label: 'Mount', width: '74px', render: (m) => { const f = fitOf(m, mounts); return <span title={f.title} style={{ color: f.fits ? C.muted : C.bad }}>{f.label}</span>; } }
+                { key: 'fit', label: 'Mount', width: '74px', render: (m) => { const f = fitOf(m, mounts, units); return <span title={f.title} style={{ color: f.fits ? C.muted : C.bad }}>{f.label}</span>; } }
               ]} />
           </div>
-          <div className="min-h-0 overflow-auto p-3 thin-scroll">
+          <div className="min-h-0 min-w-0 overflow-auto p-3 thin-scroll">
             {shown === null ? (
               <div className="text-[12.5px]" style={{ color: C.muted }}>No motor in the catalog matches this project's motor reference.</div>
             ) : (
@@ -99,7 +108,7 @@ export function MotorStage() {
                   <TimeStack t={shown.thrustCurve.map((p) => p.time)} panes={[{ id: 'thrust', label: 'Thrust', kind: 'force', values: shown.thrustCurve.map((p) => p.thrust), color: C.s2 }]} cursor={null} onCursor={() => undefined} paneHeight={150} />
                 </div>
                 <div className="mt-2 grid grid-cols-3 gap-3">
-                  <Stat label="Total impulse"><span className="font-geist-mono">{shown.totalImpulse.toFixed(1)} N·s</span></Stat>
+                  <Stat label="Total impulse"><span className="font-geist-mono">{shown.totalImpulse.toFixed(1)} N·s</span> <span className="text-[10px]" style={{ color: C.muted }}>rated</span></Stat>
                   <Stat label="Max thrust"><ValueUnit value={shown.maxThrust} kind="force" digits={1} /></Stat>
                   <Stat label="Propellant"><ValueUnit value={shown.propellantMass} kind="mass" /></Stat>
                   <Stat label="Loaded mass"><ValueUnit value={shown.totalMass} kind="mass" /></Stat>
@@ -130,7 +139,8 @@ export function MotorStage() {
             <span className="hidden text-[10.5px] 2xl:inline" style={{ color: C.dim }}>Computed by the engine from the curve or design you enter.</span>
           </div>
           <div className="min-h-0 max-h-[46vh] overflow-auto thin-scroll">
-            {tool === 'thrustcurve' && <ThrustCurvePanel />}
+            {(tool === 'chamber' || tool === 'grain' || tool === 'recipe') && <p className="px-3 pt-2 text-[11px]" style={{ color: C.muted }}>These calculators do not change the selected motor.</p>}
+            {tool === 'thrustcurve' && <ThrustCurvePanel onImported={setPreview} />}
             {tool === 'editor' && (shown
               ? <CurveEditorPanel key={shown.id} base={shown} />
               : <p className="p-3 text-[12px]" style={{ color: C.muted }}>Select a motor in the catalog to edit a copy of its curve.</p>)}

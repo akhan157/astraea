@@ -11,6 +11,9 @@ import { calibrationEngineStatus } from '../../application/calibrationApplicabil
 import { compareEngineIdentity, describeEngineIdentity, type EngineIdentity } from '../../engine/identity';
 import { ACCURACY_URL } from '../../lib/links';
 import { BETA_ACCURACY_CLAIM } from '../evidenceClaims';
+import { useAnalysisStore } from '../../state/analysis';
+import type { Dispersion, FlightRun } from '../data/contract';
+import { BUILT_UP_DRAG_REFUSED, axialDragText, builtUpDragWasRefused } from '../data/builtUpDrag';
 import { useDesign, useWS } from '../store';
 import { useCurrentEngineIdentity } from './CalibrationChip';
 import { C } from '../kit/theme';
@@ -27,8 +30,8 @@ export function engineAttribution(match: 'same' | 'different' | 'unknown', hasRu
     : 'Engine identity comparison unknown; differences cannot be attributed to the design alone.';
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }): JSX.Element {
-  return <div className="flex flex-wrap gap-1 text-[11.5px]">
+function Row({ label, children, ...rest }: { label: string; children: React.ReactNode } & React.HTMLAttributes<HTMLDivElement>): JSX.Element {
+  return <div {...rest} className="flex flex-wrap gap-1 text-[11.5px]">
     <span className="w-40 shrink-0" style={{ color: C.muted }}>{label}</span>
     <span className="min-w-0 flex-1 break-words">{children}</span>
   </div>;
@@ -42,6 +45,15 @@ function EngineIdentityLine({ identity }: { identity: EngineIdentity | undefined
     </>;
   }
   return <>{describeEngineIdentity(identity)}</>;
+}
+
+/**
+ * One engine manifest line, or a factual absence note. The panel adds no
+ * interpretation; a refused drag source is named by the caller.
+ */
+function manifestOf(run: FlightRun, key: 'atmosphere' | 'thrustPressure' | 'axialDrag'): string {
+  const value = run.manifest[key];
+  return typeof value === 'string' && value.length > 0 ? value : 'not reported by this engine';
 }
 
 export function ModelStatusPanel(): JSX.Element {
@@ -58,6 +70,11 @@ export function ModelStatusPanel(): JSX.Element {
   const applicability = design.calibrationApplicability;
   const calibrationEngine = project.dragCalibration === undefined
     ? null : calibrationEngineStatus(project.dragCalibration, currentEngine);
+  const ensembleRecord = useAnalysisStore((s) => s.completed.ensemble);
+  const dispersion = ensembleRecord?.payload !== null && typeof ensembleRecord?.payload === 'object'
+    && 'dispersion' in (ensembleRecord.payload as Record<string, unknown>)
+    ? (ensembleRecord.payload as { dispersion?: Dispersion }).dispersion
+    : undefined;
   const resultIdentity = committed?.engineIdentity;
   const engineMatch = compareEngineIdentity(resultIdentity, currentEngine);
   const hasResult = run !== undefined || candidate !== undefined;
@@ -121,6 +138,26 @@ export function ModelStatusPanel(): JSX.Element {
                   Adjustment from one flight of this rocket; not a validation of the model.
                 </span>}
       </Row>
+      {run !== undefined && run.physicsOptions !== undefined && (
+        <>
+          <Row label="Atmosphere" data-row="atmosphere">
+            {manifestOf(run, 'atmosphere')}
+          </Row>
+          <Row label="Thrust pressure" data-row="thrust-pressure">
+            {manifestOf(run, 'thrustPressure')}
+          </Row>
+          <Row label="Axial drag" data-row="axial-drag">
+            {builtUpDragWasRefused(run.physicsOptions, run.manifest) && (
+              <span style={{ color: C.warn }}>{BUILT_UP_DRAG_REFUSED} </span>
+            )}
+            {manifestOf(run, 'axialDrag')}
+          </Row>
+        </>
+      )}
+      {run === undefined && dispersion !== undefined
+        && dispersion.physicsOptions?.flightDragSource !== undefined && axialDragText(dispersion.axialDrag) !== undefined && (
+        <Row label="Axial drag" data-row="axial-drag">{builtUpDragWasRefused(dispersion.physicsOptions, { axialDrag: axialDragText(dispersion.axialDrag)! }) && <span style={{ color: C.warn }}>{BUILT_UP_DRAG_REFUSED} </span>}{axialDragText(dispersion.axialDrag)}</Row>
+      )}
       <Row label="Validation scope">
         <div data-validation-claim>{BETA_ACCURACY_CLAIM}</div>
         <Caveat summary="Software verification is separate from physical/numerical qualification.">

@@ -1,0 +1,89 @@
+{
+  "schema": "r32-evidence-1",
+  "lane": "r32/e1b-cylinder-base",
+  "worktree": "/home/ak/astraea-r32",
+  "base_sha": "b0ed9cd",
+  "assignment_sha": "b82d173ec5a0885551c0f41afcdd54af51297be9",
+  "preregistration_sha": "15b9db18f92f331a8f291c65c801ec8a7cd43ca5",
+  "implementation_sha": "a10a82d5e70223a5865656abfa47d2c4c26f2875",
+  "ts_parity_test_sha": "3b53050639252bae97ba2a88459918babaa35b5c",
+  "tree_ids": {
+    "crates": "9ace2dff98dc3b1f9f8c9a5c4cbaaa561cdf6fa1",
+    "astraea_core": "af28d1793b0c4dd8a033a3dee2fb9649c2f40184",
+    "astraea_engine": "075bd8dd45f74e48fb077d6f9e8f38946febec5e"
+  },
+  "wasm": {
+    "path": "/home/ak/astraea-r32/src/engine/astraea_engine.wasm",
+    "sha256": "a9aa02a2b166e057784676a4f6d3e363277a82a459604981130661d1c332ac4d",
+    "builds": 2,
+    "r28_baseline_sha256": "c8a5da08c4de83f3affcc2f25b5a447966ab59abc03e3785bac627f9d741ff03"
+  },
+  "source": {
+    "report": "NASA TN D-4821",
+    "ntrs": "19680027582",
+    "figure": "Fig. 15(b), beta = 0 deg, flat base c/Rb = 0, L/Dm = 1.5, Ab/Am = 1.00",
+    "pdf_page": 41,
+    "printed_page": 39,
+    "pdf_sha256": "255b27ed88fc2f2d05e7233f4ca2f9faa41ff95b12325fa63d714d0af7059532"
+  },
+  "artifacts": {
+    "pre_registration.json": "5d010beabd047be762024641cd14e910332d017f88903d0c0fde3c9af62cf30f",
+    "PREREGISTRATION.md": "585badb048b6fa4f60c62a1311f3d332063c6cc34aa5de077b606737e82be81f",
+    "d4821-fig15b-calibration.json": "3f5082f5941da02eaa5f29640ccc4c7a6ec6384d10cbe9553a0a4f34ab405217",
+    "d4821-fig15b-readings.json": "af73f615444ff06bbd30cfdc23eac755031d3dd45234d1ed308188e1503c0c8a",
+    "digitisation/d4821-p39-600-41.png": "c45c84870c2f4ce26b78f59b3dcc493be3258849b6e377b667b40f62c1942a20",
+    "digitisation/d4821-p39-400-41.png": "c525fb161e3031cf5946daabe25c562a4cdf9a35243d2c1c928486f75e0b41cc",
+    "checks/r32-engine.json": "a405d046bd3cc082dbfccae19472a756850c3628115e18629e43019d4512d5f5",
+    "checks/four-vehicle-a0.json": "c91c09735f95122fe7b4fb341da8a72ea13963ba7173a7b78bc8c024f7e22027"
+  },
+  "digitisation": {
+    "passes": ["600", "400"],
+    "max_second_pass_delta_cd": 0.00308,
+    "uncertainty_faired": 0.005,
+    "uncertainty_unfaired_band": 0.010,
+    "unfaired_band": [0.95, 1.20]
+  },
+  "checks": {
+    "r18_cylinder": {
+      "m1.79": {"old_pct": 24.31, "new_pct": 5.702190650500549},
+      "m1.99": {"old_pct": 9.48, "new_pct": -2.003694674043177}
+    },
+    "r19_1_20": {
+      "old_mean_pct": 43.69807600378417,
+      "new_mean_pct": 5.055971072306867,
+      "old_rms_pct": 62.11566819287712,
+      "new_rms_pct": 7.797919897961647,
+      "old_max_abs_pct": 128.9156626506024,
+      "new_max_abs_pct": 14.740740740740744
+    },
+    "boattail_identity": {
+      "model-1": {"curves_identical": true, "stability_identical": true},
+      "model-3": {"curves_identical": true, "stability_identical": true},
+      "baseline_wasm_sha256": "c8a5da08c4de83f3affcc2f25b5a447966ab59abc03e3785bac627f9d741ff03"
+    },
+    "four_vehicles_a0": {
+      "mini_dx3": {"before_pct": 32.22331664018497, "after_pct": 33.07432873975089, "change_pp": 0.85101209956592},
+      "cosmic_cargo": {"before_pct": 27.40880701586673, "after_pct": 27.286353736015183, "change_pp": -0.12245327985155},
+      "top_shot": {"before_pct": -2.400077001930801, "after_pct": -2.47435907283251, "change_pp": -0.074282070901709, "gate_pm5": true},
+      "adventurer": {"before_pct": -3.6865156399375043, "after_pct": -3.6865156399375043, "bit_identical": true}
+    }
+  },
+  "tests": {
+    "core": {"unit": 267, "integration": 10, "passed": 277, "failed": 0},
+    "engine_lib_tests": {"suites": 19, "passed": 162, "failed": 0, "ignored": 1},
+    "engine_full": {"exit": 101, "cause": "pre-existing examples/flight_loads_diagnostic.rs signature mismatch"},
+    "vitest": {"files": 163, "tests": 1941, "passed": 1941, "failed": 0},
+    "arcas_empirical": {"files": "1 failed / 1 passed", "tests": "1 failed / 4 passed", "cause": "pre-existing intentional CA transonic target; base excluded from metric"}
+  },
+  "consumer_fixtures_regenerated_from_ts": [
+    "crates/astraea-engine/tests/fixtures/drag-cd-scale-parity.json",
+    "crates/astraea-engine/tests/fixtures/telemetry-parity.json",
+    "crates/astraea-engine/tests/fixtures/freeform-fin-parity.json",
+    "crates/astraea-engine/tests/fixtures/e7-r32-cylinder-base/"
+  ],
+  "held_out": {
+    "naca_rm_l56f18a_opened": false,
+    "other_held_out_opened": false
+  },
+  "acceptance": "author result only; independent review required; no push; no app transfer"
+}

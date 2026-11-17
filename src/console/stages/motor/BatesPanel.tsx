@@ -52,6 +52,12 @@ export function BatesPanel({ chamber }: { chamber: ChamberState }) {
 
   const grain: GrainResult = useMemo(() => {
     try {
+      const outer = parseFloat(outerDmm);
+      const core = parseFloat(coreDmm);
+      const step = parseFloat(webStepMm);
+      if (step > 0 && (outer - core) / (2 * step) > 10000) {
+        throw new RangeError('Too many grain samples; increase the web step or reduce the grain diameter.');
+      }
       const trace = regressBates(
         {
           outerDiameter: parseFloat(outerDmm) * MM,

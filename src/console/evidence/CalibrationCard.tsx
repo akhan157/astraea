@@ -37,6 +37,7 @@ import type { ImportedLog } from './AltimetryCard';
 import { DragCalibrationChip, useCurrentEngineIdentity } from './CalibrationChip';
 import { compareEngineIdentity, describeEngineIdentity, type EngineIdentity } from '../../engine/identity';
 import { Card, KvRow, Note, Notice, PlainNumberField, Well, fmt, toNumber } from './studioKit';
+import { effectiveFlightDragSource, withResolvedDragChoice } from '../../application/caseResolver';
 
 const FIT_ASSUMPTIONS =
   'Assumes unpowered ascent, approximately vertical motion, calm air, constant mass and no recovery deployment across the fitted points and smoothing support. ' +
@@ -175,6 +176,12 @@ function LogFit({ log }: { log: ImportedLog | null }): JSX.Element {
   const shearPa = useProjectStore((s) => s.shearPa);
   const airframeDraft = useProjectStore((s) => s.drafts.airframe);
   const applied = project.dragCalibration;
+  // The calibration whose scale actually rides runs now (an inactive artifact is history), which decides
+  // whether the legacy tables fly: a fit is only made against them.
+  const activeApplied = useMemo(
+    () => designOf(project, mission, shearPa, undefined, motors).dragCalibration,
+    [project, mission, shearPa, motors],
+  );
   const [state, setState] = useState<FitState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -232,6 +239,8 @@ function LogFit({ log }: { log: ImportedLog | null }): JSX.Element {
 
   const blocked = isCandidateFlightModel(resolveFlightModel(project.flightModel))
     ? CANDIDATE_REFUSAL.calibration
+    : effectiveFlightDragSource(withResolvedDragChoice(project.vehicle, activeApplied)) !== undefined
+    ? 'Built-up flight drag is on. A drag scale from a flight log is fitted against the legacy drag model only, so no fit is made while built-up drag flies this rocket. Turn built-up flight drag off to fit.'
     : !engineIsAvailable()
     ? 'The engine cannot run in this browser.'
     : log === null
@@ -255,7 +264,11 @@ function LogFit({ log }: { log: ImportedLog | null }): JSX.Element {
     setRefit(null);
     try {
       const store = useProjectStore.getState();
-      const { dragCalibration: _applied, ...uncalibrated } = store.project;
+      const { dragCalibration: _held, ...rest } = store.project;
+      // K3: a project whose calibration is ACTIVE and which made no drag choice is on the legacy tables, and
+      // the refit must fly them too once the artifact is taken out of the project.
+      const active = designOf(store.project, store.mission, store.shearPa, undefined, store.motors).dragCalibration;
+      const uncalibrated = { ...rest, vehicle: withResolvedDragChoice(rest.vehicle, active) };
       const design = designOf(uncalibrated, store.mission, store.shearPa, undefined, store.motors);
       const motor = motorOfId(design.motorId);
       if (motor === null) throw new Error(`motor '${design.motorId}' is not in the project catalog`);

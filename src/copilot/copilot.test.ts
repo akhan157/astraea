@@ -295,6 +295,17 @@ describe('assistant answers', () => {
     expect(reply.quantities?.[0].value.value).toBe(computeRocketStability(vehicle).staticMarginCalibers);
   });
 
+  it('answers CP, current margin and higher-flight questions', async () => {
+    const cp = await answer('what does CP mean', ctx);
+    expect(cp.topic?.id).toBe('centre-of-pressure');
+    expect(cp.paragraphs[0]).toMatch(/aerodynamic force/);
+    const margin = await answer('what is my stability margin', ctx);
+    expect(margin.quantities?.[0].value.value).toBe(computeRocketStability(vehicle).staticMarginCalibers);
+    const higher = await answer('make my rocket go higher', ctx);
+    expect(higher.intent).toBe('increase-apogee');
+    expect(higher.paragraphs.join(' ')).toMatch(/motor.*mass.*drag/i);
+  });
+
   it('says so when the engine is unavailable instead of answering', async () => {
     const reply = await answer('why is my rocket overstable', { ...ctx, engine: unavailableEngine });
     expect(reply.paragraphs.join(' ')).toMatch(/engine is unavailable/);

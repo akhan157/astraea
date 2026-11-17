@@ -1,11 +1,8 @@
 # How accurate is Astraea?
 
-Short answer: **one small rocket has produced scorable flight comparisons so
-far, where Astraea predicts apogee 6–10 % too high.** Other comparisons remain
-untested or unscorable. These results are for the original legacy model; the
-experimental candidate model is not covered by this evidence.
+Default model: apogee error averaged 5.6% across 20 published rockets (18 of 20 within 10%) with site temperature set and the nozzle exit set where the design has one, 5.9% (16 of 20) with them blank. Development data: the model was chosen on these flights; blind test pending. Shapes it cannot model use legacy drag, which has no blind test on those shapes; on one small rocket with freeform fins it predicted about 26% low (10 flights, development comparison). Not flight approval.
 
-## Blind test (October 2026)
+## Legacy model blind test (October 2026)
 
 Inputs, measurement method and pass/fail rule were fixed and committed before
 any prediction was made, and predictions were committed before the flight logs

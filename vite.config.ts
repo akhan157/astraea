@@ -39,6 +39,9 @@ export default defineConfig({
     // stage renders on load, so it cannot be deferred; everything else is
     // under 500 kB.
     chunkSizeWarningLimit: 1000,
+    // The landing-entry budget check reads the actual built import graph.
+    // Output-only artifact; it changes no runtime asset or hash.
+    manifest: true,
     rolldownOptions: {
       // Two pages: the product landing page at / and the workstation at /app/.
       input: {
@@ -48,11 +51,18 @@ export default defineConfig({
       output: {
         // Long-lived vendor chunks: an app update re-downloads only the app
         // chunk, and the three.js stack loads in parallel with React.
+        //
+        // entriesAware keeps a group chunk out of an entry that does not use
+        // it. Without it the landing page (/ has no React or 3D consumer)
+        // inherits the whole vendor chunk, which imports three.js and React:
+        // 1,493 kB decoded / 434 kB transfer of unused JS on a zero-canvas
+        // page. With it the landing entry keeps only its own 1.4 kB chunk;
+        // the app entry still gets three, React and vendor unchanged.
         codeSplitting: {
           groups: [
-            { name: 'three', test: /node_modules[\\/](three|three-stdlib|@react-three|troika-[^\\/]+|camera-controls|maath|meshline)[\\/]/ },
-            { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
-            { name: 'vendor', test: /node_modules[\\/]/ },
+            { name: 'three', entriesAware: true, test: /node_modules[\\/](three|three-stdlib|@react-three|troika-[^\\/]+|camera-controls|maath|meshline)[\\/]/ },
+            { name: 'react', entriesAware: true, test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
+            { name: 'vendor', entriesAware: true, test: /node_modules[\\/]/ },
           ],
         },
       },

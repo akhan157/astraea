@@ -1,0 +1,481 @@
+{
+ "schema": "astraea-goal-collegiate-step0-baseline/1.0.0",
+ "date": "2026-11-14",
+ "source": {
+  "branch": "goal/collegiate-accuracy",
+  "sha": "9801ad7c3bcc476c27ebfd8e0a331b4b44223fcd",
+  "engine_source_vs_option2_ea8d633": "serde_json gains feature float_roundtrip in astraea-core (dev-dep) and astraea-engine; adds tests/float_roundtrip.rs and fixtures/nasa-stack-candidate-envelope.json (git diff ea8d633 HEAD -- crates)"
+ },
+ "wasm": {
+  "sha256": "bc19590b8e75091f1123cb497a388b47209c0461b0ecda7eb02d6064fead57ff",
+  "bytes": 2072808,
+  "deterministic_rebuild": "same sha256 from incremental rebuild and from a clean build in a fresh CARGO_TARGET_DIR (cargo build --release --locked --offline --target wasm32-unknown-unknown)",
+  "command": "CARGO_BUILD_JOBS=2 node scripts/build-engine.mjs (twice; identical hash); also pnpm build"
+ },
+ "evidence_root": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step0 (outside Git)",
+ "evidence_sha256sums_sha256": "840d3c6adf7d6a144956902e668095329873f0910ded23df2a4121c7ff90d658",
+ "cohort": {
+  "engine_path": "native Rust (crates/astraea-engine/tests/appbound_bundle_cohort.rs), not WASM",
+  "cohort_json_sha256": "1fd734bd2f2bc2deb4c8569d0dd35e1c7418994d55b598eaa7ca08e8cdde0139",
+  "arms": {
+   "A": "manifest vehicle (incl. nozzleExitDiameter field and nose tipRadius) + manifest options only (absent_options)",
+   "B": "A + flight_drag_source=calibrated + launch_site_temperature_c from manifest F + nozzle_exit_diameter option copied from vehicle field (bundle_options)",
+   "C": "vehicle with nose tipRadius removed + manifest options + flight_drag_source=calibrated only: NOT RUN (L0 G-2)"
+  },
+  "regime_rule": "airframe max Mach from the arm-B flight at this baseline; membership frozen by name below and never recomputed",
+  "airframes": [
+   {
+    "airframe": "blister",
+    "flights": [
+     "blister"
+    ],
+    "max_mach_bundle": 0.8380550003589522,
+    "regime": "transonic_0.8_to_1.5",
+    "arm_A_median_pct": -4.846578021927099,
+    "arm_B_median_pct": -8.560601847546208,
+    "validity": [
+     "PASS"
+    ]
+   },
+   {
+    "airframe": "byrum",
+    "flights": [
+     "byrum"
+    ],
+    "max_mach_bundle": 0.722115308276207,
+    "regime": "subsonic_lt_0.8",
+    "arm_A_median_pct": 8.048026888545389,
+    "arm_B_median_pct": -8.324967507532294,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "calisp1",
+    "flights": [
+     "calisp1"
+    ],
+    "max_mach_bundle": 0.6383284894227785,
+    "regime": "subsonic_lt_0.8",
+    "arm_A_median_pct": -4.685313424336133,
+    "arm_B_median_pct": -2.4351661378581912,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "calisp2",
+    "flights": [
+     "calisp2"
+    ],
+    "max_mach_bundle": 0.6654710750597427,
+    "regime": "subsonic_lt_0.8",
+    "arm_A_median_pct": 0.4523735411186578,
+    "arm_B_median_pct": 2.6420313193886007,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "calisp3",
+    "flights": [
+     "calisp3"
+    ],
+    "max_mach_bundle": 0.6404602643583692,
+    "regime": "subsonic_lt_0.8",
+    "arm_A_median_pct": 1.975211595658381,
+    "arm_B_median_pct": 4.262400243625413,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "calisp4",
+    "flights": [
+     "calisp4"
+    ],
+    "max_mach_bundle": 0.8524173951875353,
+    "regime": "transonic_0.8_to_1.5",
+    "arm_A_median_pct": -3.913339823068945,
+    "arm_B_median_pct": -4.942077311494435,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "calisp5",
+    "flights": [
+     "calisp5"
+    ],
+    "max_mach_bundle": 0.815577333571145,
+    "regime": "transonic_0.8_to_1.5",
+    "arm_A_median_pct": -1.603660428521218,
+    "arm_B_median_pct": -2.2086754436547387,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "cancerdescending",
+    "flights": [
+     "cancerdescending"
+    ],
+    "max_mach_bundle": 0.5618934813043533,
+    "regime": "subsonic_lt_0.8",
+    "arm_A_median_pct": 4.493273395200521,
+    "arm_B_median_pct": 1.922481254252641,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "dontdebatethis",
+    "flights": [
+     "dontdebatethisn5800mindia"
+    ],
+    "max_mach_bundle": 3.1104469596868753,
+    "regime": "supersonic_ge_1.5",
+    "arm_A_median_pct": -14.190563410207629,
+    "arm_B_median_pct": 2.88220047343804,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "ezi65",
+    "flights": [
+     "ezi65-1"
+    ],
+    "max_mach_bundle": 0.6007818756103209,
+    "regime": "subsonic_lt_0.8",
+    "arm_A_median_pct": 16.12386001633549,
+    "arm_B_median_pct": 6.194314162296293,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "full-metal-jacket",
+    "flights": [
+     "full-metal-jacket1",
+     "full-metal-jacket2"
+    ],
+    "max_mach_bundle": 2.433853535869745,
+    "regime": "supersonic_ge_1.5",
+    "arm_A_median_pct": -6.430269740438657,
+    "arm_B_median_pct": 1.7240185614271153,
+    "validity": [
+     "UNKNOWN",
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "gibb",
+    "flights": [
+     "gibb"
+    ],
+    "max_mach_bundle": 0.5516961510454783,
+    "regime": "subsonic_lt_0.8",
+    "arm_A_median_pct": 6.093478012691258,
+    "arm_B_median_pct": 7.274043182089112,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "iondrive",
+    "flights": [
+     "iondrive"
+    ],
+    "max_mach_bundle": 0.8025657051940872,
+    "regime": "transonic_0.8_to_1.5",
+    "arm_A_median_pct": 4.452784070666164,
+    "arm_B_median_pct": 6.6626850524358305,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "kinsel",
+    "flights": [
+     "kinsel-p4935-a-601-rocket"
+    ],
+    "max_mach_bundle": 1.8839962652541855,
+    "regime": "supersonic_ge_1.5",
+    "arm_A_median_pct": 27.23630750408968,
+    "arm_B_median_pct": -9.855904299789765,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "l500roc",
+    "flights": [
+     "l500roc"
+    ],
+    "max_mach_bundle": 1.994702172494818,
+    "regime": "supersonic_ge_1.5",
+    "arm_A_median_pct": -12.230270520369903,
+    "arm_B_median_pct": 3.648911438933534,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "proteus6",
+    "flights": [
+     "proteus6"
+    ],
+    "max_mach_bundle": 2.789941209894681,
+    "regime": "supersonic_ge_1.5",
+    "arm_A_median_pct": -22.834926792815054,
+    "arm_B_median_pct": -12.219906848490462,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "qu8k",
+    "flights": [
+     "qu8k"
+    ],
+    "max_mach_bundle": 3.442724257095767,
+    "regime": "excluded_reported",
+    "arm_A_median_pct": -29.696903259429952,
+    "arm_B_median_pct": -12.236585269340372,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "rabia",
+    "flights": [
+     "rabia",
+     "rabia-shortfincan"
+    ],
+    "max_mach_bundle": 1.1709810496342505,
+    "regime": "transonic_0.8_to_1.5",
+    "arm_A_median_pct": 2.3951396408200862,
+    "arm_B_median_pct": -5.520654480608593,
+    "validity": [
+     "PASS",
+     "PASS"
+    ]
+   },
+   {
+    "airframe": "raven",
+    "flights": [
+     "raven"
+    ],
+    "max_mach_bundle": 1.0797576436494944,
+    "regime": "transonic_0.8_to_1.5",
+    "arm_A_median_pct": 28.342261177673304,
+    "arm_B_median_pct": 4.973301288559115,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "thunder-lightning",
+    "flights": [
+     "thunder-lightning"
+    ],
+    "max_mach_bundle": 0.5463173807525505,
+    "regime": "subsonic_lt_0.8",
+    "arm_A_median_pct": 14.288650507446071,
+    "arm_B_median_pct": 11.276095721853075,
+    "validity": [
+     "UNKNOWN"
+    ]
+   },
+   {
+    "airframe": "torrent",
+    "flights": [
+     "torrent"
+    ],
+    "max_mach_bundle": 1.2434799180663005,
+    "regime": "transonic_0.8_to_1.5",
+    "arm_A_median_pct": 7.431502733252795,
+    "arm_B_median_pct": 4.948819203950793,
+    "validity": [
+     "PASS"
+    ]
+   }
+  ],
+  "regime_table": {
+   "subsonic_lt_0.8": {
+    "A": {
+     "n": 8,
+     "mae_pct": 7.020023422666488,
+     "within_10": 6,
+     "mean_signed_pct": 5.848695066582454,
+     "worst_abs_pct": 16.12386001633549
+    },
+    "B": {
+     "n": 8,
+     "mae_pct": 5.5414374411119525,
+     "within_10": 7,
+     "mean_signed_pct": 2.851404029764331,
+     "worst_abs_pct": 11.276095721853075
+    }
+   },
+   "transonic_0.8_to_1.5": {
+    "A": {
+     "n": 7,
+     "mae_pct": 7.569323699418516,
+     "within_10": 6,
+     "mean_signed_pct": 4.608301335556441,
+     "worst_abs_pct": 28.342261177673304
+    },
+    "B": {
+     "n": 7,
+     "mae_pct": 5.402402089749959,
+     "within_10": 7,
+     "mean_signed_pct": -0.6638862197654622,
+     "worst_abs_pct": 8.560601847546208
+    }
+   },
+   "supersonic_ge_1.5": {
+    "A": {
+     "n": 5,
+     "mae_pct": 16.584467593584186,
+     "within_10": 1,
+     "mean_signed_pct": -5.689944591948312,
+     "worst_abs_pct": 27.23630750408968
+    },
+    "B": {
+     "n": 5,
+     "mae_pct": 6.0661883244157835,
+     "within_10": 4,
+     "mean_signed_pct": -2.7641361348963076,
+     "worst_abs_pct": 12.219906848490462
+    }
+   },
+   "all_primary_20": {
+    "A": {
+     "n": 20,
+     "mae_pct": 9.603389562259121,
+     "within_10": 13,
+     "mean_signed_pct": 2.529897346090658,
+     "worst_abs_pct": 28.342261177673304
+    },
+    "B": {
+     "n": 20,
+     "mae_pct": 5.6239627889612125,
+     "within_10": 18,
+     "mean_signed_pct": 0.21716740126374373,
+     "worst_abs_pct": 12.219906848490462
+    }
+   }
+  },
+  "acceptance_harness": {
+   "delta_from_r41_stack_pp": 0.01132728646501846,
+   "mean_absolute_pass": true,
+   "mean_absolute_pct": 5.623962788961213,
+   "mean_absolute_pct_max": 7.0,
+   "mean_signed_abs_max": 5.0,
+   "mean_signed_pass": true,
+   "mean_signed_pct": 0.21716740126374404,
+   "n_airframes": 20,
+   "r41_stack_mae_pct": 5.612635502496195,
+   "within_0_5pp_of_corrected_r41_stack": true,
+   "within_0_5pp_pass": true,
+   "within_10": 18,
+   "within_10_min": 15,
+   "within_10_pass": true
+  },
+  "reproduction_vs_2026_11_11_option2_run": "all values equal within last-digit float noise (max ~1e-14 relative); harness tolerance 1e-12 met; consistent with the float_roundtrip parse change (e.g. 0.12192 vs 0.12191999999999999)",
+  "unknown_validity_label": "19 of 23 flights UNKNOWN, 4 PASS (blister, rabia x2, torrent)"
+ },
+ "dev_vehicles": [
+  {
+   "b0_median_residual_pct": -4.908001389791325,
+   "drag_median_residual_pct": -4.908001389791325,
+   "flights": 1,
+   "vehicle": "adventurer-j510w-2021-04-17"
+  },
+  {
+   "b0_median_residual_pct": 27.286353736015183,
+   "drag_median_residual_pct": 24.584730259187033,
+   "flights": 1,
+   "vehicle": "cosmic-cargo-2986"
+  },
+  {
+   "b0_median_residual_pct": 32.90600585654586,
+   "drag_median_residual_pct": 29.009559287139293,
+   "flights": 11,
+   "vehicle": "mini-dx3-g69n"
+  },
+  {
+   "b0_median_residual_pct": -2.4756642533886546,
+   "drag_median_residual_pct": -2.4756642533886546,
+   "flights": 1,
+   "vehicle": "top-shot-e12-2017-12-14"
+  }
+ ],
+ "templates": {
+  "estesAlpha": {
+   "apogee_m": 298.92375069659687,
+   "identical_to_option2_wasm_445098": true
+  },
+  "nasaStudent": {
+   "apogee_m": 532.8435782954323,
+   "identical_to_option2_wasm_445098": true
+  },
+  "spaceport": {
+   "apogee_m": 5013.508465461415,
+   "identical_to_option2_wasm_445098": true
+  }
+ },
+ "suites": {
+  "core": {
+   "passed": 273,
+   "failed": 0,
+   "ignored": 0,
+   "suites": 5
+  },
+  "engine_lib_tests": {
+   "passed": 157,
+   "failed": 0,
+   "ignored": 7,
+   "suites": 20
+  }
+ },
+ "arcas": {
+  "test_arcas_runtime": "pass (4 Rust + 2 vitest)",
+  "benchmark_arcas": "1 failed / 4 passed: retained red CA transonic ARCAS-short MAE 15.717557349012338 % vs 15 % research target (same value as RMP08 record)"
+ },
+ "p1_gate": "p1_arcas_normal, p1_boattail_arm, p1_derivative_continuity, p1_normal_fixture, p1_product_supersonic all pass inside the engine suite",
+ "ensembles": "harness ensembles test pass (whole/chunk, zero-sigma member, single-flight wording)",
+ "uncertainty_coverage_on_cohort": "NOT RUN: no harness exists; last record is R5 r3 development dry run on 4 dev airframes: 2/4 covered, width 25.94 %, D4 FAIL",
+ "perf": {
+  "flight_per_case_runs": 5,
+  "ui_startup_runs": 3,
+  "note": "host heavily loaded (13 GiB swap in use); absolute times noisy (same case 113-276 ms); baseline dist archived for interleaved A/B at step 3",
+  "baseline_dist_sha256sums_sha256": "34863451fa7af740178c811df00a5fe70ffefb8fa9d8d0974f8c30f8a8ec0f37",
+  "app_startup_AA_same_build": {
+   "command": "node scripts/perf/compare-app-ab.mjs --baseline-dist step0/perf/baseline-dist --after-root . --runs 6",
+   "committed_median_ms": {
+    "baseline": 3769,
+    "after_same_build": 2352
+   },
+   "delta_pct": -37.6,
+   "meaning": "identical code differs by 37.6 %: a fixed 1.10x rule is not decidable on this host"
+  },
+  "render_probe": "compare-render-ab.mjs not run at step 0: the planned step-1 lanes are engine/app-text changes; run at step 3 if any 3D/render file changes"
+ },
+ "not_applicable": {
+  "neutrality": "fails: qu8k, proteus6, iondrive move materially from the R40/R41 research literals, others last-digit only; b0 matches the 2026-11-11 option-2 run, whose suite also did not run it; [INFERENCE] cause E-1b base drag in the app engine plus float_roundtrip; not a regression of this branch"
+ },
+ "sealed": {
+  "custody_manifest": "R6-public-cohort/blind-manifest.json sha256 39a009108f3442aad4706c3a93c6aad3d72c21fc9a184124952d9ce45d35acd7 (29 objects)",
+  "eligibility": "R6a eligibility-manifest.json @ 0f3d131",
+  "list": "see STEP0-BENCHMARK-SPEC.md section 6",
+  "f67w": "already spent 2026-10-21 d824b23 (blind holdout FAIL)",
+  "uncustodied_file": "S06-zenodo/V013/flight_comparison.csv not in custody manifest; unopened",
+  "custody_unverified": [
+   "SP-109 report 07d89dce",
+   "Deacon report ccb29240"
+  ]
+ }
+}

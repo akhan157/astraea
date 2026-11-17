@@ -13,6 +13,7 @@ export type Intent =
   | { kind: 'suggest-fixes' }
   | { kind: 'explain-stability' }
   | { kind: 'define'; topic: ExplainerTopic }
+  | { kind: 'increase-apogee' }
   | { kind: 'help' }
   | { kind: 'unknown' };
 
@@ -67,6 +68,12 @@ export function matchIntent(question: string): Intent {
   const asksDefinition = countHits(q, DEFINE) > 0 && countHits(q, WHY) === 0;
   const stabilityHits = countHits(q, STABILITY);
 
+  if (has(q, 'my') && stabilityHits > 0 && (has(q, 'margin') || has(q, 'stability'))) return { kind: 'explain-stability' };
+  if (has(q, 'higher') && (has(q, 'rocket') || has(q, 'fly') || has(q, 'go'))) return { kind: 'increase-apogee' };
+  if (asksDefinition && (has(q, 'cp') || has(q, 'center of pressure') || has(q, 'centre of pressure'))) {
+    const topic = ALL_TOPICS.find((t) => t.id === 'centre-of-pressure');
+    if (topic) return { kind: 'define', topic };
+  }
   if (countHits(q, FIX) > 0) return { kind: 'suggest-fixes' };
   if (asksDefinition) {
     const topic = matchTopic(q);

@@ -19,11 +19,15 @@
 //!
 //! Provenance: see `docs/internal/aero-provenance.md`. The standard-method terms
 //! (Schlichting/Van Driest II skin friction, Ackeret fin wave drag, Hoerner
-//! form factors, McCoy boattail) carry located public sources. Every fitted
+//! form factors, McCoy boattail) carry located public sources. The cylindrical
+//! base-drag branch (r >= 1) is digitised from the measured NASA TN D-4821
+//! Fig. 15(b) flat-base curve (its M > 1.3 tail is a stated development fit;
+//! record: `accuracy/integration` @ a10a82d, R32). Every other fitted
 //! coefficient mirrored here — nosecone shape factors 0.55/0.72/0.85/1.25,
-//! base drag 0.12 / 0.13 / 0.38 peak / `M^-1.2` decay, the 0.38 plume factor,
-//! the 0.45-caliber CP shift, and the 0.45·cr body-lift station — has no
-//! located primary source and is unvalidated; each site is marked below.
+//! the historical boattail base-drag fit 0.12 / 0.13 / 0.38 peak / `M^-1.2`
+//! decay, the 0.38 plume factor, the 0.45-caliber CP shift, and the 0.45·cr
+//! body-lift station — has no located primary source and is unvalidated; each
+//! site is marked below.
 //!
 //! Coarse public API: [`stability`] (full Barrowman assembly) and
 //! [`aero_curves`] (Mach 0–4 drag/CP curves, 41 points). Fine-grained
@@ -221,6 +225,9 @@ pub struct ComponentDesignInputs {
     pub trailing_edge_bevel: Option<f64>,
     /// Leading-edge radius (m).
     pub leading_edge_radius: Option<f64>,
+    /// Nose tip (blunt) radius (m). R44: absent is a sharp tip, which is
+    /// exactly the pre-R44 adapter value. Only the nosecone reads it.
+    pub tip_radius: Option<f64>,
 }
 
 /// Vehicle-level calibrated design inputs the app geometry does not carry.
@@ -2159,16 +2166,147 @@ fn fin_edge_drag_from_sweep(
 
 /// Base drag coefficient with motor power-on plume and boattail reduction.
 ///
-/// Subsonic quadratic rise, C1-continuous transonic spline peaking at
-/// Cd = 0.38 at M = 1.0, supersonic `0.38/M^1.2` decay; motor plume cuts
-/// ~62% during burn; boattail scales by `(base/body)²`.
+/// Cylinder bases (`base_diameter >= body_diameter`, r >= 1) use the measured
+/// NASA TN D-4821 Fig. 15(b) beta = 0 flat-base amplitude (Ab/Am = 1.00),
+/// digitised at 600/400 dpi and frozen in the R32 record
+/// (`accuracy/integration` @ a10a82d,
+/// `docs/internal/accuracy-research/r32/pre_registration.json`). The 0.38
+/// transonic peak of the historical project fit is replaced by the measured
+/// peak (~0.21 at M 1.1-1.2). Motor plume still cuts ~62% during burn.
 ///
-/// PROVENANCE: every coefficient below (0.12, 0.13, the 0.38 peak, both
-/// smoothstep branches, the `M^-1.2` decay, the 0.38 plume factor) is a
-/// project-authored fit. Hoerner/NASA base-pressure data are named in the
-/// docs, but no equation-level match or primary source for these values was
-/// located. Unvalidated.
+/// Boattail bases (`base_diameter < body_diameter`, r < 1) keep this branch's
+/// historical project-authored law scaled by `(base/body)²`; below r = 0.9 that
+/// law, its amplitude and the 0.38 plume factor are bit-identical to
+/// `frontend/design` @ 8fd48f0. A held-out check (R33) shows this unvalidated
+/// boattail fit over-predicts base drag on small-base boattails.
+///
+/// Base drag is continuous in r: between r = 0.9 and r = 1.0 the historical
+/// law and the cylinder law are blended with a smoothstep in r, so the r = 1
+/// dispatch no longer steps (R38 left a jump of 0.195 at M 1.0).
+///
+/// PROVENANCE: the r >= 1 amplitude is digitised from NASA TN D-4821 Fig.
+/// 15(b) (see `docs/internal/accuracy-research/r32/` on `accuracy/integration`
+/// @ a10a82d); its M > 1.3 tail is a stated development fit. The r < 1
+/// amplitude is a project-authored fit with no located primary source. The
+/// 0.9 <= r < 1 smoothstep blend is an unsourced engineering continuity
+/// device (R39, owner-approved), not a measured law. The 0.38 plume factor
+/// remains a project-authored fit with no located source.
 pub fn compute_base_drag(
+    mach: f64,
+    base_diameter: f64,
+    body_diameter: f64,
+    is_motor_burning: bool,
+) -> f64 {
+    let diameter_ratio = base_diameter / body_diameter.max(0.01);
+    if diameter_ratio >= 1.0 {
+        return base_drag_cylinder_ratio(mach, diameter_ratio, is_motor_burning);
+    }
+
+    let boattail_factor = (base_diameter / body_diameter.max(0.01)).powi(2);
+
+    let base_cd = if mach < 0.8 {
+        0.12 + 0.13 * mach.powi(2)
+    } else if (0.8..=1.2).contains(&mach) {
+        // Smooth C1 transition across the transonic barrier peaking at M=1.0.
+        let cd08 = 0.12 + 0.13 * 0.64; // 0.2032
+        let cd12 = 0.38 / 1.2_f64.powf(1.2); // ~0.306
+        let peak_cd = 0.38;
+        if mach <= 1.0 {
+            let t = (mach - 0.8) / 0.2;
+            cd08 + (peak_cd - cd08) * (3.0 * t * t - 2.0 * t * t * t)
+        } else {
+            let t = (mach - 1.0) / 0.2;
+            peak_cd - (peak_cd - cd12) * (3.0 * t * t - 2.0 * t * t * t)
+        }
+    } else {
+        // Supersonic expansion base pressure drop.
+        0.38 / mach.powf(1.2)
+    };
+
+    // Motor plume power-on effect: ~62% drop during burn.
+    let plume_reduction = if is_motor_burning { 0.38 } else { 1.0 };
+
+    let legacy = base_cd * boattail_factor * plume_reduction;
+
+    // Continuous in r: smoothstep blend from the historical law at r = 0.9
+    // (s = 0) to the cylinder law at r = 1.0 (s = 1, handled above).
+    if diameter_ratio >= 0.9 {
+        let t = (diameter_ratio - 0.9) / 0.1;
+        let s = 3.0 * t * t - 2.0 * t * t * t;
+        let cylinder = base_drag_cylinder_ratio(mach, diameter_ratio, is_motor_burning);
+        return (1.0 - s) * legacy + s * cylinder;
+    }
+
+    legacy
+}
+
+/// Measured cylinder-base law at an arbitrary base/body ratio.
+///
+/// The arithmetic order `amplitude * base_factor * plume_reduction` is the
+/// r >= 1 dispatch verbatim, so extracting it left the r >= 1 outputs
+/// bit-identical (proved against `84271a4` in the R39 evidence grid).
+fn base_drag_cylinder_ratio(mach: f64, diameter_ratio: f64, is_motor_burning: bool) -> f64 {
+    let amplitude = base_drag_amplitude_cylinder(mach);
+    let base_factor = diameter_ratio.powi(2);
+    let plume_reduction = if is_motor_burning { 0.38 } else { 1.0 };
+    amplitude * base_factor * plume_reduction
+}
+
+/// NASA TN D-4821 Fig. 15(b) beta = 0 flat-base amplitude, C_D,b at r = 1.
+///
+/// Anchors are the frozen 600-dpi digitisation of the open-circle flat-base
+/// series (Ab/Am = 1.00, L/Dm = 1.5, power off) at the nominal source
+/// stations. The source states that data between M 0.95 and 1.20 were not
+/// faired (normal/reflected shocks), so those anchors carry +/-0.010;
+/// the rest carry +/-0.005. See the R32 record
+/// (`docs/internal/accuracy-research/r32/pre_registration.json` on
+/// `accuracy/integration` @ a10a82d).
+///
+/// Below M = 0.30 the curve joins the historical 0.120 low-Mach anchor with
+/// a smoothstep (no measured data below 0.30). Above M = 1.30 the tail is a
+/// stated development fit, `0.2021*(1.30/M)^0.716`, chosen to meet the legacy
+/// amplitude at M = 2.5; no development data exists above 1.3.
+fn base_drag_amplitude_cylinder(mach: f64) -> f64 {
+    const ANCHORS: [(f64, f64); 12] = [
+        (0.30, 0.1303),
+        (0.40, 0.1466),
+        (0.50, 0.1461),
+        (0.60, 0.1462),
+        (0.70, 0.1437),
+        (0.80, 0.1447),
+        (0.90, 0.1549),
+        (0.95, 0.1651),
+        (1.00, 0.1842),
+        (1.10, 0.2062),
+        (1.20, 0.2141),
+        (1.30, 0.2021),
+    ];
+    const TAIL_EXPONENT: f64 = 0.716;
+
+    if mach < 0.30 {
+        let t = (mach / 0.30).clamp(0.0, 1.0);
+        let s = 3.0 * t * t - 2.0 * t * t * t;
+        return 0.120 + (ANCHORS[0].1 - 0.120) * s;
+    }
+    if mach > 1.30 {
+        return ANCHORS[11].1 * (1.30 / mach).powf(TAIL_EXPONENT);
+    }
+
+    let mut segment = 0usize;
+    while segment + 1 < ANCHORS.len() && mach > ANCHORS[segment + 1].0 {
+        segment += 1;
+    }
+    let (m0, a0) = ANCHORS[segment];
+    let (m1, a1) = ANCHORS[segment + 1];
+    let t = (mach - m0) / (m1 - m0);
+    let s = 3.0 * t * t - 2.0 * t * t * t;
+    a0 + (a1 - a0) * s
+}
+
+/// Verbatim historical base-drag function (`frontend/design` @ 8fd48f0),
+/// test-only frozen reference for the r < 1 bit-identity checks.
+#[cfg(test)]
+fn compute_base_drag_legacy(
     mach: f64,
     base_diameter: f64,
     body_diameter: f64,
@@ -3664,23 +3802,161 @@ mod tests {
     // -- Base drag (transonicAero.test.ts) -----------------------------
 
     #[test]
-    fn base_drag_matches_oracle() {
-        // Peak at Mach 1.0; C1-continuous falloff either side.
-        assert_transonic(compute_base_drag(1.0, 0.05, 0.05, false), 0.38);
-        assert_transonic(compute_base_drag(2.0, 0.05, 0.05, false), 0.1654046070262636);
-        let peak = compute_base_drag(1.0, 0.05, 0.05, false);
-        assert!(compute_base_drag(0.9, 0.05, 0.05, false) < peak);
-        assert!(compute_base_drag(1.1, 0.05, 0.05, false) < peak);
+    fn base_drag_cylinder_branch_uses_measured_law() {
+        // Frozen 600-dpi anchors, NASA TN D-4821 Fig. 15(b) beta = 0 flat base.
+        for (mach, amplitude) in [
+            (0.30, 0.1303),
+            (0.40, 0.1466),
+            (0.50, 0.1461),
+            (0.60, 0.1462),
+            (0.70, 0.1437),
+            (0.80, 0.1447),
+            (0.90, 0.1549),
+            (0.95, 0.1651),
+            (1.00, 0.1842),
+            (1.10, 0.2062),
+            (1.20, 0.2141),
+            (1.30, 0.2021),
+        ] {
+            let got = compute_base_drag(mach, 0.05, 0.05, false);
+            assert!((got - amplitude).abs() <= 1e-12, "mach {mach}: {got}");
+        }
+        // M 2.0 numeric anchor (same coverage as the TS mirror test).
+        let at_20 = compute_base_drag(2.0, 0.05, 0.05, false);
+        assert!((at_20 - 0.1484609642208389).abs() <= 1e-12, "{at_20}");
         // Power-on plume: ~62% drop during burn.
         let off = compute_base_drag(1.5, 0.05, 0.05, false);
         let on = compute_base_drag(1.5, 0.05, 0.05, true);
-        assert_transonic(on, 0.08876825494530766);
-        assert!(on < off * 0.5);
-        // Boattail reduction (base 0.1 on body 0.152).
+        assert!(on < off * 0.5, "{on} vs {off}");
+        assert!((on - 0.06931895530374162).abs() <= 1e-12, "{on}");
+        // The old project fit is no longer used below the tail.
+        for mach in [0.8, 0.9, 1.0, 1.1, 1.2, 1.5, 2.0] {
+            let new = compute_base_drag(mach, 0.05, 0.05, false);
+            let old = compute_base_drag_legacy(mach, 0.05, 0.05, false);
+            assert!(new < old, "mach {mach}: new {new} old {old}");
+        }
+        // Tail meets the legacy amplitude at M = 2.5 (stated development fit).
+        let at_25 = compute_base_drag(2.5, 0.05, 0.05, false);
+        let legacy_25 = 0.38 / 2.5_f64.powf(1.2);
+        assert!((at_25 - legacy_25).abs() <= 1e-4, "{at_25} vs {legacy_25}");
+        // r > 1 scales the same amplitude by the area ratio.
+        let wider = compute_base_drag(1.0, 0.06, 0.05, false);
+        assert!((wider - 0.1842 * 1.44).abs() <= 1e-12, "{wider}");
+    }
+
+    #[test]
+    fn base_drag_boattail_branch_is_bit_identical_to_r38_base() {
+        // r < 0.9 must reproduce the pre-change branch byte-for-byte (the R39
+        // smoothstep blend covers 0.9 <= r < 1; see the blend tests below).
+        for mach_i in 0..=40 {
+            let mach = f64::from(mach_i) / 10.0;
+            for (base, body) in [(0.1, 0.152), (0.088, 0.102), (0.606, 1.0), (0.815, 1.0)] {
+                for burning in [false, true] {
+                    let got = compute_base_drag(mach, base, body, burning);
+                    let want = compute_base_drag_legacy(mach, base, body, burning);
+                    assert_eq!(
+                        got.to_bits(),
+                        want.to_bits(),
+                        "mach {mach} base {base} body {body} burning {burning}"
+                    );
+                }
+            }
+        }
+        // Frozen R38 anchor: base 0.1 on body 0.152 at M 1.5, power off.
         assert_transonic(
             compute_base_drag(1.5, 0.1, 0.152, false),
             0.10110832362738245,
         );
+    }
+
+    #[test]
+    fn base_drag_blend_matches_smoothstep() {
+        // Blend band: (1-s)*legacy + s*cylinder, s = 3t^2 - 2t^3,
+        // t = (r - 0.9)/0.1. At r = 0.95, t = 0.5 and s = 0.5 exactly;
+        // M = 1.0 is the frozen cylinder anchor 0.1842 and the legacy peak
+        // 0.38, so the decimal arithmetic is exact:
+        //   legacy   = 0.38   * 0.95^2 = 0.34295
+        //   cylinder = 0.1842 * 0.95^2 = 0.1662405
+        //   blend    = 0.5*0.34295 + 0.5*0.1662405 = 0.25459525
+        let legacy = compute_base_drag_legacy(1.0, 0.95, 1.0, false);
+        let cylinder = compute_base_drag(1.0, 1.0, 1.0, false) * 0.95_f64.powi(2);
+        assert!((legacy - 0.34295).abs() <= 1e-15, "legacy {legacy}");
+        assert!((cylinder - 0.1662405).abs() <= 1e-15, "cylinder {cylinder}");
+        let blended = compute_base_drag(1.0, 0.95, 1.0, false);
+        assert!((blended - 0.25459525).abs() <= 1e-15, "blend {blended}");
+
+        // Same s formula across Mach, plume state and the exact binary
+        // stations t = 0.25, 0.5, 0.75 (s = 0.15625, 0.5, 0.84375).
+        for mach in [0.0, 0.3, 0.5, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0, 2.5, 3.0] {
+            for r in [0.925_f64, 0.95, 0.975, 0.99, 0.999] {
+                for burning in [false, true] {
+                    let t = (r - 0.9) / 0.1;
+                    let s = 3.0 * t * t - 2.0 * t * t * t;
+                    let legacy = compute_base_drag_legacy(mach, r, 1.0, burning);
+                    let cylinder = compute_base_drag(mach, 1.0, 1.0, burning) * r.powi(2);
+                    let want = (1.0 - s) * legacy + s * cylinder;
+                    let got = compute_base_drag(mach, r, 1.0, burning);
+                    assert!(
+                        (got - want).abs() <= 1e-15,
+                        "mach {mach} r {r} burning {burning}: {got} vs {want}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn base_drag_is_continuous_across_ratio_one() {
+        // Sweep M 0-3 in 0.01 steps and r 0.9-1.0 in 1e-4 steps, both plume
+        // states. A C1 blend cannot step; the pre-R39 code stepped 0.195 at
+        // M 1.0 between r = 0.9999 and r = 1.0.
+        for burning in [false, true] {
+            let mut max_step: f64 = 0.0;
+            let mut max_at = (0.0_f64, 0.0_f64);
+            for mach_i in 0..=300 {
+                let mach = f64::from(mach_i) / 100.0;
+                let mut prev = compute_base_drag(mach, 0.9, 1.0, burning);
+                for r_i in 1..=1000 {
+                    let r = f64::from(9000 + r_i) / 10000.0;
+                    let got = compute_base_drag(mach, r, 1.0, burning);
+                    let step = (got - prev).abs();
+                    if step > max_step {
+                        max_step = step;
+                        max_at = (mach, r);
+                    }
+                    prev = got;
+                }
+            }
+            assert!(
+                max_step <= 0.01,
+                "burning {burning}: max r-step {max_step} at M {} r {}",
+                max_at.0,
+                max_at.1
+            );
+        }
+    }
+
+    #[test]
+    fn base_drag_blend_endpoints_are_exact() {
+        for mach in [0.0, 0.3, 0.9, 1.0, 1.5, 2.5, 3.0] {
+            for burning in [false, true] {
+                // s = 0 at r = 0.9: the blend returns the legacy value exactly.
+                let at_09 = compute_base_drag(mach, 0.9, 1.0, burning);
+                let legacy_09 = compute_base_drag_legacy(mach, 0.9, 1.0, burning);
+                assert_eq!(
+                    at_09.to_bits(),
+                    legacy_09.to_bits(),
+                    "mach {mach} burning {burning}"
+                );
+                // s -> 1 at r -> 1: no step against the r >= 1 dispatch.
+                let below = compute_base_drag(mach, 1.0 - 1e-12, 1.0, burning);
+                let at_one = compute_base_drag(mach, 1.0, 1.0, burning);
+                assert!(
+                    (below - at_one).abs() <= 1e-11,
+                    "mach {mach} burning {burning}: {below} vs {at_one}"
+                );
+            }
+        }
     }
 
     // -- Full Mach curves (transonicAero.test.ts) ----------------------

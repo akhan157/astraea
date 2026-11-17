@@ -1,0 +1,19 @@
+{
+  "base": "5c85b84",
+  "head": "6560dd7",
+  "pushed": false,
+  "lanes": [
+    {"lane": "fix-dispersion-drag-render", "author": "codex/gpt-6.1-terra medium", "commits": ["99ed2c9", "2b3f2c9", "5397ff8"], "merge": "d5b0b48", "falsifier": "new tests 6 fail / 39 pass on base production files; 45/45 fixed (reviewer-run)"},
+    {"lane": "fix-flight-chrome-1280", "author": "codex/gpt-6.1-terra medium", "commits": ["2bb0983", "4060d04", "351d7c8"], "merge": "160ca58", "falsifier": "smoke: free region 186.8 px on base; 239.6 px fixed", "owner_decision": "2026-11-13 dismiss restore bar in smoke before measuring; thresholds unchanged"},
+    {"lane": "fix-restored-motor-reload", "author": "codex/gpt-6.1-terra medium", "reviewer_commit": "930559c", "commits": ["a5a267b", "5cefc88", "8c6c0ff", "930559c"], "merge": "6560dd7", "falsifier": "2 restore tests fail on 160ca58 production code (reviewer-run)"}
+  ],
+  "checks_on_head": {
+    "pnpm build": 0, "tsc --noEmit": 0,
+    "vitest --maxWorkers=2": {"exit": 0, "files": 184, "tests": 2149},
+    "pnpm test:browser": {"exit": 0, "flight_free_region_1280_px": 239.6, "rocket_px": 180.6},
+    "ASTRAEA_ONLY_JOURNEYS=accuracy pnpm test:browser": {"exit": 0, "default_baseline_m": 533},
+    "wasm_sha256": "4ff8af43b191296023d4bd6c14a8f6aab67d8dc48809abf4893ff0a6635db316"
+  },
+  "checks_on_5c85b84": {"pnpm test:arcas-runtime": {"exit": 0, "tests": 2}, "built_app_item3": "all pass; see main-checks-2026-11-13/results.json + recheck.json"},
+  "evidence_dir": "~/astraea-walkthroughs-2026-11-12/main-checks-2026-11-13/"
+}

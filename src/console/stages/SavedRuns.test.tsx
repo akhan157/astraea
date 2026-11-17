@@ -5,20 +5,24 @@ import { SavedRuns } from './SavedRuns';
 import { FlightStage } from './Flight';
 import { committedRun, consoleActions, useConsoleJobs } from '../store';
 import { exportableProject, adoptProject, useProjectStore } from '../../state/project';
-import { useAnalysisStore } from '../../state/analysis';
+import { useAnalysisStore, type AnalysisRecord } from '../../state/analysis';
 import { useSessionStore } from '../../state/session';
 import { readProject, writeProject } from '../../formats/projectJson';
+import type { RocketVehicle } from '../../core/types';
 import { CERTIFIED_MOTORS } from '../../propulsion/motorDatabase';
-import { activeTestEngine, chunkLandings, consoleJobStub, flightResult, flightResultForRequest, stubEngine } from '../testFixtures';
+import { activeTestEngine, chunkLandings, consoleJobStub, flightResult, flightResultForRequest, pinLegacyFlightDrag, stubEngine } from '../testFixtures';
 import type { DragCalibration } from '../../application/dragCalibration';
 import { savedTelemetryFixture } from '../../application/savedTelemetry.fixture';
 import type { SavedFlightOutputs } from '../../application/savedFlightOutputs';
-import type { LegacyRunInputs } from '../../application/runInputs';
+import { captureRunInputs, type LegacyRunInputs } from '../../application/runInputs';
+import { withRunCases } from '../../application/runCases';
+import { toFlightRun } from '../data/adapter';
 
 let teardown: () => void;
 beforeEach(() => {
   teardown = stubEngine().teardown;
   useProjectStore.getState().loadPreset('estesAlpha');
+  pinLegacyFlightDrag();
   useAnalysisStore.getState().reset();
   consoleJobStub();
 });
@@ -176,6 +180,18 @@ describe('saved run vertical slice', () => {
     expect(rerunMotor.thrustCurve).toEqual(firstCurve);
     expect(useAnalysisStore.getState().history).toHaveLength(1);
     expect(exportableProject().cases).toHaveLength(3);
+  });
+
+  it('lists and compares evicted session records without requiring a project reopen', async () => {
+    for (let i = 0; i < 6; i++) await useConsoleJobs.getState().run();
+    expect(useAnalysisStore.getState().history[0].payload).toBeNull();
+    const cases = exportableProject().cases;
+    render(<SavedRuns />);
+    fireEvent.change(screen.getByLabelText('Saved baseline'), { target: { value: cases[0].id } });
+    fireEvent.change(screen.getByLabelText('Saved variant'), { target: { value: cases[1].id } });
+    expect(screen.getByRole('table', { name: /Canonical flight outputs/ })).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Saved input comparison' })).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: 'Load saved inputs' })).toHaveLength(6);
   });
 
   it('shows original archived options rather than later live values, without changing history', async () => {
@@ -491,5 +507,84 @@ describe('saved run vertical slice', () => {
     expect(row('Apogee → touchdown')).toEqual(['155.7s', reason, 'N/A']);
     const card = document.querySelector(`[data-saved-run-id="${saved.cases[1].id}"]`) as HTMLElement;
     expect(within(card).getAllByText(reason).length).toBeGreaterThan(0);
+  });
+});
+
+describe('return1: archived drag-source provenance in Saved runs', () => {
+  const motor = { id: 'estes_c6', motor: CERTIFIED_MOTORS.estes_c6, provenance: { source: 'certified' as const } };
+  const DRAG_LINE = 'calibrated build-up axial drag; not a validated model';
+  const REFUSED_LINE = "legacy 25-station Mach drag tables; legacy drag used (refused: calibrated unsupported feature: fin set 'fins' is elliptical)";
+
+  function projectWith(vehiclePatch: (vehicle: RocketVehicle) => void) {
+    const base = useProjectStore.getState().project;
+    const vehicle = structuredClone(base.vehicle);
+    vehiclePatch(vehicle);
+    return { ...base, vehicle };
+  }
+
+  function flightRecord(inputs: LegacyRunInputs, line: string): AnalysisRecord {
+    const run = {
+      ...toFlightRun(flightResult({ runManifest: { ...flightResult().runManifest, axialDrag: line } as never }),
+        inputs.vehicle, 'certified', inputs.inputKey, 1, 1),
+      engineIdentity: { kind: 'production-rust-wasm' as const, sha256: 'b'.repeat(64) },
+    };
+    return { kind: 'flight', status: 'completed', inputKey: inputs.inputKey, startedAt: inputs.capturedAt,
+      finishedAt: '2026-11-11T12:00:00.000Z', error: null, token: 1, runInputs: inputs,
+      payload: { design: { motorId: 'estes_c6' }, run } };
+  }
+
+  function ensembleRecord(inputs: LegacyRunInputs, line: string): AnalysisRecord {
+    return { kind: 'ensemble', status: 'completed', inputKey: inputs.inputKey, startedAt: inputs.capturedAt,
+      finishedAt: '2026-11-11T12:00:00.000Z', error: null, token: 2, runInputs: inputs,
+      payload: { design: { motorId: 'estes_c6' }, dispersion: {
+        landings: [{ x: 1, y: 0 }, { x: 0, y: 1 }], mean: { x: 0.5, y: 0.5 },
+        sigma1: 1, sigma2: 0, r50: 1, r90: 1, r99: 1, ok: 2, failed: 0, axialDrag: line,
+      } } };
+  }
+
+  it('shows the recorded flight and ensemble lines for opted-in archives, with the refusal warning', () => {
+    const project = projectWith((vehicle) => { vehicle.flightDragSource = 'calibrated'; });
+    const flightInputs = captureRunInputs(project, motor, 'flight-key', undefined);
+    const ensembleInputs = captureRunInputs(project, motor, 'mc-key', undefined, undefined, {
+      nRuns: 2, seed: 7, version: 'per-run-v2',
+      windAzimuthDegSigma: 20, railAngleDegSigma: 1, impulsePctSigma: 3,
+    });
+    const saved = readProject(writeProject(withRunCases(project, [
+      flightRecord(flightInputs, DRAG_LINE),
+      ensembleRecord(ensembleInputs, REFUSED_LINE),
+    ])));
+    // The archived canonical output dictionary keeps the flight Basis that was
+    // recorded for this run; Saved Runs never recomputes it.
+    expect(saved.cases[0].flightOutputs?.outputs.apogee?.reason)
+      .toContain('flight axial drag comes from the built-up method at every Mach number');
+    adoptProject(saved);
+    render(<SavedRuns />);
+    const lines = [...document.querySelectorAll('[data-archived-axial-drag]')];
+    expect(lines).toHaveLength(2);
+    expect(lines[0].textContent).toContain(DRAG_LINE);
+    expect(lines[0].textContent).not.toContain('Built-up drag was requested but not used for this rocket.');
+    expect(lines[1].textContent).toContain(REFUSED_LINE);
+    expect(lines[1].textContent).toContain('Built-up drag was requested but not used for this rocket.');
+  });
+
+  it.each([{}, 42])('retains guard for malformed archived drag %s', (bad) => {
+    const project = projectWith((vehicle) => { vehicle.flightDragSource = 'calibrated'; });
+    const inputs = captureRunInputs(project, motor, 'flight-key', undefined);
+    const saved = readProject(writeProject(withRunCases(project, [flightRecord(inputs, DRAG_LINE)])));
+    saved.cases[0].summary!.axialDrag = bad as string;
+    adoptProject(saved);
+    expect(() => render(<SavedRuns />)).not.toThrow();
+    expect(document.querySelector('[data-archived-axial-drag]')).toBeNull();
+    expect(screen.queryByText(/^\[object Object\]$|^42$/)).toBeNull();
+  });
+
+  it('shows no provenance line for a default saved run', () => {
+    const project = useProjectStore.getState().project;
+    const inputs = captureRunInputs(project, motor, 'flight-key', undefined);
+    const saved = readProject(writeProject(withRunCases(project, [flightRecord(inputs, DRAG_LINE)])));
+    adoptProject(saved);
+    render(<SavedRuns />);
+    expect(document.querySelectorAll('[data-archived-axial-drag]')).toHaveLength(0);
+    expect(screen.queryByText('Axial drag')).toBeNull();
   });
 });

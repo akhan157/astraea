@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { expect } from 'playwright/test';
 import JSZip from 'jszip';
 
@@ -165,4 +166,183 @@ export async function previewDepth(page, origin) {
   await expect(vehicleName).toHaveValue(currentName);
   await page.keyboard.press('Escape');
   console.log('Rule-based copilot checks computed without applying a design change');
+}
+
+
+/**
+ * Accuracy bundle journeys: site temperature, nozzle back-pressure thrust,
+ * built-up flight drag and the refused shape a shipped template provides.
+ *
+ * Every apogee assertion compares with a baseline flown in the same session on
+ * the same engine and template, so an engine swap keeps the check meaningful.
+ * Screenshots are written only when ASTRAEA_SHOTS_DIR is set (evidence stays
+ * outside the repository).
+ */
+// Session restore since af43d61 carries the previous journey across reloads.
+async function resetAccuracyProject(page) {
+  await page.evaluate(async () => {
+    const keys = ['astraea.working-session.v1', 'astraea.project.v1'];
+    for (const key of keys) localStorage.removeItem(key);
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open('astraea', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+      request.onblocked = () => reject(new Error('IndexedDB open blocked'));
+    });
+    try {
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction('projects', 'readwrite');
+        for (const key of keys) tx.objectStore('projects').delete(key);
+        tx.oncomplete = () => resolve();
+        tx.onabort = () => reject(tx.error ?? new Error('Project reset aborted'));
+        tx.onerror = () => reject(tx.error);
+      });
+    } finally { db.close(); }
+  });
+  await page.reload();
+  // Wait for the app to mount (restore runs at startup) before asserting no restore.
+  await expect(page.getByRole('banner')).toBeVisible();
+  await page.waitForTimeout(1000);
+  await expect(page.getByRole('status').filter({ hasText: 'Restored unsaved work' })).toHaveCount(0);
+}
+
+export async function accuracyBundleJourneys(page, origin) {
+  const stage = (name) => page.getByRole('navigation', { name: 'Pipeline stages' }).getByRole('button', { name, exact: true }).click();
+  const shots = process.env.ASTRAEA_SHOTS_DIR;
+  const shot = async (name) => {
+    if (!shots) return;
+    for (const [width, height] of [[1600, 1000], [1280, 800]]) {
+      await page.setViewportSize({ width, height });
+      // A live WebGL viewport keeps repainting; freeze CSS transitions and give
+      // the compositor room under software GL.
+      await page.screenshot({ path: join(shots, `${width}-${name}.png`), animations: 'disabled', timeout: 60_000 });
+    }
+    await page.setViewportSize({ width: 1600, height: 1000 });
+  };
+  const runFlight = async () => {
+    await page.getByRole('banner').getByRole('button', { name: /Run simulation/ }).click();
+    await expect(page.getByRole('banner').getByRole('button', { name: /Run simulation/ })).toBeEnabled({ timeout: 120_000 });
+    const label = await page.locator('[aria-label^="Apogee (committed run) "]').getAttribute('aria-label');
+    const meters = Number(label.match(/run\) ([\d,.]+) m/)[1].replaceAll(',', ''));
+    assert.ok(Number.isFinite(meters) && meters > 0, `native flight returned ${label}`);
+    return meters;
+  };
+  const openAeroInputs = async () => {
+    await stage('Aero');
+    await page.getByRole('tab', { name: 'Aerodynamic inputs', exact: true }).click();
+  };
+  const expectAbsent = async (name) => {
+    assert.equal(await page.getByText(name, { exact: true }).count(), 0, `${name} must not appear for a default project`);
+  };
+
+  // K3: built-up drag is now the default flight, and says so on the result. A result for the
+  // explicit legacy choice carries the engine's own "legacy ... calibrated drag not requested" line.
+  const expectLegacyLine = async () => {
+    await expect(page.getByText('Axial drag', { exact: true })).toBeVisible();
+    await expect(page.getByText(/calibrated drag not requested/).first()).toBeVisible();
+    await expect(page.getByText('Built-up drag was requested but not used for this rocket.')).toHaveCount(0);
+  };
+
+  await page.goto(new URL('app/', origin).href);
+  await resetAccuracyProject(page);
+  await expect(page.getByRole('banner')).toBeVisible();
+  await stage('Mission');
+
+  // The baseline of this journey is the legacy flight, chosen with the checkbox (on by default for a new project).
+  await openAeroInputs();
+  const flightDragBox = page.getByRole('checkbox', { name: 'Use built-up drag in flights', exact: true });
+  await flightDragBox.setChecked(false); // idempotent: a restored earlier project may already be on the legacy flight
+  await stage('Mission');
+
+  // ── legacy flight: none of the new lines may appear ────────────────────────
+  const nasaBaseline = await runFlight();
+  assert.ok(Math.abs(nasaBaseline - 534) < 2, `Desktop baseline ~534 m; browser returned ${nasaBaseline} m`);
+  await stage('Flight');
+  await page.getByRole('tab', { name: 'Results', exact: true }).click();
+  await expectLegacyLine();
+  await expectAbsent('Site temperature');
+  await page.getByRole('tab', { name: 'Monte Carlo', exact: true }).click();
+  await expectAbsent('Axial drag');
+  await stage('Build');
+  await expectAbsent('Atmosphere');
+  await expectAbsent('Thrust pressure');
+  await expectAbsent('Axial drag');
+  console.log(`Accuracy bundle legacy journey passed: no new line on the explicit legacy flight (baseline ${nasaBaseline} m)`);
+
+  // ── site temperature ──────────────────────────────────────────────────────
+  await stage('Mission');
+  await page.getByLabel('Launch site altitude in metres above sea level', { exact: true }).fill('400');
+  await page.getByLabel('Launch site air temperature in degrees Celsius', { exact: true }).fill('30');
+  await page.getByRole('button', { name: 'Apply launch site', exact: true }).click();
+  await expect(page.getByText('400 m ASL, 30 °C', { exact: true })).toBeVisible();
+  await shot('mission-site-temperature');
+  const warm = await runFlight();
+  assert.ok(warm > nasaBaseline, `a warm pad must raise apogee on this engine (${warm} m vs ${nasaBaseline} m)`);
+  await stage('Flight');
+  await expect(page.getByText('Site temperature', { exact: true })).toBeVisible();
+  await page.getByRole('tab', { name: 'Results', exact: true }).click();
+  await expectLegacyLine();
+  await shot('flight-site-temperature');
+  await stage('Build');
+  await expect(page.getByText('Atmosphere', { exact: true })).toBeVisible();
+  await expect(page.getByText('Thrust pressure', { exact: true })).toBeVisible();
+  await expect(page.getByText('Axial drag', { exact: true })).toBeVisible();
+  await expect(page.getByText(/site-anchored dry-air lapse/).first()).toBeVisible();
+  await shot('build-site-temperature');
+  console.log(`Site-temperature journey passed: ${nasaBaseline} m → ${warm} m with 30 °C at 400 m ASL`);
+
+  // ── nozzle back-pressure thrust (site cleared, so it is isolated) ─────────
+  await stage('Mission');
+  await page.getByRole('button', { name: 'Clear launch site', exact: true }).click();
+  await openAeroInputs();
+  await page.getByRole('button', { name: 'Add nozzle exit diameter', exact: true }).click();
+  const nozzle = page.locator('div[title^="Sustainer nozzle exit diameter"] input');
+  await nozzle.fill('50');
+  await nozzle.press('Tab');
+  const backPressure = page.getByRole('checkbox', { name: 'Nozzle back-pressure thrust', exact: true });
+  await expect(backPressure).toBeEnabled();
+  await backPressure.check();
+  await shot('aero-nozzle-backpressure');
+  const thrust = await runFlight();
+  assert.ok(thrust > nasaBaseline, `back-pressure thrust must raise apogee (${thrust} m vs ${nasaBaseline} m)`);
+  await stage('Build');
+  await expect(page.getByText(/p_ref = 101325 Pa/).first()).toBeVisible();
+  console.log(`Nozzle back-pressure journey passed: ${nasaBaseline} m → ${thrust} m with a 0.05 m exit`);
+
+  // ── built-up flight drag on a supported template ──────────────────────────
+  await openAeroInputs();
+  await page.getByRole('checkbox', { name: 'Use built-up aero model (beta)', exact: true }).check();
+  const builtUp = page.getByRole('checkbox', { name: 'Use built-up drag in flights', exact: true });
+  await expect(builtUp).toBeVisible();
+  await builtUp.check();
+  await shot('aero-built-up-drag');
+  const builtUpApogee = await runFlight();
+  assert.ok(builtUpApogee !== nasaBaseline, `built-up drag must change the flight (${builtUpApogee} m vs ${nasaBaseline} m)`);
+  await stage('Flight');
+  await page.getByRole('tab', { name: 'Results', exact: true }).click();
+  await expect(page.getByText('Axial drag', { exact: true })).toBeVisible();
+  await expect(page.getByText(/calibrated build-up axial drag/).first()).toBeVisible();
+  await expect(page.getByText('Built-up drag was requested but not used for this rocket.')).toHaveCount(0);
+  await shot('flight-built-up-drag');
+  await stage('Build');
+  await expect(page.getByText(/calibrated build-up axial drag/).first()).toBeVisible();
+  console.log(`Built-up drag journey passed: ${nasaBaseline} m → ${builtUpApogee} m on the NASA template`);
+
+  // ── the refused shape a shipped template already provides ─────────────────
+  await stage('Mission');
+  await page.getByRole('button', { name: /^Spaceport America \(practice\)/ }).click();
+  const spaceportBaseline = await runFlight();
+  await openAeroInputs();
+  await page.getByRole('checkbox', { name: 'Use built-up aero model (beta)', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Use built-up drag in flights', exact: true }).check();
+  const refused = await runFlight();
+  assert.equal(refused, spaceportBaseline, `a refused shape must fly its own legacy tables (${refused} m vs ${spaceportBaseline} m)`);
+  await stage('Flight');
+  await page.getByRole('tab', { name: 'Results', exact: true }).click();
+  await expect(page.getByText('Built-up drag was requested but not used for this rocket.')).toBeVisible();
+  await expect(page.getByText(/legacy drag used \(refused: /).first()).toBeVisible();
+  await shot('flight-built-up-drag-refused');
+  await stage('Build');
+  await expect(page.getByText(/legacy drag used \(refused: /).first()).toBeVisible();
+  console.log(`Refused-shape journey passed: Spaceport America flew ${spaceportBaseline} m either way and says why`);
 }

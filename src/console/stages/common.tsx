@@ -84,7 +84,7 @@ export function WithDock({ main, tabs, initial = 260, storageKey }: { main: Reac
 }
 
 /** Stage title row with freshness badge; clicking a stale badge opens the dependency view. */
-export function StageHeader({ stage, title, sub, right }: { stage: StageId; title: string; sub?: ReactNode; right?: ReactNode }) {
+export function StageHeader({ stage, title, sub, right, inlineSub = false }: { stage: StageId; title: string; sub?: ReactNode; right?: ReactNode; inlineSub?: boolean }) {
   const { state, reasons } = useFreshness(stage);
   // Stages that show flight results say when the stored run was computed with a drag calibration.
   const candidateSelected = useProjectStore((state) => isCandidateFlightModel(resolveFlightModel(state.project.flightModel)));
@@ -96,7 +96,7 @@ export function StageHeader({ stage, title, sub, right }: { stage: StageId; titl
     <div data-stage-header tabIndex={-1} className="flex flex-wrap min-h-[42px] shrink-0 items-center gap-3 px-4 outline-none" style={{ borderBottom: `1px solid ${C.line}`, background: C.panel }}>
       <span className="text-[13.5px] font-medium">{title}</span>
       {state === 'stale' ? <WhyStale trigger={<span>{badge}</span>} /> : badge}
-      {sub && <span className="w-full order-last min-w-0 text-[12px] leading-snug 2xl:order-none 2xl:w-auto 2xl:truncate" style={{ color: C.muted }}>{sub}</span>}
+      {sub && <span className={inlineSub ? "min-w-0 text-[12px] leading-snug" : "w-full order-last min-w-0 text-[12px] leading-snug 2xl:order-none 2xl:w-auto 2xl:truncate"} style={{ color: C.muted }}>{sub}</span>}
       <span className="ml-auto flex shrink-0 items-center gap-2">{showsFlight && calibration && <DragCalibrationChip calibration={calibration} />}{right}</span>
     </div>
   );

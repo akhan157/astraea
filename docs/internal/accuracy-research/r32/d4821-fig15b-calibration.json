@@ -1,0 +1,42 @@
+{
+  "source": {
+    "report": "NASA TN D-4821",
+    "title": "Effect on base drag of recessing the bases of conical afterbodies at subsonic and transonic speeds",
+    "author": "William B. Compton III",
+    "date": "October 1968",
+    "figure": "Fig. 15(b), beta = 0 deg curve, PDF p. 41 / printed p. 39",
+    "series": "flat base, c/Rb = 0 (open circle), L/Dm = 1.5, Ab/Am = 1.00",
+    "pdf_sha256": "255b27ed88fc2f2d05e7233f4ca2f9faa41ff95b12325fa63d714d0af7059532",
+    "note": "Only the flat-base beta=0 curve was read. The source states that data between M 0.95 and 1.20 were not faired because of normal and reflected shocks on the model and near the base (printed p. 8); those anchors carry 0.010 reading uncertainty."
+  },
+  "images": {
+    "600": {
+      "path": "/home/ak/astraea-evidence/R32-e1b-cylinder-base/digitisation/d4821-p39-600-41.png",
+      "sha256": "c45c84870c2f4ce26b78f59b3dcc493be3258849b6e377b667b40f62c1942a20",
+      "dpi": 600
+    },
+    "400": {
+      "path": "/home/ak/astraea-evidence/R32-e1b-cylinder-base/digitisation/d4821-p39-400-41.png",
+      "sha256": "c525fb161e3031cf5946daabe25c562a4cdf9a35243d2c1c928486f75e0b41cc",
+      "dpi": 400
+    }
+  },
+  "x600": [[962.0, 0.30], [3726.0, 1.30]],
+  "y600": [[1531.0, 0.12], [740.0, 0.24]],
+  "x400": [[641.5, 0.30], [2484.0, 1.30]],
+  "y400": [[1026.5, 0.12], [490.5, 0.24]],
+  "points": [
+    {"mach": 0.30, "px600": 955, "py600": 1463, "px400": 637, "py400": 975},
+    {"mach": 0.40, "px600": 1234, "py600": 1356, "px400": 833, "py400": 904},
+    {"mach": 0.50, "px600": 1524, "py600": 1359, "px400": 1017, "py400": 903},
+    {"mach": 0.60, "px600": 1800, "py600": 1358, "px400": 1202, "py400": 905},
+    {"mach": 0.70, "px600": 2063, "py600": 1375, "px400": 1375, "py400": 918},
+    {"mach": 0.80, "px600": 2334, "py600": 1368, "px400": 1568, "py400": 915},
+    {"mach": 0.90, "px600": 2622, "py600": 1301, "px400": 1741, "py400": 860},
+    {"mach": 0.95, "px600": 2757, "py600": 1234, "px400": 1844, "py400": 839},
+    {"mach": 1.00, "px600": 2889, "py600": 1108, "px400": 1936, "py400": 742},
+    {"mach": 1.10, "px600": 3178, "py600": 963, "px400": 2106, "py400": 642},
+    {"mach": 1.20, "px600": 3453, "py600": 911, "px400": 2303, "py400": 608},
+    {"mach": 1.30, "px600": 3725, "py600": 990, "px400": 2470, "py400": 660}
+  ]
+}

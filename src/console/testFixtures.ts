@@ -219,9 +219,28 @@ export function stubEngine(overrides: { onInvoke?: (cmd: string) => void } = {})
   return { calls, teardown };
 }
 
-/** Reset the Console's stores to a clean preset project with no run history. */
-export function resetConsoleState(): void {
+/**
+ * Pin the open project to the explicit legacy flight-drag choice. Console and
+ * archive tests written before the K3 default switch exercise archiving,
+ * comparison, fitting and persistence against the legacy flight; they keep
+ * doing so through this one explicit choice (an absent field now means the
+ * built-up default). Tests of the default itself do not call it. Written
+ * straight into the store: no history entry, no dirty mark.
+ */
+export function pinLegacyFlightDrag(): void {
+  useProjectStore.setState((state) => ({
+    project: { ...state.project, vehicle: { ...state.project.vehicle, flightDragSource: 'legacy' as const } },
+  }));
+}
+
+/**
+ * Reset the Console's stores to a clean preset project with no run history.
+ * Pre-switch tests keep the legacy flight (see `pinLegacyFlightDrag`); a test
+ * of the default flight passes `{ defaultFlightDrag: true }`.
+ */
+export function resetConsoleState(options: { defaultFlightDrag?: boolean } = {}): void {
   useProjectStore.getState().loadPreset('nasaStudent');
+  if (options.defaultFlightDrag !== true) pinLegacyFlightDrag();
   useProjectStore.setState({ past: [], future: [] });
   useAnalysisStore.getState().reset();
 }

@@ -6,7 +6,7 @@
  * reruns the solver or changes the vehicle.
  */
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Archive,
   ChevronLeft,
@@ -30,6 +30,7 @@ import { useWS, currentRunKey, type FlightPayload } from '../store';
 import { useProjectStore } from '../../state/project';
 import { isCandidateFlightModel, resolveFlightModel } from '../../application/flightModel';
 import type { FlightRun } from '../data/contract';
+import { readRunArchive } from '../../application/runCases';
 import { useAnalysisStore } from '../../state/analysis';
 import { describeLaunchSite } from '../../application/caseResolver';
 import { qualifyResult } from '../../application/resultState';
@@ -38,12 +39,15 @@ import { C } from '../kit/theme';
 import { Checkbox, Range, Select } from '../kit/Controls';
 import { describeDragCalibration } from '../../application/dragCalibration';
 import { recordEvidence } from './ProjectLedger';
+import { useLoadedLog } from './loadedLog';
+import { useOverlayFlights } from '../../state/overlayFlights';
 
 /** One ingested flight log in the run archive. */
 export interface FlightLog {
   id: string;
   name: string;
   source: 'csv' | 'gpx';
+  sourceText: string;
   /** Regridded to DISPLAY_DT_S at ingest (Q4 display contract). */
   samples: AltitudeSample[];
   apogeeM: number;
@@ -69,6 +73,22 @@ function apogeeOf(samples: readonly AltitudeSample[]): { apogeeM: number; apogee
     if (s.altitudeM > best.altitudeM) best = s;
   }
   return { apogeeM: best.altitudeM, apogeeS: best.timeS };
+}
+
+/** Normalize imported and pasted logs identically before comparing them. */
+function displayGrid(samples: readonly AltitudeSample[]): AltitudeSample[] {
+  const sorted = [...samples].sort((a, b) => a.timeS - b.timeS);
+  if (!sorted.length) return [];
+  const grid: AltitudeSample[] = [];
+  let lastCell = Number.NEGATIVE_INFINITY;
+  for (const sample of sorted) {
+    const cell = Math.round((sample.timeS - sorted[0].timeS) / DISPLAY_DT_S);
+    if (cell > lastCell) {
+      grid.push({ timeS: cell * DISPLAY_DT_S, altitudeM: sample.altitudeM });
+      lastCell = cell;
+    }
+  }
+  return grid;
 }
 
 /** Display decimation: stride-sample paths over the cap (charting only). */
@@ -155,16 +175,16 @@ export function SimFlightOverlay(): React.JSX.Element {
     const payload = record.payload as FlightPayload | null;
     return {
       runId: record.token, runKey: record.inputKey, label: `Flight ${record.token}`,
-      caseId: payload?.design.vehicle.name ?? '', lifecycle: record.status,
-      valid: legacyRun(payload)?.summary.validity === 'PASS',
+      caseId: record.archive?.vehicleName ?? payload?.design.vehicle.name ?? '', lifecycle: record.status,
+      valid: (record.archive?.validity ?? legacyRun(payload)?.summary.validity) === 'PASS',
       freshness: record.inputKey === overlayRunKey ? 'current' : 'stale',
-      payload,
+      payload, record,
     };
   }), [history, overlayRunKey]);
   const chosenRunId = selectedRun ?? completed?.token;
   const chosen = runRecords.find((record) => record.runId === chosenRunId) ?? null;
   const displayFor = (record: (typeof runRecords)[number]) => {
-    const validity = legacyRun(record.payload)?.summary.validity ?? 'UNKNOWN';
+    const validity = record.record.archive?.validity ?? legacyRun(record.payload)?.summary.validity ?? 'UNKNOWN';
     const status = validity === 'UNKNOWN' && record.freshness === 'current' && record.lifecycle === 'completed'
       ? { status: 'unknown' as const, label: 'Validity unknown — no gate evaluated' }
       : qualifyResult({ valid: record.valid, current: record.freshness === 'current', gate: 'unknown', lifecycle: record.lifecycle });
@@ -180,13 +200,33 @@ export function SimFlightOverlay(): React.JSX.Element {
   };
 
   const [pane, setPane] = useState<Pane>('inspect');
-  const [logs, setLogs] = useState<FlightLog[]>([]);
+  const { logs, setLogs } = useOverlayFlights();
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [paste, setPaste] = useState('');
   const [ingestError, setIngestError] = useState<string | null>(null);
   const [layers, setLayers] = useState<Record<string, boolean>>({ sim: true });
   const [cursorT, setCursorT] = useState<number | null>(null);
   const idRef = useRef(0);
+  // Remounts/recovery must not reuse an archived flight's id.
+  idRef.current = Math.max(idRef.current, ...logs.map(log => Number(log.id.replace('flight-', '')) || 0));
+  useEffect(() => {
+    setLayers(previous => Object.fromEntries([['sim', previous.sim ?? true], ...logs.map(log => [log.id, previous[log.id] ?? true]) ]));
+  }, [logs]);
+
+  const loadedLog = useLoadedLog();
+  const processedLog = useRef<typeof loadedLog>(null);
+  useEffect(() => {
+    if (!loadedLog || processedLog.current === loadedLog) return;
+    processedLog.current = loadedLog;
+    const grid = displayGrid(loadedLog.log.samples);
+    if (!grid.length) return;
+    if (logs.some((log) => log.source === 'csv' && log.sourceText === loadedLog.csvText.trim())) return;
+    const id = `flight-${++idRef.current}`;
+    const name = `Flight ${logs.length + 1} (CSV)`;
+    setLogs((prev) => [...prev, { id, name, source: 'csv', sourceText: loadedLog.csvText.trim(), samples: grid, ...apogeeOf(grid) }]);
+    setCurrentId(id);
+    setLayers((layers) => ({ ...layers, [id]: true }));
+  }, [loadedLog, logs]);
 
   // Compare controls (pattern 7: the contract is explicit and editable).
   const [baselineSel, setBaselineSel] = useState('sim');
@@ -202,7 +242,17 @@ export function SimFlightOverlay(): React.JSX.Element {
   const [ootIndex, setOotIndex] = useState(0);
 
   const chosenQual = chosen ? displayFor(chosen) : null;
-  const chosenRun = chosen ? legacyRun(chosen.payload) : null;
+  const chosenRun = useMemo(() => {
+    if (!chosen) return null;
+    if (!chosen.record.archive) return legacyRun(chosen.payload);
+    const saved = readRunArchive(chosen.record).cases[0];
+    if (!saved || saved.candidateResult || !saved.telemetry) return null;
+    return { telemetry: saved.telemetry, dragCalibration: chosen.record.archive.dragCalibration };
+  }, [chosen]);
+  useEffect(() => {
+    useAnalysisStore.getState().pinRuns('overlay', chosenRunId === undefined ? [] : [chosenRunId]);
+    return () => useAnalysisStore.getState().pinRuns('overlay', []);
+  }, [chosenRunId]);
   const simBadge = chosenQual?.status ?? null;
   const candidateSelected = useProjectStore((state) => isCandidateFlightModel(resolveFlightModel(state.project.flightModel)));
   const simEligible = !candidateSelected && !!chosen && chosenRun !== null && chosen.lifecycle === 'completed' && chosen.valid && chosen.freshness === 'current';
@@ -236,24 +286,20 @@ export function SimFlightOverlay(): React.JSX.Element {
         source = 'csv';
       }
       if (samples.length === 0) throw new Error('ingest: no usable altitude samples');
-      const sorted = [...samples].sort((a, b) => a.timeS - b.timeS);
-      const t0 = sorted[0].timeS;
-      const norm = sorted.map((s) => ({ timeS: s.timeS - t0, altitudeM: s.altitudeM }));
-      // Q4: regrid to the display grid at ingest; keep first occurrence per cell.
-      const grid: AltitudeSample[] = [];
-      let lastCell = Number.NEGATIVE_INFINITY;
-      for (const s of norm) {
-        const cell = Math.round(s.timeS / DISPLAY_DT_S);
-        if (cell > lastCell) {
-          grid.push({ timeS: cell * DISPLAY_DT_S, altitudeM: s.altitudeM });
-          lastCell = cell;
-        }
+      const grid = displayGrid(samples);
+      const duplicate = logs.find((log) => log.source === source && log.sourceText === text);
+      if (duplicate) {
+        setCurrentId(duplicate.id);
+        setLayers((prev) => ({ ...prev, [duplicate.id]: true }));
+        setPaste('');
+        setIngestError(null);
+        return;
       }
       idRef.current += 1;
       const id = `flight-${idRef.current}`;
       const { apogeeM, apogeeS } = apogeeOf(grid);
       const name = `Flight ${logs.length + 1} (${source.toUpperCase()})`;
-      setLogs((prev) => [...prev, { id, name, source, samples: grid, apogeeM, apogeeS }]);
+      setLogs((prev) => [...prev, { id, name, source, sourceText: text, samples: grid, apogeeM, apogeeS }]);
       setCurrentId(id); // newest ingest auto-promotes to current (pattern 6)
       setLayers((prev) => ({ ...prev, [id]: true }));
       if (compareSel === '' && baselineSel !== id) setCompareSel(id);

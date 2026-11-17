@@ -15,6 +15,7 @@ import type { RocketVehicle } from '../core/types';
 import { resolveMotorRecord, useProjectStore, type Mission } from '../state/project';
 import type { MotorRecord } from '../formats/projectJson';
 import type { DragCalibration } from '../application/dragCalibration';
+import { withResolvedDragChoice } from '../application/caseResolver';
 import type { FlightModelSelection } from '../application/flightModel';
 import type { AeroModelSelection } from '../application/aeroModel';
 import {
@@ -143,7 +144,11 @@ export function designOf(
   });
   const calibration = activeCalibration(calibrationApplicability);
   return {
-    vehicle: activeVehicle,
+    // The project's drag choice resolved at the dispatch boundary: a project whose drag
+    // calibration is ACTIVE (its scale rides every run) and which made no explicit choice stays
+    // on the legacy tables the scale was fitted on (K3). A retained but inactive artifact is
+    // history and changes no physics. Written here, after the fit key above, so that key does not move.
+    vehicle: withResolvedDragChoice(activeVehicle, calibration),
     motorId: project.workspace.motorId,
     motors: catalog,
     options: {

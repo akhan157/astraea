@@ -118,8 +118,8 @@ it('writes the telemetry parity fixture', () => {
 
   const doc = {
     generatedBy:
-      'npm run fixtures:telemetry (vitest + vite-node over the TS sources, node v24.21.0)',
-    generatedOn: '2026-10-16',
+      'pnpm fixtures:telemetry (vitest over the TS sources, node v26.12.1)',
+    generatedOn: '2026-11-09',
     source: 'simulate6DofFlight(PRESET_ESTES_ALPHA, CERTIFIED_MOTORS.estes_c6, options)',
     fields: FIELDS,
     vehicle: wire.vehicle,

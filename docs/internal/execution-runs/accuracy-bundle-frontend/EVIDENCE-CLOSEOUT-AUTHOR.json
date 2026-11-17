@@ -1,0 +1,307 @@
+{
+  "record": "accuracy-bundle-frontend closeout author evidence",
+  "date": "2026-11-12",
+  "authorAcceptance": false,
+  "authorCannot": [
+    "self-accept",
+    "merge",
+    "push",
+    "edit register/manifest/board/existing handoff or review"
+  ],
+  "lane": {
+    "path": "/home/ak/.paseo/worktrees/3s8t98rp/integrate-appbound-e1b",
+    "branch": "integrate/appbound-e1b",
+    "baseSha": "482616d6bf6e7c0fba392863e30511b6058b7739",
+    "baseIsAncestor": true,
+    "designCommit": "4542d4e5a2c1c058bc3809151dbd6eac424a5c8b",
+    "engineSourceTree": "d164f99ba3e3b7143cd63322912ffa7ef2cd1d7b",
+    "srcCratesDiffSinceBase": "empty",
+    "commitsSinceBase": [
+      "82ecde2 docs: pin three-gate closeout assignment",
+      "ae4cdec docs: approved three-gate scope",
+      "4542d4e docs: author design and falsifiers"
+    ]
+  },
+  "environment": {
+    "freeBeforeBuild": "5.2 GiB available",
+    "freeBeforeBrowser": "at least 3.1 GiB available",
+    "cargoBuildJobs": 2,
+    "maxWorkers": "not used; no vitest run because no test file changed",
+    "fullBrowserSmoke": "deliberately not rerun"
+  },
+  "build": {
+    "command": "CARGO_BUILD_JOBS=2 pnpm build",
+    "exit": 0,
+    "log": "../evidence-accuracy-bundle-frontend/closeout/closeout-build.log",
+    "wasm": {
+      "path": "src/engine/astraea_engine.wasm",
+      "sha256": "21eea59ec76b494591aa546c43ceaf2d7cf296f82e8a28c2b7aa92f1efb2eb2e",
+      "bytes": 2035057
+    },
+    "distAsset": {
+      "path": "dist/assets/astraea_engine-B5C56RG8.wasm",
+      "sha256": "21eea59ec76b494591aa546c43ceaf2d7cf296f82e8a28c2b7aa92f1efb2eb2e",
+      "bytes": 2035057,
+      "byteIdenticalToSource": true
+    },
+    "note": "Reproduces the lane's previously recorded 21eea59\u2026 from the same engine source. The root checkout's 91c94095\u2026 build directory is different and was not used. Source and WASM were consistent before every probe."
+  },
+  "sharedPreviewAttempt": {
+    "tools": [
+      "preview_status",
+      "preview_open",
+      "preview_navigate",
+      "preview_resize",
+      "preview_snapshot",
+      "preview_act",
+      "preview_evaluate"
+    ],
+    "tabId": "tab_9_8711ce5e-a677-48a0-95fa-1221ce7c5992",
+    "observed": {
+      "visible": false,
+      "tourAnimation": "frozen at opacity 0 / translateY(8px), rAF not progressing",
+      "clicks": "selector and coordinate clicks for Skip tour, Close tour, and pipeline stage all timed out; stage remained Airframe and localStorage astraea.workstation.toured stayed null",
+      "firstClick": "the initial Airframe stage click did register; subsequent input was not delivered",
+      "screenshot": "t3-preview-frozen-1280x800.png"
+    },
+    "disposition": "The shared preview tab could not receive input because it was not visible to the desktop host. The documented fallback applies: the repository's own production build + CSP browser runner. No alternative browser was used before that evidence; the fallback run is scripts/accuracy-closeout.mjs under the same CSP mechanism as scripts/browser-smoke.mjs."
+  },
+  "csp": {
+    "source": "dist/_headers Content-Security-Policy line served by vite preview on both throwaway origins",
+    "documentHeaderMatches": true,
+    "inlineScriptBlocked": true,
+    "violation": {
+      "directive": "script-src-elem",
+      "blockedURI": "inline"
+    },
+    "wasmCompile": "compiled",
+    "evalProbe": "INFORMATIONAL ONLY: 'allowed' via CDP-injected evaluation, which bypasses page CSP; not asserted"
+  },
+  "runner": {
+    "path": "scripts/accuracy-closeout.mjs",
+    "command": "node scripts/accuracy-closeout.mjs",
+    "exit": 0,
+    "syntaxCheck": "node --check exit 0",
+    "independentExecution": "coordinator must run it independently; author evidence is not acceptance",
+    "sha256": "c159fcbfca3b1173d1716b3873b389589b5c55bc4a7fdd8bae5635a994a8fc53",
+    "gitPath": "scripts/accuracy-closeout.mjs",
+    "secondRun": {
+      "note": "The committed script was run again exactly as documented (default evidence paths), producing an independent repeat with identical strings and equality flags.",
+      "command": "node scripts/accuracy-closeout.mjs",
+      "exit": 0,
+      "log": {
+        "path": "../evidence-accuracy-bundle-frontend/closeout/author-run-committed-script.log",
+        "sha256": "f782afa5fc03a8adc75a8421c6557207b1efd4eab670c4882c819f31ad38ba5e"
+      },
+      "evidence": {
+        "path": "../evidence-accuracy-bundle-frontend/closeout/runner-evidence.json",
+        "sha256": "fcfb82a3a909eb719acba6dfb0619bfcbe5d81b7f943baf70e883bed18ac49af"
+      },
+      "shots": {
+        "path": "../evidence-accuracy-bundle-frontend/closeout/runner-shots",
+        "count": 30
+      },
+      "resultsIdenticalToFirstPass": true
+    },
+    "defaultPaths": "ASTRAEA_EVIDENCE_JSON defaults to <evidence>/runner-evidence.json and ASTRAEA_SHOTS_DIR to <evidence>/runner-shots, so a coordinator run cannot overwrite the author artifacts referenced here."
+  },
+  "nose": {
+    "vehicle": "NASA Student Launch Target Vehicle",
+    "component": "nsl-nc (Von K\u00e1rm\u00e1n Nosecone)",
+    "baseDiameterMm": 152,
+    "hintText": "Blunt tip radius, used only by the built-up method above about Mach 0.9. It does not change the drawn nose, the mass or the legacy model. Absent is a sharp tip.",
+    "warningText": "This nose tip radius is outside what the engine accepts (0 to the nose base diameter). Stability, aero curves and flights are refused until it is corrected or cleared.",
+    "steps": [
+      {
+        "step": "default",
+        "addOffered": true,
+        "input": false,
+        "warning": false
+      },
+      {
+        "step": "add",
+        "valueMm": 1,
+        "warning": false
+      },
+      {
+        "step": "edit-in-range",
+        "valueMm": 1.5,
+        "warning": false
+      },
+      {
+        "step": "above-base-diameter",
+        "valueMm": 200,
+        "warning": true,
+        "clamped": false
+      },
+      {
+        "step": "negative",
+        "valueMm": -1,
+        "warning": true
+      },
+      {
+        "step": "persisted-after-save-reload-open",
+        "valueMm": 1.5
+      },
+      {
+        "step": "engine-refused-above-base-diameter",
+        "valueMm": 200
+      },
+      {
+        "step": "cleared-and-persisted"
+      }
+    ],
+    "engineRefusal": "prepareVehicle: nose tipRadius 0.2 m on component 'nsl-nc' exceeds its nose base diameter 0.152 m",
+    "unrelatedGeometry": "2D drawing polygon/rect/path/line geometry and the parts panel text including 10.35 kg were byte-identical at absent, 1.5 mm and 200 mm"
+  },
+  "savedRuns": {
+    "supported": {
+      "origin": "http://127.0.0.1:44549/",
+      "flightApogeeM": 547,
+      "saveMessage": "Saved locally (revision 3)",
+      "openMessage": "Opened saved project (revision 3)",
+      "flightSentence": "calibrated build-up axial drag (alpha = 0) from the in-repo method port; 25-station table at the run's own ascent altitudes (median AGL per Mach bin over the baseline pass, minimum 5 rows per bin, nearest-station fill); nose tipRadius 0.0015 m; design nozzle exit none (method default); method reference air at altitude above sea level; not a validated model",
+      "ensembleSentence": "calibrated build-up axial drag (alpha = 0) from the in-repo method port; 25-station table at the nominal baseline flight's ascent altitudes (median AGL per Mach bin over the baseline pass, minimum 5 rows per bin, nearest-station fill); drag ladder from the nominal baseline flight; ensemble members share it; nose tipRadius 0.0015 m; design nozzle exit none (method default); method reference air at altitude above sea level; not a validated model",
+      "liveEqualsArchived": true,
+      "noRefusalWarning": true,
+      "engineLabel": "Engine SHA-256 21eea59ec76b\u2026",
+      "recordsEqualAfterSettingsClear": true,
+      "recordsEqualAfterReload": true,
+      "recordsEqualAfterLoadSavedInputs": true
+    },
+    "refused": {
+      "origin": "http://127.0.0.1:36821/",
+      "legacyApogeeM": 5014,
+      "refusedApogeeM": 5014,
+      "refusedShapeFliesLegacyTables": true,
+      "saveMessage": "Saved locally (revision 1)",
+      "openMessage": "Opened saved project (revision 1)",
+      "warning": "Built-up drag was requested but not used for this rocket.",
+      "flightSentence": "legacy 25-station Mach drag tables from compute_aerodynamic_curves; legacy drag used (refused: calibrated unsupported feature: fin set 'sac-fins' does not follow a body tube)",
+      "ensembleSentence": "legacy 25-station Mach drag tables from compute_aerodynamic_curves; legacy drag used (refused: calibrated unsupported feature: fin set 'sac-fins' does not follow a body tube)",
+      "liveEqualsArchived": true,
+      "warningOnBothRecords": true,
+      "recordsEqualAfterSettingsClear": true,
+      "recordsEqualAfterReload": true
+    },
+    "defaultBaselineAtLoad": "A fresh origin archives one legacy flight at load with no explicit Run click and no axial line (Saved runs \u00b7 1). Diagnostic: closeout/diag-startup-run.mjs and diag-startup-run.log. This shows the default/absent path adds no line; it is pre-existing app behavior, not introduced by this lane."
+  },
+  "assertionsActuallyRun": [
+    "document response carries the exact production CSP",
+    "inline script blocked with a script-src-elem violation",
+    "built WASM byte-identical between src/engine and dist",
+    "nose hint/warning strings exact; 200 mm not clamped; negative warns",
+    "drawing geometry and parts panel byte-identical across radius states",
+    "added radius persisted through save+reload+open; clear persisted",
+    "engine refuses 200 mm with its own prepareVehicle sentence",
+    "live supported flight sentence = archived sentence, verbatim, with nose tipRadius 0.0015 m",
+    "live supported ensemble sentence = archived sentence, verbatim, with the shared-ladder clause",
+    "live refused flight/ensemble sentences = archived sentences, verbatim, with the production warning",
+    "archived records deep-equal after settings clear, reload, and Load saved inputs",
+    "Saved Runs names engine identity matching the built WASM prefix",
+    "no pageerror or console error during the journeys"
+  ],
+  "failuresRetained": [
+    {
+      "attempt": 1,
+      "cause": "eval-based CSP assertion invalid under CDP (DevTools bypasses page CSP)",
+      "artifact": "attempts/author-run-attempt1-eval-probe-failed.json"
+    },
+    {
+      "attempt": 2,
+      "cause": "missing await on ElementHandle.inputValue (script bug)",
+      "artifact": "attempts/author-run-attempt2-missing-await.json"
+    },
+    {
+      "attempt": 3,
+      "cause": "display formatting '1.0' mm mistaken for a clamp (script bug)",
+      "artifact": "attempts/author-run-attempt3-display-format.json"
+    },
+    {
+      "attempt": 4,
+      "cause": "run-failure text searched in header; production shows it in the footer status bar",
+      "artifact": "attempts/author-run-attempt4-engine-refusal-not-shown.json"
+    },
+    {
+      "attempt": 5,
+      "cause": "project status only renders inside the Project menu; no autosave exists",
+      "artifact": "attempts/author-run-attempt5-geometry-after-reload.json"
+    },
+    {
+      "attempt": 6,
+      "cause": "2D/3D is stage-local and remounts in 3D after a run",
+      "artifact": "attempts/author-run-attempt6-stage-local-2d.json"
+    },
+    {
+      "attempt": 7,
+      "cause": "stale project-menu status read before the new save status landed",
+      "artifact": "attempts/author-run-attempt7-stale-slot-status.json"
+    },
+    {
+      "attempt": 8,
+      "cause": "obsolete autosave wait after loading the Spaceport preset",
+      "artifact": "attempts/author-run-attempt8-refused-preset-status.json"
+    }
+  ],
+  "pageErrors": [],
+  "screenshots": {
+    "directory": "../evidence-accuracy-bundle-frontend/closeout/author-run-shots",
+    "count": 30,
+    "widths": [
+      1600,
+      1280
+    ],
+    "states": [
+      "nose-default",
+      "nose-warning",
+      "nose-persisted",
+      "aero-built-up-opt-in",
+      "flight-supported-results",
+      "flight-ensemble-supported",
+      "build-saved-runs-supported",
+      "build-saved-runs-supported-settings-cleared",
+      "build-saved-runs-supported-after-reload",
+      "build-saved-runs-supported-inputs-loaded",
+      "flight-refused-results",
+      "flight-ensemble-refused",
+      "build-saved-runs-refused",
+      "build-saved-runs-refused-settings-cleared",
+      "build-saved-runs-refused-after-reload"
+    ]
+  },
+  "evidenceFiles": {
+    "runnerEvidence": {
+      "path": "../evidence-accuracy-bundle-frontend/closeout/author-run.json",
+      "sha256": "5e5348c9cf70ed73e076e9bdf3945208175ce437021bc00715a70fab82f46fe4"
+    },
+    "buildLog": {
+      "path": "../evidence-accuracy-bundle-frontend/closeout/closeout-build.log",
+      "sha256": "f1d62717829fb760e473bc08ace208638a3982b772ff230103d533ecb113907e"
+    },
+    "cspServer": {
+      "path": "../evidence-accuracy-bundle-frontend/closeout/serve-csp.mjs",
+      "sha256": "efc5f41f4358402bf980418f3cba733b27244b2c73f61e20e7c8ca7069201fd9"
+    },
+    "startupDiagnostic": {
+      "path": "../evidence-accuracy-bundle-frontend/closeout/diag-startup-run.mjs",
+      "sha256": "e570c549bade762eb68ecfbdb18b4a05191b140f773fab85ac892c7db99a20af",
+      "log": "../evidence-accuracy-bundle-frontend/closeout/diag-startup-run.log"
+    },
+    "frozenSharedPreview": {
+      "path": "../evidence-accuracy-bundle-frontend/closeout/t3-preview-frozen-1280x800.png",
+      "sha256": "e1cb59173b2684664f999599bbefd54ec6ffde2bccfeb43d1d9e4eb6b0c01552"
+    }
+  },
+  "notDone": [
+    "no production src/crates/register/manifest/board/existing handoff/review edit",
+    "no full browser-smoke rerun",
+    "no engine physics/dataset/default/threshold/schema change",
+    "no merge, push, tag, release, branch deletion or other lane/thread touch",
+    "no physical or accuracy qualification claimed from these UI checks"
+  ],
+  "runtimes": {
+    "authorPreviewServers": "stopped (ports 4173/4174/4183/4184 killed; runner closes its own servers)",
+    "sharedPreviewTab": "closed",
+    "playwrightBrowser": "closed by the runner"
+  }
+}

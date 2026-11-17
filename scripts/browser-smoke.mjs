@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { chromium, firefox, webkit } from 'playwright';
 import { preview } from 'vite';
 import { calibrationJourney, previewJourneys, shareFlightJourney } from './preview-journeys.mjs';
-import { previewDepth } from './preview-depth.mjs';
+import { accuracyBundleJourneys, previewDepth } from './preview-depth.mjs';
 
 // Vite preview does not apply Pages' _headers. Exercise the built app with
 // the exact production CSP, including worker and WebAssembly restrictions.
@@ -47,7 +47,9 @@ try {
   const meters = Number(label.match(/run\) ([\d,.]+) m/)[1].replaceAll(',', ''));
   // Regression pin from the packaged desktop NASA Student Launch baseline.
   // Rounded UI values: not an independent physical-validation claim.
-  assert.ok(Math.abs(meters - 534) < 2, `Desktop baseline ~534 m; browser returned ${label}`);
+  // K3: the default flight is now the built-up drag (546.5 m on this template, was 532.8 m on the
+  // legacy tables); the legacy figure stays reachable with "Use built-up drag in flights" off.
+  assert.ok(Math.abs(meters - 547) < 2, `K3 default NASA Student Launch ~547 m (legacy tables: ~534 m); browser returned ${label}`);
   // A cold software-GL start can show the labeled WebGL fallback for a beat
   // before the first real context exists. Accept either signal, never the
   // absence of both.
@@ -55,10 +57,16 @@ try {
   const webglFallback = await page.locator('[data-webgl-fallback="true"]').count();
   assert.ok(webglFallback > 0 || await page.locator('main canvas:visible').count(), '3D viewport must render');
   console.log(`${browserName} smoke passed: ${label}; WebAssembly workers under production CSP`);
-  await previewJourneys(page, origin);
-  await previewDepth(page, origin);
-  await calibrationJourney(page, origin);
-  await shareFlightJourney(page, origin);
+  // Evidence runs may scope the journeys (the server, CSP, browser and the
+  // baseline smoke assertion above are always the same ones).
+  const only = process.env.ASTRAEA_ONLY_JOURNEYS;
+  if (only !== 'accuracy') {
+    await previewJourneys(page, origin);
+    await previewDepth(page, origin);
+    await calibrationJourney(page, origin);
+  }
+  await accuracyBundleJourneys(page, origin);
+  if (only !== 'accuracy') await shareFlightJourney(page, origin);
   assert.deepEqual(errors, [], 'Browser runtime / CSP errors');
 } finally {
   await browser?.close();

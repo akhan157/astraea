@@ -1,0 +1,329 @@
+{
+  "lane": "BL1-blind-predictions",
+  "phase": 1,
+  "status": "frozen_before_opening",
+  "worktree": "/home/ak/.paseo/worktrees/3s8t98rp/bl1-blind-predictions",
+  "branch": "bl1-blind-predictions",
+  "sourceSha": "f7a893489c5c7063653beaa810b81c84a3b1dcba",
+  "wasm": {
+    "path": "src/engine/astraea_engine.wasm",
+    "sha256": "4c1ec4ed7192f0f0eab9206481e74d2627c3a2f8010376a69f9194df10824535",
+    "assertedBy": "probe-lib.ts loadEngine(); every probe fails before running if the hash differs"
+  },
+  "designs": [
+    {
+      "key": "V001",
+      "path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/design/V001-Estes_Emerald_Streak.design.xml",
+      "sha256": "275a50c5f5318aec031066af216c9719a724d55b15740b0b3b26cbf8ceec5e98"
+    },
+    {
+      "key": "V002",
+      "path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/design/V002-DDVulcanite.design.xml",
+      "sha256": "18e54445961696bb1ffc9af670816faa2febd3b94a439ad8429b79c25230ad67"
+    }
+  ],
+  "commands": [
+    {
+      "cmd": "TMPDIR=/home/ak/bl1/tmp ./node_modules/.bin/vitest run docs/internal/execution-runs/BL1-blind-predictions/01-qualify.probe.ts --maxWorkers=2 --config docs/internal/execution-runs/BL1-blind-predictions/vitest.config.ts",
+      "exit": 0,
+      "durationS": 2.58,
+      "produces": "out/qualify.json \u2014 import refusal, declared overrides, reconstruction, nominal flight, axialDrag, 25-run ensemble replay check"
+    },
+    {
+      "cmd": "TMPDIR=/home/ak/bl1/tmp ./node_modules/.bin/vitest run docs/internal/execution-runs/BL1-blind-predictions/02-ensemble.probe.ts --maxWorkers=2 --config docs/internal/execution-runs/BL1-blind-predictions/vitest.config.ts",
+      "exit": 0,
+      "durationS": 786.56,
+      "produces": "out/ensemble.json, out/ensemble-meta.json \u2014 8 scenarios x 1000 runs, nearest-rank p5/p50/p95"
+    },
+    {
+      "cmd": "TMPDIR=/home/ak/bl1/tmp ./node_modules/.bin/vitest run docs/internal/execution-runs/BL1-blind-predictions/03-freeze.probe.ts --maxWorkers=2 --config docs/internal/execution-runs/BL1-blind-predictions/vitest.config.ts",
+      "exit": 0,
+      "durationS": 0.19,
+      "produces": "PREDICTIONS.json, out/tables.md \u2014 re-asserts both design hashes and the WASM hash"
+    },
+    {
+      "cmd": "TMPDIR=/home/ak/bl1/tmp ./node_modules/.bin/vitest run docs/internal/execution-runs/BL1-blind-predictions/00-sanity.probe.ts --maxWorkers=2 --config docs/internal/execution-runs/BL1-blind-predictions/vitest.config.ts",
+      "exit": 0,
+      "durationS": 0.5,
+      "produces": "out/sanity.json \u2014 the released WASM flies its own Alpha fixture (310.05 m), and the motor mount flag does not change that"
+    },
+    {
+      "cmd": "TMPDIR=/home/ak/bl1/tmp ./node_modules/.bin/vitest run docs/internal/execution-runs/BL1-blind-predictions/01b-extra-qualify.probe.ts --maxWorkers=1 --config docs/internal/execution-runs/BL1-blind-predictions/vitest.config.ts",
+      "exit": 0,
+      "durationS": 34.76,
+      "produces": "out/qualify-extra.json \u2014 SHA256SUMS assertion, parseRaspEng metrics, geometry check, nominal flights, 25-run replay check, V002 CG sensitivity"
+    },
+    {
+      "cmd": "BL1_N_RUNS=1000 TMPDIR=/home/ak/bl1/tmp ./node_modules/.bin/vitest run docs/internal/execution-runs/BL1-blind-predictions/02b-emerald-extra.probe.ts --maxWorkers=1 --config docs/internal/execution-runs/BL1-blind-predictions/vitest.config.ts",
+      "exit": 1,
+      "durationS": 2945.13,
+      "log": "/home/ak/bl1/bl1-round2-emerald.log",
+      "produces": "out/ensemble-emerald-extra.json (8000 runs per motor, 0 failed)",
+      "note": "vitest's per-test timeout (30 min, the config then in force) fired after the synchronous body had finished and written the artifact; the artifact is complete and 04-verify passes. The config timeout is now 7,200,000 ms."
+    },
+    {
+      "cmd": "BL1_N_RUNS=1000 TMPDIR=/home/ak/bl1/tmp ./node_modules/.bin/vitest run docs/internal/execution-runs/BL1-blind-predictions/02c-vulcanite.probe.ts --maxWorkers=1 --config docs/internal/execution-runs/BL1-blind-predictions/vitest.config.ts",
+      "exit": 1,
+      "durationS": 4745.05,
+      "log": "/home/ak/bl1/bl1-round2-vulcanite.log",
+      "produces": "out/ensemble-vulcanite.json (10000 runs per motor, 0 failed)",
+      "note": "same 30-min per-test timeout property as 02b; artifact complete and 04-verify passes."
+    },
+    {
+      "cmd": "TMPDIR=/home/ak/bl1/tmp ./node_modules/.bin/vitest run docs/internal/execution-runs/BL1-blind-predictions/04-verify.probe.ts --maxWorkers=2 --config docs/internal/execution-runs/BL1-blind-predictions/vitest.config.ts",
+      "exit": 0,
+      "durationS": 0.807,
+      "produces": "out/verify.json \u2014 every round-2 artifact has 1000 runs/scenario, 8/10 scenarios, 0 failed, and its nominal reproduces on the released WASM"
+    },
+    {
+      "cmd": "TMPDIR=/home/ak/bl1/tmp ./node_modules/.bin/vitest run docs/internal/execution-runs/BL1-blind-predictions/03b-freeze.probe.ts --maxWorkers=2 --config docs/internal/execution-runs/BL1-blind-predictions/vitest.config.ts",
+      "exit": 0,
+      "durationS": 0.203,
+      "produces": "PREDICTIONS.json (12 flights; six round-1 rows asserted JSON-identical), out/tables-round2.md, out/mc-round2.md"
+    }
+  ],
+  "ensembleReplayCheck": {
+    "runs": 25,
+    "maxLandingDeltaM": 0,
+    "meaning": "the per-run apogee replay uses the same sub-seed, draw order and engine flight as run_ensemble_chunk; landings are bit-identical"
+  },
+  "evidence": {
+    "dir": "/home/ak/bl1/evidence",
+    "files": [
+      {
+        "name": "qualify.json",
+        "sha256": "8e6966895ae1853d7f274cfd72239826439965ba3cf089d4fb87e765d22aef41"
+      },
+      {
+        "name": "ensemble.json",
+        "sha256": "b3c3632e035f3cc5b53c40a4ae747e1bf8d9a6d0cdf07beed59e665b64b71a09"
+      },
+      {
+        "name": "ensemble-meta.json",
+        "sha256": "0b395d5c55fdd72da92b2089664560e07bb1896d7d022d2924e19632bae1533d"
+      },
+      {
+        "name": "tables.md",
+        "sha256": "817193f9f6cc3bfec8a341a5ed00e3b9bc5732347e2ba773a2f07a2968e61bdd"
+      }
+    ]
+  },
+  "guards": {
+    "r6PublicCohortListedOrRead": false,
+    "flightLogOpened": false,
+    "vehiclePageOpened": false,
+    "custodyManifestOpened": false,
+    "publishedResultRead": false,
+    "bookLibraryOpened": false,
+    "round2ResultsOpened": false,
+    "networkUsed": false,
+    "engineOrAppChanged": false,
+    "outcomeSeen": false,
+    "networkUsedInThisLane": false,
+    "motorDownloadsByOrchestratorUnderOwnerAuthorization": true,
+    "firstSixRecomputed": false
+  },
+  "productFindings": [
+    "parseOrkFile refuses both sealed designs on their stage mass/CG overrides (orkParser.ts:354-356).",
+    "Nested element attributes never reach the importer (fast-xml-parser preserveOrder puts them beside the child list; orderedNodeToLegacy never merges them), so a fin declared method=bottom is seated as a top offset. Un-reconstructed static margins: V001 -0.500, V002 -0.437 caliber.",
+    "The bundled motor database has none of D13-10W, QC6-5, HP-I140W-14, HP-J270W-14.",
+    "The DD Vulcanite flies legacy drag for both flights: its fin set is freeform, so the calibrated method refuses it. No blind flight exercises the built-up drag.",
+    "I140W and J270W have no cert file on ThrustCurve (manufacturer data only); their qualified interval carries a declared +/-10 % base-impulse bracket."
+  ],
+  "round2": {
+    "ownerAuthorization": "2026-11-16, stop (b) question: download 4 motor curves",
+    "motorDir": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/motors",
+    "sha256sumsSha256": "a603c4ba8e10fa13b3ba351be1f5f43a2bf65b1307677d5f53edd9b281c3b6fb",
+    "provenanceSha256": "16b6f2233b7460e1bd0ad597befb9a95db7b7db21dbefc24e31a2a87b8f74b2a",
+    "motors": [
+      {
+        "motorKey": "d13w",
+        "file": "AeroTech_D13W.eng",
+        "sha256": "1940ce3c415493c8a6ee11d1755ab1ed255b5dc11eb5108697953cd6ba1cf325",
+        "dataSource": "cert",
+        "thrustcurveMotorId": "5f4294d20002310000000021",
+        "parsed": {
+          "id": "d13w",
+          "designation": "D13W",
+          "manufacturer": "RASP Import",
+          "diameterM": 0.018,
+          "lengthM": 0.07,
+          "totalImpulseNs": 19.263356,
+          "burnTimeS": 1.52,
+          "avgThrustN": 12.67326052631579,
+          "maxThrustN": 23.61,
+          "propellantMassKg": 0.0098,
+          "totalMassKg": 0.0326,
+          "dryMassKg": 0.022799999999999997,
+          "points": 32,
+          "first": {
+            "time": 0,
+            "thrust": 0
+          },
+          "last": {
+            "time": 1.52,
+            "thrust": 0
+          }
+        },
+        "designMatchesDownloadedGeometry": true
+      },
+      {
+        "motorKey": "questC6",
+        "file": "Quest_C6.eng",
+        "sha256": "08d25d4fd9778d1fdc9419e0bc2c1ee76655d31d3f83d7a5020b3a585f340b71",
+        "dataSource": "cert",
+        "thrustcurveMotorId": "5f4294d20002310000000016",
+        "parsed": {
+          "id": "c6_0",
+          "designation": "C6-0",
+          "manufacturer": "RASP Import",
+          "diameterM": 0.018,
+          "lengthM": 0.07,
+          "totalImpulseNs": 9.185595499999998,
+          "burnTimeS": 2.247,
+          "avgThrustN": 4.087937472185135,
+          "maxThrustN": 23.234,
+          "propellantMassKg": 0.0083,
+          "totalMassKg": 0.0216,
+          "dryMassKg": 0.013300000000000001,
+          "points": 30,
+          "first": {
+            "time": 0,
+            "thrust": 0
+          },
+          "last": {
+            "time": 2.247,
+            "thrust": 0
+          }
+        },
+        "designMatchesDownloadedGeometry": true
+      },
+      {
+        "motorKey": "i140w",
+        "file": "AeroTech_HP-I140W.eng",
+        "sha256": "7986dc11a24863383fe0ac631683c986fe2a96bea7aa6f43bd24a98eeddd098d",
+        "dataSource": "mfr",
+        "thrustcurveMotorId": "5f4294d200023100000003f5",
+        "parsed": {
+          "id": "i140w",
+          "designation": "I140W",
+          "manufacturer": "RASP Import",
+          "diameterM": 0.038,
+          "lengthM": 0.2027,
+          "totalImpulseNs": 339.2630285000001,
+          "burnTimeS": 2.478,
+          "avgThrustN": 136.91001957223568,
+          "maxThrustN": 179.023,
+          "propellantMassKg": 0.183,
+          "totalMassKg": 0.356,
+          "dryMassKg": 0.173,
+          "points": 24,
+          "first": {
+            "time": 0,
+            "thrust": 0
+          },
+          "last": {
+            "time": 2.478,
+            "thrust": 0
+          }
+        },
+        "designMatchesDownloadedGeometry": true
+      },
+      {
+        "motorKey": "j270w",
+        "file": "AeroTech_HP-J270W.eng",
+        "sha256": "602eda39374796cfa4b72afec2b29b44fd57bd3b992daed1f0d5fbc8f0c2e3ad",
+        "dataSource": "mfr",
+        "thrustcurveMotorId": "5f4294d200023100000003f7",
+        "parsed": {
+          "id": "j270w",
+          "designation": "J270W",
+          "manufacturer": "RASP Import",
+          "diameterM": 0.038,
+          "lengthM": 0.3564,
+          "totalImpulseNs": 701.47043,
+          "burnTimeS": 2.563,
+          "avgThrustN": 273.6911548966055,
+          "maxThrustN": 367.585,
+          "propellantMassKg": 0.381,
+          "totalMassKg": 0.642,
+          "dryMassKg": 0.261,
+          "points": 39,
+          "first": {
+            "time": 0,
+            "thrust": 0
+          },
+          "last": {
+            "time": 2.563,
+            "thrust": 0
+          }
+        },
+        "designMatchesDownloadedGeometry": true
+      }
+    ],
+    "drag": {
+      "V001": "legacy 25-station tables (calibrated refuses the freeform fin set)",
+      "V002": "legacy 25-station tables (calibrated refuses the freeform fin set); the DD Vulcanite does NOT exercise the built-up drag",
+      "axialDragV002": "legacy 25-station Mach drag tables from compute_aerodynamic_curves; legacy drag used (refused: calibrated unsupported feature: fin set 'ork-freeformfinset-f3v49e9' is a freeform planform; the calibrated method models trapezoidal fins only \u2014 convert it to root chord, tip chord, span and sweep to use this method)"
+    },
+    "cgSensitivityV002_m": [
+      {
+        "deltaM": -0.0349,
+        "cgM": 0.7048749999999999,
+        "apogeeAGL": 1079.2919392080248,
+        "maxMach": 0.581399045328324
+      },
+      {
+        "deltaM": 0,
+        "cgM": 0.739775,
+        "apogeeAGL": 1079.71805405715,
+        "maxMach": 0.5813861298601686
+      },
+      {
+        "deltaM": 0.0349,
+        "cgM": 0.774675,
+        "apogeeAGL": 1080.209206260388,
+        "maxMach": 0.5813708859838694
+      }
+    ],
+    "firstSixUnchanged": {
+      "commit": "bee73292ade53a0ff25c3a26ab355391381ea103",
+      "ids": [
+        "V001-01",
+        "V001-02",
+        "V001-03",
+        "V001-04",
+        "V001-05",
+        "V001-06"
+      ],
+      "verification": "03b-freeze asserts JSON.stringify of each row equals the value in the committed file; no error found",
+      "metadataCorrection": "the round-1 sets entry that said the Vulcanite had no bundled motor is replaced by the four round-2 sets; it is not a flight row"
+    },
+    "artifacts": {
+      "qualifyExtra": {
+        "path": "/home/ak/bl1/evidence/qualify-extra.json",
+        "sha256": "7ea506b2957904568050989696e1aa40e76a5cae470bf6f251323e4998242365"
+      },
+      "ensembleEmeraldExtra": {
+        "path": "/home/ak/bl1/evidence/ensemble-emerald-extra.json",
+        "sha256": "3acc837bf9105fa1e2ab597bea83cdebf43b318ab313cdda7f2fbd232f8d55ca"
+      },
+      "ensembleVulcanite": {
+        "path": "/home/ak/bl1/evidence/ensemble-vulcanite.json",
+        "sha256": "693328ebd5d241d89cd507d94f127c43e9f722a193d1a7fd7df074c87a468e7b"
+      },
+      "verify": {
+        "path": "/home/ak/bl1/evidence/verify.json",
+        "sha256": "bbaeab6291c355ce00204f751a0321dd32f37a664938d8afd2b8e2cd3b83f777"
+      },
+      "tables": {
+        "path": "/home/ak/bl1/evidence/tables-round2.md",
+        "sha256": "d37e93db99951579ccb7d9ebefeae441ffb0712e04f51cd896a825c5fdc5bf8f"
+      },
+      "mcTable": {
+        "path": "/home/ak/bl1/evidence/mc-round2.md",
+        "sha256": "aa7445ad6e369c6a0f516f73fd74efabfd2787d812b43da376103bf1888c5c6e"
+      }
+    }
+  }
+}

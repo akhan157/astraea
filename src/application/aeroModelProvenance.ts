@@ -75,8 +75,14 @@ export const AERO_MODEL_PROVENANCE: AeroModelProvenance = Object.freeze({
   ]),
   legacyConstants: Object.freeze([
     Object.freeze({ name: 'Nose shape factors', value: '0.55 / 0.72 / 0.85 / 1.25', status: 'unvalidated' as const }),
-    Object.freeze({ name: 'Base drag, subsonic', value: '0.12 + 0.13·M²', status: 'unvalidated' as const }),
-    Object.freeze({ name: 'Base drag, supersonic', value: '0.38 / M^1.2', status: 'unvalidated' as const }),
+    Object.freeze({ name: 'Base drag, cylinder (r ≥ 1)', value: 'TN D-4821 Fig. 15(b) flat-base fit, M 0.3–1.3', status: 'unvalidated' as const }),
+    Object.freeze({ name: 'Base drag, cylinder tail (r ≥ 1)', value: '0.2021·(1.30/M)^0.716 (M > 1.3)', status: 'unvalidated' as const }),
+    Object.freeze({
+      name: 'Base drag, boattail (r < 1)',
+      value: 'historical unvalidated 0.12/0.13/0.38 fit × (Db/D)²',
+      status: 'unvalidated' as const,
+      note: 'Held-out check R33 shows it over-predicts base drag on small-base boattails.',
+    }),
     Object.freeze({ name: 'Motor-plume multiplier', value: '0.38 while burning', status: 'unvalidated' as const }),
     Object.freeze({
       name: 'Supersonic CP shift',
@@ -93,7 +99,7 @@ export const AERO_MODEL_PROVENANCE: AeroModelProvenance = Object.freeze({
   limits: Object.freeze([
     'Component breakdown is unavailable inside the 0.80-1.20 band because the drag has two sources there.',
     "Unset aero inputs use the method defaults: smooth (zero roughness), no forced turbulence, no nozzle exit, no rail hardware. Fin cross-section 'airfoil' maps to Subsonic NACA unless a section is chosen.",
-    'Beta: the built-up model drives the stability and aero panels only; flights still use the legacy model and refuse pre-run when a selection is present.',
+    'Beta: the built-up model drives the stability and aero panels. Flights use its axial drag only when "Use built-up drag in flights" is on; with a selection and that option off, flights refuse pre-run. Lift and stability in flight always use the legacy model.',
     'The selection is off by default. Promotion requires held-out real flights and the owner decision.',
     'Both models are evaluated at a sea-level standard-day reference; altitude-dependent tables are not implemented.',
   ]),

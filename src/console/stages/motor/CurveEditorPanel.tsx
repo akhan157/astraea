@@ -157,7 +157,7 @@ export function CurveEditorPanel({ base }: { base: MotorSpec }) {
           </div>
           {derived.ok ? (
             <div className="grid grid-cols-4 gap-3" aria-label="Derived motor">
-              <Stat label="Total impulse"><span className="font-geist-mono">{derived.motor.totalImpulse.toFixed(2)} N·s</span></Stat>
+              <Stat label="Total impulse"><span className="font-geist-mono">{derived.motor.totalImpulse.toFixed(2)} N·s</span> <span className="text-[10px]" style={{ color: C.muted }}>from curve</span></Stat>
               <Stat label="Class"><span className="font-geist-mono">{derived.motor.impulseClass}</span></Stat>
               <Stat label="Burn"><span className="font-geist-mono">{derived.motor.burnTime.toFixed(2)} s</span></Stat>
               <Stat label="Peak"><span className="font-geist-mono">{derived.motor.maxThrust.toFixed(1)} N</span></Stat>

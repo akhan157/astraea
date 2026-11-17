@@ -28,7 +28,7 @@ export function StabilityStrip() {
   const amber = 'Above generic geometry band (>3 cal). Weathercocking requires flight analysis.';
   const rollup = 'Component rollup only; selected motor and powered-flight margin history unavailable.';
   return (
-    <div role="region" aria-label="Live stability and flight preview" className="rounded-md p-3 text-[11px]" style={{ background: 'rgba(16,18,21,0.92)', border: `1px solid ${C.line}` }}>
+    <div role="region" aria-label="Live stability and flight preview" className="rounded-md p-3 text-[11px]" style={{ background: C.panel, border: `1px solid ${C.line}` }}>
       <div className="flex items-baseline justify-between"><span style={{ color: C.muted }}>Geometry margin <span style={{ color: C.dim }}>· live</span></span><span className="flex items-baseline gap-2">{cStab && <DeltaChip now={m} was={cStab.margin.value} kind="cal" />}<ResultValue r={stab.margin} size="lg" label="Geometry static margin" /></span></div>
       <div className="relative mt-2 h-[6px] rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
         <span className="absolute inset-y-0 rounded-full" style={{ left: pct(1), width: `${(2 / 5) * 100}%`, background: 'rgba(61,214,140,0.35)' }} />

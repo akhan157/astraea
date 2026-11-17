@@ -232,8 +232,6 @@ export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExp
   const marginX = 20; // px
   const marginY = 40; // px of vertical clearance for the label bands
   const cy = maxHalf * scale + marginY; // centerline y (px)
-  const viewW = totalLength * scale + 2 * marginX;
-  const viewH = 2 * cy;
 
   const PX = (m: number): number => m * scale;
   const n2 = (n: number): string => n.toFixed(2);
@@ -320,16 +318,57 @@ export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExp
     }
   }
 
+  // Bound the actual drawing, including text and fin tips beyond the axial
+  // body. Bézier control points are conservative bounds for the curves.
+  let left = 0, right = PX(totalLength), top = cy - PX(maxHalf), bottom = cy + PX(maxHalf);
+  const include = (x: number, y: number) => {
+    left = Math.min(left, x); right = Math.max(right, x);
+    top = Math.min(top, y); bottom = Math.max(bottom, y);
+  };
+  const includeText = (x: number, y: number, text: string, total = false) => {
+    const halfWidth = text.length * (total ? 9 : 8) / 2;
+    include(x - halfWidth, y - (total ? 15 : 13));
+    include(x + halfWidth, y + 4);
+  };
+  for (const seg of segments) {
+    const x0 = PX(seg.x0), x1 = PX(seg.x1), mid = (x0 + x1) / 2;
+    const r = Math.max(seg.rFore, seg.rAft);
+    include(x0, cy - PX(r)); include(x1, cy + PX(r));
+    if (seg.kind === 'trapezoidfinset' || seg.kind === 'ellipticalfinset' || seg.kind === 'freeformfinset') {
+      const span = seg.span ?? 0;
+      const tipY = cy - PX(seg.rAft + span);
+      if (seg.kind === 'trapezoidfinset') {
+        include(x0 + PX((seg.sweep ?? 0) + (seg.tipChord ?? 0)), tipY);
+        include(x0 + PX(seg.sweep ?? 0), tipY);
+      } else if (seg.kind === 'ellipticalfinset') {
+        include(mid, cy - PX(seg.rAft + 2 * span));
+      } else {
+        for (const p of seg.points ?? []) include(x0 + PX(p.x), cy - PX(seg.rAft + p.y));
+      }
+      includeText(mid, tipY - 8, `Span ${fmtLen(span)}`);
+    } else {
+      includeText(mid, cy - PX(r) - 8, fmtLen(seg.x1 - seg.x0));
+      if (seg.kind !== 'nosecone') includeText(mid, cy + PX(r) + 16, fmtDia(2 * r));
+    }
+  }
+  includeText(PX(totalLength) / 2, cy + PX(maxHalf) + 26, `Total Length: ${fmtLen(totalLength)}`, true);
+  // Round outward so serialization cannot shave off a boundary.
+  const viewX = Math.floor((left - marginX) * 100) / 100;
+  const viewY = Math.floor((top - marginX) * 100) / 100;
+  const viewRight = Math.ceil((right + marginX) * 100) / 100;
+  const viewBottom = Math.ceil((bottom + marginX) * 100) / 100;
+  const viewW = viewRight - viewX, viewH = viewBottom - viewY;
+
   // Dimension grid every 0.1 m along the airframe body.
   const gridEls: string[] = [];
   for (let gx = 0.1; gx < totalLength; gx += 0.1) {
     gridEls.push(
-      `<line class="bp-grid" x1="${n2(PX(gx))}" y1="0" x2="${n2(PX(gx))}" y2="${n2(viewH)}" />`,
+      `<line class="bp-grid" x1="${n2(PX(gx))}" y1="${n2(viewY)}" x2="${n2(PX(gx))}" y2="${n2(viewBottom)}" />`,
     );
   }
 
   return [
-    `<svg xmlns="http://www.w3.org/2000/svg" class="bp-${theme}" width="${n2(viewW)}" height="${n2(viewH)}" viewBox="${n2(-marginX)} ${n2(-cy)} ${n2(viewW)} ${n2(viewH)}">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" class="bp-${theme}" width="${n2(viewW)}" height="${n2(viewH)}" viewBox="${n2(viewX)} ${n2(viewY)} ${n2(viewW)} ${n2(viewH)}">`,
     `<title>${esc(vehicle.name)} — Blueprint</title>`,
     `<desc>Side-view outer-mold-line blueprint of ${esc(vehicle.name)}. Total length ${fmtLen(totalLength)}, max diameter ${fmtDia(maxBodyD)}.</desc>`,
     `<style>`,
@@ -342,7 +381,7 @@ export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExp
     `.bp-label{fill:var(--bp-label);font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}`,
     `.bp-total{fill:var(--bp-total);font:bold 13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}`,
     `</style>`,
-    `<rect class="bp-bg" x="${n2(-marginX)}" y="${n2(-cy)}" width="${n2(viewW)}" height="${n2(viewH)}" />`,
+    `<rect class="bp-bg" x="${n2(viewX)}" y="${n2(viewY)}" width="${n2(viewW)}" height="${n2(viewH)}" />`,
     ...gridEls,
     ...shapeEls,
     ...labelEls,

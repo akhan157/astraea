@@ -98,9 +98,11 @@ describe('vehicle blueprint SVG export', () => {
 
   it('computes the viewBox from vehicle length and widest feature', () => {
     const svg = exportBlueprintSvg(AXIAL_VEHICLE);
-    // 900 px length budget + 2*20 px margins; symmetric vertically around the
-    // max-extent half-height (0.02 m body + 0.06 m fin span = 0.08 m).
-    expect(svg).toMatch(/viewBox="-20\.00 -1\d\d\.\d+ 940\.00 2\d\d\.\d+"/);
+    const [x, y, width, height] = svg.match(/viewBox="([^"]+)"/)![1].split(' ').map(Number);
+    expect(x).toBe(-20);
+    expect(width).toBeCloseTo(940.31, 2);
+    expect(y).toBe(-1);
+    expect(height).toBeGreaterThan(200);
   });
 
   it('renders elliptical fin sets with a span label', () => {

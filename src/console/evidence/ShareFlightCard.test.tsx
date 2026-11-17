@@ -23,6 +23,8 @@ vi.mock('@react-three/drei', () => ({
 }));
 
 import Workstation from '../Workstation';
+import { useConsoleJobs } from '../store';
+import { useAnalysisStore } from '../../state/analysis';
 import { consoleJobStub, resetConsoleState, stubEngine } from '../testFixtures';
 import { useSessionStore, type ConsoleStage } from '../../state/session';
 import { useProjectStore } from '../../state/project';
@@ -129,6 +131,9 @@ describe('Share this flight', () => {
 
   it('writes a zip with the log byte-identical to what was imported', async () => {
     const written = installTauriSave('/tmp/out.zip');
+    for (let i = 0; i < 6; i++) await useConsoleJobs.getState().run();
+    expect(useAnalysisStore.getState().history[0].payload).toBeNull();
+    const first = useAnalysisStore.getState().history[0];
     render(<Workstation />);
     await importLog();
 
@@ -151,6 +156,9 @@ describe('Share this flight', () => {
     expect(info.astraeaVersion).toMatch(/^\d+\.\d+\.\d+$/);
 
     const project = readProject((await zip.file(names.find((n) => n.endsWith('.astraea.json'))!)!.async('string')) as string);
+    expect(project.cases).toHaveLength(6);
+    expect(project.cases[0].summary?.inputKey).toBe(first.inputKey);
+    expect(project.cases[0].inputs).toEqual(first.runInputs);
     expect(project.workspace.motorId).toBe(useProjectStore.getState().project.workspace.motorId);
     expect(parseRaspEng((await zip.file(names.find((n) => n.endsWith('.eng'))!)!.async('string')) as string).thrustCurve.length).toBeGreaterThan(2);
   });

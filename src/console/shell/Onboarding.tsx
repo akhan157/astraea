@@ -49,7 +49,7 @@ export function Onboarding() {
     <AnimatePresence>
       {step !== null && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.15 }}
-          role="dialog" aria-label="Guided tour" className="absolute right-3 bottom-3 z-10 w-[340px] rounded-lg p-4 shadow-2xl" style={{ maxWidth: 'calc(100% - 24px)', background: C.raised, border: `1px solid ${C.lineStrong}` }}>
+          role="dialog" aria-label="Guided tour" className={`absolute right-3 ${step === 0 ? 'top-3' : 'bottom-3'} z-10 w-[340px] rounded-lg p-4 shadow-2xl`} style={{ maxWidth: 'calc(100% - 24px)', background: C.raised, border: `1px solid ${C.lineStrong}` }}>
           <div className="mb-2 flex items-center gap-2">
             <span className="font-geist-mono text-[11px]" style={{ color: C.accent }}>{step + 1} / {STEPS.length}</span>
             <div className="flex flex-1 gap-1">{STEPS.map((_, i) => <button key={i} onClick={() => goTo(i)} aria-label={`Step ${i + 1}`} className="h-1 flex-1 rounded-full" style={{ background: i <= step ? C.accent : 'rgba(255,255,255,0.1)' }} />)}</div>

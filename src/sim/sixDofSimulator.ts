@@ -244,6 +244,23 @@ export interface SixDofOptions {
    * drag constants. Must be a positive finite number when provided.
    */
   dragCdScale?: number;
+  /**
+   * Launch-site air temperature, °C. Absent keeps the product ISA-1976
+   * atmosphere; present selects the site-anchored column. Derived from
+   * `vehicle.launchSite.temperatureC`, never chosen by a caller.
+   */
+  launchSiteTemperatureC?: number;
+  /**
+   * Nozzle exit diameter for the in-flight back-pressure term, metres. Absent =
+   * no term; derived from `vehicle.nozzleExitDiameter` only when the vehicle
+   * opts in with `nozzleBackPressureThrust`.
+   */
+  nozzleExitDiameter?: number;
+  /**
+   * Axial-drag source for this flight. Absent keeps the legacy tables; the only
+   * supported value is `'calibrated'` (derived from `vehicle.flightDragSource`).
+   */
+  flightDragSource?: string;
 }
 
 /** One physical stage in a continuous, state-carrying flight. */
@@ -417,6 +434,17 @@ function simulateFlightStages(
     throw new Error(`simulate6DofFlight: railElevationDeg ${railElevationDeg}° is outside the declared launch-rail domain [70°, 90°]`);
   }
   const railAzimuthDeg = finiteOpt(options.railAzimuthDeg, 0.0, 'railAzimuthDeg');
+  // The optional flight-physics inputs are implemented only by the shipped
+  // WebAssembly engine (crates/astraea-core). The oracle must fail closed
+  // instead of silently ignoring an option a caller believed it had set.
+  for (const key of ['launchSiteTemperatureC', 'nozzleExitDiameter', 'flightDragSource'] as const) {
+    if (options[key] !== undefined) {
+      throw new Error(
+        `simulate6DofFlight: ${key} is not implemented by the TypeScript oracle; ` +
+          'the shipped WebAssembly engine is the only flight path',
+      );
+    }
+  }
   const launchAltitudeASL = finiteOpt(options.launchAltitudeASL, 0.0, 'launchAltitudeASL');
   const windSpeedSurface = finiteOpt(options.windSpeedSurface, 3.0, 'windSpeedSurface');
   if (!(windSpeedSurface >= 0)) throw new Error(`simulate6DofFlight: windSpeedSurface must be nonnegative (got ${windSpeedSurface})`);

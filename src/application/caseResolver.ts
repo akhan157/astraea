@@ -87,21 +87,182 @@ export interface LaunchCase {
   aeroModel?: AeroModelSelection;
   /** Ensemble methodology + captured wind dependency (Monte-Carlo paths only). */
   ensemble?: McEnsembleInput;
+  /**
+   * Run identity only: set when this run flies the K3 built-up DEFAULT (the vehicle
+   * made no drag choice). A result computed before the default existed has the same
+   * vehicle and options, so without this it would read as current. Absent for an
+   * explicit choice (the vehicle already carries it) and for the calibration fit key,
+   * so no existing key and no recorded fit identity moves.
+   */
+  defaultDragSource?: 'built-up';
 }
 
 /**
- * Engine run options derived from the vehicle: the launch site elevation, so
- * the atmosphere is referenced to the pad rather than always to sea level.
+ * Engine run options derived from the vehicle: the launch site elevation, the
+ * pad air temperature and the flight back-pressure nozzle. The vehicle is the
+ * single owner of all three; a caller may restate an identical value but never
+ * choose a different one (see the bridge's derived-key check).
+ *
  * An absent site passes nothing and the engine keeps its defaults (sea level,
- * standard day).
+ * standard day). A nozzle declared for an explicit drag choice is NOT a flight
+ * option: it becomes one only with `vehicle.nozzleBackPressureThrust`. Under
+ * the default (no explicit drag choice) a declared nozzle exit is carried as
+ * the back-pressure option, because it is one of the inputs the improved model
+ * was measured with (spec Amendment 4).
  */
 export interface FlightRunOptions {
   launchAltitudeASL?: number;
+  launchSiteTemperatureC?: number;
+  nozzleExitDiameter?: number;
+  flightDragSource?: 'calibrated';
+}
+
+/** The physics options this bundle adds, exactly as dispatched. */
+export type DispatchedPhysicsOptions = Omit<FlightRunOptions, 'launchAltitudeASL'>;
+
+/**
+ * The axial-drag source a flight of this vehicle asks the engine for: the one
+ * place that turns the vehicle's `flightDragSource` choice into the engine
+ * option (K3: the improved model is the default).
+ *
+ * - absent: the **default**, built-up drag (`'calibrated'`). A project or
+ *   archive written before this default existed carries no field, so a re-run
+ *   of an old project now flies the new default; its recorded runs are not
+ *   rewritten (see `preSwitchFlightRunOptions`).
+ * - `'calibrated'`: the old explicit opt-in, unchanged.
+ * - `'legacy'`: the explicit old choice, the legacy tables.
+ *
+ * Every reader of the vehicle field goes through this.
+ */
+export function effectiveFlightDragSource(vehicle: Pick<RocketVehicle, 'flightDragSource'>): 'calibrated' | undefined {
+  return vehicle.flightDragSource === 'legacy' ? undefined : 'calibrated';
+}
+
+/**
+ * The drag choice a flight of this project really uses: the vehicle's own choice,
+ * except that a project whose drag calibration is ACTIVE (its scale rides the
+ * dispatch) and which made no explicit choice stays on the **legacy** tables. A
+ * calibration scale is fitted against the legacy drag model only, so it must never
+ * multiply the built-up default.
+ *
+ * `activeCalibration` is the calibration whose scale this run really carries, i.e.
+ * `activeCalibration(resolveCalibrationApplicability(...))`, or the scale that rides
+ * the dispatch; it is never inspected, only its presence matters. A retained but
+ * INACTIVE artifact (fit inputs or model binding no longer match, so its scale is
+ * excluded) is history: it must not be passed here and changes no flight physics.
+ * An explicit choice always wins, including the old explicit `'calibrated'` opt-in,
+ * which already allowed a scale on top.
+ */
+export function resolvedDragChoice(
+  vehicle: Pick<RocketVehicle, 'flightDragSource'>,
+  activeCalibration: unknown,
+): RocketVehicle['flightDragSource'] {
+  return vehicle.flightDragSource === undefined && activeCalibration !== undefined ? 'legacy' : vehicle.flightDragSource;
+}
+
+/**
+ * The vehicle with that choice written in, or the same object when nothing
+ * changes. It is derived at the dispatch boundary and never stored in the
+ * project, so the calibration's recorded fit identity (computed on the stored
+ * vehicle) does not move.
+ */
+export function withResolvedDragChoice(vehicle: RocketVehicle, activeCalibration: unknown): RocketVehicle {
+  const choice = resolvedDragChoice(vehicle, activeCalibration);
+  return choice === vehicle.flightDragSource ? vehicle : { ...vehicle, flightDragSource: choice };
+}
+
+/**
+ * The vehicle a dispatch really flies, resolved ONCE per dispatch and reused for
+ * the engine request, the admission rule and the recorded metadata, so they cannot
+ * disagree. The signal is the active calibration the caller passes, or else a
+ * drag-scale option other than 1 (the scale of an active calibration). Idempotent:
+ * an already-resolved vehicle comes back unchanged.
+ */
+export function dispatchVehicle(
+  vehicle: RocketVehicle,
+  options: { dragCdScale?: number },
+  activeCalibration?: unknown,
+): RocketVehicle {
+  const scaled = options.dragCdScale !== undefined && options.dragCdScale !== 1 ? options.dragCdScale : undefined;
+  return withResolvedDragChoice(vehicle, activeCalibration ?? scaled);
+}
+
+/** The engine's supported flight nozzle-exit domain, metres (`NOZZLE_EXIT_DIAMETER_MAX_M`, six_dof.rs). */
+export const NOZZLE_FLIGHT_EXIT_MAX_M = 1.0;
+
+/**
+ * True when the K3 default would carry a declared nozzle exit as the back-pressure
+ * option by itself: no drag choice, a nozzle exit inside the engine's flight domain
+ * (0 to 1 m, so a larger imported value cannot make the default flight fail) and no
+ * explicit back-pressure choice. `nozzleBackPressureThrust: false` is that explicit
+ * "off"; `true` is the old explicit "on", which keeps its rule for every drag choice.
+ */
+export function defaultCarriesNozzle(vehicle: RocketVehicle): boolean {
+  return vehicle.flightDragSource === undefined && vehicle.nozzleBackPressureThrust === undefined
+    && nozzleInFlightDomain(vehicle);
+}
+
+/** A declared nozzle exit inside the engine's supported flight domain (0 to 1 m). */
+export function nozzleInFlightDomain(vehicle: RocketVehicle): boolean {
+  const d = vehicle.nozzleExitDiameter;
+  return d !== undefined && Number.isFinite(d) && d >= 0 && d <= NOZZLE_FLIGHT_EXIT_MAX_M;
+}
+
+/** Does a flight of this (resolved) vehicle send the back-pressure nozzle option? The checkbox shows exactly this. */
+export function backPressureNozzleActive(vehicle: RocketVehicle): boolean {
+  return flightRunOptions(vehicle).nozzleExitDiameter !== undefined;
+}
+
+function physicsOptionsFor(vehicle: RocketVehicle, defaultSwitch: boolean): FlightRunOptions {
+  const site = vehicle.launchSite;
+  const flightDragSource = defaultSwitch ? effectiveFlightDragSource(vehicle) : (vehicle.flightDragSource === 'calibrated' ? 'calibrated' : undefined);
+  const nozzle = vehicle.nozzleExitDiameter !== undefined
+    && (vehicle.nozzleBackPressureThrust === true || (defaultSwitch && defaultCarriesNozzle(vehicle)));
+  return {
+    ...(site === undefined ? {} : { launchAltitudeASL: site.altitudeM }),
+    ...(site?.temperatureC === undefined ? {} : { launchSiteTemperatureC: site.temperatureC }),
+    ...(nozzle ? { nozzleExitDiameter: vehicle.nozzleExitDiameter } : {}),
+    ...(flightDragSource === undefined ? {} : { flightDragSource }),
+  };
 }
 
 export function flightRunOptions(vehicle: RocketVehicle): FlightRunOptions {
-  const site = vehicle.launchSite;
-  return site === undefined ? {} : { launchAltitudeASL: site.altitudeM };
+  return physicsOptionsFor(vehicle, true);
+}
+
+/**
+ * The derivation that was in force before the default switch: an absent field
+ * meant legacy tables and the nozzle option followed only the flag. Archive
+ * validation uses it for archived runs that carry no drag option, so recorded
+ * runs from earlier builds keep loading exactly as recorded.
+ */
+export function preSwitchFlightRunOptions(vehicle: RocketVehicle): FlightRunOptions {
+  return physicsOptionsFor(vehicle, false);
+}
+
+/** Shared capture/dispatch guard: callers may only restate vehicle-owned inputs. */
+export function assertVehicleRunOptions(label: string, vehicle: RocketVehicle, options: Omit<FlightRunOptions, 'flightDragSource'> & { flightDragSource?: string }): void {
+  const derived = flightRunOptions(vehicle);
+  for (const key of ['launchAltitudeASL', 'launchSiteTemperatureC', 'nozzleExitDiameter', 'flightDragSource'] as const) {
+    if (options[key] !== undefined && options[key] !== derived[key]) {
+      throw new Error(`${label}: options.${key} (${String(options[key])}) disagrees with the vehicle-derived value (${String(derived[key])}) -- the launch site is derived from the vehicle`);
+    }
+  }
+}
+
+/**
+ * The additive physics options a run actually sent, absent when none was set.
+ * Display code reads this instead of guessing from engine prose, so a default
+ * project renders exactly as it did before this bundle.
+ */
+export function physicsOptionsOf(vehicle: RocketVehicle): DispatchedPhysicsOptions {
+  const { launchAltitudeASL: _altitude, ...physics } = flightRunOptions(vehicle);
+  return physics;
+}
+
+/** True when at least one physics option of this bundle was dispatched. */
+export function hasPhysicsOptions(options: DispatchedPhysicsOptions): boolean {
+  return Object.values(options).some((value) => value !== undefined);
 }
 
 /**
@@ -111,7 +272,8 @@ export function flightRunOptions(vehicle: RocketVehicle): FlightRunOptions {
 export function describeLaunchSite(vehicle: RocketVehicle): string {
   const site = vehicle.launchSite;
   if (site === undefined) return 'sea level, standard day';
-  return `${site.altitudeM} m ASL`;
+  const temperature = site.temperatureC === undefined ? '' : `, ${site.temperatureC} °C`;
+  return `${site.altitudeM} m ASL${temperature}`;
 }
 
 export type MotorResolution =
@@ -168,6 +330,8 @@ export interface RunSnapshot {
   readonly optionsKey: string;
   /** Content key of the drag calibration, or null for the model's own drag. */
   readonly calibrationKey: string | null;
+  /** `'built-up'` when the run flew the K3 default drag, else null. */
+  readonly defaultDragSource: 'built-up' | null;
   /** Aerodynamic model selection, or null for the legacy model path. */
   readonly aeroModel: AeroModelSelection | null;
   /** Content key of the aerodynamics selection, or null for the legacy path. */
@@ -363,6 +527,8 @@ export function snapshotCase(resolved: ResolvedCase): RunSnapshot {
     ...(calibration === undefined ? {} : { dragCalibration: calibration }),
     // Absent for the legacy model path, so pre-port keys do not move.
     ...(aeroModel === undefined ? {} : { aeroModel }),
+    // Absent for an explicit drag choice, so those keys do not move.
+    ...(resolved.case.defaultDragSource === undefined ? {} : { defaultDragSource: resolved.case.defaultDragSource }),
   });
   const ensemble = resolved.case.ensemble;
   const mcCanonical = ensemble === undefined ? undefined : stableStringify(ensemble);
@@ -379,6 +545,7 @@ export function snapshotCase(resolved: ResolvedCase): RunSnapshot {
     vehicleContentKey: hashHex(stableStringify(resolved.case.vehicle)),
     optionsKey: hashHex(stableStringify(resolved.case.options)),
     calibrationKey: calibration === undefined ? null : hashHex(stableStringify(calibration)),
+    defaultDragSource: resolved.case.defaultDragSource ?? null,
     aeroModel: aeroModel === undefined ? null : Object.freeze(aeroModel),
     aeroModelKey: aeroModel === undefined ? null : aeroModelKey(aeroModel),
     options: Object.freeze({ ...resolved.case.options }),
@@ -422,6 +589,7 @@ export type SnapshotSection =
   | 'ensemble-wind'
   | 'ensemble-perturbation'
   | 'calibration'
+  | 'drag-source'
   | 'aero-model'
   | 'options';
 
@@ -439,6 +607,7 @@ export function snapshotDivergence(
   if (stored.vehicleContentKey !== current.vehicleContentKey) return 'vehicle';
   if (stored.motorContentKey !== current.motorContentKey) return 'motor';
   if (stored.calibrationKey !== current.calibrationKey) return 'calibration';
+  if (stored.defaultDragSource !== current.defaultDragSource) return 'drag-source';
   if (stored.aeroModelKey !== current.aeroModelKey) return 'aero-model';
   if (stored.ensembleWindKey !== current.ensembleWindKey) return 'ensemble-wind';
   if (stored.ensemblePerturbationKey !== current.ensemblePerturbationKey) {
@@ -463,6 +632,8 @@ export function freshnessReasonLabel(section: SnapshotSection | null): string | 
       return 'run count or sigma changed';
     case 'calibration':
       return 'drag calibration applied, changed or removed';
+    case 'drag-source':
+      return 'flight drag model changed (built-up drag is now the default)';
     case 'aero-model':
       return 'aero model or term source changed';
     case 'options':

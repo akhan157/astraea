@@ -95,6 +95,9 @@ export async function answer(question: string, ctx: CopilotContext): Promise<Cop
         paragraphs: ["I didn't understand that question. I'm the rule-based assistant, so I can only:", ...CAPABILITIES],
       };
 
+    case 'increase-apogee':
+      return { intent: 'increase-apogee', paragraphs: ['Consider a motor with more impulse, reducing vehicle mass, or reducing drag. Compare simulated flights and recheck stability, rail exit speed and recovery after each change; the assistant has not evaluated these changes.'] };
+
     case 'define':
       return {
         intent: 'define',

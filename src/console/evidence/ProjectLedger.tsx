@@ -15,7 +15,9 @@ export async function recordEvidence(
   units?: Omit<AltimeterParse, 'samples'>,
   rawBytes?: Uint8Array,
 ): Promise<void> {
+  const epoch = useProjectStore.getState().projectEpoch;
   const provenance = await buildLogProvenance({ rawText, rawBytes, fileName: sourceFileName, rowCount: sampleCount, units });
+  if (useProjectStore.getState().projectEpoch !== epoch) return;
   const entry = validateLedgerEntry({
     id: ledgerEntryId(), kind, title: sourceFileName ?? 'Pasted flight log', createdAt: new Date().toISOString(),
     sourceFileName, sha256Hex: provenance.sha256Hex, rawText, sampleCount,

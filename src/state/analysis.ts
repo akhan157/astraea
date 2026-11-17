@@ -10,6 +10,7 @@
  * committed state.
  */
 
+import { archiveAnalysisRecord, liveAnalysisRecord, type CompressedRunArchive } from '../application/runCases';
 import { create } from 'zustand';
 import type { RunInputs } from '../application/runInputs';
 
@@ -41,6 +42,8 @@ export interface AnalysisRecord {
   payload: unknown;
   /** Immutable inputs captured before dispatch; resolve never replaces them. */
   runInputs?: RunInputs;
+  /** Exact saved-case projection, with no live result object graph. */
+  archive?: CompressedRunArchive;
 }
 
 interface AnalysisState {
@@ -51,6 +54,8 @@ interface AnalysisState {
    */
   completed: Record<AnalysisKind, AnalysisRecord | null>;
   history: AnalysisRecord[];
+  pinnedRuns: Record<string, number[]>;
+  pinRuns: (owner: string, tokens: number[]) => void;
   /** Begin a run; returns its token. Overwrites any prior record for the kind. */
   start: (kind: AnalysisKind, inputKey: string, payload?: unknown, runInputs?: RunInputs) => number;
   /** Resolve the run when the token is still latest; drops stale tokens. */
@@ -76,6 +81,12 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   records: blankRecords(),
   completed: blankRecords(),
   history: [],
+  pinnedRuns: {},
+  pinRuns: (owner, tokens) => {
+    const pinnedRuns = { ...get().pinnedRuns, [owner]: tokens };
+    const history = capRunHistory(get().history, pinnedRuns);
+    set({ pinnedRuns, history, ...pruneAnalysisMaps(get(), history) });
+  },
 
   start: (kind, inputKey, payload = null, runInputs) => {
     tokenCounter += 1;
@@ -107,13 +118,13 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       ...current,
       status: 'completed',
       finishedAt: new Date().toISOString(),
-      payload,
+      payload: compactPrevious(payload),
     };
-    set({
+    const history = capRunHistory([...get().history, record], get().pinnedRuns);
+    set({ history, ...pruneAnalysisMaps({
       records: { ...get().records, [kind]: record },
-      completed: { ...get().completed, [kind]: record },
-      history: [...get().history, record],
-    });
+      completed: { ...get().completed, [kind]: record }, history,
+    }, history) });
   },
 
   reject: (kind, token, error) => {
@@ -129,7 +140,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     });
   },
 
-  reset: () => set({ records: blankRecords(), completed: blankRecords(), history: [] }),
+  reset: () => set({ records: blankRecords(), completed: blankRecords(), history: [], pinnedRuns: {} }),
 }));
 
 /** Capture terminal state only, optionally restricted to runs present in an opened file. */
@@ -139,11 +150,11 @@ export function terminalAnalysisSnapshot(keep: (record: AnalysisRecord) => boole
   const completed = blankRecords();
   for (const kind of KINDS) {
     const done = state.completed[kind];
-    if (done?.status === 'completed' && keep(done)) completed[kind] = done;
+    if (done?.status === 'completed' && keep(done)) completed[kind] = archiveAnalysisRecord(done);
     const current = state.records[kind];
-    records[kind] = current && (current.status === 'completed' || current.status === 'failed') && keep(current) ? current : completed[kind];
+    records[kind] = current && (current.status === 'completed' || current.status === 'failed') && keep(current) ? archiveAnalysisRecord(current) : completed[kind];
   }
-  return { records, completed, history: state.history.filter((record) => (record.status === 'completed' || record.status === 'failed') && keep(record)) };
+  return { records, completed, history: state.history.filter((record) => (record.status === 'completed' || record.status === 'failed') && keep(record)).map(archiveAnalysisRecord) };
 }
 
 /** Loading archived inputs keeps history but requires an explicit new computation. */
@@ -176,3 +187,43 @@ export function analysisNeedsRun(record: AnalysisRecord | null, currentInputKey:
 }
 
 export { KINDS };
+
+/** Three recent flight/ensemble payloads, plus at most two selected records. */
+export function capRunHistory(history: AnalysisRecord[], pins: Record<string, number[]>): AnalysisRecord[] {
+  const recent = history.filter(r => r.status === 'completed' && (r.kind === 'flight' || r.kind === 'ensemble')).slice(-3);
+  const keep = new Set([...recent.map(r => r.token), ...Array.from(new Set(Object.values(pins).flat())).slice(-2)]);
+  return history.map(r => (r.kind === 'flight' || r.kind === 'ensemble') && !keep.has(r.token) ? archiveAnalysisRecord(r) : r);
+}
+
+export function restoreAnalysisSnapshot(snapshot: AnalysisSnapshot): void {
+  const records = blankRecords(), completed = blankRecords();
+  for (const kind of KINDS) {
+    const current = snapshot.records[kind], done = snapshot.completed[kind];
+    records[kind] = current ? liveAnalysisRecord(current) : null;
+    completed[kind] = done ? liveAnalysisRecord(done) : null;
+  }
+  const history = capRunHistory(snapshot.history.map(record => liveAnalysisRecord(record) ?? record), {});
+  useAnalysisStore.setState({ history, pinnedRuns: {}, ...pruneAnalysisMaps({ records, completed, history }, history) });
+}
+
+/** Latest-per-kind maps must not become a second, uncapped payload owner. */
+function pruneAnalysisMaps(state: AnalysisSnapshot, history: AnalysisRecord[]): Pick<AnalysisSnapshot, 'records' | 'completed'> {
+  const byToken = new Map(history.map(record => [record.token, record]));
+  const records = { ...state.records }, completed = { ...state.completed };
+  for (const kind of KINDS) {
+    const current = records[kind], done = completed[kind];
+    if (current && current.status !== 'running') records[kind] = byToken.get(current.token) ?? current;
+    if (done) completed[kind] = byToken.get(done.token) ?? done;
+  }
+  return { records, completed };
+}
+
+/** Live deltas need only scalar results and the recorded landing flag. */
+function compactPrevious(payload: unknown): unknown {
+  if (!payload || typeof payload !== 'object' || !('previous' in payload)) return payload;
+  const previous = payload.previous as Pick<import('../console/data/contract').FlightRun, 'summary' | 'rev' | 'terminationReason'> | null;
+  return { ...payload, previous: previous ? {
+    summary: structuredClone(previous.summary), rev: previous.rev,
+    ...(previous.terminationReason === undefined ? {} : { terminationReason: previous.terminationReason }),
+  } : null };
+}

@@ -1,0 +1,338 @@
+{
+ "lane": "BX1",
+ "generated_at_utc": "2026-11-17T01:44:17Z",
+ "policy": "Sealed logs hashed read-only, copied once, then all parsing and analysis ran on the copies under step4-blind/outcomes/. No other file under R6-public-cohort was opened.",
+ "sealed_manifest": {
+  "path": "/home/ak/astraea-evidence/R6-public-cohort/blind-manifest.json",
+  "sha256": "39a009108f3442aad4706c3a93c6aad3d72c21fc9a184124952d9ce45d35acd7"
+ },
+ "read_log_note": "Times for the sealed files are taken from the copy-log file at the moment of hashing and copying. For other_files_read, fs_atime_utc is filesystem access-time metadata and can be stale on relatime/noatime mounts; it is supporting metadata only.",
+ "sealed_logs_opened": [
+  {
+   "flight_id": "V001-01",
+   "sealed_path": "R6-public-cohort/S01-dofpro/V001/Emerald_Streak_9MAR2017_C6-5_1.csv",
+   "sealed_sha256": "013c6fd5d14cb8a13b4c6d84cc0aa38deac16612300a9a2ac499b8b92ae31184",
+   "sealed_bytes": 2010144,
+   "manifest_read_state_before": "header_only",
+   "manifest_read_bytes": 4096,
+   "operations": [
+    {
+     "op": "sha256sum (read-only hash of sealed file)",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "013c6fd5d14cb8a13b4c6d84cc0aa38deac16612300a9a2ac499b8b92ae31184"
+    },
+    {
+     "op": "cp to custody copy",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "013c6fd5d14cb8a13b4c6d84cc0aa38deac16612300a9a2ac499b8b92ae31184"
+    }
+   ],
+   "copy_path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/Emerald_Streak_9MAR2017_C6-5_1.csv",
+   "copy_sha256_verified": "013c6fd5d14cb8a13b4c6d84cc0aa38deac16612300a9a2ac499b8b92ae31184",
+   "work_performed_on": "copy only"
+  },
+  {
+   "flight_id": "V001-02",
+   "sealed_path": "R6-public-cohort/S01-dofpro/V001/Emerald_Streak_9MAR2017_C6-5_2.csv",
+   "sealed_sha256": "cbb9fb4266e7a55a559e76a8f226ca21ee135e5666271a608bdc618a9d0e3db3",
+   "sealed_bytes": 2018053,
+   "manifest_read_state_before": "header_only",
+   "manifest_read_bytes": 4096,
+   "operations": [
+    {
+     "op": "sha256sum (read-only hash of sealed file)",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "cbb9fb4266e7a55a559e76a8f226ca21ee135e5666271a608bdc618a9d0e3db3"
+    },
+    {
+     "op": "cp to custody copy",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "cbb9fb4266e7a55a559e76a8f226ca21ee135e5666271a608bdc618a9d0e3db3"
+    }
+   ],
+   "copy_path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/Emerald_Streak_9MAR2017_C6-5_2.csv",
+   "copy_sha256_verified": "cbb9fb4266e7a55a559e76a8f226ca21ee135e5666271a608bdc618a9d0e3db3",
+   "work_performed_on": "copy only"
+  },
+  {
+   "flight_id": "V001-03",
+   "sealed_path": "R6-public-cohort/S01-dofpro/V001/Emerald_Streak_9MAR2017_C6-5_3.csv",
+   "sealed_sha256": "de70993207aef53357bd7a8c9dd4ddfd916bc6297e9d6680337cf75f5ab83e9b",
+   "sealed_bytes": 1865318,
+   "manifest_read_state_before": "header_only",
+   "manifest_read_bytes": 4096,
+   "operations": [
+    {
+     "op": "sha256sum (read-only hash of sealed file)",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "de70993207aef53357bd7a8c9dd4ddfd916bc6297e9d6680337cf75f5ab83e9b"
+    },
+    {
+     "op": "cp to custody copy",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "de70993207aef53357bd7a8c9dd4ddfd916bc6297e9d6680337cf75f5ab83e9b"
+    }
+   ],
+   "copy_path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/Emerald_Streak_9MAR2017_C6-5_3.csv",
+   "copy_sha256_verified": "de70993207aef53357bd7a8c9dd4ddfd916bc6297e9d6680337cf75f5ab83e9b",
+   "work_performed_on": "copy only"
+  },
+  {
+   "flight_id": "V001-04",
+   "sealed_path": "R6-public-cohort/S01-dofpro/V001/Emerald_Streak_9MAR2017_C6-7_1.csv",
+   "sealed_sha256": "6069b319732017e1c7f33ff7798f758301f8c45c7c3bd258d36b048658154fb9",
+   "sealed_bytes": 1782636,
+   "manifest_read_state_before": "header_only",
+   "manifest_read_bytes": 4096,
+   "operations": [
+    {
+     "op": "sha256sum (read-only hash of sealed file)",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "6069b319732017e1c7f33ff7798f758301f8c45c7c3bd258d36b048658154fb9"
+    },
+    {
+     "op": "cp to custody copy",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "6069b319732017e1c7f33ff7798f758301f8c45c7c3bd258d36b048658154fb9"
+    }
+   ],
+   "copy_path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/Emerald_Streak_9MAR2017_C6-7_1.csv",
+   "copy_sha256_verified": "6069b319732017e1c7f33ff7798f758301f8c45c7c3bd258d36b048658154fb9",
+   "work_performed_on": "copy only"
+  },
+  {
+   "flight_id": "V001-05",
+   "sealed_path": "R6-public-cohort/S01-dofpro/V001/Emerald_Streak_9MAR2017_C6-7_2.csv",
+   "sealed_sha256": "70ca39f9ed40c84d5dc558f8a166219e3cb71a8af0715edabafd02f65e884137",
+   "sealed_bytes": 1642300,
+   "manifest_read_state_before": "header_only",
+   "manifest_read_bytes": 4096,
+   "operations": [
+    {
+     "op": "sha256sum (read-only hash of sealed file)",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "70ca39f9ed40c84d5dc558f8a166219e3cb71a8af0715edabafd02f65e884137"
+    },
+    {
+     "op": "cp to custody copy",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "70ca39f9ed40c84d5dc558f8a166219e3cb71a8af0715edabafd02f65e884137"
+    }
+   ],
+   "copy_path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/Emerald_Streak_9MAR2017_C6-7_2.csv",
+   "copy_sha256_verified": "70ca39f9ed40c84d5dc558f8a166219e3cb71a8af0715edabafd02f65e884137",
+   "work_performed_on": "copy only"
+  },
+  {
+   "flight_id": "V001-06",
+   "sealed_path": "R6-public-cohort/S01-dofpro/V001/Emerald_Streak_9MAR2017_C6-7_3.csv",
+   "sealed_sha256": "7bef1affbe0721f8aa22d799775d3b468f561b87cf95fb2f952d3be134c9f455",
+   "sealed_bytes": 1958503,
+   "manifest_read_state_before": "header_only",
+   "manifest_read_bytes": 4096,
+   "operations": [
+    {
+     "op": "sha256sum (read-only hash of sealed file)",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "7bef1affbe0721f8aa22d799775d3b468f561b87cf95fb2f952d3be134c9f455"
+    },
+    {
+     "op": "cp to custody copy",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "7bef1affbe0721f8aa22d799775d3b468f561b87cf95fb2f952d3be134c9f455"
+    }
+   ],
+   "copy_path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/Emerald_Streak_9MAR2017_C6-7_3.csv",
+   "copy_sha256_verified": "7bef1affbe0721f8aa22d799775d3b468f561b87cf95fb2f952d3be134c9f455",
+   "work_performed_on": "copy only"
+  },
+  {
+   "flight_id": "V001-07",
+   "sealed_path": "R6-public-cohort/S01-dofpro/V001/Emerald_Streak_9MAR2017_D13-10W_1.csv",
+   "sealed_sha256": "331cb6495d93760025fd526b7e63b727c03723bc0a6d7bba1590a5683937402e",
+   "sealed_bytes": 2045884,
+   "manifest_read_state_before": "header_only",
+   "manifest_read_bytes": 4096,
+   "operations": [
+    {
+     "op": "sha256sum (read-only hash of sealed file)",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "331cb6495d93760025fd526b7e63b727c03723bc0a6d7bba1590a5683937402e"
+    },
+    {
+     "op": "cp to custody copy",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "331cb6495d93760025fd526b7e63b727c03723bc0a6d7bba1590a5683937402e"
+    }
+   ],
+   "copy_path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/Emerald_Streak_9MAR2017_D13-10W_1.csv",
+   "copy_sha256_verified": "331cb6495d93760025fd526b7e63b727c03723bc0a6d7bba1590a5683937402e",
+   "work_performed_on": "copy only"
+  },
+  {
+   "flight_id": "V001-08",
+   "sealed_path": "R6-public-cohort/S01-dofpro/V001/Emerald_Streak_9MAR2017_QC6-5_1.csv",
+   "sealed_sha256": "9be8158fc3e3329fad7b80d55068ffaffaa10978bd996afb5895c745c46c7311",
+   "sealed_bytes": 1220512,
+   "manifest_read_state_before": "header_only",
+   "manifest_read_bytes": 4096,
+   "operations": [
+    {
+     "op": "sha256sum (read-only hash of sealed file)",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "9be8158fc3e3329fad7b80d55068ffaffaa10978bd996afb5895c745c46c7311"
+    },
+    {
+     "op": "cp to custody copy",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "9be8158fc3e3329fad7b80d55068ffaffaa10978bd996afb5895c745c46c7311"
+    }
+   ],
+   "copy_path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/Emerald_Streak_9MAR2017_QC6-5_1.csv",
+   "copy_sha256_verified": "9be8158fc3e3329fad7b80d55068ffaffaa10978bd996afb5895c745c46c7311",
+   "work_performed_on": "copy only"
+  },
+  {
+   "flight_id": "V001-09",
+   "sealed_path": "R6-public-cohort/S01-dofpro/V001/Emerald_Streak_9MAR2017_QC6-5_2.csv",
+   "sealed_sha256": "11f0326ad3e82f1ee5686aeba2d75506817d0387cf8f4bbfa2d5d2f33d208452",
+   "sealed_bytes": 2022805,
+   "manifest_read_state_before": "header_only",
+   "manifest_read_bytes": 4096,
+   "operations": [
+    {
+     "op": "sha256sum (read-only hash of sealed file)",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "11f0326ad3e82f1ee5686aeba2d75506817d0387cf8f4bbfa2d5d2f33d208452"
+    },
+    {
+     "op": "cp to custody copy",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "11f0326ad3e82f1ee5686aeba2d75506817d0387cf8f4bbfa2d5d2f33d208452"
+    }
+   ],
+   "copy_path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/Emerald_Streak_9MAR2017_QC6-5_2.csv",
+   "copy_sha256_verified": "11f0326ad3e82f1ee5686aeba2d75506817d0387cf8f4bbfa2d5d2f33d208452",
+   "work_performed_on": "copy only"
+  },
+  {
+   "flight_id": "V001-10",
+   "sealed_path": "R6-public-cohort/S01-dofpro/V001/Emerald_Streak_9MAR2017_QC6-5_3.csv",
+   "sealed_sha256": "09e271ff2df927a93fd3897e54ef5b7dc65cd9c77abcc7c8f5d73edb138cf0ee",
+   "sealed_bytes": 1239801,
+   "manifest_read_state_before": "header_only",
+   "manifest_read_bytes": 4096,
+   "operations": [
+    {
+     "op": "sha256sum (read-only hash of sealed file)",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "09e271ff2df927a93fd3897e54ef5b7dc65cd9c77abcc7c8f5d73edb138cf0ee"
+    },
+    {
+     "op": "cp to custody copy",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "09e271ff2df927a93fd3897e54ef5b7dc65cd9c77abcc7c8f5d73edb138cf0ee"
+    }
+   ],
+   "copy_path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/Emerald_Streak_9MAR2017_QC6-5_3.csv",
+   "copy_sha256_verified": "09e271ff2df927a93fd3897e54ef5b7dc65cd9c77abcc7c8f5d73edb138cf0ee",
+   "work_performed_on": "copy only"
+  },
+  {
+   "flight_id": "V002-01",
+   "sealed_path": "R6-public-cohort/S01-dofpro/V002/2023-02-11__TkSpjutVul__20-07-29.csv",
+   "sealed_sha256": "0d43f917b3e413797b9307ebb0444a5ae1c6e37b7742d07dfa71bf9390b39748",
+   "sealed_bytes": 31715,
+   "manifest_read_state_before": "header_only",
+   "manifest_read_bytes": 4096,
+   "operations": [
+    {
+     "op": "sha256sum (read-only hash of sealed file)",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "0d43f917b3e413797b9307ebb0444a5ae1c6e37b7742d07dfa71bf9390b39748"
+    },
+    {
+     "op": "cp to custody copy",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "0d43f917b3e413797b9307ebb0444a5ae1c6e37b7742d07dfa71bf9390b39748"
+    }
+   ],
+   "copy_path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/2023-02-11__TkSpjutVul__20-07-29.csv",
+   "copy_sha256_verified": "0d43f917b3e413797b9307ebb0444a5ae1c6e37b7742d07dfa71bf9390b39748",
+   "work_performed_on": "copy only"
+  },
+  {
+   "flight_id": "V002-02",
+   "sealed_path": "R6-public-cohort/S01-dofpro/V002/2023-07-08_DDVulcanite_J270_14-37-34.csv",
+   "sealed_sha256": "bf706a9e277df78e041b3fb2ec57ebe356c1486b18649699280088a7e43cd0f0",
+   "sealed_bytes": 36058,
+   "manifest_read_state_before": "header_only",
+   "manifest_read_bytes": 4096,
+   "operations": [
+    {
+     "op": "sha256sum (read-only hash of sealed file)",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "bf706a9e277df78e041b3fb2ec57ebe356c1486b18649699280088a7e43cd0f0"
+    },
+    {
+     "op": "cp to custody copy",
+     "utc": "2026-11-17T01:36:07Z",
+     "result": "bf706a9e277df78e041b3fb2ec57ebe356c1486b18649699280088a7e43cd0f0"
+    }
+   ],
+   "copy_path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/2023-07-08_DDVulcanite_J270_14-37-34.csv",
+   "copy_sha256_verified": "bf706a9e277df78e041b3fb2ec57ebe356c1486b18649699280088a7e43cd0f0",
+   "work_performed_on": "copy only"
+  }
+ ],
+ "other_files_read": [
+  {
+   "path": "/home/ak/.paseo/worktrees/3s8t98rp/bx1-blind-extraction/docs/internal/execution-runs/BX1-blind-extraction/extract_blind_outcomes.py",
+   "sha256": "1cddc4b8c6f35dd1bfd3e1e4c1de5e3209b7a7e49b6409bb2775a8fa1fab1ccb",
+   "read": true,
+   "fs_atime_utc": "2026-11-17T01:40:13Z",
+   "why": "assignment, frozen rules, custody manifest or sealed-list section"
+  },
+  {
+   "path": "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/FROZEN-RULES-FOR-EXTRACTOR.json",
+   "sha256": "4a9a3087994cc5430d51801ae2aa99de572b3055c093cf95400546e874e6c799",
+   "read": true,
+   "fs_atime_utc": "2026-11-17T01:35:26Z",
+   "why": "assignment, frozen rules, custody manifest or sealed-list section"
+  },
+  {
+   "path": "/home/ak/astraea-evidence/R6-public-cohort/blind-manifest.json",
+   "sha256": "39a009108f3442aad4706c3a93c6aad3d72c21fc9a184124952d9ce45d35acd7",
+   "read": true,
+   "fs_atime_utc": "2026-11-05T02:13:40Z",
+   "why": "assignment, frozen rules, custody manifest or sealed-list section"
+  },
+  {
+   "path": "/home/ak/.paseo/worktrees/3s8t98rp/bx1-blind-extraction/docs/internal/execution-runs/goal-collegiate-accuracy/STEP0-BENCHMARK-SPEC.md",
+   "sha256": "53d58e74fa8063e2350427e7a6daf8a235f6aa3ac2b3253637473ba0be79e966",
+   "read": true,
+   "fs_atime_utc": "2026-11-17T01:35:26Z",
+   "why": "assignment, frozen rules, custody manifest or sealed-list section"
+  },
+  {
+   "path": "/home/ak/.paseo/worktrees/3s8t98rp/bx1-blind-extraction/docs/internal/execution-runs/goal-collegiate-accuracy/lanes/BX1-blind-extraction-ASSIGNMENT.md",
+   "sha256": "5b0e4397d075c054fcc63dc28f6c08170378a1cc73f20ab3e49c404d9c104b1d",
+   "read": true,
+   "fs_atime_utc": "2026-11-17T01:35:26Z",
+   "why": "assignment, frozen rules, custody manifest or sealed-list section"
+  }
+ ],
+ "directories_listed_only": [
+  "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/ (names only; no file opened)",
+  "/home/ak/astraea-evidence/goal-collegiate-accuracy/step4-blind/outcomes/",
+  "/home/ak/.paseo/worktrees/3s8t98rp/bx1-blind-extraction/docs/internal/execution-runs/goal-collegiate-accuracy/"
+ ],
+ "not_opened_declaration": [
+  "R6-public-cohort/S01-dofpro/*.ork (any ORK file)",
+  "R6-public-cohort vehicle pages, prose, out-of-cohort vehicles, archives",
+  "step4-blind/design/*.xml",
+  "step4-blind/motors/*.eng",
+  "docs/internal/execution-runs/BL1-blind-predictions/",
+  "/home/ak/bl1/"
+ ]
+}

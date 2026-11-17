@@ -2,12 +2,12 @@
 //! bounded IPC series contract.
 //!
 //! Fixture: tests/fixtures/telemetry-parity.json. The trajectory, quaternion,
-//! event and scalar columns are the 2026-10-16 oracle fixture
-//! (`npm run fixtures:telemetry`, vitest+vite-node over the TS modules, node
-//! v24.21.0) for the Estes Alpha + C6 at wind 0 and 3 m/s; the three
-//! presentation Euler columns were regenerated 2026-10-29 from an independent
-//! derivation (`docs/internal/execution-runs/RMP12-attitude-display/`) after
-//! the shipped TS/Rust extraction was found to mix two conventions. The
+//! event and scalar columns are the 2026-11-09 oracle fixture
+//! (`pnpm fixtures:telemetry`, vitest over the TS modules, node v26.12.1) for
+//! the Estes Alpha + C6 at wind 0 and 3 m/s; the three presentation Euler
+//! columns were regenerated 2026-11-09 from an independent derivation
+//! (`docs/internal/execution-runs/RMP12-attitude-display/`) after the shipped
+//! TS/Rust extraction was found to mix two conventions. The
 //! physics and quaternions are unchanged by that regeneration. `points` rows
 //! are the full telemetry array in the fixture's `fields` order; the
 //! `vehicle`/`motor` blocks are the exact bridge wire payloads (copied from
@@ -192,6 +192,8 @@ fn core_options(o: &models::FlightOptionsDto) -> astraea_core::six_dof::SixDofOp
         time_step: o.time_step,
         fin_cant_angle_deg: o.fin_cant_angle_deg,
         drag_cd_scale: o.drag_cd_scale,
+        launch_site_temperature_c: o.launch_site_temperature_c,
+        nozzle_exit_diameter: o.nozzle_exit_diameter,
         record_telemetry: true,
         record_moment_arm_history: false,
     }

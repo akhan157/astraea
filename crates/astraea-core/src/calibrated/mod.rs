@@ -17,7 +17,7 @@ pub mod normal_force_subsonic;
 pub mod normal_force_supersonic;
 pub mod normal_force_transonic;
 
-pub use atmosphere::{atmosphere, flight_air, nozzle_pressure_thrust, FlightAir, Site};
+pub use atmosphere::{atmosphere, flight_air, FlightAir, Site};
 pub use from_vehicle::{design_from_vehicle, ComponentInput, VehicleInput};
 pub use design::{altitude_for_mach, Airfoil, Design, Fin, NoseShape, Part, PartKind, SurfaceFinish};
 pub use drag_subsonic::{evaluate_drag_subsonic, DragSubsonic};
