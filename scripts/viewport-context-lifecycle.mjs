@@ -357,8 +357,15 @@ try {
   await waitForActualCanvas();
   const flight = await expectOneVisibleCanvas('Flight');
   assert.equal(flight.actual.ctxId, sharedCtx, 'Flight must reuse the shared context');
-  assert.equal(flight.cameraPose, 'upright', 'Flight must use the attitude-posed camera');
-  assert.ok(flight.poseQ, 'Flight must report the drawn pose');
+  // The Flight fit waits for the overlay chrome to be measured (`chromeReady`)
+  // and runs in an effect after the stage commits, so its report trails the
+  // canvas. CI's WebKit read `null` here (run 44015444574). Wait for the report,
+  // then assert the exact pose: this is a wait for the report, not a tolerance.
+  await expect.poll(async () => (await state()).cameraPose, {
+    message: 'Flight must report the attitude-posed camera',
+    timeout: 15_000,
+  }).toBe('upright');
+  assert.ok((await state()).poseQ, 'Flight must report the drawn pose');
   await expectNoNewContext(initialCreated, 'Flight');
   await expectDraws('Flight', flightMark);
   const scrubber = page.locator('input[aria-label="Flight scrubber"]');
