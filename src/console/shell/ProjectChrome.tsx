@@ -10,7 +10,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Popover } from 'radix-ui';
-import { Upload, FolderOpen, Save, FileDown, FileUp, X } from 'lucide-react';
+import { Upload, FolderOpen, Save, FileDown, FileUp, X, Bug } from 'lucide-react';
+import { reportProblemUrl } from '../../lib/links';
+import { isDesktop, openExternal } from '../../desktop/external';
 import { isEngineAvailable } from '../../io/backend';
 import { OPEN_FILE_ACCEPT } from '../../io/files';
 import { useProjectStore, type FileStatus } from '../../state/project';
@@ -224,6 +226,14 @@ export function ProjectMenu() {
             hint="Native save dialog, else a download"
             hook="save-file"
             onClick={() => void saveProjectToFile()}
+          />
+          <div className="my-1 h-px" style={{ background: C.line }} />
+          <MenuItem
+            icon={<Bug size={13} />}
+            label="Report a problem…"
+            hint="Opens a GitHub issue with the app version filled in; nothing else is sent"
+            hook="report-problem"
+            onClick={() => void openExternal(reportProblemUrl(__APP_VERSION__, isDesktop(), navigator.userAgent))}
           />
           <div className="mt-2 px-2 py-1.5 text-[11px]" style={{ borderTop: `1px solid ${C.line}`, color: C.muted }}>
             Local slot: {fileStateLabel(file)}

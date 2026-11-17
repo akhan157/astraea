@@ -1002,3 +1002,19 @@ Owner instruction after the PC lost power mid-session: "finalize the situation, 
   - Public CI run 44172726167: attempt 1 failed in Firefox acceptance only on `NS_BINDING_ABORTED` from `chrome://juggler/content/content/WorkerMain.js`, which is Playwright's Firefox instrumentation, after every journey had passed. Attempt 2: success.
 - **Open alerts:** dev alert 20, picomatch ≤ 4.0.7 (high, ReDoS); no patched version is published (latest is 4.0.7). Public has none open.
 - **Status of the carried items:** Windows and macOS **scripted packaged smoke** now pass on hosted runners. Still not done: interactive Windows and macOS acceptance by a person, and an in-app update from an installed 0.10.x on a real machine.
+
+### Update path tested end to end, release pipeline hardened, in-app reporting, 2026-11-17
+
+Owner instruction: test the "needs a person" items ourselves, and check that updating is smooth for users and automated for the maintainer.
+
+- **Updater, real install, 0.10.1 → 0.11.0 from the live feed** (PR #5, `.github/workflows/updater-e2e.yml`). Agent-driven on hosted VMs, not a person:
+  - Linux, run 44191603279: WebKitWebDriver. Offer named 0.11.0; "Later" removed it and installed nothing; offer returned after relaunch; "Install and restart" downloaded and restarted. The AppImage's sha256 went `8323d5c0…` → `9c371d0c…` (= the published 0.11.0 AppImage), and the relaunched app was running.
+  - Windows, run 44191603279: UI Automation; "Later" kept 0.10.1; install moved the uninstall-registry `DisplayVersion` and the exe `ProductVersion` to 0.11.0.
+  - macOS arm64, run 44190403313: System Events accessibility; "Later" removed the offer; install set `Info.plist` to 0.11.0.
+  - Run after each publish: `gh workflow run updater-e2e.yml -f from=<prev> -f to=<new>`.
+- **Found:** 0.10.x has no working-session recovery, so unsaved edits are lost when a 0.10.x user clicks "Install and restart". 0.11.0 and later keep the recovery slot.
+- **Found:** the second updater endpoint (`releases/latest/download/latest.json`) is 404 because every release is a pre-release; only the `update-feed` endpoint works.
+- **Release pipeline** (PR #6): `release.yml` runs preflight (version agreement across package.json, Cargo.toml, Cargo.lock, CHANGELOG.md, README.md and the tag; notes from CHANGELOG) → the full CI suite (`workflow_call`) → bundles. `update-feed.yml` takes a manual tag for rollback. `scripts/export-public.sh` does the public export. Browser tests ignore Playwright Juggler console noise. Not exercised by a real tag yet.
+- **Update banner** shows download percent (PR #7).
+- **Report a problem…** in the Project menu opens the GitHub bug form pre-filled with version and platform; desktop `target=_blank` links go to the system browser through `tauri-plugin-opener`, scoped to `https://github.com/akhan157/astraea/*` (PR #8). Windows smoke run 44192077289 on the branch: success.
+- **Still open:** native Save/Open/export dialogs, hardware GPU, keyboard/accessibility and 1280×800 rows of the desktop checklist on Windows and macOS; a person has not used the app on either OS. Picomatch alert 20 has no fixed release.

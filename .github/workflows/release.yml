@@ -8,6 +8,11 @@ name: Release
 # (TAURI_SIGNING_PRIVATE_KEY, the contents of ~/.tauri/astraea-updater.key; its
 # password secret is empty), and the published release carries the latest.json
 # the app polls.
+#
+# Before any bundle is built, `preflight` checks that the version agrees across
+# package.json, Cargo.toml, Cargo.lock, CHANGELOG.md, README.md and the tag, and
+# takes the release notes from the CHANGELOG.md section; `ci` runs the full CI
+# suite at the tagged commit. Either failing stops the release.
 
 on:
   push:
@@ -22,7 +27,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      notes: ${{ steps.notes.outputs.notes }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6, Node 24
+        with:
+          node-version: 24
+      - id: notes
+        env:
+          TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        run: |
+          node scripts/release-preflight.mjs ${TAG:+--tag "$TAG"} --notes-out "$RUNNER_TEMP/notes.md"
+          { echo 'notes<<RELEASE_NOTES_EOF'; cat "$RUNNER_TEMP/notes.md"; echo 'RELEASE_NOTES_EOF'; } >> "$GITHUB_OUTPUT"
+
+  ci:
+    needs: preflight
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
   bundle:
+    needs: [preflight, ci]
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -69,7 +100,7 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: 'Astraea v__VERSION__'
-          releaseBody: 'Default model: apogee error averaged 5.6% across 20 published rockets (18 of 20 within 10%) with site temperature set and the nozzle exit set where the design has one, 5.9% (16 of 20) with them blank. Development data: the model was chosen on these flights; blind test pending. Shapes it cannot model use legacy drag, which has no blind test on those shapes; on one small rocket with freeform fins it predicted about 26% low (10 flights, development comparison). Not flight approval. See docs/accuracy.md and CHANGELOG.md.'
+          releaseBody: ${{ needs.preflight.outputs.notes }}
           releaseDraft: true
           prerelease: true
           args: ${{ matrix.args }}

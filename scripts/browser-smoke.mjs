@@ -4,6 +4,7 @@ import { chromium, firefox, webkit } from 'playwright';
 import { preview } from 'vite';
 import { calibrationJourney, previewJourneys, shareFlightJourney } from './preview-journeys.mjs';
 import { accuracyBundleJourneys, previewDepth } from './preview-depth.mjs';
+import { isHarnessNoise } from './browser-harness-noise.mjs';
 
 // Vite preview does not apply Pages' _headers. Exercise the built app with
 // the exact production CSP, including worker and WebAssembly restrictions.
@@ -30,7 +31,7 @@ try {
   const watch = (target) => {
     target.on('pageerror', (error) => errors.push(error.message));
     target.on('console', (message) => {
-      if (message.type() === 'error') errors.push(message.text());
+      if (message.type() === 'error' && !isHarnessNoise(message.text())) errors.push(message.text());
     });
   };
   watch(page);

@@ -5,9 +5,15 @@
  */
 import { create } from 'zustand';
 
+/** The updater plugin's download events (Started carries the total size when the server sends one). */
+type DownloadEvent =
+  | { event: 'Started'; data?: { contentLength?: number } }
+  | { event: 'Progress'; data?: { chunkLength?: number } }
+  | { event: 'Finished'; data?: unknown };
+
 interface TauriUpdate {
   version: string;
-  downloadAndInstall(onEvent?: (event: { event: string }) => void): Promise<void>;
+  downloadAndInstall(onEvent?: (event: DownloadEvent) => void): Promise<void>;
 }
 
 interface TauriUpdaterGlobals {
@@ -24,7 +30,7 @@ function tauri(): TauriUpdaterGlobals | null {
 export type UpdateState =
   | { kind: 'idle' }
   | { kind: 'available'; version: string }
-  | { kind: 'installing'; version: string }
+  | { kind: 'installing'; version: string; percent?: number }
   | { kind: 'restart-required'; version: string; restarting: boolean; message?: string }
   | { kind: 'error'; message: string }
   | { kind: 'dismissed' };
@@ -61,8 +67,21 @@ export async function installUpdate(): Promise<void> {
   }
   // Set synchronously: another click or direct invocation must not start a second install.
   useUpdates.setState({ state: { kind: 'installing', version: update.version } });
+  let total = 0;
+  let received = 0;
+  let shown = -1;
+  const onEvent = (event: DownloadEvent) => {
+    if (event.event === 'Started') total = event.data?.contentLength ?? 0;
+    else if (event.event === 'Progress') received += event.data?.chunkLength ?? 0;
+    else return;
+    if (total <= 0) return;
+    const percent = Math.min(100, Math.floor((received / total) * 100));
+    if (percent === shown) return; // one store update per whole percent
+    shown = percent;
+    useUpdates.setState({ state: { kind: 'installing', version: update.version, percent } });
+  };
   try {
-    await update.downloadAndInstall();
+    await update.downloadAndInstall(onEvent);
   } catch (err) {
     useUpdates.setState({ state: { kind: 'error', message: err instanceof Error ? err.message : String(err) } });
     return;

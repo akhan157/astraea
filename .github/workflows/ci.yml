@@ -5,6 +5,8 @@ on:
     branches: [main, release/v1]
   pull_request:
   workflow_dispatch:
+  # The Release workflow runs this whole suite first and builds nothing if it fails.
+  workflow_call:
 
 permissions:
   contents: read

@@ -16,6 +16,7 @@ import { readFile } from 'node:fs/promises';
 import { chromium, firefox, webkit } from 'playwright';
 import { expect } from 'playwright/test';
 import { preview } from 'vite';
+import { isHarnessNoise } from './browser-harness-noise.mjs';
 
 const browserName = process.env.ASTRAEA_BROWSER ?? 'chromium';
 const browserType = { chromium, firefox, webkit }[browserName];
@@ -42,7 +43,7 @@ try {
   const errors = [];
   page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
   page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(`console.error: ${message.text()}`);
+    if (message.type() === 'error' && !isHarnessNoise(message.text())) errors.push(`console.error: ${message.text()}`);
   });
 
   // Count real WebGL context creations, which canvas they belong to, and draw

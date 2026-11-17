@@ -18,7 +18,11 @@ export function UpdateBanner() {
           <button className="opacity-70" onClick={dismissUpdate}>Later</button>
         </>
       )}
-      {state.kind === 'installing' && <span>Downloading Astraea {state.version}… the app restarts when it is installed.</span>}
+      {state.kind === 'installing' && (
+        <span>{state.percent === undefined
+          ? `Downloading Astraea ${state.version}… the app restarts when it is installed.`
+          : `Downloading Astraea ${state.version}… ${state.percent} %. The app restarts when it is installed.`}</span>
+      )}
       {state.kind === 'restart-required' && (
         <>
           <span>{state.restarting

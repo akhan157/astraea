@@ -53,6 +53,41 @@ describe('desktop updates', () => {
     await waitFor(() => expect(log).toEqual(['check', 'install', 'relaunch']));
   });
 
+  it('shows download progress as whole percents while installing', async () => {
+    const gate = deferred();
+    (window as unknown as Scope).__TAURI__ = {
+      updater: { check: async () => ({ version: '1.0.3', downloadAndInstall: async (onEvent?: (e: unknown) => void) => {
+        onEvent?.({ event: 'Started', data: { contentLength: 1000 } });
+        onEvent?.({ event: 'Progress', data: { chunkLength: 250 } });
+        onEvent?.({ event: 'Progress', data: { chunkLength: 1 } });
+        await gate.promise;
+      } }) },
+      process: { relaunch: async () => undefined },
+    };
+    render(<UpdateBanner />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Install and restart' }));
+    expect(await screen.findByText('Downloading Astraea 1.0.3… 25 %. The app restarts when it is installed.')).toBeTruthy();
+    gate.resolve();
+    await waitFor(() => expect(useUpdates.getState().state.kind).toBe('restart-required'));
+  });
+
+  it('keeps the plain downloading text when the size is unknown', async () => {
+    const gate = deferred();
+    (window as unknown as Scope).__TAURI__ = {
+      updater: { check: async () => ({ version: '1.0.4', downloadAndInstall: async (onEvent?: (e: unknown) => void) => {
+        onEvent?.({ event: 'Started', data: {} });
+        onEvent?.({ event: 'Progress', data: { chunkLength: 500 } });
+        await gate.promise;
+      } }) },
+      process: { relaunch: async () => undefined },
+    };
+    render(<UpdateBanner />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Install and restart' }));
+    expect(await screen.findByText('Downloading Astraea 1.0.4… the app restarts when it is installed.')).toBeTruthy();
+    gate.resolve();
+    await waitFor(() => expect(useUpdates.getState().state.kind).toBe('restart-required'));
+  });
+
   it('stays quiet when already current, and reports a failed install', async () => {
     fakeTauri(null);
     const { container } = render(<UpdateBanner />);

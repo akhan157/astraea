@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import { startWorkingSession } from './state/workingSession';
+import { installExternalLinkHandler } from './desktop/external';
 // Fonts ship with the app (no Google Fonts request), so the desktop build
 // renders the same offline. Each weight file covers every subset through
 // unicode-range; the webview only loads the ranges a page uses.
@@ -13,6 +14,8 @@ import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/500.css';
 import '@fontsource/jetbrains-mono/700.css';
 import './index.css';
+
+installExternalLinkHandler();
 
 // Never let a stalled IndexedDB open keep the app from rendering: after 3 s the
 // UI mounts anyway, and a recovery read that completes later is not applied

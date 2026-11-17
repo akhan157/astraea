@@ -1,0 +1,198 @@
+name: Updater end-to-end
+
+# Installs a PUBLISHED older release, waits for the in-app update offer from the
+# live feed, presses "Later" (nothing may install), re-opens the offer, presses
+# "Install and restart", then proves from OUTSIDE the app that the installed
+# copy is now the target version (AppImage hash, Windows uninstall registry,
+# macOS Info.plist). Agent-driven on hosted VMs: it is not a person using the
+# app, and it does not cover hardware GPU or assistive technology.
+#
+# Run it after publishing a release (and before announcing it):
+#   gh workflow run updater-e2e.yml -f from=0.10.1 -f to=0.11.0
+# Windows minutes bill at 2x and macOS at 10x on a private repository.
+
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: Installed version to start from (a published release)
+        required: true
+        default: 0.10.1
+      to:
+        description: Version the live feed must offer and install
+        required: true
+        default: 0.11.0
+      macos:
+        description: Also run macOS (10x minutes on a private repo)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+env:
+  FROM: ${{ inputs.from || '0.10.1' }}
+  TO: ${{ inputs.to || '0.11.0' }}
+  RELEASES: akhan157/astraea
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  linux:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/updater-e2e
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6, Node 24
+        with:
+          node-version: 24
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+      - name: Install Xvfb, WebKitWebDriver and tauri-driver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb webkit2gtk-driver libfuse2 libwebkit2gtk-4.1-0 dbus-x11
+          cargo install tauri-driver --locked
+      - name: Download the installed version and the target's hash
+        run: |
+          mkdir -p app
+          gh release download "v$FROM" -R "$RELEASES" -p "Astraea.Workstation_${FROM}_amd64.AppImage" -D app
+          gh release download "v$TO" -R "$RELEASES" -p "Astraea.Workstation_${TO}_amd64.AppImage" -D target
+          chmod +x app/*.AppImage
+          echo "APP=$PWD/app/Astraea.Workstation_${FROM}_amd64.AppImage" >> "$GITHUB_ENV"
+          echo "FROM_SHA=$(sha256sum app/*.AppImage | cut -d' ' -f1)" >> "$GITHUB_ENV"
+          echo "TO_SHA=$(sha256sum target/*.AppImage | cut -d' ' -f1)" >> "$GITHUB_ENV"
+      - name: Offer, Later, Install and restart
+        env:
+          TAURI_WEBVIEW_AUTOMATION: 'true'
+          DISPLAY: ':99'
+          DRIVE_LOG: drive-linux.log
+        run: |
+          Xvfb :99 -screen 0 1600x1000x24 &
+          sleep 2
+          tauri-driver --port 4444 &
+          sleep 2
+          node scripts/updater-e2e/drive.mjs webdriver "$APP" "$TO"
+      - name: Prove the AppImage was replaced by the target version
+        run: |
+          for i in $(seq 1 90); do
+            now=$(sha256sum "$APP" | cut -d' ' -f1)
+            [ "$now" = "$TO_SHA" ] && break
+            sleep 2
+          done
+          echo "before: $FROM_SHA"; echo "after:  $now"; echo "target: $TO_SHA"
+          test "$now" = "$TO_SHA"
+          sleep 5
+          pgrep -a astraea || echo "(relaunched app not running under the driver; not required)"
+          { echo "### Linux AppImage $FROM -> $TO"; echo; echo '```'; cat drive-linux.log; echo "AppImage sha256 after install = $TO_SHA (the published $TO AppImage)"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/updater-e2e
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6, Node 24
+        with:
+          node-version: 24
+      - name: Install the old version silently (per user)
+        run: |
+          gh release download "v$env:FROM" -R $env:RELEASES -p "Astraea.Workstation_$($env:FROM)_x64-setup.exe" -D app
+          $setup = Get-ChildItem app\*-setup.exe | Select-Object -First 1
+          $p = Start-Process $setup.FullName -ArgumentList '/S' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "installer exit $($p.ExitCode)" }
+          $entry = Get-ChildItem 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall' | ForEach-Object { Get-ItemProperty $_.PSPath } | Where-Object { $_.DisplayName -like 'Astraea*' }
+          Write-Host "installed: $($entry.DisplayName) $($entry.DisplayVersion)"
+          if ($entry.DisplayVersion -ne $env:FROM) { throw "expected $env:FROM installed" }
+      - name: Offer, Later, Install and restart (UI Automation)
+        run: |
+          $exe = Join-Path $env:LOCALAPPDATA 'Astraea Workstation\astraea-workstation.exe'
+          $log = 'drive-windows.log'
+          Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe)
+          $later = & scripts/updater-e2e/win-click.ps1 -Label 'Later' -TimeoutSec 120
+          "Later: $later" | Tee-Object -FilePath $log -Append
+          if ($later -ne 'clicked') { throw 'no update offer (Later) within 120 s' }
+          Start-Sleep -Seconds 2
+          $again = & scripts/updater-e2e/win-click.ps1 -Label 'Install and restart' -TimeoutSec 3
+          "after Later, offer still visible: $again" | Tee-Object -FilePath $log -Append
+          if ($again -ne 'absent') { throw '"Later" did not remove the offer' }
+          Get-Process astraea-workstation -ErrorAction SilentlyContinue | Stop-Process
+          Start-Sleep -Seconds 3
+          "installed version still: $((Get-Item $exe).VersionInfo.ProductVersion)" | Tee-Object -FilePath $log -Append
+          Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe)
+          $install = & scripts/updater-e2e/win-click.ps1 -Label 'Install and restart' -TimeoutSec 120
+          "Install and restart: $install" | Tee-Object -FilePath $log -Append
+          if ($install -ne 'clicked') { throw 'no update offer after relaunch' }
+      - name: Prove the installed version is the target
+        run: |
+          $deadline = (Get-Date).AddSeconds(240)
+          do {
+            Start-Sleep -Seconds 3
+            $entry = Get-ChildItem 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall' | ForEach-Object { Get-ItemProperty $_.PSPath } | Where-Object { $_.DisplayName -like 'Astraea*' }
+          } until ($entry.DisplayVersion -eq $env:TO -or (Get-Date) -gt $deadline)
+          $exe = Join-Path $env:LOCALAPPDATA 'Astraea Workstation\astraea-workstation.exe'
+          $file = (Get-Item $exe).VersionInfo.ProductVersion
+          Write-Host "registry DisplayVersion: $($entry.DisplayVersion); exe ProductVersion: $file"
+          Start-Sleep -Seconds 10
+          $running = Get-Process astraea-workstation -ErrorAction SilentlyContinue
+          Write-Host "relaunched process: $(if ($running) { 'yes, pid ' + ($running.Id -join ',') } else { 'no' })"
+          if ($entry.DisplayVersion -ne $env:TO) { throw "registry still says $($entry.DisplayVersion)" }
+          if (-not $file.StartsWith($env:TO)) { throw "exe ProductVersion $file" }
+          $lines = @("### Windows NSIS $($env:FROM) -> $($env:TO)", '', '```') + (Get-Content drive-windows.log) + @("registry DisplayVersion $($entry.DisplayVersion); exe ProductVersion $file; relaunched: $([bool]$running)", '```')
+          $lines -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+  macos:
+    if: inputs.macos
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/updater-e2e
+      - name: Install the old version
+        run: |
+          gh release download "v$FROM" -R "$RELEASES" -p "Astraea.Workstation_${FROM}_aarch64.dmg" -D app
+          hdiutil attach -nobrowse -mountpoint /tmp/astraea-dmg app/*.dmg
+          mkdir -p "$HOME/Applications"
+          cp -R "/tmp/astraea-dmg/Astraea Workstation.app" "$HOME/Applications/"
+          hdiutil detach /tmp/astraea-dmg
+          xattr -cr "$HOME/Applications/Astraea Workstation.app"
+          echo "APPDIR=$HOME/Applications/Astraea Workstation.app" >> "$GITHUB_ENV"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$HOME/Applications/Astraea Workstation.app/Contents/Info.plist"
+      - name: Offer, Later, Install and restart (System Events accessibility)
+        run: |
+          set -x
+          open "$APPDIR"
+          later=$(osascript scripts/updater-e2e/mac-click.applescript 'Later' 90)
+          echo "Later: $later" | tee drive-macos.log
+          test "$later" = clicked
+          sleep 2
+          again=$(osascript scripts/updater-e2e/mac-click.applescript 'Install and restart' 3)
+          echo "after Later, offer still visible: $again" | tee -a drive-macos.log
+          test "$again" = absent
+          osascript -e 'tell application id "com.astraea.workstation" to quit' || pkill -f astraea-workstation || true
+          sleep 3
+          open "$APPDIR"
+          install=$(osascript scripts/updater-e2e/mac-click.applescript 'Install and restart' 90)
+          echo "Install and restart: $install" | tee -a drive-macos.log
+          test "$install" = clicked
+      - name: Prove the installed version is the target
+        run: |
+          plist="$APPDIR/Contents/Info.plist"
+          for i in $(seq 1 90); do
+            v=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist" 2>/dev/null || true)
+            [ "$v" = "$TO" ] && break
+            sleep 2
+          done
+          echo "Info.plist version: $v"
+          sleep 8
+          pgrep -fl astraea-workstation || echo "(relaunched app not running)"
+          test "$v" = "$TO"
+          { echo "### macOS arm64 $FROM -> $TO"; echo; echo '```'; cat drive-macos.log; echo "Info.plist CFBundleShortVersionString = $v"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

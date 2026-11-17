@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { mkdir, readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { preview } from 'vite';
+import { isHarnessNoise } from './browser-harness-noise.mjs';
 
 const evidence = process.env.ASTRAEA_EVIDENCE ?? '/tmp/astraea-aero-beta-evidence';
 await mkdir(evidence, { recursive: true });
@@ -22,7 +23,7 @@ try {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('console', (message) => { if (message.type() === 'error' && !isHarnessNoise(message.text())) errors.push(message.text()); });
   const origin = server.resolvedUrls.local[0];
   await page.addInitScript(() => localStorage.setItem('astraea.workstation.toured', '1'));
   const response = await page.goto(new URL('app/', origin).href);

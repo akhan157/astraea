@@ -3,10 +3,20 @@ name: Update feed
 # Beta releases are GitHub prereleases, which /releases/latest ignores. When a
 # release is published, copy its signed latest.json onto the fixed
 # "update-feed" release that the desktop app polls first.
+#
+# Rollback: to stop offering a bad version, point the feed back at the last good
+# published release. Apps already on the bad version are not downgraded (the
+# updater only offers newer versions); everyone older stops being offered it.
+#   gh workflow run update-feed.yml -R akhan157/astraea -f tag=v0.10.1
 
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published release whose latest.json the feed should serve (e.g. v0.10.1)
+        required: true
 
 permissions:
   contents: write
@@ -23,8 +33,12 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_REPO: ${{ github.repository }}
-      TAG: ${{ github.event.release.tag_name }}
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
     steps:
+      - name: Refuse a draft or missing release
+        run: |
+          draft=$(gh release view "$TAG" --json isDraft --jq .isDraft)
+          test "$draft" = false || { echo "$TAG is a draft; publish it first"; exit 1; }
       - name: Fetch latest.json from the published release
         run: gh release download "$TAG" --pattern latest.json --dir feed
       - name: Refuse a feed whose version does not match the tag

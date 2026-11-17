@@ -171,6 +171,9 @@ pub fn run() {
         // installing (src/desktop/updates.ts).
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        // External links open in the system browser; the capability allows
+        // only the project's GitHub pages (src/desktop/external.ts).
+        .plugin(tauri_plugin_opener::init())
         .setup(move |app| {
             setup_trace.native(NativeEvent::Setup);
             // The main window is created here instead of in tauri.conf.json so
