@@ -988,3 +988,17 @@ Owner instruction: "u do it" (publish the draft and move the download links).
 - **Access:** the saved PAT is read-only and got 403 on the public repo. The owner supplied a short-lived fine-grained token (Contents write, public repo only), used per command from a T3 secret file; it is not stored in git config or records.
 - **Removed** the merged lane worktrees a1, a2, a3, b1-step3-final, bl1, bx1, sc1; branches kept.
 - **Not verified:** an in-app update from an installed 0.10.x on a real machine; Windows native smoke.
+
+### Windows smoke, dependency fixes and public export, 2026-11-17
+
+Owner instruction after the PC lost power mid-session: "finalize the situation, fix whatever was going, properly merge PR etc."; then "u take care of it till everything done, also fix the update workflow".
+
+- **Dev Website red on `6dd1544`, a flake:** run 44093179742 failed `test:browser` on "clicking a viewcube face must change the camera orientation (orbit version stayed 0)". The commit was docs-only. A re-run of the failed job passed, including the Cloudflare Pages deploy.
+- **Windows smoke merged:** PR #3 (`ci/windows-smoke`, `de2f8c4`) merged as `9673adc`; branch kept. Evidence: run 44097599765 on `c3a0352`, apogee 546.54 m, touchdown, app 0.11.0; `de2f8c4` only drops the temporary push trigger. Website run 44157316153 on `9673adc`: success.
+- **fast-xml-parser 5.11.1 → 5.12.1** (Dependabot alert 19, low): PR #4 merged as `93d69b1`. Local checks: tsc 0; `vitest run src/formats` 14 files / 241 tests. Website run 44170241852 (build, browser acceptance, deploy): success.
+- **"Update workflow" = Dependabot Updates on the public repo:** its security job for `glib` failed with `security_update_not_possible` (run 42517445939). glib 0.18.5 is pinned by Tauri 2.12's GTK3 stack (gtk 0.18.2, Linux only); the fix is in glib 0.20, which needs gtk4-rs. The app never calls `VariantStrIter`. Alert 18 dismissed as tolerable risk in both repos, with that reason; reopen when Tauri leaves GTK3. The Update feed workflow was never red.
+- **Public export:** `akhan157/astraea` main `6b37534`→`fa09934`, the tree of dev `93d69b1` minus the session-handoff notes, no-reply author. Public Dependabot PR #1 closed as superseded.
+  - Public Windows smoke run 44172737355 (dispatched; free on the public repo): **success**, apogee 546.54 m, touchdown.
+  - Public CI run 44172726167: attempt 1 failed in Firefox acceptance only on `NS_BINDING_ABORTED` from `chrome://juggler/content/content/WorkerMain.js`, which is Playwright's Firefox instrumentation, after every journey had passed. Attempt 2: success.
+- **Open alerts:** dev alert 20, picomatch ≤ 4.0.7 (high, ReDoS); no patched version is published (latest is 4.0.7). Public has none open.
+- **Status of the carried items:** Windows and macOS **scripted packaged smoke** now pass on hosted runners. Still not done: interactive Windows and macOS acceptance by a person, and an in-app update from an installed 0.10.x on a real machine.
