@@ -73,6 +73,13 @@ jobs:
           sleep 2
           tauri-driver --port 4444 &
           sleep 2
+          # 0.11.0 and later keep a working-session recovery slot: prove an
+          # unsaved edit survives the update. (0.10.x has none; its release notes
+          # tell people to save first.)
+          if [ "$(printf '%s\n' 0.11.0 "$FROM" | sort -V | head -1)" = 0.11.0 ]; then
+            export RECOVERY_MARK="Unsaved before update $GITHUB_RUN_ID"
+            echo "RECOVERY_MARK=$RECOVERY_MARK" >> "$GITHUB_ENV"
+          fi
           node scripts/updater-e2e/drive.mjs webdriver "$APP" "$TO"
       - name: Prove the AppImage was replaced by the target version
         run: |
@@ -85,6 +92,13 @@ jobs:
           test "$now" = "$TO_SHA"
           sleep 5
           pgrep -a astraea || echo "(relaunched app not running under the driver; not required)"
+          if [ -n "${RECOVERY_MARK:-}" ]; then
+            pkill astraea-workstation || true
+            sleep 3
+            DISPLAY=:99 TAURI_WEBVIEW_AUTOMATION=true DRIVE_LOG=drive-linux-recovery.log \
+              node scripts/updater-e2e/drive.mjs check-name "$APP" "$RECOVERY_MARK"
+            cat drive-linux-recovery.log >> drive-linux.log
+          fi
           { echo "### Linux AppImage $FROM -> $TO"; echo; echo '```'; cat drive-linux.log; echo "AppImage sha256 after install = $TO_SHA (the published $TO AppImage)"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
   windows:

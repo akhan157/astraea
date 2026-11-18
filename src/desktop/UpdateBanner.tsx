@@ -1,5 +1,8 @@
 import { useEffect } from 'react';
 import { checkForUpdates, dismissUpdate, installUpdate, restartUpdate, useUpdates } from './updates';
+import { REPO_URL } from '../lib/links';
+
+const releaseNotesUrl = (version: string) => `${REPO_URL}/releases/tag/v${version.replace(/^v/, '')}`;
 
 /** Offer a newer desktop version; renders nothing in a browser or when current. */
 export function UpdateBanner() {
@@ -14,6 +17,8 @@ export function UpdateBanner() {
       {state.kind === 'available' && (
         <>
           <span>Astraea {state.version} is available.</span>
+          <span data-update-save-note="true" className="opacity-80">Save your project first: the app restarts to install it.</span>
+          <a href={releaseNotesUrl(state.version)} target="_blank" rel="noreferrer" className="underline opacity-80">What's new</a>
           <button className="rounded border px-2 py-0.5" onClick={() => void installUpdate()}>Install and restart</button>
           <button className="opacity-70" onClick={dismissUpdate}>Later</button>
         </>

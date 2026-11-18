@@ -2,6 +2,32 @@
 
 User-facing changes. Detailed internal engineering notes live in `docs/internal/`.
 
+## 0.11.1 — 2026-11-17
+
+> **Updating from 0.10.x? Save first.** Before you click **Install and restart**,
+> save your project (**Project → Save project file…** or **Save to this
+> browser**). 0.10.x does not keep unsaved edits across the restart. From 0.11.0
+> on, unsaved work is restored automatically after an update.
+
+### Added
+
+- **Report a problem.** Project menu → **Report a problem…** opens a GitHub bug
+  report with the app version and platform filled in. Nothing else is sent; you
+  choose what to attach.
+- **Update download progress.** While an update downloads, the banner shows
+  how far it has got.
+- **Save reminder and "What's new"** on the update offer, linking to the
+  release notes.
+
+### Changed
+
+- In the desktop app, links such as **How accurate is it?** and the downloads
+  page open in your web browser.
+
+No change to the flight model or results: the engine is the same as 0.11.0,
+so its accuracy statement still applies (apogee error averaged 5.6 % across 20
+published rockets; development data, blind test pending).
+
 ## 0.11.0 — 2026-11-16
 
 ### Accuracy

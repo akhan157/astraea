@@ -33,6 +33,12 @@ expect('CHANGELOG.md newest heading', headings[0]?.[1]);
 const readmeLinks = [...read('README.md').matchAll(/releases\/tag\/v(\d+\.\d+\.\d+)/g)].map((m) => m[1]);
 if (readmeLinks.length === 0) problems.push('README.md: no link to a versioned release');
 for (const v of new Set(readmeLinks)) expect('README.md release link', v);
+for (const m of read('README.md').matchAll(/\[v(\d+\.\d+\.\d+) release\]/g)) expect('README.md release link text', m[1]);
+const minor = version.split('.').slice(0, 2).join('.');
+for (const m of read('README.md').matchAll(/\b(\d+\.\d+) beta\b|status-(\d+\.\d+)%20beta/g)) {
+  const found = m[1] ?? m[2];
+  if (found !== minor) problems.push(`README.md beta label: ${found} (package.json says ${minor})`);
+}
 
 const tag = opt('--tag');
 if (tag !== undefined && tag !== `v${version}`) problems.push(`tag ${tag} does not match package.json version v${version}`);
@@ -48,6 +54,7 @@ if (notesOut) {
   const end = headings[1]?.index ?? changelog.length;
   const section = changelog.slice(start, end).trim();
   if (!section) { console.error(`CHANGELOG.md has an empty ${version} section`); process.exit(1); }
-  writeFileSync(notesOut, `${section}\n\nNot flight approval. See [docs/accuracy.md](docs/accuracy.md) and [CHANGELOG.md](CHANGELOG.md).\n`);
+  if (section.includes('(write the user-facing changes here)')) { console.error(`CHANGELOG.md ${version} still has the bump-version placeholder`); process.exit(1); }
+  writeFileSync(notesOut, `${section}\n\nNot flight approval. See [docs/accuracy.md](https://github.com/akhan157/astraea/blob/main/docs/accuracy.md) and [CHANGELOG.md](https://github.com/akhan157/astraea/blob/main/CHANGELOG.md).\n`);
 }
 console.log(`Release preflight passed: ${version} agrees across package.json, Cargo.toml, Cargo.lock, CHANGELOG.md and README.md${tag ? ` and tag ${tag}` : ''}.`);

@@ -53,6 +53,14 @@ describe('desktop updates', () => {
     await waitFor(() => expect(log).toEqual(['check', 'install', 'relaunch']));
   });
 
+  it('reminds to save first and links the release notes with the offer', async () => {
+    fakeTauri({ version: '1.0.5' });
+    render(<UpdateBanner />);
+    expect(await screen.findByText('Astraea 1.0.5 is available.')).toBeTruthy();
+    expect(screen.getByText('Save your project first: the app restarts to install it.')).toBeTruthy();
+    expect(screen.getByRole('link', { name: "What's new" }).getAttribute('href')).toBe('https://github.com/akhan157/astraea/releases/tag/v1.0.5');
+  });
+
   it('shows download progress as whole percents while installing', async () => {
     const gate = deferred();
     (window as unknown as Scope).__TAURI__ = {
