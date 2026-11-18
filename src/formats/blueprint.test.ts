@@ -73,6 +73,37 @@ const AXIAL_VEHICLE = vehicle('Test & Rocket', [
 const shapes = (svg: string): number => (svg.match(/class="bp-shape"/g) || []).length;
 const fins = (svg: string): number => (svg.match(/class="bp-fin"/g) || []).length;
 
+describe('blueprint build notes', () => {
+  it('lists every fin dimension and the fin position in the requested units', () => {
+    const svg = exportBlueprintSvg(AXIAL_VEHICLE, { units: 'metric' });
+    expect(svg).toContain('Tail Fins: 3 trapezoidal fins; root 90.0 mm, tip 40.0 mm, span 60.0 mm, sweep 30.0 mm, thickness 3.0 mm.');
+    expect(svg).toContain('Root leading edge 540.0 mm from the tip (380.0 mm behind the front of “Main Tube”).');
+    expect(svg).toContain('Total Length: 710 mm');
+    const imperial = exportBlueprintSvg(AXIAL_VEHICLE, { units: 'imperial' });
+    expect(imperial).toContain('root 3.543 in');
+    expect(imperial).toContain('Ø1.57 in');
+  });
+
+  it('marks CG and CP when given and says why a mark is missing', () => {
+    const svg = exportBlueprintSvg(AXIAL_VEHICLE, { units: 'metric', marks: { cg: { xM: 0.42, detail: 'with Estes C6 loaded' }, cp: { xM: 0.55 } } });
+    expect(svg).toContain('class="bp-cg"');
+    expect(svg).toContain('class="bp-cp"');
+    expect(svg).toContain('CG 420.0 mm from the tip · with Estes C6 loaded');
+    expect(svg).toContain('CP 550.0 mm from the tip');
+    expect(svg).not.toMatch(/not marked/);
+
+    const missing = exportBlueprintSvg(AXIAL_VEHICLE, { units: 'metric', marks: { cg: null, cp: null, unavailable: 'the stability estimate has not finished' } });
+    expect(missing).not.toContain('class="bp-cg"');
+    expect(missing).toContain('CG and CP not marked: the stability estimate has not finished.');
+  });
+
+  it('shows the export time in local time with its zone, and nothing when no time is given', () => {
+    const svg = exportBlueprintSvg(AXIAL_VEHICLE, { units: 'metric', exportedAt: new Date('2026-11-17T23:08:00Z'), timeZone: 'America/Los_Angeles' });
+    expect(svg).toContain('Exported Nov 17, 2026, 3:08 PM PST (UTC−08:00) from Astraea.');
+    expect(exportBlueprintSvg(AXIAL_VEHICLE, { units: 'metric' })).not.toContain('Exported');
+  });
+});
+
 describe('vehicle blueprint SVG export', () => {
   it('emits a standalone dark-CAD SVG with one shape per body component', () => {
     const svg = exportBlueprintSvg(AXIAL_VEHICLE);

@@ -111,6 +111,8 @@ describe('buildFlightBundle', () => {
     expect(info.consent.text).toMatch(/validate Astraea/);
     const readme = (await zip.file('README.txt')!.async('string')) as string;
     expect(readme).toContain('docs/team-data-request.md');
+    // Local time with its zone for people, the UTC instant beside it.
+    expect(readme).toMatch(/Made by Astraea .+ \(beta\) on [A-Z][a-z]{2} \d{1,2}, 2026, .+ \(2026-10-21T12:00:00\.000Z UTC\)\./);
     expect(readme).toContain('template=model_question.yml');
     expect(readme).toContain('Saved runs also retain earlier vehicle/site settings, weather context and motor source metadata.');
     expect(readme).toContain('Saving run inputs does not add raw flight logs');

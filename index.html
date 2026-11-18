@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Astraea — Design, fly and verify your rocket</title>
-    <meta name="description" content="Astraea is a free, open-source rocket engineering workstation: parametric airframe design, 6-DOF flight simulation, Monte Carlo landing dispersion and flight-log validation, in your browser or on your desktop." />
-    <meta property="og:title" content="Astraea — Design, fly and verify your rocket" />
-    <meta property="og:description" content="Free, open-source rocket engineering: airframe design, 6-DOF simulation, Monte Carlo dispersion and flight-log validation in one workstation." />
+    <title>Astraea — Design, simulate and check your rocket</title>
+    <meta name="description" content="Astraea is a free, open-source rocket engineering workstation: parametric airframe design, 6-DOF flight simulation, Monte Carlo landing dispersion and comparison with your flight logs, in your browser or on your desktop." />
+    <meta property="og:title" content="Astraea — Design, simulate and check your rocket" />
+    <meta property="og:description" content="Free, open-source rocket engineering: airframe design, 6-DOF simulation, Monte Carlo dispersion and flight-log comparison in one workstation." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/landing/hero.webp" />
     <meta name="theme-color" content="#0B0C0E" />
@@ -35,11 +35,11 @@
       <section class="hero">
         <div class="wrap hero-inner">
           <p class="eyebrow">Free · Beta %APP_VERSION% · Browser, Windows and Linux · macOS pending</p>
-          <h1>Design, fly and verify your rocket in one workstation.</h1>
+          <h1>Design, simulate and check your rocket in one workstation.</h1>
           <p class="lede">
             Astraea takes a high-power rocket from parametric airframe to six-degree-of-freedom flight simulation,
-            Monte Carlo landing dispersion and real flight-log comparison, with one engine that gives the same
-            answers in your browser and on your desktop.
+            Monte Carlo landing dispersion and real flight-log comparison, with the same engine in your browser and
+            on your desktop.
           </p>
           <div class="cta-row">
             <a class="btn btn-primary" href="./app/">Open in browser <span aria-hidden="true">→</span></a>
@@ -65,9 +65,9 @@
             <li><span class="stage-n">03</span><strong>Motor</strong><span>Certified curves, ThrustCurve.org search, a curve editor and propellant chemistry.</span></li>
             <li><span class="stage-n">04</span><strong>Aero</strong><span>Barrowman stability, transonic drag and fin flutter.</span></li>
             <li><span class="stage-n">05</span><strong>Flight</strong><span>6-DOF trajectory, events, and Monte Carlo dispersion.</span></li>
-            <li><span class="stage-n">06</span><strong>Recovery</strong><span>Dual deployment, bay packing and ejection-charge sizing.</span></li>
-            <li><span class="stage-n">07</span><strong>Verify</strong><span>Requirement gates and evidence from real flight logs.</span></li>
-            <li><span class="stage-n">08</span><strong>Build</strong><span>STEP, STL, blueprints, and OpenRocket or RockSim files.</span></li>
+            <li><span class="stage-n">06</span><strong>Recovery</strong><span>Dual deployment, bay packing and ejection-charge estimates.</span></li>
+            <li><span class="stage-n">07</span><strong>Verify</strong><span>Requirement checks, and comparison with real flight logs.</span></li>
+            <li><span class="stage-n">08</span><strong>Build</strong><span>Project files, dimensioned drawings, a printable nose cone, STEP, and OpenRocket or RockSim files.</span></li>
           </ol>
         </div>
       </section>
@@ -81,7 +81,7 @@
               <p>Static margin, CG and CP update on every edit. A moment after you stop, the engine flies the design again and shows apogee, Mach, rail exit speed, descent rate and drift next to your last committed run, with thrust-to-weight and fin flutter margin alongside.</p>
               <ul class="checks">
                 <li>Previews land moments after you stop editing</li>
-                <li>Warnings use the same gates as a full run</li>
+                <li>Preview warnings use the same thresholds as a full run's checks</li>
                 <li>Previews are labeled as previews, never as results</li>
               </ul>
             </div>
@@ -109,7 +109,7 @@
               <p>Monte Carlo re-flies the design up to 1,000 times with varied wind direction, rail angle and motor impulse, spread across your CPU cores. Landing points, 50/90/99% containment rings and mean drift build up live, and a cancel never leaves a partial answer behind.</p>
               <ul class="checks">
                 <li>Seeded and reproducible run for run</li>
-                <li>Waiver-cylinder checks and KML export for Google Earth</li>
+                <li>The rings show the modeled spread, not a calibrated probability</li>
               </ul>
             </div>
             <figure class="shot"><img src="/landing/montecarlo.webp" width="1912" height="1244" loading="lazy" alt="Monte Carlo landing dispersion: scattered landing points with 50, 90 and 99 percent containment rings and summary statistics." /></figure>
@@ -121,7 +121,7 @@
               <h3>Real motors, or your own.</h3>
               <p>Start from certified Estes, AeroTech and Cesaroni curves, search ThrustCurve.org, or import RASP <code>.eng</code> and RockSim <code>.rse</code> files. Edit a copy of any curve and Astraea recomputes impulse, class, burn time and peak thrust. Size chambers and nozzles with a chemical-equilibrium solver.</p>
               <ul class="checks">
-                <li>Mount fit checked against your motor tube</li>
+                <li>Motor diameter checked against your mount's bore; length and retention are yours to confirm</li>
                 <li>Edited motors never overwrite the original</li>
               </ul>
             </div>
@@ -131,7 +131,7 @@
           <article class="feature">
             <div class="feature-text">
               <p class="kicker">Verification</p>
-              <h3>Checked against requirements, then against reality.</h3>
+              <h3>Checked against requirements, then compared with real flights.</h3>
               <p>Every run is graded against clear gates: rail exit speed, fin flutter margin, landing speed and energy, and the model's own envelope, each with where to change the design. Then load an altimeter or GPS log, overlay it on the simulation and fit an effective drag coefficient from the coast phase.</p>
               <ul class="checks">
                 <li>Imported logs keep their original bytes and a SHA-256</li>
@@ -148,7 +148,7 @@
         <div class="stats">
           <div class="stat">
             <p class="stat-value">One engine</p>
-            <p>The same Rust engine, compiled to WebAssembly, runs in the browser and the desktop app. Same inputs, same numbers, on every system.</p>
+            <p>The same Rust engine, compiled to WebAssembly, runs in the browser and the desktop app, so a design is simulated by the same code in both.</p>
           </div>
           <div class="stat">
             <p class="stat-value">Your files stay yours</p>

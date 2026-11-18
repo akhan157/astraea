@@ -22,14 +22,60 @@
  * style block, so a print variant needs no structural change to the drawing.
  * `theme` defaults to 'dark'; any value other than 'light'/'dark' is
  * rejected.
+ *
+ * Build notes (when `units` is given): every fin set is listed with its
+ * count, root, tip, span, sweep and thickness, and its leading-edge position
+ * from the nose tip and from its tube's front, in the user's units (mm or
+ * in). CG and CP are marked on the axis only when the caller passes them
+ * (from the stability breakdown); otherwise the drawing says why they are
+ * absent instead of leaving the reader to wonder. An export time, when given,
+ * is shown in local time with its zone.
  */
 
 import { RocketVehicle, FinPoint } from '../core/types';
 import { analyzeFreeformPlanform } from '../aero/finPlanform';
+import { formatLocalTimestamp } from './localTime';
+
+/** A station on the axis to mark, metres from the nose tip, with its caption. */
+export interface BlueprintMark {
+  xM: number;
+  /** Extra words after the position, e.g. "with AeroTech K550W loaded". */
+  detail?: string;
+}
 
 /** Print/screen blueprint presentation. 'dark' is the on-screen CAD look. */
 export interface BlueprintExportOptions {
   theme?: 'light' | 'dark';
+  /**
+   * Label units. Absent keeps the legacy metre labels; 'metric' labels part
+   * dimensions in millimetres, 'imperial' in inches, and adds the fin table.
+   */
+  units?: 'metric' | 'imperial';
+  /**
+   * CG and CP stations from the stability breakdown. Pass null for a mark
+   * that is unavailable, with `unavailable` saying why; it is then omitted
+   * and the reason printed.
+   */
+  marks?: { cg: BlueprintMark | null; cp: BlueprintMark | null; unavailable?: string };
+  /** Shown in local time with its zone; omitted when absent (deterministic output). */
+  exportedAt?: Date;
+  /** IANA zone for `exportedAt` (tests); defaults to the viewer's own. */
+  timeZone?: string;
+}
+
+/** A fin set's dimensions for the notes table, SI metres. */
+interface FinNote {
+  name: string;
+  count: number;
+  root: number;
+  tip: number | null;
+  span: number;
+  sweep: number | null;
+  thickness: number;
+  leadingEdgeFromTip: number;
+  fromTubeFront: number;
+  tubeName: string;
+  shape: string;
 }
 
 /** A blueprint stroke in SI units, resolved against the assembled axis. */
@@ -45,14 +91,28 @@ interface Segment {
   points?: FinPoint[]; // meters, fin outline from the root leading edge (freeform only)
 }
 
-const fmtLen = (m: number): string => `${m.toFixed(2)} m`;
-const fmtDia = (m: number): string => `Ø${m.toFixed(3)} m`;
+/** Part-dimension label in the requested units; legacy metres when none was asked for. */
+function lengthFormatter(units: BlueprintExportOptions['units']): { len: (m: number) => string; dia: (m: number) => string; fine: (m: number) => string } {
+  if (units === 'imperial') {
+    const inch = (m: number, d: number) => `${(m / 0.0254).toFixed(d)} in`;
+    return { len: (m) => inch(m, 2), dia: (m) => `Ø${inch(m, 2)}`, fine: (m) => inch(m, 3) };
+  }
+  if (units === 'metric') {
+    const mm = (m: number, d: number) => `${(m * 1000).toFixed(d)} mm`;
+    return { len: (m) => mm(m, 0), dia: (m) => `Ø${mm(m, 1)}`, fine: (m) => mm(m, 1) };
+  }
+  return { len: (m) => `${m.toFixed(2)} m`, dia: (m) => `Ø${m.toFixed(3)} m`, fine: (m) => `${(m * 1000).toFixed(1)} mm` };
+}
 
 export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExportOptions = {}): string {
   const theme = options.theme ?? 'dark';
   if (theme !== 'light' && theme !== 'dark') {
     throw new RangeError(`blueprint export: theme must be "light" or "dark" (got ${JSON.stringify(theme)})`);
   }
+  if (options.units !== undefined && options.units !== 'metric' && options.units !== 'imperial') {
+    throw new RangeError(`blueprint export: units must be "metric" or "imperial" (got ${JSON.stringify(options.units)})`);
+  }
+  const { len: fmtLen, dia: fmtDia, fine: fmtFine } = lengthFormatter(options.units);
 
   if (!vehicle || !Array.isArray(vehicle.components) || vehicle.components.length === 0) {
     throw new Error('blueprint export: vehicle needs at least one component');
@@ -129,6 +189,8 @@ export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExp
   }
 
   const segments: Segment[] = [];
+  const finNotes: FinNote[] = [];
+  let tubeName = '';
   let x = 0; // meters, aft station of the last axial component (nose tip = 0)
   let tubeFront = 0; // meters, front station of the current enclosing body tube
   let bodyD = 0; // meters, running body diameter for fin roots
@@ -151,6 +213,7 @@ export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExp
       case 'bodytube': {
         const r = c.outerDiameter / 2;
         tubeFront = x;
+        tubeName = c.name;
         segments.push({ kind: 'bodytube', x0: x, x1: x + c.length, rFore: r, rAft: r });
         x += c.length;
         bodyD = c.outerDiameter;
@@ -183,6 +246,8 @@ export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExp
           sweep: c.sweepLength,
           tipChord: c.tipChord,
         });
+        finNotes.push({ name: c.name, count: c.finCount, root: c.rootChord, tip: c.tipChord, span: c.span, sweep: c.sweepLength,
+          thickness: c.thickness, leadingEdgeFromTip: fx, fromTubeFront: c.axialOffset, tubeName, shape: 'trapezoidal' });
         maxHalf = Math.max(maxHalf, r + c.span);
         break;
       }
@@ -197,6 +262,8 @@ export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExp
           rAft: r,
           span: c.span,
         });
+        finNotes.push({ name: c.name, count: c.finCount, root: c.rootChord, tip: null, span: c.span, sweep: null,
+          thickness: c.thickness, leadingEdgeFromTip: fx, fromTubeFront: c.axialOffset, tubeName, shape: 'elliptical' });
         maxHalf = Math.max(maxHalf, r + c.span);
         break;
       }
@@ -213,6 +280,8 @@ export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExp
           span: planform.span,
           points: c.points,
         });
+        finNotes.push({ name: c.name, count: c.finCount, root: planform.rootChord, tip: null, span: planform.span, sweep: null,
+          thickness: c.thickness, leadingEdgeFromTip: fx, fromTubeFront: c.axialOffset, tubeName, shape: 'freeform' });
         maxHalf = Math.max(maxHalf, r + planform.span);
         break;
       }
@@ -318,6 +387,71 @@ export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExp
     }
   }
 
+  // CG/CP on the axis, labelled below the airframe so they never collide
+  // with the length labels above it.
+  const markEls: string[] = [];
+  const marks = options.marks;
+  const markLabels: Array<{ x: number; y: number; text: string }> = [];
+  const markExtents: number[] = [];
+  const placeMark = (mark: BlueprintMark | null, kind: 'cg' | 'cp', row: number) => {
+    if (mark === null || !Number.isFinite(mark.xM)) return;
+    const mx = PX(mark.xM);
+    const r = 6;
+    if (kind === 'cg') {
+      // The usual CG symbol: a circle with two opposite quadrants filled
+      // (each quadrant a short polygon, so the drawing stays M/L-only).
+      const quadrant = (from: number) => {
+        const pts = [`${n2(mx)},${n2(cy)}`];
+        for (let k = 0; k <= 6; k++) {
+          const a = from + (k / 6) * (Math.PI / 2);
+          pts.push(`${n2(mx + r * Math.cos(a))},${n2(cy - r * Math.sin(a))}`);
+        }
+        return `<polygon points="${pts.join(' ')}" />`;
+      };
+      markEls.push(`<g class="bp-cg"><circle cx="${n2(mx)}" cy="${n2(cy)}" r="${r}" />${quadrant(0)}${quadrant(Math.PI)}</g>`);
+    } else {
+      markEls.push(`<g class="bp-cp"><circle cx="${n2(mx)}" cy="${n2(cy)}" r="${r}" /><circle cx="${n2(mx)}" cy="${n2(cy)}" r="1.8" /></g>`);
+    }
+    const y = cy + PX(maxHalf) + 44 + row * 14;
+    markEls.push(`<line class="bp-leader" x1="${n2(mx)}" y1="${n2(cy + r)}" x2="${n2(mx)}" y2="${n2(y - 11)}" />`);
+    const text = `${kind.toUpperCase()} ${fmtFine(mark.xM)} from the tip${mark.detail ? ` · ${mark.detail}` : ''}`;
+    markLabels.push({ x: mx, y, text });
+    markExtents.push(mx - r, mx + r);
+    markEls.push(`<text x="${n2(mx)}" y="${n2(y)}" text-anchor="middle" class="bp-mark-label">${esc(text)}</text>`);
+  };
+  if (marks) {
+    placeMark(marks.cg, 'cg', 0);
+    placeMark(marks.cp, 'cp', 1);
+  }
+
+  // Build notes under the drawing: fin dimensions, the marks' status, the export time.
+  const notes: string[] = [];
+  if (options.units !== undefined) {
+    for (const f of finNotes) {
+      const dims = [
+        `root ${fmtFine(f.root)}`,
+        f.tip === null ? null : `tip ${fmtFine(f.tip)}`,
+        `span ${fmtFine(f.span)}`,
+        f.sweep === null ? null : `sweep ${fmtFine(f.sweep)}`,
+        `thickness ${fmtFine(f.thickness)}`,
+      ].filter(Boolean).join(', ');
+      // Two lines per fin set (size, then position), so the notes stay about the drawing's width.
+      notes.push(`${f.name}: ${f.count} ${f.shape} fin${f.count === 1 ? '' : 's'}; ${dims}.`);
+      notes.push(`  Root leading edge ${fmtFine(f.leadingEdgeFromTip)} from the tip (${fmtFine(f.fromTubeFront)} behind the front of “${f.tubeName}”).`);
+    }
+  }
+  if (marks !== undefined) {
+    const missing = [marks.cg === null ? 'CG' : null, marks.cp === null ? 'CP' : null].filter(Boolean).join(' and ');
+    if (missing) notes.push(`${missing} not marked: ${marks.unavailable ?? 'not available for this design'}.`);
+  }
+  if (options.exportedAt !== undefined) {
+    notes.push(`Exported ${formatLocalTimestamp(options.exportedAt, { timeZone: options.timeZone })} from Astraea.`);
+  }
+  const notesTop = cy + PX(maxHalf) + 44 + (markLabels.length > 0 ? markLabels.length * 14 + 10 : 0);
+  // A note starting with two spaces continues the one above, indented (SVG collapses the spaces themselves).
+  const noteX = (line: string): number => (line.startsWith('  ') ? 16 : 0);
+  const noteEls = notes.map((line, i) => `<text x="${noteX(line)}" y="${n2(notesTop + i * 15)}" class="bp-note">${esc(line.trim())}</text>`);
+
   // Bound the actual drawing, including text and fin tips beyond the axial
   // body. Bézier control points are conservative bounds for the curves.
   let left = 0, right = PX(totalLength), top = cy - PX(maxHalf), bottom = cy + PX(maxHalf);
@@ -352,6 +486,15 @@ export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExp
     }
   }
   includeText(PX(totalLength) / 2, cy + PX(maxHalf) + 26, `Total Length: ${fmtLen(totalLength)}`, true);
+  for (const label of markLabels) includeText(label.x, label.y, label.text);
+  // A mark is on the axis; its symbol reaches 6 px either side of it.
+  for (const mx of markExtents) { include(mx, cy - 6); include(mx, cy + 6); }
+  notes.forEach((line, i) => {
+    // Left-anchored note lines, with the same conservative 8 px per
+    // character the centred labels use.
+    include(noteX(line), notesTop + i * 15 - 13);
+    include(noteX(line) + line.trim().length * 8, notesTop + i * 15 + 4);
+  });
   // Round outward so serialization cannot shave off a boundary.
   const viewX = Math.floor((left - marginX) * 100) / 100;
   const viewY = Math.floor((top - marginX) * 100) / 100;
@@ -380,12 +523,19 @@ export function exportBlueprintSvg(vehicle: RocketVehicle, options: BlueprintExp
     `.bp-fin{stroke:var(--bp-fin);stroke-width:1.4;fill:var(--bp-fin-fill)}`,
     `.bp-label{fill:var(--bp-label);font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}`,
     `.bp-total{fill:var(--bp-total);font:bold 13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}`,
+    `.bp-note{fill:var(--bp-label);font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}`,
+    `.bp-cg circle,.bp-cp circle{fill:var(--bp-bg);stroke:var(--bp-total);stroke-width:1.4}`,
+    `.bp-cg polygon,.bp-cp circle+circle{fill:var(--bp-total);stroke:none}`,
+    `.bp-leader{stroke:var(--bp-total);stroke-width:0.8;stroke-dasharray:2 2}`,
+    `.bp-mark-label{fill:var(--bp-total);font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}`,
     `</style>`,
     `<rect class="bp-bg" x="${n2(viewX)}" y="${n2(viewY)}" width="${n2(viewW)}" height="${n2(viewH)}" />`,
     ...gridEls,
     ...shapeEls,
     ...labelEls,
     `<text x="${n2((totalLength * scale) / 2)}" y="${n2(cy + maxHalf * scale + 26)}" text-anchor="middle" class="bp-total">Total Length: ${fmtLen(totalLength)}</text>`,
+    ...markEls,
+    ...noteEls,
     `</svg>`,
   ].join('\n');
 }

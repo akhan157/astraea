@@ -17,8 +17,10 @@ import {
   type MotorRecord,
   type ProjectEnvelope,
 } from '../formats/projectJson';
-import { exportToOrk, parseOrkFile } from '../formats/orkParser';
-import { parseRktString } from '../formats/rktParser';
+import { exportToOrk, parseOrkFileWithReport } from '../formats/orkParser';
+import { parseRktStringWithReport } from '../formats/rktParser';
+import { describeImportLosses } from '../formats/importLosses';
+import { formatLocalTimestamp } from '../formats/localTime';
 import { exportRkt } from '../formats/rktExport';
 import {
   describeEngPreview,
@@ -243,13 +245,55 @@ export async function readDroppedProject(file: File): Promise<ProjectEnvelope> {
 export interface VehicleImport {
   vehicle: RocketVehicle;
   motors: MotorRecord[];
+  /**
+   * What did not carry over, one plain sentence each, naming the parts,
+   * stages, motors, simulations and defaults involved (never just a count).
+   */
   warnings: string[];
+  /** Motor designations the file assigns but the import did not apply (geometry formats). */
+  fileMotors: string[];
+  /**
+   * Whether the file itself chose the project's motor. False for geometry
+   * formats (the open design keeps its motor) and for a project document
+   * that names none (the reader's default motor is used).
+   */
+  motorFromFile: boolean;
   /**
    * The parsed envelope for the `.json` path, so a caller can replace the
    * whole project (workspace and ledger included) instead of the vehicle
    * alone. Absent for the geometry-only formats.
    */
   envelope?: ProjectEnvelope;
+}
+
+/** At most this many history items are named in an import note; the rest are counted. */
+const NAMED_HISTORY_LIMIT = 6;
+
+function namedList(items: readonly string[]): string {
+  const shown = items.slice(0, NAMED_HISTORY_LIMIT).join('; ');
+  return items.length > NAMED_HISTORY_LIMIT ? `${shown}; and ${items.length - NAMED_HISTORY_LIMIT} more` : shown;
+}
+
+const CASE_LABEL: Record<string, string> = { flight: 'Flight', monteCarlo: 'Ensemble' };
+
+/**
+ * Whether a project document names its own motor: a workspace motor id
+ * (format 1.1.0 and later) or a legacy `assignedMotorId` the migration binds.
+ * Anything else falls back to the reader's default motor.
+ */
+function documentNamesMotor(text: string): boolean {
+  try {
+    const raw = JSON.parse(text) as Record<string, unknown> | null;
+    if (raw === null || typeof raw !== 'object') return false;
+    const workspace = raw.workspace as Record<string, unknown> | undefined;
+    if (workspace && typeof workspace.motorId === 'string' && workspace.motorId.length > 0) return true;
+    const vehicle = (raw.vehicle ?? raw) as { components?: unknown };
+    return Array.isArray(vehicle.components) && vehicle.components.some(
+      (c) => c !== null && typeof c === 'object' && typeof (c as { assignedMotorId?: unknown }).assignedMotorId === 'string',
+    );
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -264,48 +308,51 @@ export async function importVehicleFile(file: File): Promise<VehicleImport> {
   try {
     if (gate.kind === 'ork') {
       const buffer = await file.arrayBuffer();
-      const vehicle = await parseOrkFile(new Uint8Array(buffer));
+      const { vehicle, losses } = await parseOrkFileWithReport(new Uint8Array(buffer));
       return {
         vehicle,
         motors: [],
         warnings: [
-          'Geometry only: stage containers flatten into one airframe; motor assignments, simulation results, and appearance ' +
-            'settings in the .ork file are not imported.',
+          'Geometry only: parts, dimensions, materials and mass overrides came in. Appearance (colours, decals) and ' +
+            'simulation settings are never read from an .ork file.',
+          ...describeImportLosses(losses),
         ],
+        fileMotors: losses.fileMotors,
+        motorFromFile: false,
       };
     }
     if (gate.kind === 'rkt') {
-      const vehicle = parseRktString(await file.text());
+      const { vehicle, losses } = parseRktStringWithReport(await file.text());
       return {
         vehicle,
         motors: [],
         warnings: [
-          'Single-stage geometry only: staging blocks flatten into one airframe ' +
-            'and motor assignments are not imported. Materials and attached-part axial offsets use defaults; ' +
-            'review mass and CG before engineering reuse. Active or ambiguous KnownMass/KnownCG overrides are refused; ' +
+          'Single-stage geometry only: parts and dimensions came in. Active KnownMass/KnownCG overrides are refused; ' +
             'only explicitly disabled (false/0) override metadata is accepted.',
+          ...describeImportLosses(losses),
         ],
+        fileMotors: losses.fileMotors,
+        motorFromFile: false,
       };
     }
     if (gate.kind === 'json') {
-      const envelope = readProject(await file.text());
+      const text = await file.text();
+      const envelope = readProject(text);
       const warnings: string[] = [];
       if (envelope.cases.length > 0) {
-        warnings.push(
-          `History note: ${envelope.cases.length} stored sim cases travel as history ` +
-            'and are not re-run on import.',
-        );
+        const named = envelope.cases.map((c) => `${CASE_LABEL[c.kind] ?? c.kind} ${formatLocalTimestamp(c.createdAt)}`);
+        warnings.push(`Saved runs come along as history and are not re-run: ${namedList(named)}.`);
       }
       if (envelope.snapshots.length > 0) {
-        warnings.push(
-          `History note: ${envelope.snapshots.length} stored snapshots travel as history ` +
-            'and are not re-run on import.',
-        );
+        const named = envelope.snapshots.map((snap) => `${snap.kind} from ${snap.source} (${formatLocalTimestamp(snap.createdAt)})`);
+        warnings.push(`Stored snapshots come along as history and are not recomputed: ${namedList(named)}.`);
       }
       return {
         vehicle: envelope.vehicle,
         motors: envelope.motorRecords,
         warnings,
+        fileMotors: [],
+        motorFromFile: documentNamesMotor(text),
         envelope,
       };
     }

@@ -5,6 +5,20 @@ import { expect } from 'playwright/test';
 import JSZip from 'jszip';
 import { syntheticCalibrationCoast } from './fixtures/synthetic-calibration-coast.mjs';
 
+/**
+ * Replacing a design with unsaved edits asks first; these journeys mean to
+ * replace it. The ask opens in the same event as the click or file pick, so
+ * once the page has run one more task the Replace button is either on screen
+ * or not coming. No wall-clock wait: a busy CI page can take longer than any
+ * fixed timeout just to answer.
+ */
+async function confirmReplace(target) {
+  await target.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
+  const replace = target.getByRole('button', { name: 'Replace', exact: true });
+  if (await replace.isVisible()) await replace.click();
+}
+
+
 const appVersion = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version;
 
 /**
@@ -27,6 +41,7 @@ export async function previewJourneys(page, origin) {
   const menu = async (name) => {
     await page.getByRole('button', { name: 'Project menu', exact: true }).click();
     await page.getByRole('button', { name: new RegExp(`^${name}`) }).click();
+    await confirmReplace(page);
   };
   const pass = (name) => console.log(`Preview acceptance passed: ${name}`);
   // layout-polish falsifiers are collected so one run reports every failure
@@ -182,7 +197,7 @@ export async function previewJourneys(page, origin) {
   await partNameFilter.fill('');
 
   await stage('Flight');
-  const readiness = page.getByLabel('Run readiness');
+  const readiness = page.getByLabel('Run inputs');
   await expect(readiness).toContainText('No parachute in this design.');
   assert.equal(await readiness.locator('[data-no-parachute-note] p').evaluate((node) => getComputedStyle(node).color), 'rgb(245, 181, 68)', 'the no-parachute note must be amber');
   await expect(page.getByText(/Showing the committed run\./)).toBeVisible();
@@ -220,42 +235,26 @@ export async function previewJourneys(page, origin) {
   })));
   assert.deepEqual(restoredComponents, originalComponents, 'undo must restore the original component identities and order');
   await stage('Flight');
-  await expect(page.getByLabel('Run readiness')).not.toContainText('No parachute in this design.');
+  await expect(page.getByLabel('Run inputs')).not.toContainText('No parachute in this design.');
   await expect(page.getByText(/Showing the committed run\./)).toHaveCount(0);
   await expect(page.getByText(/not a current result/)).toHaveCount(0);
   await expect(page.getByRole('main').getByText('Valid run', { exact: true })).toBeVisible();
   pass('no-parachute note is current-design only, non-blocking, removed by a returning chute, and fully undone');
 
-  // declutter-fold: the Airframe stability card shows its two caveat sentences
-  // as one ellipsized line with More; expanding restores both full lines in
-  // their original colours. DOM numbers only.
+  // stability-at-liftoff: the Airframe card leads with the margin with the
+  // motor loaded, says what it means and what to do, and keeps the
+  // airframe-only margin as a labelled second value. DOM text only.
   await stage('Airframe');
   const stabilityStrip = page.getByRole('region', { name: 'Live stability and flight preview' });
-  const caveat = stabilityStrip.locator('[data-fold]').first();
-  const caveatText = caveat.locator('[data-fold-text]');
-  const airframeAmber = 'Above generic geometry band (>3 cal). Weathercocking requires flight analysis.';
-  const airframeRollup = 'Component rollup only; selected motor and powered-flight margin history unavailable.';
-  const caveatMore = caveat.getByRole('button', { name: 'More', exact: true });
-  await expect(caveatMore).toHaveCount(1);
-  const caveatLineHeight = await caveatText.evaluate((node) => parseFloat(getComputedStyle(node).lineHeight));
-  const foldedCaveat = await caveatText.evaluate((node) => ({ scrollWidth: node.scrollWidth, clientWidth: node.clientWidth, height: node.getBoundingClientRect().height }));
-  assert.ok(foldedCaveat.scrollWidth > foldedCaveat.clientWidth + 1, `Airframe caveat must fold to one ellipsized line (scrollWidth ${foldedCaveat.scrollWidth} > clientWidth ${foldedCaveat.clientWidth})`);
-  assert.ok(foldedCaveat.height <= caveatLineHeight + 1, `folded Airframe caveat must be one line (${foldedCaveat.height}px, line ${caveatLineHeight}px)`);
-  const collapsedCaveat = await caveatText.innerText();
-  assert.ok(collapsedCaveat.includes(airframeAmber) && collapsedCaveat.includes(airframeRollup), 'both Airframe sentences stay in the DOM while folded');
-  assert.ok(collapsedCaveat.indexOf(airframeAmber) < collapsedCaveat.indexOf(airframeRollup), 'the amber sentence comes before the grey one');
-  assert.deepEqual(await caveat.locator('[data-fold-part]').evaluateAll((nodes) => nodes.map((node) => ({ part: node.getAttribute('data-fold-part'), color: getComputedStyle(node).color }))), [
-    { part: 'amber', color: 'rgb(245, 181, 68)' },
-    { part: 'grey', color: 'rgb(94, 100, 109)' },
-  ], 'folded Airframe sentences keep their original colours');
-  await caveatMore.click();
-  await expect(caveat.getByRole('button', { name: 'Less', exact: true })).toHaveCount(1);
-  const expandedCaveat = await caveatText.evaluate((node) => ({ scrollWidth: node.scrollWidth, clientWidth: node.clientWidth, height: node.getBoundingClientRect().height }));
-  assert.ok(expandedCaveat.height > caveatLineHeight * 1.5, `expanded Airframe caveat shows both lines (${expandedCaveat.height}px)`);
-  assert.ok(expandedCaveat.scrollWidth <= expandedCaveat.clientWidth + 1, 'expanded Airframe caveat is not clipped');
-  const expandedText = await caveatText.innerText();
-  assert.ok(expandedText.includes(airframeAmber) && expandedText.includes(airframeRollup), 'expanded Airframe caveat carries both full sentences');
-  pass('Airframe caveat folds to one line and expands to both full sentences');
+  await expect(stabilityStrip).toContainText('Stability at liftoff');
+  await expect(stabilityStrip).toContainText(/loaded/);
+  await expect(stabilityStrip.locator('[data-stability-verdict]')).toHaveText(/^(Stable|Too little stability|More stability than needed|Not checked)/);
+  await expect(stabilityStrip).toContainText('Airframe only, without the motor');
+  const verdictText = await stabilityStrip.locator('[data-stability-verdict]').innerText();
+  if (!/^Stable/.test(verdictText) && !/^Not checked/.test(verdictText)) {
+    await expect(stabilityStrip.locator('[data-stability-advice]')).toHaveCount(1);
+  }
+  pass('Airframe stability card leads with liftoff stability, its meaning and the action');
 
   // beta-aero-layout: the built-up model publishes totals but no component
   // breakdown. The 3D view must still lay out the full rocket from the native
@@ -490,22 +489,28 @@ export async function previewJourneys(page, origin) {
         rect: rect.length === 4 && rect.every(Number.isFinite) ? rect : null,
         canvas: [base.width, base.height],
         shadows: document.querySelectorAll('[data-shadow-updates], [data-shadow-catcher]').length,
+        laptop: window.matchMedia('(max-width: 1439px)').matches,
       };
     });
+    // Below 1440 px the viewcube is drawn at 70%, with its margin and reserved box scaled to match.
+    const cubeMargin = async () => ((await cubeState())?.laptop ? Math.round(64 * 0.7) : 64);
+    const cubeBox = async () => ((await cubeState())?.laptop ? Math.round(128 * 0.7) : 128);
     await expect.poll(async () => (await cubeState())?.rect !== null, { message: 'the viewport must report the viewcube footprint', timeout: 20_000 }).toBe(true);
     // The canvas resizes a beat after the stage switch (default 300×150 first),
     // and the footprint can lag behind it. Wait until both agree before
     // measuring; the exact assertions below still decide pass or fail.
-    const settled = (s) => s?.rect !== null && s.canvas[0] > 300 && Math.abs((s.rect[0] + s.rect[2]) / 2 - (s.canvas[0] - 64)) <= 1 && Math.abs((s.rect[1] + s.rect[3]) / 2 - (s.canvas[1] - 64)) <= 1;
+    const margin = await cubeMargin();
+    const box = await cubeBox();
+    const settled = (s) => s?.rect !== null && s.canvas[0] > 300 && Math.abs((s.rect[0] + s.rect[2]) / 2 - (s.canvas[0] - margin)) <= 1 && Math.abs((s.rect[1] + s.rect[3]) / 2 - (s.canvas[1] - margin)) <= 1;
     await expect.poll(async () => settled(await cubeState()), { message: 'the viewcube footprint must settle on the sized canvas', timeout: 20_000 }).toBe(true).catch(() => undefined);
     const cube = await cubeState();
     const [gx0, gy0, gx1, gy1] = cube.rect;
     const [cw, ch] = cube.canvas;
     assert.ok(gx0 >= 0 && gy0 >= 0 && gx1 <= cw + 0.5 && gy1 <= ch + 0.5, `the viewcube must sit inside the canvas (rect ${cube.rect}, canvas ${cube.canvas})`);
-    assert.ok(Math.abs((gx0 + gx1) / 2 - (cw - 64)) <= 1 && Math.abs((gy0 + gy1) / 2 - (ch - 64)) <= 1, `the viewcube must sit 64 px in from the bottom-right corner (rect ${cube.rect}, canvas ${cube.canvas})`);
-    assert.ok(Math.abs(gx1 - gx0 - 128) <= 1 && Math.abs(gy1 - gy0 - 128) <= 1, `the viewcube footprint must be 128×128 px (rect ${cube.rect})`);
+    assert.ok(Math.abs((gx0 + gx1) / 2 - (cw - margin)) <= 1 && Math.abs((gy0 + gy1) / 2 - (ch - margin)) <= 1, `the viewcube must sit ${margin} px in from the bottom-right corner (rect ${cube.rect}, canvas ${cube.canvas})`);
+    assert.ok(Math.abs(gx1 - gx0 - box) <= 1 && Math.abs(gy1 - gy0 - box) <= 1, `the viewcube footprint must be ${box}×${box} px (rect ${cube.rect})`);
     assert.equal(cube.shadows, 0, 'the floor shadow rig must be gone: no shadow-map probe and no shadow catcher');
-    pass(`viewcube ${cube.rect.join(',')} (128×128 at the 64 px bottom-right margin); no shadow probe or catcher`);
+    pass(`viewcube ${cube.rect.join(',')} (${box}×${box} at the ${margin} px bottom-right margin); no shadow probe or catcher`);
 
     // Clicking a face must still orient the camera. The cube turns the camera
     // through OrbitControls, so the orbit probe counts the turn.
@@ -870,7 +875,7 @@ export async function previewJourneys(page, origin) {
   await length.fill(String(Number(before.replaceAll(',', '')) + 10));
   await length.press('Enter');
   await page.getByRole('button', { name: 'Apply staged edits', exact: true }).click();
-  await expect(page.getByRole('banner')).toContainText('since run');
+  await expect(page.getByRole('banner')).toContainText(/since Run #\d+/);
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toHaveAttribute('title', isMac ? /⌘Z/ : /Ctrl\+Z/);
   await expect(page.getByRole('button', { name: 'Redo', exact: true })).toHaveAttribute('title', isMac ? /⇧⌘Z/ : /Ctrl\+Shift\+Z/);
   await stage('Build');
@@ -887,16 +892,16 @@ export async function previewJourneys(page, origin) {
   const name = page.getByRole('textbox', { name: 'Vehicle name' });
   await name.fill('Preview acceptance rocket');
   await name.press('Tab');
-  await menu('Save to this browser');
+  await menu('Save in this browser');
   await page.locator('[data-project-status="ok"]').waitFor();
   await page.keyboard.press('Escape');
   await name.fill('Unsaved change');
   await name.press('Tab');
-  await menu('Open saved project');
+  await menu('Open the copy in this browser');
   await expect(name).toHaveValue('Preview acceptance rocket');
   await page.keyboard.press('Escape');
   await page.reload();
-  await menu('Open saved project');
+  await menu('Open the copy in this browser');
   await expect(name).toHaveValue('Preview acceptance rocket');
   await page.keyboard.press('Escape');
   pass('IndexedDB save/restore across edits and reload');
@@ -920,7 +925,7 @@ export async function previewJourneys(page, origin) {
   await site.fill('Huntsville, AL (journey)');
   await expect(site).toHaveValue('Huntsville, AL (journey)');
   await stage('Build');
-  await page.getByRole('radio', { name: 'Off', exact: true }).click();
+  await page.getByRole('radio', { name: 'Plain file', exact: true }).click();
   const files = {};
   for (const format of ['project', 'rkt', 'ork', 'step', 'stl', 'svg', 'eng', 'rse', 'png', 'kml']) {
     await page.locator(`[data-format="${format}"]`).getByRole('button', { name: 'Review export' }).click();
@@ -932,15 +937,22 @@ export async function previewJourneys(page, origin) {
     files[format] = { name: download.suggestedFilename(), bytes: await readFile(path) };
   }
   pass('all ten export formats download consecutively');
+  // At laptop width the parts tree folds away on results stages (Build); open it to count parts.
+  const partsToggle = page.getByRole('button', { name: 'Toggle parts panel', exact: true });
+  if (await partsToggle.getAttribute('aria-expanded') === 'false') await partsToggle.click();
 
   await name.fill('Round-trip probe');
   await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: files.project.name, mimeType: 'application/json', buffer: files.project.bytes });
+  await confirmReplace(page);
   await expect(name).toHaveValue('Preview acceptance rocket');
   await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: files.ork.name, mimeType: 'application/octet-stream', buffer: files.ork.bytes });
+  await confirmReplace(page);
   await expect(page.getByRole('treeitem')).toHaveCount(7);
   await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: files.project.name, mimeType: 'application/json', buffer: files.project.bytes });
+  await confirmReplace(page);
   await expect(name).toHaveValue('Preview acceptance rocket');
   await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: 'broken.astraea.json', mimeType: 'application/json', buffer: Buffer.from('{broken') });
+  await confirmReplace(page);
   await expect(page.getByText('Could not load broken.astraea.json', { exact: true })).toBeVisible();
   await expect(name).toHaveValue('Preview acceptance rocket');
   await page.getByRole('button', { name: 'Dismiss disclosure', exact: true }).click();
@@ -953,6 +965,7 @@ export async function previewJourneys(page, origin) {
   await site.fill('Somewhere else');
   await expect(site).toHaveValue('Somewhere else');
   await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: 'p1.astraea', mimeType: 'application/octet-stream', buffer: files.project.bytes });
+  await confirmReplace(page);
   await expect(page.getByText('Could not load p1.astraea', { exact: true })).toHaveCount(0);
   await expect(site).toHaveValue('Huntsville, AL (journey)');
   await expect(page.getByText('Student Launch 2027').first()).toBeVisible();
@@ -1026,6 +1039,7 @@ export async function calibrationJourney(page, origin) {
   const menu = async (name) => {
     await page.getByRole('button', { name: 'Project menu', exact: true }).click();
     await page.getByRole('button', { name: new RegExp(`^${name}`) }).click();
+    await confirmReplace(page);
   };
   const pass = (name) => console.log(`Preview acceptance passed: ${name}`);
   await page.goto(new URL('app/', origin).href);
@@ -1049,11 +1063,12 @@ export async function calibrationJourney(page, origin) {
 
   // A fresh page has not seen the stored revision yet, and the browser slot refuses a stale save by
   // design: open what is stored first, as a user would, then bring in the design to calibrate.
-  await menu('Open saved project');
+  await menu('Open the copy in this browser');
   await page.keyboard.press('Escape');
   // The Studio no longer carries a second copy of the recovery card; Recovery keeps it.
   await stage('Mission');
   await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: 'cosmic-cargo-2986.astraea.json', mimeType: 'application/json', buffer: design });
+  await confirmReplace(page);
   await expect(page.getByRole('textbox', { name: 'Vehicle name' })).toHaveValue('Cosmic Cargo (estimated)');
   // K3: a drag fit is made against the legacy tables only, and built-up drag is the default, so the
   // calibration journey chooses the legacy flight explicitly (the card says why it blocks otherwise).
@@ -1122,6 +1137,7 @@ export async function calibrationJourney(page, origin) {
   controlled.mission.name = 'Synthetic workflow — no empirical validation';
   await stage('Mission');
   await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: 'synthetic-calibration-workflow.astraea.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(controlled)) });
+  await confirmReplace(page);
   await expect(page.getByRole('textbox', { name: 'Vehicle name' })).toHaveValue(controlled.vehicle.name);
   await run();
   before = await readApogee();
@@ -1152,7 +1168,7 @@ export async function calibrationJourney(page, origin) {
   await apply.click();
   await expect(page.locator('[data-drag-calibration-applied]')).toBeVisible();
   // Applying stales the run made without it, and says so.
-  await expect(page.getByRole('banner')).toContainText('since run');
+  await expect(page.getByRole('banner')).toContainText(/since Run #\d+/);
   await run();
   const after = await readApogee();
   assert.equal(after.level, 'Calibrated', 'A calibrated run reads Calibrated');
@@ -1169,12 +1185,12 @@ export async function calibrationJourney(page, origin) {
   await page.getByRole('button', { name: 'Project menu', exact: true }).click();
   const projectStatus = page.locator('[data-project-status]');
   const previousStatus = await projectStatus.count() ? await projectStatus.first().textContent() : null;
-  await page.getByRole('button', { name: /^Save to this browser/ }).click();
-  await expect(projectStatus).toContainText(/Saved locally \(revision \d+\)/);
+  await page.getByRole('button', { name: /^Save in this browser/ }).click();
+  await expect(projectStatus).toContainText(/Saved in this browser \(revision \d+\)/);
   if (previousStatus) await expect(projectStatus).not.toHaveText(previousStatus);
   await page.keyboard.press('Escape');
   await page.reload();
-  await menu('Open saved project');
+  await menu('Open the copy in this browser');
   await page.keyboard.press('Escape');
   await stage('Verify');
   await openValidation(page);
@@ -1187,7 +1203,7 @@ export async function calibrationJourney(page, origin) {
 
   // Through a file: export the project from Build, change it, import it back.
   await stage('Build');
-  await page.getByRole('radio', { name: 'Off', exact: true }).click();
+  await page.getByRole('radio', { name: 'Plain file', exact: true }).click();
   await page.locator('[data-format="project"]').getByRole('button', { name: 'Review export' }).click();
   const downloadPromise = page.waitForEvent('download', { timeout: 30_000 });
   await page.getByRole('button', { name: 'Confirm export', exact: true }).click();
@@ -1218,6 +1234,7 @@ export async function calibrationJourney(page, origin) {
   await expect(page.locator('[data-drag-calibration-applied]')).toHaveCount(0);
   await stage('Mission');
   await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: 'calibrated.astraea.json', mimeType: 'application/json', buffer: exported });
+  await confirmReplace(page);
   await stage('Verify');
   await openValidation(page);
   await expect(page.locator('[data-drag-calibration-applied]')).toHaveAttribute('data-drag-calibration-applied', scale.toFixed(3));

@@ -10,6 +10,7 @@
 import React, { useMemo, useState } from 'react';
 import { Package } from 'lucide-react';
 import { useProjectStore } from '../../state/project';
+import { setConsoleState } from '../hooks';
 import { C } from '../kit/theme';
 import { Select } from '../kit/Controls';
 import {
@@ -134,8 +135,14 @@ export function RecoveryCard(): React.JSX.Element {
       stack.push({ name: item.name, length: item.lengthM.value });
     }
   }
-  const excludedCount = items.length - stack.length;
+  const excluded = items.filter((item) => !(item.lengthM.value !== null && item.lengthM.value > 0));
+  const excludedCount = excluded.length;
   const clearance = bayLenV !== null ? clearanceCheck(bayLenV, stack) : null;
+  // A missing packed length leaves the fit unknown, unless the parts that do
+  // have one already overrun the bay: that failure is proven either way.
+  const clearanceState: 'fits' | 'overrun' | 'unknown' | null = clearance === null
+    ? null
+    : !clearance.fits ? 'overrun' : excludedCount > 0 ? 'unknown' : 'fits';
 
   const pinForceN = pinPreset === '2-56' ? PIN_2_56.shearForceN : PIN_4_40.shearForceN;
   const targetPressurePa = pinCount !== null && pinCount > 0 && boreV !== null
@@ -174,7 +181,7 @@ export function RecoveryCard(): React.JSX.Element {
     }
   }
   const stripLabel = selectedBay !== null && bayLenV !== null
-    ? `Bay strip: ${selectedBay.tubeName}, length ${(bayLenV * 1000).toFixed(1)} mm, ${stack.length} placed, ${clearance !== null && clearance.fits ? 'fits' : 'overruns'}`
+    ? `Bay strip: ${selectedBay.tubeName}, length ${(bayLenV * 1000).toFixed(1)} mm, ${stack.length} placed, ${clearanceState === 'unknown' ? 'fit unknown' : clearanceState === 'fits' ? 'fits' : 'overruns'}`
     : 'Bay strip: manual entry';
 
   return (
@@ -289,14 +296,24 @@ export function RecoveryCard(): React.JSX.Element {
             <KvRow label="Packed density" value={fmt(densityGcm3, 3)} unit="g/cm³" />
             <KvRow
               label="Clearance"
-              value={clearance === null ? '—' : clearance.fits
-                ? `FITS · ${(clearance.remaining * 1000).toFixed(0)} mm spare`
-                : `OVERRUN · ${(-clearance.remaining * 1000).toFixed(0)} mm past aft`}
-              tone={clearance === null ? 'dim' : clearance.fits ? 'ok' : 'bad'}
+              value={clearance === null ? '—' : clearanceState === 'overrun'
+                ? `OVERRUN · ${(-clearance.remaining * 1000).toFixed(0)} mm past aft`
+                : clearanceState === 'unknown'
+                  ? `UNKNOWN · ${excludedCount} packed length${excludedCount === 1 ? '' : 's'} missing`
+                  : `FITS · ${(clearance.remaining * 1000).toFixed(0)} mm spare`}
+              tone={clearance === null ? 'dim' : clearanceState === 'overrun' ? 'bad' : clearanceState === 'unknown' ? 'muted' : 'ok'}
             />
             {excludedCount > 0 && (
               <p role="status" className="text-[10.5px]" style={{ color: C.muted }}>
-                {excludedCount} item{excludedCount === 1 ? '' : 's'} excluded from clearance — packed length missing.
+                {clearanceState === 'overrun'
+                  ? <>The parts with a packed length already overrun the bay; {excludedCount} more item{excludedCount === 1 ? ' has' : 's have'} no packed length yet.</>
+                  : <>Not checked: {excluded.map((item) => item.name).join(', ')} {excludedCount === 1 ? 'has' : 'have'} no packed length, so whether everything fits is unknown.</>}
+                {' '}
+                {excluded.filter((item) => item.kind === 'chute').slice(0, 1).map((item) => (
+                  <button key={item.id} type="button" className="underline" onClick={() => setConsoleState({ selectedId: item.id, rightOpen: true })}>
+                    Enter packed length for {item.name}
+                  </button>
+                ))}
               </p>
             )}
             <div className="flex items-center gap-1.5">

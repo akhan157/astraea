@@ -57,12 +57,13 @@ export type ConfidenceStyle = 'A' | 'B';
 
 const CONFIDENCE_KEY = 'astraea.confidence.v1';
 
+/**
+ * The A|B confidence-style experiment is over: style A ships. A stored 'B'
+ * from the experiment is no longer honoured, since there is no control left to
+ * switch it back.
+ */
 function loadConfidenceStyle(): ConfidenceStyle {
-  try {
-    return localStorage.getItem(CONFIDENCE_KEY) === 'B' ? 'B' : 'A';
-  } catch {
-    return 'A';
-  }
+  return 'A';
 }
 
 /** Patch accepted by `setConsole`: the console shell's UI-only fields. */

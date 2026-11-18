@@ -28,8 +28,10 @@ it('selects an actual retained point rather than evaluating an interior state',(
   const history=momentArmHistoryFixture(); const {container}=render(<MomentArmHistoryPanel history={history} />);
   fireEvent.change(screen.getByLabelText('Recorded history point'),{target:{value:'1'}});
   expect(container.querySelector('[data-history-selected-time]')?.getAttribute('data-history-selected-time')).toBe(String(history.points[1].timeS));
-  expect(screen.getByText('0.12345679')).toBeTruthy();
-  expect(screen.getByText('12.345679°')).toBeTruthy();
+  // Decision precision on screen; the full recorded value rides along for hover and export.
+  expect(screen.getByText('0.123')).toBeTruthy();
+  expect(screen.getByText('0.123').getAttribute('data-raw')).toBe('0.12345679');
+  expect(screen.getByText('12.3°').getAttribute('data-raw')).toBe('12.345679°');
   expect(history.points[1].mach).toBe(.123456789);
 });
 it('keeps live-canopy normal quantities N/A and does not plot a zero substitute',()=>{
@@ -38,7 +40,7 @@ it('keeps live-canopy normal quantities N/A and does not plot a zero substitute'
   expect(screen.getAllByText('N/A — live canopy')).toHaveLength(5);
   expect(screen.getByText('Normal arm N/A — live canopy; no airframe values to plot.')).toBeTruthy();
   expect(screen.queryByRole('img',{name:'Recorded normal moment arm (calibers)'})).toBeNull();
-  expect(screen.getByText('0.30000000 m')).toBeTruthy();
+  expect(screen.getByText('300 mm').getAttribute('data-raw')).toBe('0.30000000 m');
 });
 it('retains historical/stale attribution and explicit unknown engine rather than querying a current one',()=>{
   const {rerender}=render(<MomentArmHistoryPanel history={momentArmHistoryFixture()} stale />);

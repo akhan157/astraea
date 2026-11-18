@@ -23,6 +23,7 @@
  *  - damping moments vanish at zero airspeed (no Math.max(1, V) floor).
  */
 
+import { recoveryChutes } from '../sim/parachuteRoles';
 import { RocketVehicle, ParachuteComponent, BodyTubeComponent } from '../core/types';
 import { MotorSpec, getMotorThrustAt, getMotorMassAt, getMotorMassFlowAt } from '../propulsion/motorDatabase';
 import { computeAerodynamicCurves, finNormalPlanform, type AeroCurveResult } from '../aero/transonicAero';
@@ -264,7 +265,8 @@ export function prepareVehicle(
   const vehicleDryMass = massRollup.totalMass;
   const Ixx_dry = 0.5 * vehicleDryMass * rBody * rBody;
   const Iyy_dry = (vehicleDryMass * (3 * rBody * rBody + totalLength * totalLength)) / 12;
-  const parachutes = vehicle.components.filter((c) => c.type === 'parachute') as ParachuteComponent[];
+  // Same role rule as the native engine: an explicit drogue/main role wins over position.
+  const chutes = recoveryChutes(vehicle.components);
   // Fin/body normal-slope split from Barrowman component contributions
   // (audit §5.2): fin effectiveness degrades supersonically while
   // nose/transition contributions are retained at full subsonic slope.
@@ -282,8 +284,8 @@ export function prepareVehicle(
     cna0: stability.totalCNa,
     ...normal,
     motorAftStationFromNose: resolveMotorCentroid(vehicle, massRollup, motor),
-    drogue: parachutes[0],
-    mainChute: parachutes.length > 1 ? parachutes[1] : parachutes[0],
+    drogue: chutes.drogue ?? undefined,
+    mainChute: chutes.main ?? undefined,
     aeroPowered: computeAerodynamicCurves(vehicle, true, 25),
     aeroCoasting: computeAerodynamicCurves(vehicle, false, 25),
     supersonicNormal: prepareSupersonicNormal(vehicle, stability.contributions ?? []),

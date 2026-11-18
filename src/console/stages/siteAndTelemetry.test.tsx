@@ -61,7 +61,7 @@ describe('Console engineering boundaries', () => {
     expect(screen.getByText(/Sample timing metadata is unavailable/).textContent).toContain('no continuous-peak');
     unmount();
     render(<LaunchInspector />);
-    expect(screen.getByText('Effective guide travel')).toBeTruthy();
+    expect(screen.getByText('Rail length (guide travel)')).toBeTruthy();
     expect(screen.getByText(/Physical rail length alone/)).toBeTruthy();
     // Guide-travel input is a scalar: the note must keep stating that partial guide
     // constraints and tip-off are unmodeled and must not imply rail-button geometry.

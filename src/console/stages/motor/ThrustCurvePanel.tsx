@@ -7,14 +7,20 @@
  * simfile in the catalog through the shared motor-record policy (`addMotor`),
  * which suffixes a colliding id rather than overwriting the motor there.
  *
- * The endpoint layer is `io/net.ts` (`searchThrustCurve`,
+ * The box takes what people type: a designation (K550W), a common name (K550)
+ * or a manufacturer (AeroTech), alone or combined. Three outcomes stay
+ * distinct: results (with a note when part of the search failed or the list
+ * was cut short), "no matches" (every search answered, none matched), and
+ * "request failed" (nothing was searched, so it is not a no-match).
+ *
+ * The endpoint layer is `io/net.ts` (`searchThrustCurveText`,
  * `downloadThrustCurveFile`); `isNetworkOnline` drives the offline state.
  */
 import { useState } from 'react';
 import { Download, Search } from 'lucide-react';
 import { isNetworkOnline } from '../../../io/backend';
-import { downloadThrustCurveFile, searchThrustCurve } from '../../../io/net';
-import type { MotorSummary } from '../../../propulsion/thrustcurveApi';
+import { downloadThrustCurveFile, searchThrustCurveText } from '../../../io/net';
+import type { MotorSummary, TextSearchOutcome } from '../../../propulsion/thrustcurveApi';
 import { parseRaspEng, parseRseXml } from '../../../formats/engParser';
 import { validateMotorSpec } from '../../../propulsion/motorDatabase';
 import { useWS } from '../../store';
@@ -24,8 +30,30 @@ import { Button } from '../../kit/Fields';
 type SearchState =
   | { kind: 'idle' }
   | { kind: 'loading' }
-  | { kind: 'ok'; results: MotorSummary[]; cacheNote: string }
+  | { kind: 'ok'; results: MotorSummary[]; notes: string[] }
+  | { kind: 'empty'; message: string }
   | { kind: 'error'; message: string };
+
+const MAX_RESULTS = 25;
+
+const searchedBy = (outcome: TextSearchOutcome): string => {
+  const fields = [...new Set(outcome.attempts.map((a) => a.field))];
+  return fields.length <= 1 ? fields.join('') : `${fields.slice(0, -1).join(', ')} and ${fields[fields.length - 1]}`;
+};
+
+/** Notes beside the results: a list cut at the page size, and any part of the search that failed. */
+function outcomeNotes(outcome: TextSearchOutcome): string[] {
+  const notes: string[] = [];
+  for (const a of outcome.attempts) {
+    if (a.matches !== null && a.matches > MAX_RESULTS) {
+      notes.push(`ThrustCurve.org lists ${a.matches} motors for ${a.field} “${a.value}”; the first ${MAX_RESULTS} were fetched and ${a.shown} of them have curve files. Add a designation (for example ${outcome.manufacturer?.name ?? 'AeroTech'} K550W) to narrow it.`);
+    }
+  }
+  if (outcome.failures.length > 0) {
+    notes.push(`Part of the search failed, so this list may be incomplete: ${outcome.failures.map((f) => `${f.field} (${f.message})`).join('; ')}.`);
+  }
+  return notes;
+}
 
 type ImportState = { kind: 'ok' | 'error'; message: string } | null;
 
@@ -58,10 +86,18 @@ export function ThrustCurvePanel({ onImported }: { onImported?: (id: string) => 
     }
     setState({ kind: 'loading' });
     try {
-      const res = await searchThrustCurve({ designation: trimmed, hasDataFiles: true, maxResults: 25 }, fetch);
-      setState({ kind: 'ok', results: res.results, cacheNote: res.cacheNote });
+      const outcome = await searchThrustCurveText(trimmed, fetch, { maxResults: MAX_RESULTS });
+      if (outcome.results.length > 0) {
+        setState({ kind: 'ok', results: outcome.results, notes: outcomeNotes(outcome) });
+      } else if (outcome.failures.length > 0) {
+        // Some searches answered with nothing, others never answered: that is
+        // not a "no matches", so it reads as a failure.
+        setState({ kind: 'error', message: `Search incomplete: no motors matched the searches that ran (${searchedBy(outcome)}), and part of the search failed: ${outcome.failures.map((f) => `${f.field} (${f.message})`).join('; ')}. Try again.` });
+      } else {
+        setState({ kind: 'empty', message: `No motors on ThrustCurve.org match “${trimmed}” (searched by ${searchedBy(outcome)}, motors with curve files only). Try a manufacturer (AeroTech) or a common name (K550).` });
+      }
     } catch (err) {
-      setState({ kind: 'error', message: err instanceof Error ? err.message : String(err) });
+      setState({ kind: 'error', message: `Search failed, so this is not a “no matches” answer. ${err instanceof Error ? err.message : String(err)}` });
     }
   };
 
@@ -95,7 +131,7 @@ export function ThrustCurvePanel({ onImported }: { onImported?: (id: string) => 
           type="text"
           value={query}
           aria-label="ThrustCurve search query"
-          placeholder="Designation or manufacturer, e.g. C6 or Aerotech"
+          placeholder="Designation, common name or manufacturer, e.g. C6-5, K550 or AeroTech"
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') void runSearch(); }}
           className={INPUT}
@@ -111,12 +147,15 @@ export function ThrustCurvePanel({ onImported }: { onImported?: (id: string) => 
         <Alert tone="bad">Offline: the search and simfile download need a network connection. Import a .eng or .rse file instead.</Alert>
       )}
 
-      <div role="status" data-thrustcurve-status={state.kind === 'error' ? 'error' : state.kind === 'ok' ? 'ok' : undefined}
+      <div role="status" data-thrustcurve-status={state.kind === 'idle' || state.kind === 'loading' ? undefined : state.kind}
         className="rounded p-2 text-[12px]" style={{ background: C.sunken, border: `1px solid ${C.line}`, color: state.kind === 'error' ? C.bad : C.muted }}>
         {state.kind === 'idle' && 'Search the ThrustCurve.org database, then import a curve.'}
-        {state.kind === 'loading' && 'Searching ThrustCurve…'}
-        {state.kind === 'ok' && (state.results.length === 0 ? 'No motors matched that query.' : `${state.results.length} motor${state.results.length === 1 ? '' : 's'} found. ${state.cacheNote}`)}
-        {state.kind === 'error' && state.message}
+        {state.kind === 'loading' && 'Searching ThrustCurve.org…'}
+        {state.kind === 'ok' && <>
+          {`${state.results.length} motor${state.results.length === 1 ? '' : 's'} found with curve files. Results are cached for 24 hours.`}
+          {state.notes.map((note) => <span key={note} className="mt-1 block" style={{ color: note.startsWith('Part of the search failed') ? C.warn : C.muted }}>{note}</span>)}
+        </>}
+        {(state.kind === 'empty' || state.kind === 'error') && state.message}
       </div>
 
       {state.kind === 'ok' && state.results.length > 0 && (

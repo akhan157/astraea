@@ -226,3 +226,63 @@ export const PRESET_SPACEPORT_AMERICA: RocketVehicle = {
     },
   ],
 };
+
+/**
+ * Launch-site coordinates for the example designs (WGS84 decimal degrees),
+ * keyed like PRESET_DESIGNS and matching each example mission's site label,
+ * so the weather fetch asks about the place the mission names. These are
+ * the named place itself (the city centre for a city), not a specific launch
+ * field: set your field's own coordinates for a forecast at the pad.
+ *
+ * The Estes Alpha example flies from "Local field", which is no real place,
+ * so it has none and the weather panel asks for them.
+ */
+export interface SiteCoordinates {
+  /** The place, worded exactly like the example mission's site label. */
+  label: string;
+  latDeg: number;
+  lonDeg: number;
+}
+
+export const PRESET_SITE_COORDINATES: Record<string, SiteCoordinates | null> = {
+  estesAlpha: null,
+  nasaStudent: { label: 'Huntsville, AL', latDeg: 34.7304, lonDeg: -86.5861 },
+  spaceport: { label: 'Spaceport America, NM', latDeg: 32.9903, lonDeg: -106.9697 },
+};
+
+/**
+ * The coordinates a workspace starts with when nothing set them
+ * (DEFAULT_WORKSPACE.site): a placeholder, never a launch site anyone chose.
+ */
+export const PLACEHOLDER_SITE_COORDINATES: SiteCoordinates = { label: 'Seattle, WA', latDeg: 47.6062, lonDeg: -122.3321 };
+
+/** Site lat/lon for an example design, or nothing when it has no real place. */
+export function presetSiteCoordinates(key: string): { latDeg: number; lonDeg: number } | Record<string, never> {
+  const site = PRESET_SITE_COORDINATES[key];
+  return site ? { latDeg: site.latDeg, lonDeg: site.lonDeg } : {};
+}
+
+/** Every place Astraea can name from coordinates alone. */
+const NAMED_SITES: SiteCoordinates[] = Object.values(PRESET_SITE_COORDINATES).filter((s): s is SiteCoordinates => s !== null);
+
+/** Within about 1 km (0.01°) counts as the same named place. */
+const SAME_PLACE_DEG = 0.01;
+
+const near = (a: { latDeg: number; lonDeg: number }, b: { latDeg: number; lonDeg: number }): boolean =>
+  Math.abs(a.latDeg - b.latDeg) <= SAME_PLACE_DEG && Math.abs(a.lonDeg - b.lonDeg) <= SAME_PLACE_DEG;
+
+/** True when the coordinates are still the never-set placeholder. */
+export function isPlaceholderSite(site: { latDeg: number; lonDeg: number }): boolean {
+  return site.latDeg === PLACEHOLDER_SITE_COORDINATES.latDeg && site.lonDeg === PLACEHOLDER_SITE_COORDINATES.lonDeg;
+}
+
+/** The named place at these coordinates, or null when Astraea cannot name it. */
+export function namedSiteAt(site: { latDeg: number; lonDeg: number }): SiteCoordinates | null {
+  return NAMED_SITES.find((s) => near(s, site)) ?? null;
+}
+
+/** The known coordinates for a site label (case and spacing ignored), or null. */
+export function namedSiteCalled(label: string): SiteCoordinates | null {
+  const key = label.trim().toLowerCase().replace(/\s+/g, ' ');
+  return NAMED_SITES.find((s) => s.label.toLowerCase() === key) ?? null;
+}

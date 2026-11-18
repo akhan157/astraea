@@ -349,3 +349,72 @@ export function convexHull(points: readonly { x: number; y: number }[]): { x: nu
   upper.pop();
   return [...lower, ...upper];
 }
+
+/* ───────────── when an edit may move the camera ───────────── */
+
+/** The whole canvas in NDC. */
+export const FULL_VIEW: NdcBox = { minX: -1, maxX: 1, minY: -1, maxY: 1 };
+
+/** A box that is "off-screen everywhere": returned when a point sits behind the camera. */
+const BEHIND: NdcBox = { minX: -Infinity, maxX: Infinity, minY: -Infinity, maxY: Infinity };
+
+/**
+ * NDC box of world-space points seen through a real camera: its own position,
+ * orbit pan, up vector and projection, not the fitted model `projectedBox`
+ * assumes. This is what "the rocket is on screen" has to be measured with,
+ * because after a user orbit or pan the camera is no longer the one a fit
+ * wrote. A point at or behind the near plane makes the box unbounded, so it
+ * can never count as in view.
+ */
+export function cameraBox(points: readonly Vector[], camera: THREE.PerspectiveCamera): NdcBox {
+  camera.updateMatrixWorld();
+  const box: NdcBox = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
+  const v = new THREE.Vector3();
+  for (const point of points) {
+    v.set(point.x, point.y, point.z).applyMatrix4(camera.matrixWorldInverse);
+    if (-v.z <= camera.near) return { ...BEHIND };
+    v.applyMatrix4(camera.projectionMatrix);
+    if (v.x < box.minX) box.minX = v.x;
+    if (v.x > box.maxX) box.maxX = v.x;
+    if (v.y < box.minY) box.minY = v.y;
+    if (v.y > box.maxY) box.maxY = v.y;
+  }
+  return box;
+}
+
+/** Canvas-pixel rectangle to an NDC box (inverse of `ndcBoxToPixels`). */
+export function pixelsToNdcBox(rect: Rect, canvas: { width: number; height: number }): NdcBox {
+  const w = Math.max(canvas.width, 1);
+  const h = Math.max(canvas.height, 1);
+  return { minX: rect.x0 / w * 2 - 1, maxX: rect.x1 / w * 2 - 1, minY: 1 - rect.y1 / h * 2, maxY: 1 - rect.y0 / h * 2 };
+}
+
+/** Every point of `box` inside `view` (a hair of tolerance for float noise). */
+export function boxInside(box: NdcBox, view: NdcBox = FULL_VIEW, tolerance = 1e-6): boolean {
+  return box.minX >= view.minX - tolerance && box.maxX <= view.maxX + tolerance
+    && box.minY >= view.minY - tolerance && box.maxY <= view.maxY + tolerance;
+}
+
+/** Any part of `box` inside `view`. */
+export function boxOverlaps(box: NdcBox, view: NdcBox = FULL_VIEW): boolean {
+  if (!(box.maxX >= box.minX) || !(box.maxY >= box.minY)) return false;
+  return box.minX < view.maxX && box.maxX > view.minX && box.minY < view.maxY && box.maxY > view.minY;
+}
+
+/**
+ * Plan #8: an edit moves the camera only when it takes the rocket out of view.
+ *
+ * `before` and `after` are the rocket's screen boxes through the *unchanged*
+ * camera, for the geometry before and after the edit (`before` null when there
+ * was none). The camera holds when the edited rocket is still entirely on
+ * screen, so a nudge, a colour or a fin tweak never re-centres or re-zooms.
+ * It re-frames when the edit pushed part of a fully visible rocket off screen.
+ * A view the user had already zoomed into (the rocket was partly off screen
+ * before the edit) is theirs and is kept, unless the edit leaves nothing of
+ * the rocket on screen at all.
+ */
+export function editNeedsRefit(before: NdcBox | null, after: NdcBox, view: NdcBox = FULL_VIEW): boolean {
+  if (boxInside(after, view)) return false;
+  if (before === null || boxInside(before, view)) return true;
+  return !boxOverlaps(after, view);
+}

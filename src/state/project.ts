@@ -29,7 +29,7 @@ import { DEFAULT_MISSION, type Mission } from '../application/mission';
 import { copyMotor, importMotorKey, mergeMotorRecords } from './motors';
 import { hashHex, stableStringify } from '../application/caseResolver';
 import type { LedgerEntry } from '../application/evidenceLedger';
-import { PRESET_ESTES_ALPHA, PRESET_NASA_STUDENT_LAUNCH, PRESET_SPACEPORT_AMERICA } from './presets';
+import { PRESET_ESTES_ALPHA, PRESET_NASA_STUDENT_LAUNCH, PRESET_SPACEPORT_AMERICA, presetSiteCoordinates } from './presets';
 
 export type StudioId = 'airframe' | 'aero' | 'propulsion' | 'trajectory' | 'recovery';
 
@@ -156,6 +156,8 @@ export interface ToastMsg {
   id: number;
   message: string;
   actionLabel?: string;
+  /** Undo-history depth right after the announced change; Undo is offered only while it is still the latest change. */
+  undoDepth?: number;
 }
 
 /** One component patch for an atomic multi-component stage. */
@@ -295,7 +297,8 @@ interface ProjectState {
   stageAddComponent: (studio: StudioId, component: RocketComponent) => boolean;
   stageRemoveComponent: (studio: StudioId, id: string) => boolean;
   revertStudio: (studio: StudioId) => void;
-  applyStudio: (studio: StudioId) => void;
+  /** Commit a studio's staged edits as one undo step; `label` names them in History. */
+  applyStudio: (studio: StudioId, label?: string) => void;
   /** Direct structural commits: one undo entry each. */
   commitStructural: (label: string, fn: (p: ProjectEnvelope) => ProjectEnvelope) => void;
   /**
@@ -321,6 +324,8 @@ interface ProjectState {
   /** New empty project from the bundled baseline vehicle. */
   newProject: () => void;
   loadPreset: (key: string) => void;
+  /** Replace the design with a blank starter (undoable, like loading an example). */
+  loadBlank: (vehicle: RocketVehicle, motorId: string) => void;
   /** Snapshot of the committed project plus the console extras. */
   consoleView: () => ConsoleView;
   /** The effective certificate/import/derived records: envelope over registry. */
@@ -344,6 +349,8 @@ function initialProject(): { project: ProjectEnvelope; motors: Record<string, Mo
     ...DEFAULT_WORKSPACE,
     motorId: preset.motorId,
     launch: { ...DEFAULT_WORKSPACE.launch, ...preset.launch },
+    // The weather fetch asks about the mission's own site, not the placeholder.
+    site: { ...DEFAULT_WORKSPACE.site, ...presetSiteCoordinates(SEED_PRESET_KEY) },
   };
   const project = createProjectEnvelope({
     vehicle: preset.vehicle,
@@ -558,7 +565,7 @@ export const useProjectStore = create<ProjectState>((set, get) => {
       set({ drafts: { ...drafts, [studio]: emptyDraft() } });
     },
 
-    applyStudio: (studio) => commitDraft(studio, `Apply ${studio} edits`),
+    applyStudio: (studio, label) => commitDraft(studio, label ?? `Apply ${studio} edits`),
 
     commitStructural: (label, fn) => {
       const { project } = get();
@@ -741,7 +748,7 @@ export const useProjectStore = create<ProjectState>((set, get) => {
         ...DEFAULT_WORKSPACE,
         motorId: preset.motorId,
         launch: { ...DEFAULT_WORKSPACE.launch, ...preset.launch },
-        site: { ...DEFAULT_WORKSPACE.site, altitudeASLM: preset.altitudeASLM ?? DEFAULT_WORKSPACE.site.altitudeASLM },
+        site: { ...DEFAULT_WORKSPACE.site, ...presetSiteCoordinates(key), altitudeASLM: preset.altitudeASLM ?? DEFAULT_WORKSPACE.site.altitudeASLM },
       };
       const project = createProjectEnvelope({
         vehicle: preset.vehicle,
@@ -761,7 +768,28 @@ export const useProjectStore = create<ProjectState>((set, get) => {
         past: [...get().past, entry].slice(-100),
         future: [],
         file: { kind: 'dirty-unsaved' },
-        toasts: [...get().toasts, { id: toastCounter, message: `Preset loaded: ${preset.label}` }],
+        toasts: [...get().toasts, { id: toastCounter, message: `Replaced the design with the ${preset.label} example`, actionLabel: 'Undo', undoDepth: Math.min(get().past.length + 1, 100) }].slice(-3),
+        projectEpoch: get().projectEpoch + 1,
+      });
+    },
+
+    loadBlank: (vehicle, motorId) => {
+      const workspace: Workspace = { ...DEFAULT_WORKSPACE, motorId };
+      const mission = { ...DEFAULT_MISSION };
+      const project = createProjectEnvelope({ vehicle, workspace, mission, motorRecords: certifiedRecord(motorId) });
+      const entry = { ...entryOf('Start a blank design'), analysisContext: terminalAnalysisSnapshot() };
+      useAnalysisStore.getState().reset();
+      toastCounter += 1;
+      set({
+        project,
+        motors: get().motors,
+        mission,
+        shearPa: undefined,
+        drafts: blankDrafts(),
+        past: [...get().past, entry].slice(-100),
+        future: [],
+        file: { kind: 'dirty-unsaved' },
+        toasts: [...get().toasts, { id: toastCounter, message: 'Started a blank design', actionLabel: 'Undo', undoDepth: Math.min(get().past.length + 1, 100) }].slice(-3),
         projectEpoch: get().projectEpoch + 1,
       });
     },
@@ -770,6 +798,15 @@ export const useProjectStore = create<ProjectState>((set, get) => {
     consoleView: () => ({ project: get().project, mission: get().mission, shearPa: get().shearPa }),
   };
 });
+
+/** Announce a change that Undo can reverse, with an Undo action on the toast. */
+export function pushUndoToast(message: string): void {
+  toastCounter += 1;
+  useProjectStore.setState({
+    toasts: [...useProjectStore.getState().toasts, { id: toastCounter, message, actionLabel: 'Undo', undoDepth: useProjectStore.getState().past.length }].slice(-3),
+    lastDestructive: { label: message },
+  });
+}
 
 /** Commit a named destructive action with an undo toast. Caller removes first. */
 export function commitDestructive(label: string, fn: (p: ProjectEnvelope) => ProjectEnvelope): void {

@@ -199,7 +199,19 @@ export interface ParachuteComponent extends BaseComponent {
   packedLengthM?: number;
   /** Packed envelope diameter, meters (see packedLengthM). */
   packedDiameterM?: number;
+  /**
+   * Which deployment event opens this chute: the drogue opens at apogee, the
+   * main at the workspace main-deploy altitude. Absent = automatic, today's
+   * rule by list order (first chute = drogue, second = main, a single chute
+   * serves as both; `sim/parachuteRoles.ts`), so files written before this
+   * field fly exactly as they did. A set role wins over position, so reordering
+   * parts cannot swap the drogue and the main.
+   */
+  deployRole?: ParachuteDeployRole;
 }
+
+/** Deployment event a parachute is bound to (see ParachuteComponent.deployRole). */
+export type ParachuteDeployRole = 'drogue' | 'main';
 
 export type RocketComponent =
   | NoseconeComponent

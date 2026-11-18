@@ -18,9 +18,12 @@ const cases = [
   v('freeform', [tube, { id: 'f', name: 'f', type: 'freeformfinset', finCount: 3, points: [{ x: 0, y: 0 }, { x: 0.2, y: 0.3 }, { x: 0.4, y: 0 }], thickness: 0.003, crossSection: 'square', axialOffset: 0.9, materialId: 'balsa' }]),
 ];
 
+/** Build notes, CG/CP marks and the export time add text below the drawing; it must stay inside too. */
+const annotated = { units: 'metric', marks: { cg: { xM: 0.4, detail: 'with a long motor designation loaded' }, cp: null, unavailable: 'stability not computed yet' }, exportedAt: new Date('2026-11-17T23:08:00Z'), timeZone: 'America/Los_Angeles' } as const;
+
 describe('blueprint drawing bounds', () => {
-  it.each(cases)('contains all geometry and text for $name', vehicle => {
-    const doc = new DOMParser().parseFromString(exportBlueprintSvg(vehicle), 'image/svg+xml');
+  it.each([...cases.map((vehicle) => ({ vehicle, options: {} })), ...cases.map((vehicle) => ({ vehicle, options: annotated }))])('contains all geometry and text for $vehicle.name', ({ vehicle, options }) => {
+    const doc = new DOMParser().parseFromString(exportBlueprintSvg(vehicle, options), 'image/svg+xml');
     const svg = doc.documentElement;
     const [vx, vy, vw, vh] = svg.getAttribute('viewBox')!.split(/\s+/).map(Number);
     const point = (x: number, y: number, el: Element) => {
@@ -30,7 +33,12 @@ describe('blueprint drawing bounds', () => {
       expect(y, el.outerHTML).toBeLessThanOrEqual(vy + vh + 0.01);
     };
     const num = (el: Element, key: string) => Number(el.getAttribute(key));
-    for (const el of Array.from(svg.querySelectorAll('rect,polygon,path,line,text'))) {
+    for (const el of Array.from(svg.querySelectorAll('rect,polygon,path,line,text,circle'))) {
+      if (el.tagName === 'circle') {
+        const cx = num(el, 'cx'), cy = num(el, 'cy'), r = num(el, 'r');
+        point(cx - r, cy - r, el); point(cx + r, cy + r, el);
+        continue;
+      }
       if (el.tagName === 'rect') {
         const x = num(el, 'x'), y = num(el, 'y');
         point(x, y, el); point(x + num(el, 'width'), y + num(el, 'height'), el);
@@ -39,9 +47,11 @@ describe('blueprint drawing bounds', () => {
       } else if (el.tagName === 'text') {
         const x = num(el, 'x'), y = num(el, 'y');
         const total = el.getAttribute('class') === 'bp-total';
-        const halfWidth = (el.textContent?.length ?? 0) * (total ? 9 : 8) / 2;
-        point(x - halfWidth, y - (total ? 15 : 13), el);
-        point(x + halfWidth, y + 4, el);
+        const width = (el.textContent?.length ?? 0) * (total ? 9 : 8);
+        // Centred labels extend both ways; note lines are start-anchored.
+        const start = el.getAttribute('text-anchor') === 'middle' ? x - width / 2 : x;
+        point(start, y - (total ? 15 : 13), el);
+        point(start + width, y + 4, el);
       } else {
         // All paths emitted here use absolute M/L/C/Q commands. Control points
         // conservatively bound Bézier curves as well as their endpoints.

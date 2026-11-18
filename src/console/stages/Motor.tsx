@@ -27,34 +27,53 @@ type ToolId = 'thrustcurve' | 'editor' | 'chamber' | 'grain' | 'recipe';
 const APCP_REFERENCE_PRESSURE_BAR = 100;
 
 /**
- * Mount fit from the shared assessment. There is no silent fallback to the
- * last body tube: with no flagged mount the motor seats at the aft end (no
- * bore constraint), an ambiguous or solid set of mounts blocks seating, and a
- * motor wider than the bore is reported with the exact numbers.
+ * Mount fit from the shared assessment, claiming no more than was checked.
+ * Astraea checks the motor diameter against the mount bore and that at least
+ * half the motor sits inside the mount tube; motor blocks, retention and
+ * centering rings are not modeled, so an accepted motor reads "Diameter
+ * clears · mount unverified", never "fits". With no flagged mount the motor
+ * seats at the aft end (no bore constraint); an ambiguous or solid set of
+ * mounts blocks seating; a motor wider than the bore is reported with the
+ * exact numbers.
  */
-export function fitOf(motor: MotorSpec | undefined, mounts: MountAssessment, units: Units): { fits: boolean; label: string; title: string } {
+export function fitOf(motor: MotorSpec | undefined, mounts: MountAssessment, units: Units): { fits: boolean; label: string; detail?: string; title: string } {
   if (motor === undefined) return { fits: false, label: '—', title: 'motor record missing from the catalog' };
   if (mounts.ambiguous) {
-    return { fits: false, label: 'check mount', title: `${mounts.mounts.length} tubes are flagged as motor mounts — flag exactly one` };
+    return { fits: false, label: 'Check mount', title: `${mounts.mounts.length} tubes are flagged as motor mounts — flag exactly one` };
   }
+  const length = (value: number) => { const v = show(value, 'len', units); return `${v.text} ${v.unit}`; };
   if (mounts.mounts.length === 0) {
-    return { fits: true, label: 'aft seat', title: `no motor mount flagged — seats at the aft end of ${motor.designation}` };
+    return { fits: true, label: 'Tail seat', detail: 'mount unverified', title: `No motor mount is flagged, so ${motor.designation} (⌀${length(motor.diameter)}) seats at the aft end and its diameter is not checked against a bore.` };
   }
   if (mounts.solidMount || mounts.boreM === null) {
-    return { fits: false, label: 'no bore', title: `mount '${mounts.mounts[0].name}' is a solid tube (no bore) — no motor can be seated` };
+    return { fits: false, label: 'No bore', title: `mount '${mounts.mounts[0].name}' is a solid tube (no bore) — no motor can be seated` };
   }
   const reason = reasonMotorExcluded(mounts, motor);
   if (reason === null) {
-    const diameter = show(motor.diameter, 'len', units);
-    const bore = show(mounts.boreM, 'len', units);
-    return { fits: true, label: 'fits', title: `⌀${diameter.text} ${diameter.unit} in a ⌀${bore.text} ${bore.unit} bore` };
+    const gap = mounts.boreM - motor.diameter;
+    const loose = gap > 0.002 ? ` The bore is ${length(gap)} wider than the motor, so it needs an adapter or centering rings.` : '';
+    return {
+      fits: true,
+      label: 'Diameter clears',
+      detail: 'mount unverified',
+      title: `⌀${length(motor.diameter)} in a ⌀${length(mounts.boreM)} bore, with at least half of the ${length(motor.length)} motor inside '${mounts.mounts[0].name}'.${loose} Motor block, retention and centering rings are not modeled.`,
+    };
   }
   const tooWide = motor.diameter > mounts.boreM;
-  const length = (value: number) => { const v = show(value, 'len', units); return `${v.text} ${v.unit}`; };
   const title = tooWide
     ? `motor ⌀${length(motor.diameter)} exceeds mount '${mounts.mounts[0].name}' bore ⌀${length(mounts.boreM)}`
     : `motor length ${length(motor.length)} is not retained by mount '${mounts.mounts[0].name}' (needs >= 50% of ${length(mounts.mounts[0].length)})`;
-  return { fits: false, label: tooWide ? 'too wide' : 'too long', title }; 
+  return { fits: false, label: tooWide ? 'Too wide' : 'Too long', title };
+}
+
+/** The fit label with its qualifier, for table cells and the detail line. */
+function FitLabel({ f }: { f: ReturnType<typeof fitOf> }) {
+  return (
+    <span title={f.title} className="block min-w-0 leading-tight" data-motor-fit={f.label}>
+      <span className="block truncate" style={{ color: f.fits ? C.fg : C.bad }}>{f.label}</span>
+      {f.detail && <span className="block truncate text-[10.5px]" style={{ color: C.dim }}>{f.detail}</span>}
+    </span>
+  );
 }
 
 export function MotorStage() {
@@ -89,11 +108,11 @@ export function MotorStage() {
             <DataTable rows={motors} rowKey={(m) => m.id} activeKey={preview} onRowClick={setPreview}
               columns={[
                 { key: 'sel', label: '', width: '14px', render: (m) => m.id === s.design.motorId ? <span className="block h-2 w-2 rounded-full" style={{ background: motorChanged ? C.changed : C.accent }} title="In use" /> : null },
-                { key: 'd', label: 'Motor', width: 'minmax(110px,1fr)', render: (m) => <span className="block min-w-0"><span className="block truncate font-geist-mono">{m.designation}</span><span className="block truncate text-[11px]" style={{ color: C.dim }}>{m.manufacturer} · class {m.impulseClass}</span></span> },
-                { key: 'i', label: 'Impulse', align: 'right', width: '78px', render: (m) => <span className="font-geist-mono">{m.totalImpulse.toFixed(0)}<span className="text-[10.5px]" style={{ color: C.dim }}> N·s</span></span> },
-                { key: 'b', label: 'Burn', align: 'right', width: '58px', render: (m) => <ValueUnit value={m.burnTime} kind="time" digits={2} /> },
-                { key: 'dia', label: 'Dia', align: 'right', width: '62px', render: (m) => <ValueUnit value={m.diameter} kind="len" /> },
-                { key: 'fit', label: 'Mount', width: '74px', render: (m) => { const f = fitOf(m, mounts, units); return <span title={f.title} style={{ color: f.fits ? C.muted : C.bad }}>{f.label}</span>; } }
+                { key: 'd', label: 'Motor', width: 'minmax(100px,1fr)', render: (m) => <span className="block min-w-0"><span className="block truncate font-geist-mono">{m.designation}</span><span className="block truncate text-[11px]" style={{ color: C.dim }}>{m.manufacturer} · class {m.impulseClass}</span></span> },
+                { key: 'fit', label: 'Mount fit', width: '108px', render: (m) => <FitLabel f={fitOf(m, mounts, units)} /> },
+                { key: 'i', label: 'Impulse', align: 'right', width: '74px', render: (m) => <span className="font-geist-mono">{m.totalImpulse.toFixed(0)}<span className="text-[10.5px]" style={{ color: C.dim }}> N·s</span></span> },
+                { key: 'dia', label: 'Diameter', align: 'right', width: '66px', render: (m) => <ValueUnit value={m.diameter} kind="len" /> },
+                { key: 'b', label: 'Burn', align: 'right', width: '56px', render: (m) => <ValueUnit value={m.burnTime} kind="time" digits={2} /> }
               ]} />
           </div>
           <div className="min-h-0 min-w-0 overflow-auto p-3 thin-scroll">
@@ -115,8 +134,8 @@ export function MotorStage() {
                   <Stat label="Length"><ValueUnit value={shown.length} kind="len" /></Stat>
                   <Stat label="Diameter"><ValueUnit value={shown.diameter} kind="len" /></Stat>
                 </div>
-                <div className="mt-2 text-[11.5px]" style={{ color: shownFit.fits ? C.muted : C.bad }} title={shownFit.title}>
-                  Mount: {shownFit.label} — {shownFit.title}
+                <div className="mt-2 text-[11.5px]" style={{ color: shownFit.fits ? C.muted : C.bad }} title={shownFit.title} data-motor-fit-detail>
+                  Mount: <strong className="font-medium">{shownFit.label}{shownFit.detail ? ` · ${shownFit.detail}` : ''}</strong> — {shownFit.title}
                 </div>
                 <div className="mt-3">
                   {shown.id === s.design.motorId

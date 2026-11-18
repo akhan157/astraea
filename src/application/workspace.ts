@@ -67,6 +67,9 @@ export const DEFAULT_WORKSPACE: Workspace = {
     finCantDeg: 0,
     mainDeployAltitudeM: 300,
   },
+  // Placeholder coordinates (Seattle, WA), not a launch site: the example
+  // designs set their own (state/presets.ts PRESET_SITE_COORDINATES), and the
+  // weather panel refuses to fetch a forecast for these until they are set.
   site: {
     latDeg: 47.6062,
     lonDeg: -122.3321,

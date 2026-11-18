@@ -4,15 +4,31 @@ import { join } from 'node:path';
 import { expect } from 'playwright/test';
 import JSZip from 'jszip';
 
+/**
+ * Replacing a design with unsaved edits asks first; these journeys mean to
+ * replace it. The ask opens in the same event as the click or file pick, so
+ * once the page has run one more task the Replace button is either on screen
+ * or not coming. No wall-clock wait: a busy CI page can take longer than any
+ * fixed timeout just to answer.
+ */
+async function confirmReplace(target) {
+  await target.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
+  const replace = target.getByRole('button', { name: 'Replace', exact: true });
+  if (await replace.isVisible()) await replace.click();
+}
+
+
 export async function previewDepth(page, origin) {
   const stage = (name) => page.getByRole('navigation', { name: 'Pipeline stages' }).getByRole('button', { name, exact: true }).click();
   const menu = async (target, name) => {
     await target.getByRole('button', { name: 'Project menu', exact: true }).click();
     await target.getByRole('button', { name: new RegExp(`^${name}`) }).click();
+    await confirmReplace(target);
   };
   for (const preset of ['Estes Alpha III', 'NASA Student Launch', 'Spaceport America (practice)']) {
     await stage('Mission');
     await page.getByRole('button', { name: new RegExp(`^${preset.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`) }).click();
+    await confirmReplace(page);
     await page.getByRole('banner').getByRole('button', { name: /Run simulation/ }).click();
     await expect(page.getByRole('banner').getByRole('button', { name: /Run simulation/ })).toBeEnabled({ timeout: 60_000 });
     const label = await page.locator('[aria-label^="Apogee (committed run) "]').getAttribute('aria-label');
@@ -30,6 +46,7 @@ export async function previewDepth(page, origin) {
     const zip = new JSZip();
     zip.file('rocket.ork', `<openrocket><rocket><name>Must not replace project</name><subcomponents><stage>${unsupported.stage}<subcomponents><bodytube><length>0.5</length><radius>0.025</radius><subcomponents>${unsupported.fins}</subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>`);
     await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: 'unsupported.ork', mimeType: 'application/octet-stream', buffer: Buffer.from(await zip.generateAsync({ type: 'uint8array' })) });
+    await confirmReplace(page);
     await expect(page.getByText(new RegExp(unsupported.reason))).toBeVisible();
     await expect(vehicleName).toHaveValue(nameBeforeRefusal);
     await page.getByRole('button', { name: 'Dismiss disclosure', exact: true }).click();
@@ -43,6 +60,7 @@ export async function previewDepth(page, origin) {
   await page.getByLabel('Import file', { exact: true }).setInputFiles({
     name: 'freeform-fins-synthetic.ork', mimeType: 'application/octet-stream', buffer: fixture,
   });
+  await confirmReplace(page);
   await expect(vehicleName).toHaveValue('Freeform Fin Fixture');
   await stage('Airframe');
   const finRow = page.getByRole('treeitem', { name: 'Fin set', exact: true });
@@ -75,7 +93,7 @@ export async function previewDepth(page, origin) {
 
   // Inspect the actual bytes downloaded by each geometry exporter.
   await stage('Build');
-  await page.getByRole('radio', { name: 'Off', exact: true }).click();
+  await page.getByRole('radio', { name: 'Plain file', exact: true }).click();
   const exportBytes = async (format) => {
     const row = page.locator(`[data-format="${format}"]`);
     await row.getByRole('button', { name: 'Review export', exact: true }).click();
@@ -104,23 +122,23 @@ export async function previewDepth(page, origin) {
 
   // Two independent UI sessions, one IndexedDB slot: a stale tab must not
   // overwrite the newer tab's bytes. Both tabs belong to this test profile.
-  await menu(page, 'Open saved project');
+  await menu(page, 'Open the copy in this browser');
   await expect(page.getByRole('textbox', { name: 'Vehicle name' })).toHaveValue('Preview acceptance rocket');
   await page.keyboard.press('Escape');
   const other = await page.context().newPage();
   try {
     await other.goto(new URL('app/', origin).href);
-    await menu(other, 'Open saved project');
+    await menu(other, 'Open the copy in this browser');
     await expect(other.getByRole('textbox', { name: 'Vehicle name' })).toHaveValue('Preview acceptance rocket');
     await other.keyboard.press('Escape');
     await other.getByRole('textbox', { name: 'Vehicle name' }).fill('Other tab wins');
-    await menu(other, 'Save to this browser');
-    await expect(other.locator('[data-project-status="ok"]')).toContainText('Saved locally');
+    await menu(other, 'Save in this browser');
+    await expect(other.locator('[data-project-status="ok"]')).toContainText('Saved in this browser');
     await page.getByRole('textbox', { name: 'Vehicle name' }).fill('Stale tab must not win');
-    await menu(page, 'Save to this browser');
+    await menu(page, 'Save in this browser');
     await expect(page.locator('[data-project-status="error"]')).toContainText(/stale/i);
     await page.keyboard.press('Escape');
-    await menu(page, 'Open saved project');
+    await menu(page, 'Open the copy in this browser');
     await expect(page.getByRole('textbox', { name: 'Vehicle name' })).toHaveValue('Other tab wins');
     await page.keyboard.press('Escape');
   } finally {
@@ -130,6 +148,7 @@ export async function previewDepth(page, origin) {
 
   await stage('Mission');
   await page.getByRole('button', { name: /^NASA Student Launch/ }).click();
+  await confirmReplace(page);
   await stage('Flight');
   await page.getByRole('tab', { name: 'Monte Carlo', exact: true }).click();
   const runs = page.getByRole('spinbutton', { name: 'Monte Carlo nRuns', exact: true });
@@ -331,6 +350,7 @@ export async function accuracyBundleJourneys(page, origin) {
   // ── the refused shape a shipped template already provides ─────────────────
   await stage('Mission');
   await page.getByRole('button', { name: /^Spaceport America \(practice\)/ }).click();
+  await confirmReplace(page);
   const spaceportBaseline = await runFlight();
   await openAeroInputs();
   await page.getByRole('checkbox', { name: 'Use built-up aero model (beta)', exact: true }).check();

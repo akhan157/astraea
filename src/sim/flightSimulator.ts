@@ -5,7 +5,8 @@
  * Incorporates the ISA 1976 Standard Atmosphere and high-Mach aerodynamic drag.
  */
 
-import { RocketVehicle, ParachuteComponent } from '../core/types';
+import { RocketVehicle } from '../core/types';
+import { recoveryChutes } from './parachuteRoles';
 import { aggregateVehicleMass } from '../core/mass';
 import { MotorSpec, getMotorThrustAt, getMotorMassAt } from '../propulsion/motorDatabase';
 import { computeAerodynamicCurves } from '../aero/transonicAero';
@@ -120,9 +121,9 @@ export function simulateFlight(
   const vehicleDryMass = Math.max(0.01, massRollup.totalMass);
 
   // Parachutes
-  const parachutes = vehicle.components.filter((c) => c.type === 'parachute') as ParachuteComponent[];
-  const drogue = parachutes[0];
-  const mainChute = parachutes.length > 1 ? parachutes[1] : parachutes[0];
+  // Declared roles first, else list order (first = drogue, second-or-first =
+  // main); the engine's rule, shared through `parachuteRoles`.
+  const { drogue, main: mainChute } = recoveryChutes(vehicle.components, 'simulateFlight');
 
   // Precompute high-Mach aerodynamic drag curve
   const aeroData = computeAerodynamicCurves(vehicle, false, 25);

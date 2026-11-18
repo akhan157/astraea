@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, CircleHelp, Construction, Inbox, Loader2, MinusCircle, X, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, CircleAlert, CircleHelp, Construction, Inbox, Loader2, MinusCircle, X, XCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { Gate, GateStatus, Job, Validity } from '../data/contract';
 import { C } from './theme';
@@ -42,12 +42,20 @@ export function ValidityBadge({ v, enveloped }: { v: Validity; enveloped: boolea
 
 /* ───────────── gates ───────────── */
 
-const GATE_ICON: Record<GateStatus, { I: typeof CheckCircle2; c: string; t: string }> = {
+export const GATE_ICON: Record<GateStatus, { I: typeof CheckCircle2; c: string; t: string }> = {
   pass: { I: CheckCircle2, c: C.ok, t: 'Pass' },
-  fail: { I: XCircle, c: C.bad, t: 'Fail' },
+  caution: { I: CircleAlert, c: C.warn, t: 'Caution' },
+  fail: { I: XCircle, c: C.bad, t: 'Failed' },
   unknown: { I: CircleHelp, c: C.unknown, t: 'Unknown' },
-  'n/a': { I: MinusCircle, c: C.dim, t: 'N/A' }
+  invalid: { I: AlertTriangle, c: C.warn, t: 'Run invalid' },
+  'n/a': { I: MinusCircle, c: C.dim, t: 'Not applicable' }
 };
+
+/** A status word in its colour, so colour is never the only signal. */
+export function GateStatusText({ status }: { status: GateStatus }) {
+  const { c, t } = GATE_ICON[status];
+  return <span data-gate-status={status} className="shrink-0 rounded px-1.5 py-px text-[10.5px] font-medium" style={{ color: c, border: `1px solid ${c}55` }}>{t}</span>;
+}
 /**
  * A gate's reason. Only a passing (or not-applicable) gate folds to one
  * ellipsized line with a More control, and only when that line overflows.
@@ -70,28 +78,46 @@ function GateReason({ reason, fold }: { reason: string; fold: boolean }) {
 
 export function GateRow({ g, stale, onOpen, compact }: { g: Gate; stale?: boolean; onOpen?: () => void; compact?: boolean }) {
   const { I, c, t } = GATE_ICON[g.status];
+  const showAdvice = !compact && g.advice !== undefined && g.status !== 'pass' && g.status !== 'n/a';
   return (
     <div role={onOpen ? 'button' : undefined} tabIndex={onOpen ? 0 : undefined} onClick={onOpen} onKeyDown={(e) => e.key === 'Enter' && onOpen?.()}
+      aria-label={onOpen ? `${g.label}: ${t}` : undefined}
       className={cn('grid items-center gap-3 px-3', compact ? 'grid-cols-[16px_1fr_auto] py-1.5' : 'grid-cols-[16px_minmax(0,1fr)_auto_auto] py-2.5', onOpen && 'cursor-pointer hover:bg-white/[0.03]')}
       style={{ borderBottom: `1px solid ${C.line}`, opacity: stale ? 0.6 : 1 }}>
-      <I size={15} color={c} aria-label={t} />
+      <I size={15} color={c} aria-hidden="true" />
       <div className="min-w-0">
-        <div className="flex items-center gap-2 text-[13px]">{g.label}{stale && <span className="text-[10.5px]" style={{ color: C.changed }}>stale</span>}</div>
+        <div className="flex flex-wrap items-center gap-2 text-[13px]">{g.label}<GateStatusText status={g.status} />{stale && <span className="text-[10.5px]" style={{ color: C.changed }}>stale</span>}</div>
         {!compact && <GateReason reason={g.reason} fold={g.status === 'pass' || g.status === 'n/a'} />}
+        {showAdvice && <div data-gate-advice className="mt-0.5 text-[11.5px] leading-snug" style={{ color: C.fg }}>{g.advice}</div>}
       </div>
-      {!compact && <span className="max-w-[130px] text-right font-geist-mono text-[11.5px]" style={{ color: C.dim }}>{g.threshold}</span>}
-      <span className="min-w-[72px] text-right">{Number.isFinite(g.value.value) ? <ResultValue r={g.value} label={g.label} /> : <span style={{ color: C.dim }}>—</span>}</span>
+      {!compact && <span className="max-w-[150px] text-right font-geist-mono text-[11.5px]" style={{ color: C.dim }} title="Criterion">{g.threshold}</span>}
+      <span className="min-w-[72px] text-right">{g.display !== undefined
+        ? <span data-gate-display className="font-geist-mono text-[12.5px]" style={{ color: c }}>{g.display}</span>
+        : Number.isFinite(g.value.value) ? <ResultValue r={g.value} label={g.label} /> : <span style={{ color: C.dim }}>—</span>}</span>
     </div>
   );
+}
+
+/** Check counts in words: "5 passed · 1 caution · 1 failed · 1 unknown". */
+export function gateCountsText(gates: Gate[]): string {
+  const n = (s: GateStatus) => gates.filter((g) => g.status === s).length;
+  const parts = [`${n('pass')} passed`];
+  if (n('caution') > 0) parts.push(`${n('caution')} caution`);
+  parts.push(`${n('fail')} failed`);
+  if (n('unknown') > 0) parts.push(`${n('unknown')} unknown`);
+  if (n('invalid') > 0) parts.push(`${n('invalid')} run invalid`);
+  return parts.join(' · ');
 }
 
 export function GateSummary({ gates }: { gates: Gate[] }) {
   const n = (s: GateStatus) => gates.filter((g) => g.status === s).length;
   return (
-    <span className="inline-flex items-center gap-2.5 font-geist-mono text-[11px]">
-      <span className="inline-flex items-center gap-1" style={{ color: C.ok }}><CheckCircle2 size={11} />{n('pass')}</span>
-      <span className="inline-flex items-center gap-1" style={{ color: n('fail') ? C.bad : C.dim }}><XCircle size={11} />{n('fail')}</span>
-      {n('unknown') > 0 && <span className="inline-flex items-center gap-1" style={{ color: C.unknown }}><CircleHelp size={11} />{n('unknown')}</span>}
+    <span className="inline-flex items-center gap-2.5 text-[11px]" aria-label={gateCountsText(gates)}>
+      <span className="inline-flex items-center gap-1" style={{ color: C.ok }}><CheckCircle2 size={11} aria-hidden="true" />{n('pass')} passed</span>
+      {n('caution') > 0 && <span className="inline-flex items-center gap-1" style={{ color: C.warn }}><CircleAlert size={11} aria-hidden="true" />{n('caution')} caution</span>}
+      <span className="inline-flex items-center gap-1" style={{ color: n('fail') ? C.bad : C.dim }}><XCircle size={11} aria-hidden="true" />{n('fail')} failed</span>
+      {n('unknown') > 0 && <span className="inline-flex items-center gap-1" style={{ color: C.unknown }}><CircleHelp size={11} aria-hidden="true" />{n('unknown')} unknown</span>}
+      {n('invalid') > 0 && <span className="inline-flex items-center gap-1" style={{ color: C.warn }}><AlertTriangle size={11} aria-hidden="true" />{n('invalid')} run invalid</span>}
     </span>
   );
 }

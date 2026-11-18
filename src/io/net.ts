@@ -16,9 +16,12 @@ import {
 import {
   downloadMotorSimfile,
   searchMotors,
+  searchMotorsByText,
   ThrustCurveApiError,
   type FetchImpl as ThrustFetch,
   type MotorSummary,
+  type TextSearchOutcome,
+  type ThrustCurveApiOptions,
   type ThrustCurveSearchQuery,
 } from '../propulsion/thrustcurveApi';
 
@@ -79,10 +82,10 @@ export interface ThrustCurveSearchResult {
 
 function thrustError(message: string, cause: unknown): Error {
   if (cause instanceof ThrustCurveApiError && typeof cause.status === 'number') {
-    return new ThrustCurveApiError(
-      `${message}: ${cause.message} (HTTP ${cause.status}). If the service rate-limits, wait and retry.`,
-      cause.status,
-    );
+    // Status 0 is a transport or validation failure: there was no HTTP status to cite.
+    const http = cause.status > 0 && !cause.message.includes(`HTTP ${cause.status}`) ? ` (HTTP ${cause.status})` : '';
+    const wait = cause.retryAfterSeconds !== undefined ? ` ThrustCurve.org asks to wait ${cause.retryAfterSeconds} s before retrying.` : ' If the service rate-limits, wait and retry.';
+    return new ThrustCurveApiError(`${message}: ${cause.message}${http}.${wait}`, cause.status, cause.retryAfterSeconds);
   }
   const detail = cause instanceof Error ? cause.message : String(cause);
   return new Error(`${message}: ${detail}. If the service rate-limits, wait and retry.`);
@@ -107,6 +110,24 @@ export async function searchThrustCurve(
     results,
     cacheNote: 'Results served through the shared 24h ThrustCurve response cache.',
   };
+}
+
+/**
+ * ThrustCurve search by what the user typed (designation, common name or
+ * manufacturer), through the shared 24 h cache. Resolves with the merged
+ * results and any partial failures; rejects only when every request failed,
+ * so callers can tell "no matches" from "request failed".
+ */
+export async function searchThrustCurveText(
+  text: string,
+  fetchImpl: ThrustFetch,
+  options: ThrustCurveApiOptions & { maxResults?: number } = {},
+): Promise<TextSearchOutcome> {
+  try {
+    return await searchMotorsByText(text, fetchImpl, options);
+  } catch (err) {
+    throw thrustError('ThrustCurve.org motor search is unavailable', err);
+  }
 }
 
 /**

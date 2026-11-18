@@ -33,6 +33,7 @@ import type {
   NoseconeShape,
   FinCrossSection,
   FinPoint,
+  ParachuteDeployRole,
 } from '../core/types';
 import { SURFACE_FINISH_NAMES, AIRFOIL_SECTION_NAMES } from '../core/types';
 import { validateFreeformPoints } from '../aero/finPlanform';
@@ -725,6 +726,8 @@ const FIN_CROSS_SECTIONS: ReadonlyArray<FinCrossSection> = [
   'airfoil',
 ];
 
+const PARACHUTE_DEPLOY_ROLES: ReadonlyArray<ParachuteDeployRole> = ['drogue', 'main'];
+
 const ISO_RE = /^\d{4}-\d{2}-\d{2}T/;
 
 function requireString(value: unknown, what: string): string {
@@ -1077,6 +1080,11 @@ function validateComponentGeometry(
           : {}),
         ...(comp.packedDiameterM !== undefined
           ? { packedDiameterM: requirePositive(comp.packedDiameterM, `${ctx}.packedDiameterM`) }
+          : {}),
+        // Absent = automatic (list order). Kept, never dropped: dropping a
+        // declared role on load would silently swap which chute opens when.
+        ...(comp.deployRole !== undefined
+          ? { deployRole: requireOneOf(comp.deployRole, PARACHUTE_DEPLOY_ROLES, `${ctx}.deployRole`) }
           : {}),
       };
   }

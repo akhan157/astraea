@@ -21,19 +21,42 @@ import {
   projectFileName,
   saveProjectTo,
 } from '../io/files';
-import { adoptProject, exportableProject, useProjectStore } from './project';
+import { adoptProject, exportableProject, resolveMotorRecord, useProjectStore } from './project';
+import { useSessionStore } from './session';
+import { shortcutLabel } from '../lib/platform';
 
-/** Inline import disclosure: a loss note, or a failure with its reason. */
+/**
+ * Inline import disclosure. A success says what came in, names what did not
+ * and where the motor came from; a failure says why nothing changed.
+ */
 export interface ProjectReport {
+  kind: 'ok' | 'error';
   title: string;
+  /** The answer in one line. */
+  message: string;
+  /** What did not carry over, one plain sentence per kind, naming each item. */
+  details?: string[];
+  /** Where the motor came from when the file did not choose it. */
+  motorNote?: string;
+  /** Undo entry label that reverts this import, while it is still the latest edit. */
+  undoLabel?: string;
+}
+
+/**
+ * Inline outcome of a save or open, shown in the project menu. `cancelled`
+ * (the user dismissed a picker, or a newer action superseded this one) and
+ * `info` (nothing to do, e.g. an empty browser slot) are neither a success nor
+ * an error, and are styled neutrally.
+ */
+export interface ProjectStatus {
+  kind: 'ok' | 'info' | 'cancelled' | 'error';
   message: string;
 }
 
-/** Inline outcome of a save or open, shown in the project menu. */
-export interface ProjectStatus {
-  kind: 'ok' | 'error';
-  message: string;
-}
+/** Menu wording, shared with the recovery guidance so the two never drift apart. */
+export const SAVE_IN_BROWSER = 'Save in this browser';
+export const SAVE_COPY_AS_FILE = 'Save a copy as a file…';
+export const OPEN_FROM_BROWSER = 'Open the copy in this browser';
 
 interface ProjectIoState {
   report: ProjectReport | null;
@@ -60,9 +83,9 @@ function failure(prefix: 'Save failed' | 'Open failed', err: unknown, next: stri
 }
 
 function slotSaveRecovery(err: unknown): string {
-  if (err instanceof StaleRevisionError) return 'Another tab or window saved a newer revision. Your design is still open: use Save project file… to keep it, or Open saved project to load the newer one.';
-  if (err instanceof InvalidProjectError) return 'The copy stored in this browser is unreadable and was left untouched. Your design is still open: use Save project file… to keep a copy.';
-  return 'Nothing in this browser was changed and your design is still open. Use Save project file… to keep a copy.';
+  if (err instanceof StaleRevisionError) return `Another tab or window saved a newer revision. Your design is still open: use ${SAVE_COPY_AS_FILE} to keep it, or ${OPEN_FROM_BROWSER} to load the newer one.`;
+  if (err instanceof InvalidProjectError) return `The copy stored in this browser is unreadable and was left untouched. Your design is still open: use ${SAVE_COPY_AS_FILE} to keep a copy.`;
+  return `Nothing in this browser was changed and your design is still open. Use ${SAVE_COPY_AS_FILE} to keep a copy.`;
 }
 
 /**
@@ -112,7 +135,7 @@ function canReport(request: ReturnType<typeof beginOpen>): boolean {
 
 function loadCancellation(request: ReturnType<typeof beginOpen>): ProjectStatus {
   return {
-    kind: 'ok',
+    kind: 'cancelled',
     message: request.document === documentIntent && request.snapshot.epoch === useProjectStore.getState().projectEpoch
       ? 'Load cancelled — the current document changed while loading. Try opening it again.'
       : 'Open superseded — nothing was loaded.',
@@ -144,7 +167,34 @@ export async function importProjectFile(file: File): Promise<void> {
  */
 function couldNotLoad(file: File, reason: string, next = 'Your current design was not changed.'): ProjectReport {
   const why = reason.trim().replace(/\.$/, '');
-  return { title: `Could not load ${file.name}`, message: why ? `${why}. ${next}` : next };
+  return { kind: 'error', title: `Could not load ${file.name}`, message: why ? `${why}. ${next}` : next };
+}
+
+/** The open design's motor, by designation, or its id when no record resolves. */
+function currentMotorName(): string {
+  const { project, motors } = useProjectStore.getState();
+  return resolveMotorRecord(project.workspace.motorId, motors)?.motor.designation ?? project.workspace.motorId;
+}
+
+/** Total impulse in the user's units, for the motor-import note. */
+function impulseText(ns: number): string {
+  return useSessionStore.getState().units === 'imperial' ? `${(ns * 0.224808943).toFixed(2)} lbf·s` : `${ns.toFixed(1)} N·s`;
+}
+
+/**
+ * Revert the import the banner reports, while it is still the latest edit.
+ * Anything later (an edit, another import) makes the import no longer the
+ * top of the undo stack, and the banner withdraws the button rather than
+ * undoing something else.
+ */
+export function undoImport(): void {
+  const report = useProjectIo.getState().report;
+  const store = useProjectStore.getState();
+  if (report?.undoLabel === undefined || store.past[store.past.length - 1]?.label !== report.undoLabel) return;
+  store.undo();
+  useProjectIo.setState({
+    report: { kind: 'ok', title: 'Import undone', message: `Your previous design is back. Redo (${shortcutLabel('redo')}) brings the import back.` },
+  });
 }
 
 async function importRequestedFile(file: File, request: ReturnType<typeof beginOpen>): Promise<void> {
@@ -166,10 +216,11 @@ async function importRequestedFile(file: File, request: ReturnType<typeof beginO
       useProjectStore.getState().addMotorRecord(record, `Import motor ${motor.designation}`, false);
       if (request.feedback === feedbackIntent) useProjectIo.setState({
         report: {
+          kind: 'ok',
           title: `Imported ${file.name}`,
           message:
-            `Motor ${motor.designation} (${motor.totalImpulse.toFixed(1)} N·s) is registered in the ` +
-            'catalog; bind it in the Motor stage.',
+            `Motor ${motor.designation} (${impulseText(motor.totalImpulse)}) is registered in the catalog. ` +
+            `Your design still flies ${currentMotorName()}; choose the new motor in the Motor stage to fly it.`,
         },
       });
     } catch (err) {
@@ -180,29 +231,46 @@ async function importRequestedFile(file: File, request: ReturnType<typeof beginO
   try {
     const imported = await importVehicleFile(file);
     if (!applyOrReportChange(request)) return;
+    let report: ProjectReport;
     if (imported.envelope) {
       // A whole project: the envelope carries the vehicle, workspace, ledger
-      // and motor records, so the document replaces the current one.
+      // and motor records, so the document replaces the current one. That
+      // replacement clears undo history (replaceProject), and the report says so.
       const adopted = adoptProject(imported.envelope);
       if (request.feedback === feedbackIntent) useProjectIo.setState({
         status: { kind: 'ok', message: `Opened project "${adopted.name}" (revision ${adopted.revision})` },
       });
+      report = {
+        kind: 'ok',
+        title: `Opened ${file.name}`,
+        message: `Project “${adopted.name}” (revision ${adopted.revision}) replaced the open project. Undo can’t bring the previous one back.`,
+        ...(imported.warnings.length > 0 ? { details: imported.warnings } : {}),
+        ...(imported.motorFromFile ? {} : { motorNote: `Motor: ${currentMotorName()}, Astraea’s default; the file didn’t specify one. Check it in the Motor stage.` }),
+      };
     } else {
       // Geometry-only formats: the vehicle is replaced as one undoable edit,
-      // so the workspace, motor records, ledger and history stay intact.
+      // so the workspace, motor records, ledger and history stay intact. The
+      // motor therefore carries over from the previous design: say so.
       const store = useProjectStore.getState();
+      const label = `Import ${file.name}`;
       store.editProject({
-        label: `Import ${file.name}`,
+        label,
         key: `import:${file.name}`,
         project: { ...store.project, vehicle: imported.vehicle },
       });
+      const fileMotors = [...new Set(imported.fileMotors)];
+      report = {
+        kind: 'ok',
+        title: `Imported ${file.name}`,
+        message: `“${imported.vehicle.name}” replaced the airframe. Your launch settings, motors and saved runs were kept.`,
+        details: imported.warnings,
+        motorNote: fileMotors.length === 0
+          ? `Motor: still ${currentMotorName()} from your previous design; the file didn’t specify one.`
+          : `Motor: still ${currentMotorName()} from your previous design; the file names ${fileMotors.join(', ')}, which was not applied. Choose a motor in the Motor stage.`,
+        undoLabel: label,
+      };
     }
-    if (request.feedback === feedbackIntent) useProjectIo.setState({
-      report:
-        imported.warnings.length > 0
-          ? { title: `Imported ${file.name}`, message: imported.warnings.join('\n') }
-          : null,
-    });
+    if (request.feedback === feedbackIntent) useProjectIo.setState({ report });
   } catch (err) {
     if (applyOrReportChange(request) && canReport(request)) useProjectIo.setState({ report: couldNotLoad(file, reasonOf(err)) });
   }
@@ -225,11 +293,11 @@ export async function saveProjectToSlot(): Promise<ProjectStatus> {
   }
   if (feedback === feedbackIntent && sameDocument(snapshot)) {
     useProjectStore.getState().setFile({ kind: 'saved', revision: committed.revision });
-    return publish({ kind: 'ok', message: `Saved locally (revision ${committed.revision})` });
+    return publish({ kind: 'ok', message: `Saved in this browser (revision ${committed.revision})` });
   }
   return publish({ kind: 'ok', message: sameDocument(snapshot)
-    ? `Saved snapshot locally (revision ${committed.revision})`
-    : `Saved earlier snapshot locally (revision ${committed.revision}); current changes remain unsaved.` });
+    ? `Saved a snapshot in this browser (revision ${committed.revision})`
+    : `Saved an earlier snapshot in this browser (revision ${committed.revision}); current changes are not saved yet.` });
 }
 
 /** Replace the project with the durable slot's contents, or say why not. */
@@ -248,12 +316,12 @@ export async function openProjectFromSlot(): Promise<ProjectStatus> {
   }
   if (!applyOrReportChange(request)) return loadCancellation(request);
   if (stored === null) {
-    status = { kind: 'ok', message: 'No project saved in this browser yet' };
+    status = { kind: 'info', message: 'No project saved in this browser yet; nothing was opened.' };
   } else {
     try {
       adoptProject(stored);
       useProjectStore.getState().setFile({ kind: 'saved', revision: stored.revision });
-      status = { kind: 'ok', message: `Opened saved project (revision ${stored.revision})` };
+      status = { kind: 'ok', message: `Opened the copy saved in this browser (revision ${stored.revision})` };
     } catch (err) {
       // adoptProject refuses before replacing state (see couldNotLoad).
       status = failure('Open failed', err, 'Your current design was not replaced.');
@@ -275,17 +343,22 @@ export async function saveProjectToFile(): Promise<ProjectStatus> {
     const budget = projectArchiveBudget(text, name);
     if (!budget.ok) {
       status = failure('Save failed', budget.message,
-        'Your current design remains open. Save to this browser is a separate quota-bound option, not a guaranteed backup.');
+        `Your current design remains open. ${SAVE_IN_BROWSER} keeps one copy in this browser’s storage; it is quota-bound, not a backup.`);
     } else {
       const saved = await saveProjectTo(name, text, 'application/json');
-      // Name what was written (the user may have renamed it in the dialog), not what was suggested.
+      // Name what was written (the user may have renamed it in the dialog),
+      // not what was suggested. A download is only handed to the browser, so
+      // it never reads as a confirmed write; a dismissed dialog is neither a
+      // save nor an error.
       status =
         saved.via === 'cancelled'
-          ? { kind: 'ok', message: 'Save cancelled — nothing was written.' }
-          : { kind: 'ok', message: `Saved ${saved.name}${saved.via === 'browser' ? ' to your downloads' : ''}` };
+          ? { kind: 'cancelled', message: 'Save cancelled — no file was written. Your design is still open.' }
+          : saved.via === 'browser'
+            ? { kind: 'ok', message: `Downloaded ${saved.name}: check your browser’s downloads folder.` }
+            : { kind: 'ok', message: `Saved a copy as ${saved.name}` };
     }
   } catch (err) {
-    status = failure('Save failed', err, 'Your design is still open; try again, or use Save to this browser (a separate quota-bound option, not a guaranteed backup).');
+    status = failure('Save failed', err, `Your design is still open; try again, or use ${SAVE_IN_BROWSER} (one copy in this browser’s storage, quota-bound, not a backup).`);
   }
   if (feedback === feedbackIntent && epoch === useProjectStore.getState().projectEpoch) useProjectIo.setState({ status });
   return status;
@@ -297,7 +370,7 @@ export async function openProjectFromFilePicker(): Promise<void> {
   const file = await openProjectFromFile();
   if (!applyOrReportChange(request)) return;
   if (file === null) {
-    if (canReport(request)) useProjectIo.setState({ status: { kind: 'ok', message: 'Open cancelled — nothing was loaded.' } });
+    if (canReport(request)) useProjectIo.setState({ status: { kind: 'cancelled', message: 'Open cancelled — nothing was loaded.' } });
     return;
   }
   await importRequestedFile(file, request);

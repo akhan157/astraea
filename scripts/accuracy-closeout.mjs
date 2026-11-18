@@ -43,6 +43,19 @@ import { fileURLToPath } from 'node:url';
 import { chromium, firefox, webkit } from 'playwright';
 import { preview } from 'vite';
 
+/**
+ * Replacing a design with unsaved edits asks first; these journeys mean to
+ * replace it. The ask opens in the same event as the click or file pick, so
+ * once the page has run one more task the Replace button is either on screen
+ * or not coming. No wall-clock wait: a busy CI page can take longer than any
+ * fixed timeout just to answer.
+ */
+async function confirmReplace(target) {
+  await target.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
+  const replace = target.getByRole('button', { name: 'Replace', exact: true });
+  if (await replace.isVisible()) await replace.click();
+}
+
 const here = dirname(fileURLToPath(import.meta.url));
 const root = dirname(here);
 const evidenceDir = process.env.ASTRAEA_EVIDENCE_DIR ?? join(root, '..', 'evidence-accuracy-bundle-frontend', 'closeout');
@@ -175,12 +188,13 @@ async function applyStagedEdits(page) {
 /** The project slot is an explicit action: there is no autosave. */
 async function openProjectMenu(page) {
   await page.getByRole('button', { name: 'Project menu', exact: true }).click();
-  await page.getByRole('button', { name: /^Save to this browser/ }).waitFor({ timeout: 15_000 });
+  await page.getByRole('button', { name: /^Save in this browser/ }).waitFor({ timeout: 15_000 });
 }
 
 async function slotAction(page, buttonName, expected, label) {
   await openProjectMenu(page);
   await page.getByRole('button', { name: buttonName }).click();
+  await confirmReplace(page);
   const started = Date.now();
   let last = null;
   while (Date.now() - started < 30_000) {
@@ -199,11 +213,11 @@ async function slotAction(page, buttonName, expected, label) {
 }
 
 async function saveProjectToSlot(page) {
-  return slotAction(page, /^Save to this browser/, /^Saved locally \(revision \d+\)$/, 'Save to this browser');
+  return slotAction(page, /^Save in this browser/, /^Saved in this browser \(revision \d+\)$/, 'Save in this browser');
 }
 
 async function openSavedProject(page) {
-  return slotAction(page, /^Open saved project/, /^Opened saved project \(revision \d+\)$/, 'Open saved project');
+  return slotAction(page, /^Open the copy in this browser/, /^Opened the copy saved in this browser \(revision \d+\)$/, 'Open the copy in this browser');
 }
 
 /** Parse the engine's axial-drag block into the warning line and the exact sentence. */
@@ -511,6 +525,7 @@ async function refusedOrigin(context, evidence, watch, servers) {
   const result = { origin };
   await stage(page, 'Mission');
   await page.getByRole('button', { name: /^Spaceport America \(practice\)/ }).click();
+  await confirmReplace(page);
   await page.getByRole('textbox', { name: 'Vehicle name' }).waitFor();
   const vehicleName = await page.getByRole('textbox', { name: 'Vehicle name' }).inputValue();
   assert.match(vehicleName, /Spaceport America/, 'the Spaceport America preset is the active vehicle');

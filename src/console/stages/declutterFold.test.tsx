@@ -21,10 +21,9 @@ import { AeroStage } from './Aero';
 import { VerifyStage } from './Verify';
 import { useProjectStore } from '../../state/project';
 import { useSessionStore } from '../../state/session';
-import { consoleJobStub, installTestEngine, resetConsoleState, stabilityAnalysis } from '../testFixtures';
+import { consoleJobStub, installTestEngine, resetConsoleState, stabilityAnalysis, stabilityAnalysisFor } from '../testFixtures';
+import { CERTIFIED_MOTORS } from '../../propulsion/motorDatabase';
 
-const AMBER = 'Above generic geometry band (>3 cal). Weathercocking requires flight analysis.';
-const ROLLUP = 'Component rollup only; selected motor and powered-flight margin history unavailable.';
 const INTRO = 'Subsonic component geometry and mass rollup; excludes the selected motor and depletion history. Pad all-up, burnout and powered-flight minimum margins are unavailable here.';
 
 let teardown: (() => void) | null = null;
@@ -52,80 +51,89 @@ function stabilityCard(): HTMLElement {
   return screen.getByRole('region', { name: 'Live stability and flight preview' });
 }
 
-/** The Airframe caveat fold: amber sentence first, grey sentence second, one More control. */
-function expectAirframeFold(): void {
-  const strip = stabilityCard();
-  const fold = strip.querySelector('[data-fold]') as HTMLElement;
-  expect(fold).not.toBeNull();
-  const text = fold.querySelector('[data-fold-text]') as HTMLElement;
-  expect(text.textContent).toBe(`${AMBER} ${ROLLUP}`);
-  expect(text.className).toContain('truncate');
-  const parts = [...fold.querySelectorAll('[data-fold-part]')] as HTMLElement[];
-  expect(parts.map((part) => part.getAttribute('data-fold-part'))).toEqual(['amber', 'grey']);
-  expect(getComputedStyle(parts[0]!).color).toBe('rgb(245, 181, 68)');
-  expect(getComputedStyle(parts[1]!).color).toBe('rgb(94, 100, 109)');
-  const more = within(fold).getByRole('button', { name: 'More' });
-  expect(more.getAttribute('aria-expanded')).toBe('false');
-  expect(more.getAttribute('aria-controls')).toBe(text.getAttribute('id'));
-  fireEvent.click(more);
-  expect(within(fold).getByRole('button', { name: 'Less' }).getAttribute('aria-expanded')).toBe('true');
-  const expanded = [...fold.querySelectorAll('[data-fold-part]')] as HTMLElement[];
-  expect(expanded).toHaveLength(2);
-  expect(expanded[0]!.className).toContain('block');
-  expect(expanded[1]!.className).toContain('block');
-  expect(fold.querySelector('[data-fold-text]')!.textContent).toContain(AMBER);
-  expect(fold.querySelector('[data-fold-text]')!.textContent).toContain(ROLLUP);
-  expect(getComputedStyle(expanded[0]!).color).toBe('rgb(245, 181, 68)');
-  expect(getComputedStyle(expanded[1]!).color).toBe('rgb(94, 100, 109)');
-  fireEvent.click(within(fold).getByRole('button', { name: 'Less' }));
-  expect(within(fold).getByRole('button', { name: 'More' })).toBeTruthy();
+/**
+ * Liftoff margin for the current project under `analysis`, computed the way
+ * the flight engine places the motor (aft end at the mount's aft end).
+ */
+function expectedLiftoff(analysis: ReturnType<typeof stabilityAnalysisFor>): number {
+  const project = useProjectStore.getState().project;
+  const motor = CERTIFIED_MOTORS[project.workspace.motorId]!;
+  const mount = project.vehicle.components.find((c) => c.type === 'bodytube' && c.isMotorMount)!;
+  const aft = analysis.contributions.find((c) => c.id === mount.id)!.axialEnd;
+  const cg = (analysis.totalMass * analysis.cg + motor.totalMass * (aft - motor.length / 2)) / (analysis.totalMass + motor.totalMass);
+  return (analysis.cp - cg) / analysis.referenceDiameter;
 }
 
-describe('Airframe stability card fold', () => {
-  it('folds the two caveat sentences in Airframe and in Aero, then expands both in their original colours', async () => {
-    stubStability();
+describe('Airframe stability card', () => {
+  it('leads with stability at liftoff (motor loaded), says what it means and what to do, in Airframe and Aero', async () => {
+    const vehicle = useProjectStore.getState().project.vehicle;
+    const analysis = stabilityAnalysisFor(vehicle, { cp: 2.9, cg: 1.2, totalMass: 12, referenceDiameter: 0.152, staticMarginCalibers: (2.9 - 1.2) / 0.152 });
+    const liftoff = expectedLiftoff(analysis);
+    expect(liftoff).toBeGreaterThan(3);
+    stubStability(analysis);
     render(<Tooltip.Provider><AirframeStage /></Tooltip.Provider>);
-    await screen.findByText(AMBER);
-    expectAirframeFold();
+    await screen.findByText('More stability than needed');
+    const strip = stabilityCard();
+    expect(strip.textContent).toContain('Stability at liftoff');
+    expect(strip.textContent).toMatch(/K550W.* loaded/);
+    expect(strip.querySelector('[data-stability-advice]')!.textContent).toMatch(/smaller fins/);
+    // The airframe-only margin stays visible, labelled as the secondary value.
+    expect(strip.textContent).toContain('Airframe only, without the motor');
+    expect(within(strip).getByLabelText(/Stability margin at liftoff/).textContent).toContain(liftoff.toFixed(2));
 
     cleanup();
     render(<Tooltip.Provider><AeroStage /></Tooltip.Provider>);
-    await screen.findByText(AMBER);
-    expectAirframeFold();
+    await screen.findByText('More stability than needed');
     expect(screen.getByText(INTRO)).toBeTruthy();
   });
 
-  it('leaves the single grey line unfolded when the margin is inside the band', async () => {
+  it('reads Stable with no advice when the liftoff margin is inside 1–3 cal', async () => {
+    // A different preset: native stability is cached by vehicle content across tests.
     useProjectStore.getState().loadPreset('estesAlpha');
-    stubStability(stabilityAnalysis({ staticMarginCalibers: 2 }));
+    const vehicle = useProjectStore.getState().project.vehicle;
+    const base = stabilityAnalysisFor(vehicle, { cg: 0.25, totalMass: 0.03, referenceDiameter: 0.0248 });
+    // Choose the CP so the loaded margin is 2 cal.
+    const cgLoaded = base.cp - expectedLiftoff(base) * base.referenceDiameter;
+    const analysis = { ...base, cp: cgLoaded + 2 * 0.0248 };
+    stubStability(analysis);
     render(<Tooltip.Provider><AirframeStage /></Tooltip.Provider>);
-    await screen.findByText(ROLLUP);
+    await screen.findByText('Stability at liftoff', { exact: false });
     const strip = stabilityCard();
-    expect(strip.querySelector('[data-fold]')).toBeNull();
-    expect(within(strip).queryByRole('button', { name: 'More' })).toBeNull();
-    expect(strip.textContent).toContain(ROLLUP);
-    expect(strip.textContent).not.toContain(AMBER);
+    await vi.waitFor(() => expect(strip.querySelector('[data-stability-verdict]')!.textContent).toMatch(/^Stable/), { timeout: 3000 });
+    expect(strip.querySelector('[data-stability-advice]')).toBeNull();
+    expect(strip.querySelector('[data-margin-unavailable]')).toBeNull();
   });
 
-  it('never folds the unavailable-margin warning, and never merges the grey line into it', async () => {
+  it('says Not checked, with the reason, when the CP is unavailable, and never folds it away', async () => {
     useProjectStore.getState().loadPreset('spaceport');
     const reason = 'The native engine published no CP for this vehicle.';
-    stubStability(stabilityAnalysis({ cpUnavailable: reason }));
+    stubStability(stabilityAnalysisFor(useProjectStore.getState().project.vehicle, { cpUnavailable: reason }));
     render(<Tooltip.Provider><AirframeStage /></Tooltip.Provider>);
-    const warning = await screen.findByText(`No geometry margin or verdict: ${reason}`);
+    const warning = await screen.findByText(`Not checked: The centre of pressure is unknown: ${reason}`);
     const warningNode = warning.closest('[data-margin-unavailable]') as HTMLElement;
     expect(warningNode).not.toBeNull();
     expect(warningNode.closest('[data-fold]')).toBeNull();
-    const strip = stabilityCard();
-    expect(within(strip).queryByRole('button', { name: 'More' })).toBeNull();
-    expect(warningNode.textContent).toBe(`No geometry margin or verdict: ${reason}`);
-    expect(strip.textContent).toContain(ROLLUP);
+    expect(stabilityCard().querySelector('[data-stability-verdict]')!.textContent).toBe('Not checked');
+  });
+});
+
+describe('Verify stability check', () => {
+  it('shows stability at liftoff before any run, with a run button for the flight checks', async () => {
+    stubStability(stabilityAnalysisFor(useProjectStore.getState().project.vehicle, { cp: 2.9, cg: 1.2, totalMass: 12, referenceDiameter: 0.152 }));
+    render(<Tooltip.Provider><VerifyStage /></Tooltip.Provider>);
+    const row = await screen.findByRole('button', { name: /Stability at liftoff: Caution/ });
+    expect(row.querySelector('[data-gate-advice]')!.textContent).toMatch(/smaller fins/);
+    expect(row.textContent).toMatch(/Safe to fly, but the rocket may turn into the wind/);
+    expect(row.textContent).toContain('≥ 1 cal (1–3 ideal)');
+    expect(screen.getAllByText(/1 caution/).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /Run simulation/ })).toBeTruthy();
+    expect(screen.getByText(/Flight checks .* need a simulation/)).toBeTruthy();
   });
 });
 
 describe('Verify Validation card', () => {
   it('starts closed, opens on the heading, and stays open across a remount', () => {
-    render(<VerifyStage />);
+    render(<Tooltip.Provider><VerifyStage /></Tooltip.Provider>);
     let toggle = screen.getByRole('button', { name: /Validation · does the model match reality\?/ });
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
     let panel = document.getElementById(toggle.getAttribute('aria-controls')!) as HTMLElement;
@@ -137,7 +145,7 @@ describe('Verify Validation card', () => {
     expect(panel.hidden).toBe(false);
 
     cleanup();
-    render(<VerifyStage />);
+    render(<Tooltip.Provider><VerifyStage /></Tooltip.Provider>);
     toggle = screen.getByRole('button', { name: /Validation · does the model match reality\?/ });
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
     panel = document.getElementById(toggle.getAttribute('aria-controls')!) as HTMLElement;

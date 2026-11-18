@@ -22,6 +22,7 @@ import {
   FinCrossSection,
   STANDARD_MATERIALS,
 } from '../core/types';
+import { decodeXmlText, emptyImportLosses, type ImportLosses } from './importLosses';
 
 export class InvalidOrkFileError extends Error {
   constructor(message: string) {
@@ -209,6 +210,11 @@ function orderedScalarValue(value: unknown): { attrs: Record<string, unknown>; t
 function orderedNodeToLegacy(entry: Record<string, unknown>): { tag: string; plain: Record<string, unknown> } {
   const tag = Object.keys(entry).find((k) => k !== ATTR_GROUP_KEY) ?? '';
   const plain: Record<string, unknown> = {};
+  // Keys already collected into a repeat array. A structural value is itself
+  // an array (its raw child list), so "is it an array?" cannot tell a repeat
+  // array from a first value: pushing into it would splice the second
+  // element's children into the first one.
+  const repeated = new Set<string>();
   const kids = entry[tag];
   if (kids !== undefined) {
     const arr = Array.isArray(kids) ? kids : [kids];
@@ -236,8 +242,11 @@ function orderedNodeToLegacy(entry: Record<string, unknown>): { tag: string; pla
       }
       if (value === undefined) continue;
       if (Object.prototype.hasOwnProperty.call(plain, k)) {
-        if (Array.isArray(plain[k])) (plain[k] as unknown[]).push(value);
-        else plain[k] = [plain[k], value];
+        if (repeated.has(k)) (plain[k] as unknown[]).push(value);
+        else {
+          plain[k] = [plain[k], value];
+          repeated.add(k);
+        }
       } else {
         plain[k] = value;
       }
@@ -275,6 +284,38 @@ function orderedListToPlain(entries: unknown[]): Record<string, unknown> {
  * Parses an OpenRocket (.ork) buffer or ArrayBuffer into a normalized RocketVehicle
  */
 export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<RocketVehicle> {
+  return (await parseOrkFileWithReport(data)).vehicle;
+}
+
+/** Element names that only group parts; their children are read, the group itself is not a part. */
+const ORK_CONTAINERS = new Set(['stage', 'parallelstage', 'podset']);
+/** Element names the reader turns into Astraea components. */
+const ORK_READ = new Set(['nosecone', 'bodytube', 'transition', 'trapezoidfinset', 'ellipticalfinset', 'freeformfinset', 'parachute', 'masscomponent']);
+
+/**
+ * Motors assigned in the file (`<motor>` blocks under each motor mount) and
+ * the stored simulations, read from the XML text by name only: neither is
+ * imported, so the import report names them instead of counting them.
+ */
+function orkMotorsAndSimulations(xmlText: string): { motors: string[]; simulations: string[] } {
+  const motors: string[] = [];
+  for (const block of xmlText.match(/<motor\b[^>]*>[\s\S]*?<\/motor>/g) ?? []) {
+    const designation = /<designation>([^<]*)<\/designation>/.exec(block)?.[1];
+    if (designation === undefined || decodeXmlText(designation) === '') continue;
+    const manufacturer = /<manufacturer>([^<]*)<\/manufacturer>/.exec(block)?.[1];
+    motors.push([manufacturer ? decodeXmlText(manufacturer) : '', decodeXmlText(designation)].filter(Boolean).join(' '));
+  }
+  const simulations: string[] = [];
+  for (const block of xmlText.match(/<simulation\b[^>]*>[\s\S]*?<\/simulation>/g) ?? []) {
+    const name = /<name>([^<]*)<\/name>/.exec(block)?.[1];
+    simulations.push(name === undefined || decodeXmlText(name) === '' ? 'unnamed simulation' : decodeXmlText(name));
+  }
+  return { motors, simulations };
+}
+
+/** Parses an .ork file and names what the import left behind (see importLosses.ts). */
+export async function parseOrkFileWithReport(data: ArrayBuffer | Uint8Array): Promise<{ vehicle: RocketVehicle; losses: ImportLosses }> {
+  const losses = emptyImportLosses();
   let zip: JSZip;
   try {
     zip = await JSZip.loadAsync(data);
@@ -289,6 +330,9 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
   }
 
   const xmlText = await xmlEntry.async('string');
+  const named = orkMotorsAndSimulations(xmlText);
+  losses.fileMotors.push(...named.motors);
+  losses.simulations.push(...named.simulations);
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
@@ -319,10 +363,20 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
   }
 
   let rocketNode: Record<string, unknown>;
+  // The rocket's own ordered child list of stages. Lifting the rocket node
+  // through orderedListToPlain merges repeated <stage> elements into one
+  // object, which silently kept only the first stage; the raw list keeps
+  // every stage in document order.
+  let rocketParts: unknown;
   if (rootInfo.tag === 'rocket') {
     rocketNode = rootInfo.plain;
+    rocketParts = rocketNode.subcomponents;
   } else if (Array.isArray(rootInfo.plain.rocket) && (rootInfo.plain.rocket as unknown[]).length > 0) {
-    rocketNode = orderedListToPlain(rootInfo.plain.rocket as unknown[]);
+    const rocketChildren = rootInfo.plain.rocket as unknown[];
+    rocketNode = orderedListToPlain(rocketChildren);
+    rocketParts = rocketChildren
+      .map((e) => (e && typeof e === 'object' && !Array.isArray(e) ? (e as Record<string, unknown>).subcomponents : undefined))
+      .find((v) => v !== undefined);
   } else {
     throw new InvalidOrkFileError('Missing root openrocket tag');
   }
@@ -347,6 +401,9 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
       const { tag: key, plain: sub } = orderedNodeToLegacy(rawEntry as Record<string, unknown>);
       const name = (sub.name as string) || key;
       const id = `ork-${key}-${Math.random().toString(36).substring(2, 9)}`;
+      if (key === 'stage') losses.mergedStages.push(name);
+      else if (ORK_CONTAINERS.has(key)) losses.sideAssemblies.push(name);
+      else if (!ORK_READ.has(key) && !key.endsWith('finset')) losses.skippedParts.push({ kind: key, name });
 
       if (key.endsWith('finset') && key !== 'trapezoidfinset' && key !== 'ellipticalfinset' && key !== 'freeformfinset') {
         throw new InvalidOrkFileError(`Unsupported fin geometry '${key}' on '${name}'; import refused rather than dropping the fins.`);
@@ -537,8 +594,8 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
   }
 
   // Start traversal from stage or rocket root
-  if (rocketNode.subcomponents) {
-    traverseSubcomponents(rocketNode.subcomponents);
+  if (rocketParts) {
+    traverseSubcomponents(rocketParts);
   }
 
   if (components.length === 0) {
@@ -546,12 +603,15 @@ export async function parseOrkFile(data: ArrayBuffer | Uint8Array): Promise<Rock
   }
 
   return {
-    id: `vehicle-${Date.now()}`,
-    name: rocketName,
-    version: '1.0',
-    author: (rocketNode.designer as string) || 'OpenRocket Import',
-    notes: 'Imported from OpenRocket (.ork)',
-    components,
+    vehicle: {
+      id: `vehicle-${Date.now()}`,
+      name: rocketName,
+      version: '1.0',
+      author: (rocketNode.designer as string) || 'OpenRocket Import',
+      notes: 'Imported from OpenRocket (.ork)',
+      components,
+    },
+    losses,
   };
 }
 

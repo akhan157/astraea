@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { Popover, Dialog } from 'radix-ui';
 import { Command } from 'cmdk';
 import {
@@ -6,17 +6,21 @@ import {
   Rows3, CircleDot, Keyboard, LayoutTemplate, X, Sparkles
 } from 'lucide-react';
 import type { RocketComponent } from '../../core/types';
-import { useWS, STAGES, PRESETS, currentPreflight, currentCandidateReadiness, airframeDraftPending, type StageId } from '../store';
+import { useWS, STAGES, PRESETS, presetKeyOf, runName, currentCandidateReadiness, airframeDraftPending, runPreflight, stagedAirframeEdits, applyEditsLabel, type StageId } from '../store';
+import { useProjectStore } from '../../state/project';
 import { isCandidateFlightModel, resolveFlightModel } from '../../application/flightModel';
-import { useChanges, useFreshness, useStability, useCommittedStability } from '../hooks';
+import { useChanges, useFreshness, useLiftoffStability, useCommittedLiftoffStability } from '../hooks';
+import { MARGIN_MAX, MARGIN_MIN } from '../data/adapter';
 import { DEPENDS, RESULTS_OF, type Change } from '../diff';
 import { C } from '../kit/theme';
 import { show } from '../kit/units';
-import { Kbd, Segmented } from '../kit/Fields';
+import { InlineText, Kbd, Segmented } from '../kit/Fields';
 import { ResultValue, DeltaChip } from '../kit/Value';
 import { GateSummary, ValidityBadge } from '../kit/Status';
 import { ProjectMenu, VehicleNameField } from './ProjectChrome';
 import { CopilotPanel } from './CopilotPanel';
+import { useGates } from '../gates';
+import { openStartChooser, replaceDesign } from './StartChooser';
 
 export const STAGE_ICON: Record<StageId, typeof Target> = { mission: Target, airframe: Box, motor: Flame, aero: Wind, flight: Activity, recovery: Umbrella, verify: ShieldCheck, build: Package };
 import { PART_ICON } from './partsIcons';
@@ -31,20 +35,31 @@ export function TopBar({ onPalette, onToggleLeft, onToggleRight }: { onPalette: 
   const toggleRight = onToggleRight ?? (() => s.set({ rightOpen: !s.rightOpen }));
   const changes = useChanges();
   const flightFreshness = useFreshness('flight');
-  const readiness = currentPreflight();
+  useProjectStore((state) => state.drafts.airframe);
+  const presetKey = presetKeyOf(s.design.vehicle);
+  const copyOf = presetKey === null ? null : PRESETS.find((p) => p.id === presetKey)?.label ?? null;
+  const readiness = runPreflight();
   const candidateSelected = isCandidateFlightModel(resolveFlightModel(s.design.flightModel));
   const candidateReadiness = candidateSelected ? currentCandidateReadiness() : null;
+  const staged = candidateSelected ? [] : stagedAirframeEdits();
+  // Staged airframe edits no longer block a run: Run applies them first, as one undo step.
   const ready = candidateSelected
     ? candidateReadiness !== null && candidateReadiness.issues.length === 0 && !airframeDraftPending()
-    : readiness.runnable && !airframeDraftPending();
+    : readiness.runnable;
+  const runLabel = s.running ? 'Running…' : candidateSelected ? 'Run candidate' : staged.length > 0 ? `Apply ${staged.length} edit${staged.length === 1 ? '' : 's'} and run` : 'Run simulation';
+  const blocker = !s.native ? 'this browser cannot run the engine'
+    : !ready ? (candidateSelected ? candidateReadiness?.issues[0]?.message ?? 'Apply or discard staged edits first' : readiness.issues[0]?.message ?? 'the inputs are incomplete')
+      : null;
+  const runTitle = `${staged.length > 0 ? `Applies ${applyEditsLabel(staged).replace(/^Apply /, '')}, then runs. ` : ''}Run the ${candidateSelected ? 'candidate' : '6-DOF'} simulation  ${shortcutLabel('run')}${blocker ? ` (can't run: ${blocker})` : ''}`;
   return (
     <header className="flex h-11 shrink-0 items-center gap-2 px-3" style={{ borderBottom: `1px solid ${C.line}`, background: C.panel }}>
       <span className="flex items-center gap-2 pr-2 text-[13px] font-semibold tracking-tight"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden><path d="M8 1 L13 14 L8 11 L3 14 Z" fill={C.accent} /></svg><span className="hidden xl:inline">Astraea</span></span>
       <button onClick={toggleLeft} aria-expanded={s.leftOpen} aria-label="Toggle parts panel" className="rounded p-1.5 hover:bg-white/5" title="Parts panel  ["><PanelLeft size={15} color={C.muted} /></button>
       <span className="hidden min-w-0 items-center gap-1.5 text-[12.5px] xl:flex" style={{ color: C.muted }}>
-        <span className="truncate">{s.design.mission.name}</span><ChevronRight size={12} />
+        <InlineText value={s.design.mission.name} ariaLabel="Mission name" onCommit={(name) => s.setMission({ name }, 'Rename mission')} className="w-[min(200px,14vw)] truncate text-[12.5px]" style={{ color: C.muted }} /><ChevronRight size={12} aria-hidden="true" />
       </span>
       <VehicleNameField />
+      {copyOf && <span className="hidden shrink-0 text-[11px] 2xl:inline" style={{ color: C.dim }} title={`This design started as an editable copy of the ${copyOf} example. Your edits don't change the example.`}>copy of {copyOf}</span>}
       <WhyStale trigger={
         <button className="ml-1 inline-flex max-w-[132px] shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[11.5px] xl:ml-2 xl:max-w-[190px] xl:px-2.5" style={changes.length ? { color: C.changed, border: '1px solid rgba(245,181,68,.4)', background: 'rgba(245,181,68,.06)' } : { color: C.muted, border: `1px solid ${C.line}` }}>
           <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: changes.length ? C.changed : C.ok }} />
@@ -53,8 +68,8 @@ export function TopBar({ onPalette, onToggleLeft, onToggleRight }: { onPalette: 
               ? (flightFreshness.state === 'stale' ? 'Candidate result stale: selection or inputs changed' : 'Candidate result · experimental')
               : 'Candidate selection · not run')
             : s.committed
-              ? (changes.length ? `${changes.length} change${changes.length > 1 ? 's' : ''} since run r${s.committed.run?.rev}` : `Committed · r${s.committed.run?.rev}`)
-              : 'No run yet'}</span>
+              ? (changes.length ? `Current design: ${changes.length} change${changes.length > 1 ? 's' : ''} since ${s.committed.run ? runName(s.committed.run) : 'the last run'}` : `${s.committed.run ? runName(s.committed.run) : 'Last run'} · matches current design`)
+              : 'Current design · not run yet'}</span>
         </button>
       } />
       <span className="flex items-center">
@@ -65,9 +80,13 @@ export function TopBar({ onPalette, onToggleLeft, onToggleRight }: { onPalette: 
       <button onClick={onPalette} aria-label={`Command palette  ${shortcutLabel('search')}`} title={`Search, or type a value  ${shortcutLabel('search')}`} className="mx-auto flex w-auto shrink-0 items-center gap-2 rounded-md px-2 py-1 text-[12px] xl:w-[min(240px,22vw)] xl:px-2.5 2xl:w-[min(320px,26vw)]" style={{ background: C.sunken, border: `1px solid ${C.line}`, color: C.dim }}>
         <Search size={13} /><span className="hidden truncate xl:inline">Search<span className="hidden 2xl:inline">, or type <span className="font-geist-mono" style={{ color: C.muted }}>span 200</span></span></span><span className="ml-auto hidden xl:inline"><Kbd>{shortcutLabel('search')}</Kbd></span>
       </button>
-      <button onClick={() => { s.set({ stage: 'flight' }); void s.run(); }} disabled={s.running || !ready || !s.native} className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1 text-[12.5px] font-medium whitespace-nowrap disabled:opacity-40" style={{ background: C.accent, color: '#06222A' }} title={!s.native ? `Run the ${candidateSelected ? 'candidate' : '6-DOF'} simulation and commit  ${shortcutLabel('run')} (this browser cannot run the engine)` : !ready ? `Run the ${candidateSelected ? 'candidate' : '6-DOF'} simulation and commit  ${shortcutLabel('run')} (${candidateSelected ? candidateReadiness?.issues[0]?.message ?? 'Apply or discard staged edits first' : readiness.issues[0]?.message ?? 'Apply or discard staged edits first'})` : `Run the ${candidateSelected ? 'candidate' : '6-DOF'} simulation and commit  ${shortcutLabel('run')}`}>
-        {s.running ? <Loader2 size={13} className="animate-spin" /> : <Play size={12} fill="#06222A" />}{s.running ? 'Running…' : candidateSelected ? 'Run candidate' : 'Run simulation'}<span className="sr-only text-[10.5px] opacity-70 2xl:not-sr-only 2xl:inline">{shortcutLabel('run')}</span>
-      </button>
+      <span className="relative inline-flex shrink-0 flex-col items-end">
+        <button onClick={() => { s.set({ stage: 'flight' }); void s.run(); }} disabled={s.running || !ready || !s.native} aria-describedby={blocker ? 'run-blocker' : undefined} className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1 text-[12.5px] font-medium whitespace-nowrap disabled:opacity-40" style={{ background: C.accent, color: '#06222A' }} title={runTitle}>
+          {s.running ? <Loader2 size={13} className="animate-spin" /> : <Play size={12} fill="#06222A" />}{runLabel}<span className="sr-only text-[10.5px] opacity-70 2xl:not-sr-only 2xl:inline">{shortcutLabel('run')}</span>
+        </button>
+        {/* Why Run is unavailable is said next to it, not only in a tooltip. */}
+        {blocker && !s.running && <span id="run-blocker" role="status" className="pointer-events-none absolute top-full right-0 z-30 mt-1 max-w-[280px] truncate rounded px-2 py-0.5 text-[10.5px]" style={{ background: C.raised, color: C.changed, border: `1px solid ${C.line}` }} title={blocker}>Can't run: {blocker}</span>}
+      </span>
       <CopilotSlot />
       <button onClick={toggleRight} aria-expanded={s.rightOpen} aria-label="Toggle inspector" className="rounded p-1.5 hover:bg-white/5" title="Inspector  ]"><PanelRight size={15} color={C.muted} /></button>
     </header>
@@ -99,8 +118,8 @@ export function WhyStale({ trigger }: { trigger: ReactNode }) {
       <Popover.Portal>
         <Popover.Content sideOffset={8} align="start" className="z-50 w-[440px] rounded-lg shadow-2xl" style={{ background: C.panel, border: `1px solid ${C.lineStrong}`, color: C.fg }}>
           <div className="px-4 pt-3 pb-2">
-            <div className="text-[13px] font-medium">What changed since the committed run</div>
-            <div className="text-[11.5px]" style={{ color: C.muted }}>{committed ? (committed.candidate ? 'Experimental candidate result committed. Read-only: this explains staleness, it does not change anything.' : `Run r${committed.run?.rev ?? '?'}, ${committed.run ? new Date(committed.run.at).toLocaleTimeString() : 'time unknown'}. Read-only: this explains staleness, it does not change anything.`) : 'No committed run yet.'}</div>
+            <div className="text-[13px] font-medium">What changed since the last run</div>
+            <div className="text-[11.5px]" style={{ color: C.muted }}>{committed ? (committed.candidate ? 'Experimental candidate result committed. Read-only: this explains staleness, it does not change anything.' : `${committed.run ? runName(committed.run) : 'Last run'}, ${committed.run ? new Date(committed.run.at).toLocaleTimeString() : 'time unknown'}. Read-only: this explains what is out of date; it does not change anything.`) : 'No committed run yet.'}</div>
           </div>
           <div className="max-h-[200px] overflow-auto px-2 thin-scroll">
             {changes.length === 0 && <div className="px-2 py-3 text-[12px]" style={{ color: C.muted }}>Nothing. All results match the design.</div>}
@@ -148,17 +167,21 @@ export function StageRail() {
 }
 function RailItem({ id, label, k, active, onClick }: { id: StageId; label: string; k: string; active: boolean; onClick: () => void }) {
   const { state } = useFreshness(id);
-  const gates = useWS((s) => isCandidateFlightModel(resolveFlightModel(s.design.flightModel)) ? undefined : s.committed?.run?.gates);
-  const failing = id === 'verify' && gates?.some((g) => g.status === 'fail');
+  const gates = useGates();
+  const failing = id === 'verify' && gates.some((g) => g.status === 'fail');
   const I = STAGE_ICON[id];
   const dot = state === 'stale' ? C.changed : state === 'failed' || failing ? C.bad : state === 'running' ? C.accent : null;
+  // The dot's meaning in words, so colour is never the only signal.
+  const dotId = useId();
+  const dotText = state === 'stale' ? 'out of date' : state === 'failed' ? 'run failed' : failing ? 'a check failed' : state === 'running' ? 'running' : null;
   return (
-    <button onClick={onClick} aria-current={active ? 'page' : undefined} title={`${label}  ${k}${state === 'stale' ? ' · stale' : ''}`}
+    <button onClick={onClick} aria-current={active ? 'page' : undefined} aria-describedby={dotText ? dotId : undefined} title={`${label}  ${k}${dotText ? ` · ${dotText}` : ''}`}
       className="relative mx-1.5 my-0.5 flex flex-col items-center gap-1 rounded-md py-2 text-[10px]" style={{ background: active ? 'rgba(110,231,247,0.08)' : undefined, color: active ? C.fg : C.dim }}>
       {active && <span className="absolute top-2 bottom-2 -left-1.5 w-[2px] rounded-full" style={{ background: C.accent }} />}
       <I size={16} strokeWidth={1.6} color={active ? C.accent : undefined} />
       {label}
       {dot && <span className="absolute top-1.5 right-2.5 h-1.5 w-1.5 rounded-full" style={{ background: dot }} />}
+      {dotText && <span id={dotId} hidden>{dotText}</span>}
     </button>
   );
 }
@@ -171,9 +194,10 @@ export { PartsTree } from './PartsTree';
 
 export function StatusBar() {
   const s = useWS();
-  const stab = useStability();
-  const cStab = useCommittedStability();
+  const liftoff = useLiftoffStability();
+  const cLiftoff = useCommittedLiftoffStability();
   const changes = useChanges();
+  const gates = useGates();
   const candidateSelected = isCandidateFlightModel(resolveFlightModel(s.design.flightModel));
   const run = candidateSelected ? undefined : s.committed?.run;
   const candidate = s.committed?.candidate;
@@ -181,11 +205,15 @@ export function StatusBar() {
     <footer className="flex h-7 shrink-0 items-center gap-3 overflow-hidden px-3 text-[11px] whitespace-nowrap xl:gap-4" style={{ borderTop: `1px solid ${C.line}`, background: C.panel, color: C.muted }}>
       <span className="flex items-center gap-1.5" style={{ color: changes.length ? C.changed : C.muted }}>
         <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.running ? C.accent : changes.length ? C.changed : C.ok }} />
-        {s.running ? 'Running 6-DOF…' : candidate ? 'Candidate result · experimental' : changes.length ? 'Preview · not committed' : run ? `Committed · r${run.rev}` : 'No run'}
+        {s.running ? 'Running 6-DOF…' : candidate ? 'Candidate result · experimental' : changes.length ? `Current design · ${run ? `differs from ${runName(run)}` : 'not run'}` : run ? `${runName(run)} · current` : 'Current design · not run'}
       </span>
       {s.runError && <span className="max-w-[38vw] truncate" style={{ color: C.bad }} title={s.runError}>Run failed: {s.runError}</span>}
-      {stab ? (
-        <span className="flex items-center gap-1.5">Margin <ResultValue r={stab.margin} size="sm" label="Static margin (live)" />{cStab && <DeltaChip now={stab.margin.value} was={cStab.margin.value} kind="cal" />}</span>
+      {liftoff ? (
+        <button onClick={() => s.set({ stage: 'airframe' })} className="flex items-center gap-1.5 hover:text-white" title={`Stability at liftoff with ${liftoff.motorDesignation ?? 'no motor'} loaded (target ${MARGIN_MIN}–${MARGIN_MAX} cal). Airframe only: ${Number.isFinite(liftoff.geometry.value) ? liftoff.geometry.value.toFixed(2) + ' cal' : 'unknown'}.`}>
+          Stability <ResultValue r={liftoff.margin} size="sm" label="Stability at liftoff (live)" />
+          {cLiftoff && Number.isFinite(cLiftoff.margin.value) && <DeltaChip now={liftoff.margin.value} was={cLiftoff.margin.value} kind="cal" prefix="Δ " />}
+          {Number.isFinite(liftoff.margin.value) && (liftoff.margin.value < MARGIN_MIN || liftoff.margin.value > MARGIN_MAX) && <span style={{ color: liftoff.margin.value < MARGIN_MIN ? C.bad : C.warn }}>{liftoff.margin.value < MARGIN_MIN ? 'too low' : 'high'}</span>}
+        </button>
       ) : (
         <span style={{ color: C.muted }} title="The native stability command has not answered for this design">Stability unavailable</span>
       )}
@@ -193,11 +221,10 @@ export function StatusBar() {
         <span className="hidden items-center gap-1.5 md:flex" style={{ opacity: changes.length ? 0.55 : 1 }}>Apogee <ResultValue r={run.summary.apogee} size="sm" label="Apogee (committed run)" /></span>
         <span className="hidden items-center gap-1.5 xl:flex" style={{ opacity: changes.length ? 0.55 : 1 }}>Max <ResultValue r={run.summary.maxMach} size="sm" label="Max Mach" /></span>
         <span className="hidden items-center gap-1.5 xl:flex" style={{ opacity: changes.length ? 0.55 : 1 }}>Rail exit <ResultValue r={run.summary.railExitSpeed} size="sm" label="Rail exit speed" /></span>
-        <button onClick={() => s.set({ stage: 'verify' })} className="hidden items-center gap-1.5 hover:text-white md:flex">Gates <GateSummary gates={run.gates} /></button>
+        <button onClick={() => s.set({ stage: 'verify' })} className="hidden items-center gap-1.5 hover:text-white md:flex">Checks <GateSummary gates={gates} /></button>
         <ValidityBadge v={run.summary.validity} enveloped={run.summary.enveloped} />
       </>}
       <span className="ml-auto flex items-center gap-3">
-        <span className="hidden items-center gap-1.5 xl:flex" title="Confidence style: A marks the number, B uses a gutter rule and tag">Confidence <Segmented size="sm" value={s.confidenceStyle} onChange={(v) => s.setConfidenceStyle(v)} options={[{ value: 'A', label: 'A' }, { value: 'B', label: 'B' }]} /></span>
         <Segmented size="sm" value={s.units} onChange={(v) => s.set({ units: v })} options={[{ value: 'metric', label: 'mm · m' }, { value: 'imperial', label: 'in · ft' }]} />
         <span className="hidden min-[1400px]:inline" style={{ color: C.dim }}>{s.native ? 'Astraea engine · 6-DOF' : 'Engine unavailable in this browser'}{run && ` · ${run.durationMs.toFixed(0)} ms`}</span>
         <button onClick={() => window.dispatchEvent(new CustomEvent('ws:shortcuts'))} aria-label="Keyboard shortcuts" className="hidden hover:text-white md:inline-flex"><Keyboard size={12} /></button>
@@ -296,7 +323,7 @@ export function Palette({ open, setOpen, openShortcuts }: { open: boolean; setOp
                   <Command.Item className={item} onSelect={() => { s.undo(); close(); }}><Undo2 size={13} color={C.dim} />Undo<span className="ml-auto"><Kbd>{shortcutLabel('undo')}</Kbd></span></Command.Item>
                   <Command.Item className={item} onSelect={() => { s.redo(); close(); }}><Redo2 size={13} color={C.dim} />Redo</Command.Item>
                   <Command.Item className={item} onSelect={() => { s.setUnits(s.units === 'metric' ? 'imperial' : 'metric'); close(); }}><Rows3 size={13} color={C.dim} />Switch units to {s.units === 'metric' ? 'in · ft' : 'mm · m'}</Command.Item>
-                  <Command.Item className={item} onSelect={() => { s.setConfidenceStyle(s.confidenceStyle === 'A' ? 'B' : 'A'); close(); }}><CircleDot size={13} color={C.dim} />Confidence style {s.confidenceStyle === 'A' ? 'B' : 'A'}</Command.Item>
+                  <Command.Item className={item} onSelect={() => { close(); openStartChooser(); }}><LayoutTemplate size={13} color={C.dim} />New rocket, example or import…</Command.Item>
                   <Command.Item className={item} onSelect={() => { s.set({ onboarding: 0, stage: 'mission' }); close(); }}><Target size={13} color={C.dim} />Start the guided tour</Command.Item>
                   <Command.Item className={item} onSelect={() => { close(); openShortcuts(); }}><Keyboard size={13} color={C.dim} />Keyboard shortcuts<span className="ml-auto"><Kbd>?</Kbd></span></Command.Item>
                 </Command.Group>
@@ -307,7 +334,7 @@ export function Palette({ open, setOpen, openShortcuts }: { open: boolean; setOp
                   {s.design.vehicle.components.map((c) => { const I = PART_ICON[c.type]; return <Command.Item key={c.id} value={`part ${c.name}`} className={item} onSelect={() => { s.set({ selectedId: c.id, stage: 'airframe' }); close(); }}><I size={13} color={C.dim} />{c.name}</Command.Item>; })}
                 </Command.Group>
                 <Command.Group heading="Templates" className={group}>
-                  {PRESETS.map((p) => <Command.Item key={p.id} value={`template ${p.label}`} className={item} onSelect={() => { s.loadPreset(p.id); close(); }}><LayoutTemplate size={13} color={C.dim} />Start from {p.label}</Command.Item>)}
+                  {PRESETS.map((p) => <Command.Item key={p.id} value={`template ${p.label}`} className={item} onSelect={() => { close(); replaceDesign(`the ${p.label} example`, () => s.loadPreset(p.id)); }}><LayoutTemplate size={13} color={C.dim} />Start from {p.label}</Command.Item>)}
                 </Command.Group>
               </>}
             </Command.List>

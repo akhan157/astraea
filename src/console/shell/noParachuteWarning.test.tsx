@@ -74,13 +74,13 @@ function renderRecovery() {
 describe('no-parachute note', () => {
   it('shows the exact amber readiness note only when the current design has no parachute', () => {
     render(<RunReadiness />);
-    const readiness = screen.getByLabelText('Run readiness');
+    const readiness = screen.getByLabelText('Run inputs');
     expect(within(readiness).queryByText(NOTE, { exact: true })).toBeNull();
 
     act(() => removeAllParachutes());
     expect(parachutes()).toHaveLength(0);
     expect(within(readiness).getByText(NOTE, { exact: true })).toBeTruthy();
-    expect(within(readiness).getByText(/ready to run/)).toBeTruthy();
+    expect(within(readiness).getByText(/ready to simulate/)).toBeTruthy();
     expect(within(readiness).getByText(NOTE, { exact: true }).style.color).toBe(AMBER);
     expect(readiness.querySelector('[data-no-parachute-note]')).toBeTruthy();
     expect(currentPreflight().runnable).toBe(true);

@@ -8,6 +8,8 @@ import { Caveat } from '../kit/Caveat';
 import { ResultValue, ValueUnit } from '../kit/Value';
 import { EmptyState, GateRow } from '../kit/Status';
 import { DataTable, Stat } from '../kit/Table';
+import { chuteEvents, resolveRecoveryChutes } from '../../sim/parachuteRoles';
+import { show } from '../kit/units';
 import { Button } from '../kit/Fields';
 import { StageHeader } from './common';
 import { NoParachuteNote } from '../shell/NoParachuteNote';
@@ -66,6 +68,15 @@ export function RecoveryStage() {
           <DataTable rows={chutes} rowKey={(c) => c.id} activeKey={s.selectedId} onRowClick={(k) => s.set({ selectedId: k })}
             columns={[
               { key: 'n', label: 'Parachute', width: '1.4fr', render: (c) => c.name },
+              { key: 'role', label: 'Opens', width: '1.1fr', render: (c) => {
+                const r = resolveRecoveryChutes(s.design.vehicle.components);
+                if (!r.ok) return <span style={{ color: C.bad }} title={r.reason}>role clash</span>;
+                const events = chuteEvents(c, { drogue: r.drogue, main: r.main });
+                const how = c.deployRole === undefined ? ' (by position)' : '';
+                return events.length === 0
+                  ? <span style={{ color: C.changed }} title="Another chute already has each role, so this one is not flown.">not flown</span>
+                  : <span title={events.includes('main') ? `Main opens at ${show(s.design.options.mainDeployAltitudeAGL, 'dist', s.units).text} ${show(s.design.options.mainDeployAltitudeAGL, 'dist', s.units).unit} on the way down` : 'Opens at apogee'}>{events.map((e) => (e === 'drogue' ? 'apogee' : 'main altitude')).join(' + ')}{how}</span>;
+              } },
               { key: 'd', label: 'Diameter', align: 'right', width: '100px', render: (c) => <ValueUnit value={c.diameter} kind="len" /> },
               { key: 'cd', label: 'Cd', align: 'right', width: '60px', render: (c) => <span className="font-geist-mono">{c.cd.toFixed(2)}</span> },
               { key: 'm', label: 'Packed mass', align: 'right', width: '100px', render: (c) => <ValueUnit value={c.mass} kind="mass" /> },

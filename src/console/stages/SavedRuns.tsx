@@ -1,3 +1,4 @@
+import { formatLocalTimestamp } from '../../formats/localTime';
 import { caseId } from '../../application/runCases';
 import { useEffect, useMemo, useState } from 'react';
 import { Tooltip } from 'radix-ui';
@@ -113,7 +114,7 @@ function SavedCandidateRun({ entry, result, onLoad }: { entry: SimCase; result: 
   const landing = candidateLandingAvailability(result);
   return (
     <div data-saved-run-id={entry.id} data-saved-candidate-run className="space-y-1 border-t border-white/10 pt-2 text-[11.5px]">
-      <div>Candidate flight · {entry.createdAt} · {inputs?.vehicle.name ?? 'archived candidate case'}</div>
+      <div>Candidate flight · <SavedAt iso={entry.createdAt} /> · {inputs?.vehicle.name ?? 'archived candidate case'}</div>
       <div style={{ color: C.muted }}>{result.status} · {result.termination} · {result.computationalCompletion} · {result.empiricalQualification} · dynamic {result.dynamicQualification}</div>
       <div className="break-all font-geist-mono text-[10px]" style={{ color: C.dim }}>Input/model digest {result.contentIdentity.sha256} · engine {entry.engineIdentity?.kind === 'production-rust-wasm' && entry.engineIdentity.sha256 ? entry.engineIdentity.sha256 : 'identity unknown'}</div>
       {!landing.available && <div role="status" style={{ color: C.changed }}>{landing.reason}. No landing value is shown or zero-filled.</div>}
@@ -133,10 +134,15 @@ function SavedCandidateRun({ entry, result, onLoad }: { entry: SimCase; result: 
         </div>
       </Disclosure> : <p style={{ color: C.muted }}>Candidate inputs are unavailable on this record. Not reconstructed.</p>}
       <Button small disabled={!entry.inputs} onClick={() => onLoad(useProjectStore.getState().loadSavedRun(entry.id)
-        ? `Loaded candidate inputs from ${entry.createdAt}. Run the candidate model explicitly to compute a fresh result. This load can be undone.`
+        ? `Loaded candidate inputs saved ${formatLocalTimestamp(entry.createdAt)}. Run the candidate model explicitly to compute a fresh result. This load can be undone.`
         : 'Apply or discard staged edits and finish or cancel running work before loading saved inputs.')}>Load saved inputs</Button>
     </div>
   );
+}
+
+/** When a run was saved: local time with its zone, the stored UTC instant on hover. */
+function SavedAt({ iso }: { iso: string }) {
+  return <time dateTime={iso} title={`${iso} (UTC, as stored)`}>{formatLocalTimestamp(iso)}</time>;
 }
 
 /** Durable scalar comparisons remain historical; loading inputs never runs a case. */
@@ -176,7 +182,7 @@ export function SavedRuns() {
       {cases.map((entry) => entry.candidateResult !== undefined
         ? <SavedCandidateRun key={entry.id} entry={entry} result={entry.candidateResult} onLoad={setMessage} />
         : <div key={entry.id} data-saved-run-id={entry.id} className="space-y-1 border-t border-white/10 pt-2 text-[11.5px]">
-        <div>{entry.kind === 'flight' ? 'Flight' : 'Ensemble'} · {entry.createdAt} · {entry.inputs?.vehicle.name ?? 'Earlier run'}</div>
+        <div>{entry.kind === 'flight' ? 'Flight' : 'Ensemble'} · <SavedAt iso={entry.createdAt} /> · {entry.inputs?.vehicle.name ?? 'Earlier run'}</div>
         <div style={{ color: C.muted }}>{entry.inputs ? `Inputs archived · ${entry.inputs.motorRecord.motor.designation}${entry.inputs.version !== 3 && entry.inputs.ensemble ? ` · ${entry.inputs.ensemble.nRuns} runs · seed ${entry.inputs.ensemble.seed} · ${entry.inputs.ensemble.version}` : ''}` : 'Inputs unavailable (legacy summary)'} · {entry.engineIdentity?.kind === 'production-rust-wasm' && entry.engineIdentity.sha256 ? <span title={`Engine SHA-256 ${entry.engineIdentity.sha256}`}>Engine SHA-256 {entry.engineIdentity.sha256.slice(0, 12)}…</span> : 'Engine identity unknown'}</div>
         {(() => {
           // Archived drag-source provenance: shown only for a record whose
@@ -225,11 +231,11 @@ export function SavedRuns() {
         </Disclosure> : <p style={{ color: C.muted }}>Recorded events unavailable for this run (not saved, saved before project format 1.9, or the run’s timeline did not pass validation when saved). Not reconstructed.</p>)}
         {entry.kind === 'flight' && entry.flightOutputs && <SavedOutputRecord entry={entry} outputs={entry.flightOutputs} />}
         <Button small disabled={!entry.inputs} onClick={() => setMessage(useProjectStore.getState().loadSavedRun(entry.id)
-          ? `Loaded ${entry.createdAt}. ${entry.kind === 'flight' ? 'Run a flight' : entry.inputs && entry.inputs.version !== 3 && entry.inputs.ensemble ? `Run an ensemble of ${entry.inputs.ensemble.nRuns}` : 'Run an ensemble'} to compute a fresh result with the current engine. This load can be undone.`
+          ? `Loaded the ${entry.kind === 'flight' ? 'flight' : 'ensemble'} saved ${formatLocalTimestamp(entry.createdAt)}. ${entry.kind === 'flight' ? 'Run a flight' : entry.inputs && entry.inputs.version !== 3 && entry.inputs.ensemble ? `Run an ensemble of ${entry.inputs.ensemble.nRuns}` : 'Run an ensemble'} to compute a fresh result with the current engine. This load can be undone.`
           : 'Apply or discard staged edits and finish or cancel running work before loading saved inputs.')}>Load saved inputs</Button>
       </div>)}
       <div className="flex flex-wrap gap-3 text-[12px]">
-        {([{ label: 'Saved baseline', value: baseline, change: setBaseline }, { label: 'Saved variant', value: variant, change: setVariant }]).map((picker) => <label key={picker.label}>{picker.label} <Select ariaLabel={picker.label} value={picker.value} onChange={picker.change} style={{ background: 'rgba(0,0,0,0.2)' }}><option value="">Select run</option>{cases.map((entry) => <option key={entry.id} value={entry.id}>{entry.kind} · {entry.createdAt}</option>)}</Select></label>)}
+        {([{ label: 'Saved baseline', value: baseline, change: setBaseline }, { label: 'Saved variant', value: variant, change: setVariant }]).map((picker) => <label key={picker.label}>{picker.label} <Select ariaLabel={picker.label} value={picker.value} onChange={picker.change} style={{ background: 'rgba(0,0,0,0.2)' }}><option value="">Select run</option>{cases.map((entry) => <option key={entry.id} value={entry.id}>{entry.kind === 'flight' ? 'Flight' : entry.kind === 'monteCarlo' ? 'Ensemble' : entry.kind} · {formatLocalTimestamp(entry.createdAt)}</option>)}</Select></label>)}
       </div>
       {left && right && (left.candidateResult !== undefined || right.candidateResult !== undefined) && (
         <div className="overflow-auto" role="status">

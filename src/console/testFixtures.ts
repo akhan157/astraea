@@ -4,7 +4,7 @@
  * exercise the adapter against realistic payloads instead of empty objects.
  */
 import { setTestEngine, type EngineInvoke } from '../engine';
-import type { StabilityAnalysis } from '../core/types';
+import type { RocketVehicle, StabilityAnalysis } from '../core/types';
 import { useAnalysisStore } from '../state/analysis';
 import { useProjectStore } from '../state/project';
 import { useConsoleJobs } from './store';
@@ -248,4 +248,28 @@ export function resetConsoleState(options: { defaultFlightDrag?: boolean } = {})
 /** Clear any in-flight or finished Console job so a render starts from idle. */
 export function consoleJobStub(): void {
   useConsoleJobs.setState({ jobs: { running: false, runError: null, mc: null }, mcAbort: null });
+}
+
+/**
+ * A native-shaped stability analysis whose contributions carry the vehicle's
+ * real part ids and stacked axial extents (nose, tubes and transitions laid
+ * end to end; attached parts inside their tube), so consumers that place the
+ * motor at its mount can find the mount. Totals come from `overrides`.
+ */
+export function stabilityAnalysisFor(vehicle: RocketVehicle, overrides: Partial<StabilityAnalysis> = {}): StabilityAnalysis {
+  let station = 0;
+  let tubeStart = 0;
+  const contributions = vehicle.components.map((c) => {
+    const rec = c as unknown as { length?: number; axialOffset?: number; rootChord?: number };
+    if (c.type === 'nosecone' || c.type === 'bodytube' || c.type === 'transition') {
+      const start = station;
+      station += rec.length ?? 0;
+      tubeStart = start;
+      return { id: c.id, name: c.name, type: c.type, mass: 0.5, cg: (start + station) / 2, cna: 0, axialStart: start, axialEnd: station };
+    }
+    const start = tubeStart + (rec.axialOffset ?? 0);
+    const end = start + (rec.length ?? rec.rootChord ?? 0);
+    return { id: c.id, name: c.name, type: c.type, mass: 0.1, cg: (start + end) / 2, cna: 0, axialStart: start, axialEnd: end };
+  });
+  return stabilityAnalysis({ totalLength: station, contributions, ...overrides });
 }

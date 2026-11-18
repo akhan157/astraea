@@ -7,6 +7,20 @@ import { join } from 'node:path';
 import { chromium, expect } from 'playwright/test';
 import { preview } from 'vite';
 
+/**
+ * Replacing a design with unsaved edits asks first; these journeys mean to
+ * replace it. The ask opens in the same event as the click or file pick, so
+ * once the page has run one more task the Replace button is either on screen
+ * or not coming. No wall-clock wait: a busy CI page can take longer than any
+ * fixed timeout just to answer.
+ */
+async function confirmReplace(target) {
+  await target.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
+  const replace = target.getByRole('button', { name: 'Replace', exact: true });
+  if (await replace.isVisible()) await replace.click();
+}
+
+
 const output = process.argv[2];
 assert.ok(output, 'Supply a new external evidence directory');
 await mkdir(output, { recursive: false });
@@ -39,12 +53,13 @@ try {
   const menu = async name => {
     await page.getByRole('button', { name: 'Project menu', exact: true }).click();
     await page.getByRole('button', { name: new RegExp(`^${name}`) }).click();
+    await confirmReplace(page);
   };
   const save = async () => {
     const status = page.locator('[data-project-status]');
     const before = await status.count() ? await status.first().textContent() : null;
-    await menu('Save to this browser');
-    await expect(status).toContainText(/Saved locally \(revision \d+\)/);
+    await menu('Save in this browser');
+    await expect(status).toContainText(/Saved in this browser \(revision \d+\)/);
     if (before) await expect(status).not.toHaveText(before);
     await page.keyboard.press('Escape');
   };
@@ -79,8 +94,8 @@ try {
   assert.deepEqual(originalCase.engineIdentity, { kind: 'production-rust-wasm', sha256: expectedSha });
   await writeFile(join(output, 'first-project.json'), JSON.stringify(first, null, 2));
   await page.reload();
-  await menu('Open saved project');
-  await expect(page.locator('[data-project-status]')).toContainText('Opened saved project');
+  await menu('Open the copy in this browser');
+  await expect(page.locator('[data-project-status]')).toContainText('Opened the copy saved in this browser');
   await page.keyboard.press('Escape');
   assert.equal(await run(), firstResult);
   await save();
@@ -91,9 +106,11 @@ try {
   await stage('Mission');
   const bad = { ...reopened, vehicle: { ...reopened.vehicle, name: 'MUST NOT LOAD' }, flightModel: { ...reopened.flightModel, modelId: 'native-candidate-not-app-enabled' } };
   await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: 'unsupported.astraea.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(bad)) });
+  await confirmReplace(page);
   await expect(page.getByText(/unsupported flightModel selection/)).toBeVisible();
   const bareBad = { ...bad.vehicle, flightModel: bad.flightModel };
   await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: 'unsupported-bare.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(bareBad)) });
+  await confirmReplace(page);
   await expect(page.getByText(/flightModel belongs on a versioned project envelope/)).toBeVisible();
   await save();
   const retained = await stored();
@@ -105,6 +122,7 @@ try {
   const old = structuredClone(reopened); old.schemaVersion = '1.6.0'; delete old.flightModel;
   for (const c of old.cases) { c.inputs.version = 1; delete c.inputs.flightModel; }
   await page.getByLabel('Import file', { exact: true }).setInputFiles({ name: 'synthetic-old-1.6.astraea.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(old)) });
+  await confirmReplace(page);
   // Import completion is disclosed inline; the status row lives in the menu.
   await expect(page.getByText('Imported synthetic-old-1.6.astraea.json', { exact: true })).toBeVisible();
   await stage('Build');

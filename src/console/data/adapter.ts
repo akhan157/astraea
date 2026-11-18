@@ -286,7 +286,7 @@ export async function stabilityOfVehicle(vehicle: RocketVehicle, aeroModel?: imp
 
 export function marginGate(m: Result): Gate {
   const v = m.value;
-  const status = !Number.isFinite(v) ? 'unknown' : v < MARGIN_MIN ? 'fail' : v > MARGIN_MAX ? 'fail' : 'pass';
+  const status = !Number.isFinite(v) ? 'unknown' : v < MARGIN_MIN ? 'fail' : v > MARGIN_MAX ? 'caution' : 'pass';
   return {
     id: 'static_margin',
     label: 'Geometry static margin',
@@ -456,72 +456,9 @@ export function toFlightRun(
   };
 
   const flutter = flutterHistory(vehicle, telemetry.map((p) => ({ t: p.time, speed: p.speed, altitude: p.altitude })), aero, shearOverridePa, vehicle.launchSite?.altitudeM ?? 0);
-
-  const gates: Gate[] = [
-    {
-      id: 'rail_exit',
-      label: 'Rail exit speed',
-      stage: 'flight',
-      status: res.isRailExitSafe ? 'pass' : 'fail',
-      value: summary.railExitSpeed,
-      threshold: `>= ${RAIL_EXIT_GATE} m/s`,
-      reason: res.isRailExitSafe
-        ? 'Meets the generic 15 m/s engine screen at modeled release; first rotational freedom and competition compliance are not assessed.'
-        : 'Does not pass the generic 15 m/s engine screen at modeled release (including engine validity); first rotational freedom and competition compliance are not assessed. Review effective guide travel, motor and run validity.',
-    },
-    flutter
-      ? {
-          id: 'flutter',
-          label: 'Fin flutter margin',
-          stage: 'aero',
-          status: !Number.isFinite(flutter.worst.margin.value) ? 'unknown' : flutter.worst.margin.value >= FLUTTER_GATE ? 'pass' : 'fail',
-          value: flutter.worst.margin,
-          threshold: `>= ${FLUTTER_GATE}\u00d7`,
-          reason: `Worst at t = ${flutter.worst.t.toFixed(1)} s: flutter speed ${flutter.worst.flutterSpeed.toFixed(0)} m/s vs airspeed ${flutter.worst.airspeed.toFixed(0)} m/s.`,
-        }
-      : {
-          id: 'flutter',
-          label: 'Fin flutter margin',
-          stage: 'aero',
-          status: 'n/a',
-          value: unknown(NaN, '\u00d7', 'No fin set on this vehicle.'),
-          threshold: `>= ${FLUTTER_GATE}\u00d7`,
-          reason: 'No fin set on this vehicle.',
-        },
-    {
-      id: 'envelope',
-      label: 'Inside engine envelope',
-      stage: 'flight',
-      status: res.enveloped ? 'pass' : 'unknown',
-      value: summary.maxMach,
-      threshold: 'Mach 0-4, alpha <= 30 deg',
-      reason: res.enveloped
-        ? 'The whole flight stayed inside the range the 6-DOF model covers.'
-        : 'Part of the flight left the modeled range; results there are UNKNOWN.',
-    },
-    {
-      id: 'landing_speed',
-      label: 'Landing speed',
-      stage: 'recovery',
-      status: !res.touchdownNominal ? 'unknown' : res.landingVelocity <= LANDING_SPEED_GATE ? 'pass' : 'fail',
-      value: summary.landingSpeed,
-      threshold: `<= ${LANDING_SPEED_GATE} m/s (35 ft/s)`,
-      reason: !res.touchdownNominal
-        ? `No nominal touchdown, so landing speed is not checked. ${TRIPOLI_LANDING_LIMIT} ${LANDING_ENERGY_NOTE}`
-        : res.landingVelocity <= LANDING_SPEED_GATE
-          ? `Touchdown is at or below the certification limit. ${TRIPOLI_LANDING_LIMIT} ${LANDING_ENERGY_NOTE}`
-          : `Touchdown exceeds the certification limit; ${vehicle.components.some((c) => c.type === 'parachute') ? 'use a larger main' : 'add a parachute'}. ${TRIPOLI_LANDING_LIMIT} ${LANDING_ENERGY_NOTE}`,
-    },
-    {
-      id: 'validity',
-      label: 'Run validity',
-      stage: 'flight',
-      status: res.validity === 'PASS' ? 'pass' : res.validity === 'FAIL' ? 'fail' : res.validity === 'UNKNOWN' ? 'unknown' : 'n/a',
-      value: r(res.flightDuration, 's', INERTIAL),
-      threshold: 'PASS',
-      reason: `Engine reports ${res.validity}${res.terminationReason === 'timeout' ? ' (stopped on timeout, no touchdown)' : ''}.`,
-    },
-  ];
+  const validity = res.validity as Validity;
+  const why = validityExplanation(res);
+  const gates: Gate[] = flightGates(res, summary, flutter, vehicle, validity, why);
 
   // The physics options this run actually sent, derived from the same vehicle
   // the bridge derived them from. Absent when none, so a default run adds no
@@ -545,6 +482,151 @@ export function toFlightRun(
     ...(calibration === undefined ? {} : { dragCalibration: calibration }),
     ...(momentArmHistory === undefined ? {} : { momentArmHistory }),
   };
+}
+
+/* \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 flight checks: one rule, four outcomes \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
+
+/** Plain-language reason the engine gave a run its validity. */
+export function validityExplanation(res: Pick<SixDofSimulationResult, 'validity' | 'enveloped' | 'offNominalExcursion' | 'touchdownNominal' | 'terminationReason'>): string {
+  if (res.validity === 'PASS') return 'The engine vouches for this run: it stayed inside its modeled range and landed normally.';
+  if (res.validity === 'FAIL') {
+    return res.terminationReason === 'timeout'
+      ? 'The engine marked this run invalid: it stopped on its time limit before touchdown.'
+      : 'The engine marked this run invalid: it ended without a finite landing.';
+  }
+  if (res.validity === 'NOT_APPLICABLE') return 'The engine reports that validity does not apply to this run.';
+  const causes: string[] = [];
+  if (!res.enveloped) causes.push('part of the flight left the modeled range (Mach 0\u20134, angle of attack up to 30\u00b0)');
+  if (res.offNominalExcursion) causes.push('part of the flight used extrapolated or unsupported model data');
+  if (!res.touchdownNominal) causes.push('it did not land normally under recovery');
+  return `The engine does not vouch for this run${causes.length ? `: ${causes.join('; ')}` : ''}.`;
+}
+
+/**
+ * Qualify a check's raw verdict by the run's validity. A value that already
+ * fails its limit stays a failure (a known constraint proves it); a pass is
+ * only a pass when the engine vouches for the run; an invalid run cannot pass.
+ */
+export function qualifyByValidity(raw: 'pass' | 'fail' | 'unknown' | 'n/a', validity: Validity): Gate['status'] {
+  if (raw === 'fail' || raw === 'n/a') return raw;
+  if (validity === 'FAIL') return 'invalid';
+  if (raw === 'pass' && validity !== 'PASS') return 'unknown';
+  return raw;
+}
+
+const VALIDITY_DISPLAY: Record<Validity, string> = { PASS: 'Valid', FAIL: 'Invalid', UNKNOWN: 'Unknown', NOT_APPLICABLE: 'N/A' };
+
+function flightGates(
+  res: SixDofSimulationResult,
+  summary: RunSummary,
+  flutter: FlutterHistory | undefined,
+  vehicle: RocketVehicle,
+  validity: Validity,
+  why: string,
+): Gate[] {
+  const notVouched = (status: Gate['status'], judged: string): string =>
+    status === 'invalid' ? `Not judged: ${why}` : status === 'unknown' && validity !== 'PASS' ? `${judged} ${why} So this check is not confirmed.` : judged;
+  const validityFix = { fixStage: 'flight' as const, advice: 'See Run validity: the engine flagged this run, so fix that first.' };
+
+  const rail = res.railExitVelocity;
+  // The engine's own decision is `certified && speed >= 15`. Split it: the
+  // speed is judged against the limit, and the certification part is the
+  // run's validity, applied by `qualifyByValidity`. A valid run the engine
+  // still refused keeps the engine's refusal.
+  const engineRefusedValid = validity === 'PASS' && !res.isRailExitSafe;
+  const railRaw = !Number.isFinite(rail) ? 'unknown' : rail < RAIL_EXIT_GATE || engineRefusedValid ? 'fail' : 'pass';
+  const railStatus = qualifyByValidity(railRaw, validity);
+  const railSpeed = Number.isFinite(rail) ? `${rail.toFixed(1)} m/s` : 'unknown';
+  const railJudged = railRaw === 'pass'
+    ? `Leaves the rail at ${railSpeed}, at or above the ${RAIL_EXIT_GATE} m/s minimum.`
+    : railRaw === 'fail'
+      ? rail < RAIL_EXIT_GATE
+        ? `Leaves the rail at ${railSpeed}, below the ${RAIL_EXIT_GATE} m/s minimum: the fins may not steer it yet.`
+        : `The engine's rail-exit screen did not pass this run (speed at release ${railSpeed}).`
+      : 'The run reported no rail exit speed.';
+  const railScope = ' Generic screen at modeled release; first rotational freedom and competition compliance are not assessed.';
+
+  const flutterGate: Gate = flutter
+    ? (() => {
+        const m = flutter.worst.margin.value;
+        const raw = !Number.isFinite(m) ? 'unknown' : m >= FLUTTER_GATE ? 'pass' : 'fail';
+        const status = qualifyByValidity(raw, validity);
+        const judged = `Worst at t = ${flutter.worst.t.toFixed(1)} s: flutter speed ${flutter.worst.flutterSpeed.toFixed(0)} m/s vs airspeed ${flutter.worst.airspeed.toFixed(0)} m/s.`;
+        return {
+          id: 'flutter', label: 'Fin flutter margin', stage: 'aero', status, value: flutter.worst.margin,
+          threshold: `\u2265 ${FLUTTER_GATE}\u00d7`,
+          reason: notVouched(status, judged),
+          ...(status === 'fail' ? { advice: 'Thicker fins, a stiffer material, a tested shear modulus, or less speed.' } : status === 'invalid' ? validityFix : {}),
+        } satisfies Gate;
+      })()
+    : {
+        id: 'flutter', label: 'Fin flutter margin', stage: 'aero', status: 'n/a',
+        value: unknown(NaN, '\u00d7', 'No fin set on this vehicle.'),
+        threshold: `\u2265 ${FLUTTER_GATE}\u00d7`,
+        reason: 'No fin set on this vehicle.',
+      };
+
+  const envelopeStatus: Gate['status'] = validity === 'FAIL' ? 'invalid' : res.enveloped ? 'pass' : 'unknown';
+  const hasChute = vehicle.components.some((c) => c.type === 'parachute');
+  const landingRaw = !res.touchdownNominal || !Number.isFinite(res.landingVelocity) ? 'unknown' : res.landingVelocity <= LANDING_SPEED_GATE ? 'pass' : 'fail';
+  const landingStatus = qualifyByValidity(landingRaw, validity);
+  const landingJudged = landingRaw === 'unknown'
+    ? 'No normal touchdown, so landing speed is not checked.'
+    : landingRaw === 'pass'
+      ? `Touches down at ${res.landingVelocity.toFixed(1)} m/s, at or below the limit.`
+      : `Touches down at ${res.landingVelocity.toFixed(1)} m/s, above the limit.`;
+
+  return [
+    {
+      id: 'rail_exit',
+      label: 'Rail exit speed',
+      stage: 'flight',
+      status: railStatus,
+      value: summary.railExitSpeed,
+      threshold: `\u2265 ${RAIL_EXIT_GATE} m/s`,
+      reason: notVouched(railStatus, railJudged) + railScope,
+      ...(railStatus === 'fail' ? { advice: 'Use a longer rail, or a motor with more thrust at liftoff.', fixStage: 'mission' as const }
+        : railStatus === 'invalid' || railStatus === 'unknown' ? validityFix : {}),
+    },
+    flutterGate,
+    {
+      id: 'envelope',
+      label: 'Inside engine envelope',
+      stage: 'flight',
+      status: envelopeStatus,
+      value: summary.maxMach,
+      threshold: 'Mach 0\u20134, angle of attack \u2264 30\u00b0',
+      reason: envelopeStatus === 'invalid'
+        ? `Not judged: ${why}`
+        : res.enveloped
+          ? 'The whole flight stayed inside the range the 6-DOF model covers.'
+          : 'Part of the flight left the modeled range; results there are unknown.',
+      ...(envelopeStatus === 'unknown' ? { advice: 'Check where Mach or angle of attack left the modeled range.' } : envelopeStatus === 'invalid' ? validityFix : {}),
+    },
+    {
+      id: 'landing_speed',
+      label: 'Landing speed',
+      stage: 'recovery',
+      status: landingStatus,
+      value: summary.landingSpeed,
+      threshold: `\u2264 ${LANDING_SPEED_GATE} m/s (35 ft/s)`,
+      reason: `${notVouched(landingStatus, landingJudged)} ${TRIPOLI_LANDING_LIMIT} ${LANDING_ENERGY_NOTE}`,
+      ...(landingStatus === 'fail'
+        ? { advice: hasChute ? 'Use a larger main parachute or one with a higher drag coefficient.' : 'Add a parachute.' }
+        : landingStatus === 'invalid' || (landingStatus === 'unknown' && validity !== 'PASS') ? validityFix : {}),
+    },
+    {
+      id: 'validity',
+      label: 'Run validity',
+      stage: 'flight',
+      status: validity === 'PASS' ? 'pass' : validity === 'FAIL' ? 'invalid' : validity === 'UNKNOWN' ? 'unknown' : 'n/a',
+      value: r(res.flightDuration, 's', INERTIAL),
+      display: VALIDITY_DISPLAY[validity],
+      threshold: 'Must be valid',
+      reason: why,
+      ...(validity === 'PASS' ? {} : { advice: 'Open the run manifest in Flight to see what the engine flagged.' }),
+    },
+  ];
 }
 
 /* ───────────── flutter along the flight ───────────── */

@@ -13,6 +13,7 @@
  * bundle refuses to build without it. The pure checks live here; the card in
  * the Verify stage only collects the values.
  */
+import { formatLocalTimestamp } from '../formats/localTime';
 import { exportMotorFile } from './files';
 import { DATA_REQUEST_URL, FLIGHT_ISSUE_URL } from '../lib/links';
 import { zipFiles } from './bundle';
@@ -204,7 +205,9 @@ function readme(input: FlightBundleInput, members: { log: string; project: strin
     'ASTRAEA FLIGHT BUNDLE',
     '=====================',
     '',
-    `Made by Astraea ${input.appVersion} (beta) on ${input.exportedAt.toISOString()}.`,
+    // People read the local time; the UTC instant stays for machines and for
+    // anyone comparing across zones.
+    `Made by Astraea ${input.appVersion} (beta) on ${formatLocalTimestamp(input.exportedAt)} (${input.exportedAt.toISOString()} UTC).`,
     '',
     'WHAT IS INSIDE',
     `  flight-info.json           What you told us about the flight (as-flown mass, date, weather,`,

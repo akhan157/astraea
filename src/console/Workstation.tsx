@@ -6,6 +6,9 @@ import { useMediaQuery } from './hooks';
 import { C } from './kit/theme';
 import { TopBar, StageRail, PartsTree, StatusBar, Palette, Shortcuts } from './shell/Shell';
 import { PartInspector } from './shell/Inspector';
+import { Toasts } from './shell/Toasts';
+import { StartChooser, openStartChooser } from './shell/StartChooser';
+import { useRecoveryNote } from '../state/workingSession';
 import { AirframeStage } from './stages/Airframe';
 import { AeroStage } from './stages/Aero';
 import { FlightStage, FlightInspector } from './stages/Flight';
@@ -53,6 +56,7 @@ function PanelDrawer({ side, label, width, onClose, children }: { side: 'left' |
 
 export default function Workstation() {
   const s = useWS();
+  const restoredWork = useRecoveryNote((state) => state.message?.startsWith('Restored') ?? false);
   const [palette, setPalette] = useState(false);
   const [shortcuts, setShortcuts] = useState(false);
   const [left, setLeft] = useState(250);
@@ -74,6 +78,12 @@ export default function Workstation() {
   const compact = useMediaQuery('(max-width: 1279px)');
   const narrow = useMediaQuery('(max-width: 1023px)');
   const phone = useMediaQuery('(max-width: 719px)');
+  // Laptop width: results stages (Flight, Verify, Build) need the room more
+  // than the parts tree does, so the tree folds away there and comes back on
+  // the design stages, unless the user has toggled it themselves.
+  const laptop = useMediaQuery('(max-width: 1439px)');
+  const resultsStage = s.stage === 'flight' || s.stage === 'verify' || s.stage === 'build';
+  const resultsCollapsedLeft = useRef(false);
   // Once the user toggles a panel in this session, width changes leave it alone.
   const explicitLeft = useRef(false);
   const explicitRight = useRef(false);
@@ -126,6 +136,19 @@ export default function Workstation() {
     const st = consoleSessionState();
     if (!explicitLeft.current && st.leftOpen) { autoCollapse.current.left = true; st.set({ leftOpen: false }); }
   }, [narrow]);
+  useLayoutEffect(() => {
+    if (narrow || explicitLeft.current) return;
+    const st = consoleSessionState();
+    if (laptop && resultsStage && st.leftOpen) {
+      resultsCollapsedLeft.current = true;
+      autoCollapse.current.left = true;
+      st.set({ leftOpen: false });
+    } else if ((!resultsStage || !laptop) && resultsCollapsedLeft.current && !st.leftOpen) {
+      resultsCollapsedLeft.current = false;
+      autoCollapse.current.left = true;
+      st.set({ leftOpen: true });
+    }
+  }, [laptop, resultsStage, narrow]);
   useEffect(() => {
     if (s.leftOpen !== lastOpen.current.left) {
       lastOpen.current.left = s.leftOpen;
@@ -187,7 +210,9 @@ export default function Workstation() {
   }, [inspectorEmpty, compact, s.selectedId, s.stage]);
 
   useEffect(() => {
-    if (!hasToured()) s.set({ onboarding: 0, stage: 'mission' });
+    // A first visit opens the start screen (Blank / Example / Import / Resume),
+    // not a step-by-step tour; the tour stays available from the palette.
+    if (!hasToured()) openStartChooser();
     const sc = () => setShortcuts(true);
     addEventListener('ws:shortcuts', sc);
     return () => removeEventListener('ws:shortcuts', sc);
@@ -307,6 +332,8 @@ export default function Workstation() {
         <Palette open={palette} setOpen={setPalette} openShortcuts={() => setShortcuts(true)} />
         <Shortcuts open={shortcuts} setOpen={setShortcuts} />
         <AeroModelProvenanceDialog />
+        <Toasts />
+        <StartChooser canResume={restoredWork} />
       </div>
     </Tooltip.Provider>
   );

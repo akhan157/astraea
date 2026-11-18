@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import JSZip from 'jszip';
-import { parseOrkFile, exportToOrk, InvalidOrkFileError } from './orkParser';
+import { parseOrkFile, parseOrkFileWithReport, exportToOrk, InvalidOrkFileError } from './orkParser';
+import { describeImportLosses } from './importLosses';
 import { RocketVehicle } from '../core/types';
 import { aggregateVehicleMass } from '../core/mass';
 import { computeRocketStability } from '../aero/barrowman';
@@ -51,6 +52,34 @@ describe('OpenRocket (.ork) Parser and Exporter', () => {
     </subcomponents>
   </rocket>
 </openrocket>`;
+
+  it('names the parts, stages, motors and simulations an import leaves behind', async () => {
+    const xml = sampleOrkXml
+      .replace('<parachute>', `<innertube><name>Motor mount</name><motormount><motor configid="a"><type>single</type>
+        <manufacturer>AeroTech</manufacturer><designation>H128W</designation></motor></motormount></innertube>
+        <centeringring><name>CR fore</name></centeringring><launchlug><name>Lug &amp; guide</name></launchlug><parachute>`)
+      .replace('</stage>\n    </subcomponents>', `</stage>
+      <stage><name>Booster</name><subcomponents><bodytube><name>Booster tube</name><length>0.2</length><radius>0.02</radius></bodytube></subcomponents></stage>
+    </subcomponents>`)
+      .replace('</openrocket>', '<simulations><simulation status="uptodate"><name>Windy day</name></simulation></simulations></openrocket>');
+    const zip = new JSZip();
+    zip.file('rocket.ork', xml);
+    const { vehicle, losses } = await parseOrkFileWithReport(await zip.generateAsync({ type: 'uint8array' }));
+    expect(vehicle.components.some((c) => c.name === 'Booster tube')).toBe(true);
+    expect(losses.skippedParts).toEqual([
+      { kind: 'innertube', name: 'Motor mount' },
+      { kind: 'centeringring', name: 'CR fore' },
+      { kind: 'launchlug', name: 'Lug & guide' },
+    ]);
+    expect(losses.mergedStages).toEqual(['Sustainer', 'Booster']);
+    expect(losses.fileMotors).toEqual(['AeroTech H128W']);
+    expect(losses.simulations).toEqual(['Windy day']);
+    const lines = describeImportLosses(losses).join('\n');
+    expect(lines).toMatch(/Dropped parts \(no Astraea equivalent, so their mass is not counted\): inner tube “Motor mount”; centering ring “CR fore”; launch lug “Lug & guide”\./);
+    expect(lines).toMatch(/Stages merged into one airframe: “Sustainer”, “Booster”\./);
+    expect(lines).toMatch(/Motor named in the file, not applied: AeroTech H128W\./);
+    expect(lines).toMatch(/Simulation in the file, not imported: “Windy day”\./);
+  });
 
   it('refuses a malformed freeform outline with a specific reason and rejects unsupported fin geometry', async () => {
     const malformed = new JSZip();

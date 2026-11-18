@@ -1,5 +1,17 @@
+/**
+ * Weather and wind profiles for the launch site.
+ *
+ * The forecast is fetched for the workspace coordinates, so the panel first
+ * says which place those are and whether that is the mission's launch site:
+ * never-set placeholder coordinates block the fetch (a Seattle forecast for a
+ * Huntsville launch is worse than none), coordinates of a different named
+ * place warn, and coordinates Astraea cannot name say so. Times are shown in
+ * local time with their zone; the stored source keeps the UTC instants.
+ */
 import { useMemo, useState } from 'react';
 import { fetchWeatherLayers } from '../../io/net';
+import { localizeIsoTimestamps } from '../../formats/localTime';
+import { isPlaceholderSite, namedSiteAt, namedSiteCalled, PLACEHOLDER_SITE_COORDINATES, type SiteCoordinates } from '../../state/presets';
 import { parseWindProfileCsv, toManualWindTable } from '../../sim/windProfile';
 import { windAtAltitude, windToENU, type WindLayer } from '../../sim/weather';
 import { useProjectStore } from '../../state/project';
@@ -7,9 +19,79 @@ import { weatherLayers, weatherSnapshot } from '../../application/weatherSnapsho
 import { consoleActions, useWS } from '../store';
 import { C } from '../kit/theme';
 
+/** "34.7304° N, 86.5861° W". */
+export function formatCoordinates(site: { latDeg: number; lonDeg: number }): string {
+  const lat = `${Math.abs(site.latDeg).toFixed(4)}° ${site.latDeg >= 0 ? 'N' : 'S'}`;
+  const lon = `${Math.abs(site.lonDeg).toFixed(4)}° ${site.lonDeg >= 0 ? 'E' : 'W'}`;
+  return `${lat}, ${lon}`;
+}
+
+/** Great-circle distance, km (spherical Earth, mean radius 6371 km); for "how far off", not navigation. */
+function distanceKm(a: { latDeg: number; lonDeg: number }, b: { latDeg: number; lonDeg: number }): number {
+  const rad = Math.PI / 180;
+  const dLat = (b.latDeg - a.latDeg) * rad, dLon = (b.lonDeg - a.lonDeg) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.latDeg * rad) * Math.cos(b.latDeg * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+export interface WeatherPlace {
+  tone: 'ok' | 'warn' | 'info';
+  text: string;
+  /** Known coordinates for the mission's site label, offered when they differ from the current ones. */
+  suggestion: SiteCoordinates | null;
+  /** Why fetching now would ask about the wrong place; null when fetching is fine. */
+  blockFetch: string | null;
+}
+
+/** Which place the weather coordinates are, measured against the mission's site label. */
+export function weatherPlace(site: { latDeg: number; lonDeg: number }, missionSite: string): WeatherPlace {
+  const label = missionSite.trim();
+  const hasLabel = label.length > 0 && label !== 'Unspecified site';
+  const known = hasLabel ? namedSiteCalled(label) : null;
+  const where = formatCoordinates(site);
+  if (isPlaceholderSite(site)) {
+    return {
+      tone: 'warn',
+      text: `Coordinates never set: ${where} is Astraea’s placeholder (${PLACEHOLDER_SITE_COORDINATES.label}), not ${hasLabel ? `your launch site, “${label}”` : 'your launch site'}. Enter the site’s latitude and longitude${known ? `, or use ${known.label}’s` : ''}.`,
+      suggestion: known,
+      blockFetch: 'Set the launch site’s coordinates first: these are a placeholder.',
+    };
+  }
+  const named = namedSiteAt(site);
+  if (named && (!hasLabel || known?.label === named.label)) {
+    return { tone: hasLabel ? 'ok' : 'info', text: `Weather for ${named.label} (${where})${hasLabel ? ', the mission’s launch site' : ''}.`, suggestion: null, blockFetch: null };
+  }
+  if (named) {
+    return {
+      tone: 'warn',
+      text: `These coordinates are ${named.label} (${where}), but the mission’s site is “${label}”. Update one of them so the forecast is for where you launch.`,
+      suggestion: known,
+      blockFetch: null,
+    };
+  }
+  if (known) {
+    return {
+      tone: 'warn',
+      text: `Weather for ${where}, about ${Math.round(distanceKm(site, known)).toLocaleString('en-US')} km from ${known.label}, the mission’s site. Check these are your launch field’s coordinates.`,
+      suggestion: known,
+      blockFetch: null,
+    };
+  }
+  return {
+    tone: 'info',
+    text: `Weather for ${where}. Astraea can’t name this place, so check it is ${hasLabel ? `“${label}”` : 'your launch site'}.`,
+    suggestion: null,
+    blockFetch: null,
+  };
+}
+
+const PLACE_COLOR: Record<WeatherPlace['tone'], string> = { ok: C.ok, warn: C.warn, info: C.muted };
+
 export function WeatherPanel() {
   const s = useWS();
   const site = useProjectStore((state) => state.project.workspace.site);
+  const missionSite = useProjectStore((state) => state.mission.site);
+  const place = weatherPlace(site, missionSite);
   // Profiles live in the project as weather snapshots, so they persist with it.
   const project = useProjectStore((state) => state.project);
   const manual = useMemo(() => weatherLayers(project, 'manual'), [project]);
@@ -30,12 +112,20 @@ export function WeatherPanel() {
   return <section className="space-y-3 p-4 text-[12px]">
     <h3>Weather and wind profile</h3>
     <p style={{ color: C.muted }}>Profiles are inspection data. The engine consumes only the surface wind selected below, with its own shear model; it does not ingest wind layers.</p>
+    <div role="status" data-weather-place={place.tone} className="flex flex-wrap items-center gap-2" style={{ color: PLACE_COLOR[place.tone] }}>
+      <span>{place.text}</span>
+      {place.suggestion && <button className="rounded border px-2 py-0.5" style={{ color: C.fg }} onClick={() => {
+        const target = place.suggestion!;
+        consoleActions.setWorkspace({ site: { ...site, latDeg: target.latDeg, lonDeg: target.lonDeg } }, `Weather location: ${target.label}`);
+        setStatus(`Weather location set to ${target.label} (${formatCoordinates(target)}), the place itself rather than a specific field. Undo reverts it.`);
+      }}>Use {place.suggestion.label} ({formatCoordinates(place.suggestion)})</button>}
+    </div>
     <div className="flex flex-wrap gap-3">{(['latDeg', 'lonDeg'] as const).map((field) => <label key={field}>{field === 'latDeg' ? 'Latitude' : 'Longitude'}<input aria-label={field === 'latDeg' ? 'Weather latitude' : 'Weather longitude'} type="number" step="any" value={site[field]} onChange={(e) => {
       if (e.target.value.trim() === '' || !Number.isFinite(e.target.valueAsNumber)) return;
       consoleActions.setWorkspace({ site: { ...site, [field]: e.target.valueAsNumber } }, 'Weather location');
     }} className="ml-2 rounded p-1" style={{ background: C.sunken, border: `1px solid ${C.line}` }} /></label>)}
       <label>Launch time (UTC)<input aria-label="Weather launch time" type="datetime-local" value={site.launchTimeISO?.slice(0, 16) ?? ''} onChange={(e) => consoleActions.setWorkspace({ site: { ...site, launchTimeISO: e.target.value ? `${e.target.value}:00Z` : null } }, 'Weather launch time')} className="ml-2 rounded p-1" style={{ background: C.sunken }} /></label>
-      <button disabled={loading} className="rounded border px-3 py-1" onClick={async () => {
+      <button disabled={loading || place.blockFetch !== null} title={place.blockFetch ?? undefined} className="rounded border px-3 py-1" onClick={async () => {
         setLoading(true); setError(null);
         try {
           if (!site.launchTimeISO) throw new Error('Enter a launch time before fetching a forecast.');
@@ -44,12 +134,13 @@ export function WeatherPanel() {
           if (activeSite.latDeg !== site.latDeg || activeSite.lonDeg !== site.lonDeg || activeSite.launchTimeISO !== site.launchTimeISO) {
             throw new Error('Launch location or time changed; fetch the forecast again.');
           }
-          setForecast(result.layers, `${result.source} · valid ${result.forecastHourISO} · fetched ${result.fetchedAt}`);
-          setStatus(`${result.layers.length} forecast layers · nearest launch hour ${result.forecastHourISO} · ${result.source} · fetched ${result.fetchedAt}`);
+          const at = namedSiteAt(site)?.label ?? formatCoordinates(site);
+          setForecast(result.layers, `${result.source} · at ${site.latDeg}, ${site.lonDeg} · valid ${result.forecastHourISO} · fetched ${result.fetchedAt}`);
+          setStatus(localizeIsoTimestamps(`${result.layers.length} forecast layers for ${at} · nearest launch hour ${result.forecastHourISO} · ${result.source} · fetched ${result.fetchedAt}`));
         } catch (err) { setError(err instanceof Error ? err.message : String(err)); }
         finally { setLoading(false); }
       }}>{loading ? 'Fetching…' : 'Fetch sounding'}</button>
-      {forecast.length > 0 && <><span style={{ color: C.muted }}>Saved sounding: {forecast.length} layers{forecastSource ? ` · ${forecastSource}` : ''}</span><button onClick={() => setForecast([])}>Use manual table</button></>}
+      {forecast.length > 0 && <><span style={{ color: C.muted }}>Saved sounding: {forecast.length} layers{forecastSource ? ` · ${localizeIsoTimestamps(forecastSource)}` : ''}</span><button onClick={() => setForecast([])}>Use manual table</button></>}
     </div>
     <label className="block">Wind CSV (altitude, speed, direction from)<textarea aria-label="Wind profile CSV" value={csv} onChange={(e) => setCsv(e.target.value)} className="mt-1 block h-20 w-full rounded p-2 font-geist-mono" style={{ background: C.sunken }} /></label>
     <input aria-label="Import wind profile CSV" type="file" accept=".csv" onChange={async (e) => {

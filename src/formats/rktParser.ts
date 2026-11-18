@@ -15,6 +15,7 @@ import {
   MassComponent,
   NoseconeShape,
 } from '../core/types';
+import { emptyImportLosses, type ImportLosses } from './importLosses';
 
 export class InvalidRktFileError extends Error {
   constructor(message: string) {
@@ -57,6 +58,19 @@ function parseGrams(val: unknown, fallbackGrams: number = 0): number {
  * Parses a RockSim (.rkt) XML string into a normalized RocketVehicle
  */
 export function parseRktString(xmlContent: string): RocketVehicle {
+  return parseRktStringWithReport(xmlContent).vehicle;
+}
+
+/** RockSim stage containers, sustainer first, in the names the report uses. */
+const RKT_STAGE_NAMES: Record<string, string> = {
+  Stage3Parts: 'Stage 3 (sustainer)',
+  Stage2Parts: 'Stage 2',
+  Stage1Parts: 'Stage 1',
+};
+
+/** Parses an .rkt document and names what the import left behind (see importLosses.ts). */
+export function parseRktStringWithReport(xmlContent: string): { vehicle: RocketVehicle; losses: ImportLosses } {
+  const losses = emptyImportLosses();
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
@@ -133,7 +147,7 @@ export function parseRktString(xmlContent: string): RocketVehicle {
   for (const stageKey of targetStages) {
     const stage = rocketDesign[stageKey];
     if (!stage || typeof stage !== 'object') continue;
-
+    losses.mergedStages.push(RKT_STAGE_NAMES[stageKey] ?? stageKey);
     traverseStage(stage as Record<string, unknown>);
   }
 
@@ -191,16 +205,20 @@ export function parseRktString(xmlContent: string): RocketVehicle {
               ? (part.MotorMount as Record<string, unknown>)
               : {};
             tube.isMotorMount = true;
-            if (mount.Motor !== undefined && mount.Motor !== '') tube.assignedMotorId = String(mount.Motor);
+            if (mount.Motor !== undefined && mount.Motor !== '') {
+              tube.assignedMotorId = String(mount.Motor);
+              losses.fileMotors.push(String(mount.Motor));
+            }
           }
           components.push(tube);
 
           // Check for sub-parts attached to body tube
           if (part.AttachedParts && typeof part.AttachedParts === 'object') {
-            traverseAttached(part.AttachedParts as Record<string, unknown>, lastTubeLen);
+            traverseAttached(part.AttachedParts as Record<string, unknown>, lastTubeLen, true);
           } else {
-            // Direct child tags
-            traverseAttached(part, lastTubeLen);
+            // Direct child tags: the tube's own fields sit beside its parts
+            // here, so an unrecognised child is not reported as a dropped part.
+            traverseAttached(part, lastTubeLen, false);
           }
         } else if (key.toLowerCase() === 'transition') {
           const length = parseMm(part.Len, 80);
@@ -220,12 +238,14 @@ export function parseRktString(xmlContent: string): RocketVehicle {
             materialId: 'cardboard',
           };
           components.push(trans);
+        } else {
+          losses.skippedParts.push({ kind: key, name: partName });
         }
       }
     }
   }
 
-  function traverseAttached(attachedObj: Record<string, unknown>, parentTubeLength: number) {
+  function traverseAttached(attachedObj: Record<string, unknown>, parentTubeLength: number, reportSkipped: boolean) {
     for (const [subKey, subVal] of entries(attachedObj)) {
       const subItems = Array.isArray(subVal) ? subVal : [subVal];
 
@@ -287,6 +307,8 @@ export function parseRktString(xmlContent: string): RocketVehicle {
             materialId: 'cardboard',
           };
           components.push(massComp);
+        } else if (reportSkipped) {
+          losses.skippedParts.push({ kind: subKey, name: subName });
         }
       }
     }
@@ -296,12 +318,30 @@ export function parseRktString(xmlContent: string): RocketVehicle {
     throw new InvalidRktFileError('No recognizable rocket components found in RockSim XML');
   }
 
+  // Fixed defaults this reader applies whatever the file says, named so the
+  // report can list exactly what to review.
+  const kinds = new Set(components.map((c) => c.type));
+  const materials = [
+    kinds.has('nosecone') ? 'nose cone PLA' : null,
+    kinds.has('bodytube') || kinds.has('transition') ? 'tubes and transitions cardboard' : null,
+    kinds.has('trapezoidfinset') ? 'fins plywood' : null,
+  ].filter((m): m is string => m !== null);
+  if (materials.length > 0) losses.defaulted.push(`Materials set to defaults, not read from the file: ${materials.join(', ')}. Review mass and CG.`);
+  const seats = [
+    kinds.has('trapezoidfinset') ? 'fin sets at the aft end of their tube' : null,
+    kinds.has('parachute') || kinds.has('masscomponent') ? 'parachutes and mass objects 50 mm behind their tube’s front' : null,
+  ].filter((m): m is string => m !== null);
+  if (seats.length > 0) losses.defaulted.push(`Attached-part positions set to defaults: ${seats.join('; ')}.`);
+
   return {
-    id: `rkt-vehicle-${Date.now()}`,
-    name: vehicleName,
-    version: '1.0',
-    author: (rocketDesign.Designer as string) || 'RockSim Import',
-    notes: 'Imported from Apogee RockSim (.rkt)',
-    components,
+    vehicle: {
+      id: `rkt-vehicle-${Date.now()}`,
+      name: vehicleName,
+      version: '1.0',
+      author: (rocketDesign.Designer as string) || 'RockSim Import',
+      notes: 'Imported from Apogee RockSim (.rkt)',
+      components,
+    },
+    losses,
   };
 }

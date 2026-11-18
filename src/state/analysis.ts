@@ -221,9 +221,10 @@ function pruneAnalysisMaps(state: AnalysisSnapshot, history: AnalysisRecord[]): 
 /** Live deltas need only scalar results and the recorded landing flag. */
 function compactPrevious(payload: unknown): unknown {
   if (!payload || typeof payload !== 'object' || !('previous' in payload)) return payload;
-  const previous = payload.previous as Pick<import('../console/data/contract').FlightRun, 'summary' | 'rev' | 'terminationReason'> | null;
+  const previous = payload.previous as Pick<import('../console/data/contract').FlightRun, 'summary' | 'rev' | 'terminationReason' | 'runNumber'> | null;
   return { ...payload, previous: previous ? {
     summary: structuredClone(previous.summary), rev: previous.rev,
     ...(previous.terminationReason === undefined ? {} : { terminationReason: previous.terminationReason }),
+    ...(previous.runNumber === undefined ? {} : { runNumber: previous.runNumber }),
   } : null };
 }

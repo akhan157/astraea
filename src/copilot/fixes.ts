@@ -7,6 +7,7 @@
  * Nothing here edits the design: a vehicle fix is a `ProposedEdit` that only
  * `applyFix` (on the user's click) can stage.
  */
+import { resolveRecoveryChutes } from '../sim/parachuteRoles';
 import type {
   EllipticalFinSetComponent,
   ParachuteComponent,
@@ -44,14 +45,14 @@ const roundTo = (x: number, step: number) => Math.round(x / step) * step;
 const roundUpTo = (x: number, step: number) => Math.ceil(x / step - 1e-9) * step;
 
 /**
- * Main parachute as the native engine picks it (crates/astraea-engine/src/models.rs):
- * parachutes in component order, the second is the main, and a single
- * parachute serves as both drogue and main.
+ * Main parachute as the native engine picks it (crates/astraea-engine/src/models.rs,
+ * `recovery_chutes`): an explicit role wins; without roles the second parachute
+ * in component order is the main, and a single parachute serves as both.
  */
 export function mainParachute(vehicle: RocketVehicle): { chute: ParachuteComponent; count: number } | null {
-  const chutes = vehicle.components.filter((c): c is ParachuteComponent => c.type === 'parachute');
-  if (chutes.length === 0) return null;
-  return { chute: chutes.length > 1 ? chutes[1] : chutes[0], count: chutes.length };
+  const r = resolveRecoveryChutes(vehicle.components);
+  if (!r.ok || r.main === null) return null;
+  return { chute: r.main, count: vehicle.components.filter((c) => c.type === 'parachute').length };
 }
 
 async function flightDeltas(

@@ -16,10 +16,10 @@ describe('Flight inspector launch settings', () => {
   it('is a read-only summary with an Edit in Mission action', () => {
     render(<FlightInspector />);
     const summary = document.querySelector('[data-launch-summary]');
-    const editable = summary ?? screen.getByText('Effective guide travel').closest('div.group')?.parentElement;
+    const editable = summary ?? screen.getByText('Rail length (guide travel)').closest('div.group')?.parentElement;
     expect(editable?.querySelectorAll('input, select, textarea').length ?? 0).toBe(0);
     expect(summary).not.toBeNull();
-    expect(screen.getByText('Effective guide travel')).toBeTruthy();
+    expect(screen.getByText('Rail length (guide travel)')).toBeTruthy();
     expect(screen.getByText('Main deploy altitude')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Edit in Mission' }));
     expect(useSessionStore.getState().stage).toBe('mission');

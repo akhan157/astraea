@@ -23,6 +23,7 @@ import Workstation from '../Workstation';
 import { stagedCount, useProjectStore } from '../../state/project';
 import { useSessionStore } from '../../state/session';
 import { TOURED_KEY } from './Onboarding';
+import { useStartChooser } from './StartChooser';
 import { consoleJobStub, resetConsoleState, stubEngine } from '../testFixtures';
 
 /** cmdk (the command palette) observes its list; jsdom has no ResizeObserver. */
@@ -49,6 +50,7 @@ function stubMatchMedia(compact: boolean): void {
 let teardown: (() => void) | null = null;
 beforeEach(() => {
   localStorage.setItem(TOURED_KEY, '1');
+  useStartChooser.setState({ open: false, pending: null });
   resetConsoleState();
   consoleJobStub();
   vi.stubGlobal('ResizeObserver', ResizeObserverStub);
@@ -230,12 +232,20 @@ describe('Escape deselect guards', () => {
   });
 });
 
-describe('guided tour', () => {
-  it('opens the inspector when the airframe tour step selects the fin', async () => {
+describe('first visit and guided tour', () => {
+  it('opens the start screen, not the tour, on a first visit', async () => {
     localStorage.removeItem(TOURED_KEY);
     useSessionStore.setState({ onboarding: null, selectedId: null, rightOpen: false, stage: 'mission' });
     render(<Workstation />);
-    await waitFor(() => expect(useSessionStore.getState().onboarding).toBe(0));
+    expect(await screen.findByRole('dialog', { name: 'Start a rocket' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Blank rocket/ })).toBeTruthy();
+    expect(screen.getByLabelText('Import a rocket file')).toBeTruthy();
+    expect(useSessionStore.getState().onboarding).toBeNull();
+  });
+
+  it('opens the inspector when the airframe tour step selects the fin', async () => {
+    useSessionStore.setState({ onboarding: 0, selectedId: null, rightOpen: false, stage: 'mission' });
+    render(<Workstation />);
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     const state = useSessionStore.getState();
     expect(state.stage).toBe('airframe');
@@ -253,7 +263,7 @@ describe('staged edits banner', () => {
     fireEvent.change(input, { target: { value: '800' } });
     fireEvent.blur(input);
     act(() => { useSessionStore.getState().setSelectedId(null); });
-    expect(screen.getByText(/1 part with staged edits/)).toBeTruthy();
+    expect(screen.getByText(/1 staged edit: .*Run applies them first/)).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Apply staged edits' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Discard staged edits' })).toBeTruthy();
     expect(screen.getByText('Select a part in the tree or the 3D view.')).toBeTruthy();

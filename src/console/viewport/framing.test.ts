@@ -3,10 +3,11 @@ import { PRESET_NASA_STUDENT_LAUNCH } from '../../state/presets';
 import type { Layout } from './Vehicle3D';
 import { vehicleBounds } from './appearance';
 import { viewcubeRect } from './overlays';
+import * as THREE from 'three';
 import {
-  FIT_FRACTION, contains, convexHull, envelopePoints, envelopeRadius, fitDistance, framePoints, intersects,
-  ndcBoxToPixels, projectedBox, projectedFraction, projectedPoints, rotatePoints, silhouettePoints,
-  type Rect, type Vector,
+  FIT_FRACTION, FULL_VIEW, boxInside, boxOverlaps, cameraBox, contains, convexHull, editNeedsRefit, envelopePoints, envelopeRadius,
+  fitDistance, framePoints, intersects, ndcBoxToPixels, pixelsToNdcBox, projectedBox, projectedFraction, projectedPoints, rotatePoints,
+  silhouettePoints, upFor, type Rect, type Vector,
 } from './framing';
 
 /** Layout for the NASA preset at its documented stations (0.65 / 1.40 / 1.52 / 2.97). */
@@ -339,6 +340,105 @@ describe('screen helpers', () => {
     expect(intersects(outer, { x0: 9, y0: 0, x1: 20, y1: 10 })).toBe(true);
     expect(intersects(outer, { x0: 10, y0: 0, x1: 20, y1: 10 })).toBe(false);
     expect(intersects(outer, { x0: 21, y0: 0, x1: 30, y1: 10 }, 12)).toBe(true);
+  });
+});
+
+/**
+ * Plan #8: edits move the camera only when the rocket leaves the view. These
+ * use a real THREE camera, because after an orbit or pan the camera is not the
+ * one a fit wrote, and the on-screen test must see the camera as drawn.
+ */
+describe('edits hold the camera while the rocket stays on screen', () => {
+  const aspect = 1600 / 1000;
+  /** A camera fitted the way CameraFit fits the horizontal pose, times a user zoom. */
+  const fittedCamera = (points: readonly Vector[], zoom = 1): THREE.PerspectiveCamera => {
+    const direction = directions.iso;
+    const distance = fitDistance(points, direction, 32, aspect, FIT_FRACTION) * zoom;
+    const length = Math.hypot(direction.x, direction.y, direction.z);
+    const camera = new THREE.PerspectiveCamera(32, aspect, 0.01, 200);
+    camera.position.set(direction.x / length * distance, direction.y / length * distance, direction.z / length * distance);
+    camera.up.set(...upFor(direction));
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+    return camera;
+  };
+  /** The silhouette after an edit that scales the rocket's length (axial is x lying down). */
+  const stretched = (factor: number): Vector[] => flat.map((p) => ({ ...p, x: p.x * factor }));
+
+  it('measures the screen box through the real camera, agreeing with the fit model', () => {
+    const camera = fittedCamera(flat);
+    const real = cameraBox(flat, camera);
+    const model = projectedBox(flat, directions.iso, 32, aspect, fitDistance(flat, directions.iso, 32, aspect, FIT_FRACTION));
+    // The fit model's x axis is the mirror of the drawn camera's (`basisFor`
+    // takes right = up × forward). Spans, and so every fitted distance, agree;
+    // only the side is flipped. Pinned here so a fix to the model shows up.
+    expect(real.minY).toBeCloseTo(model.minY, 6);
+    expect(real.maxY).toBeCloseTo(model.maxY, 6);
+    expect(real.minX).toBeCloseTo(-model.maxX, 6);
+    expect(real.maxX).toBeCloseTo(-model.minX, 6);
+    expect(Math.max(real.maxX - real.minX, real.maxY - real.minY) / 2).toBeCloseTo(FIT_FRACTION, 4);
+  });
+
+  it('holds for an edit that keeps the rocket on screen', () => {
+    const camera = fittedCamera(flat);
+    const before = cameraBox(flat, camera);
+    // Lengthening the rocket 10% at the 80% fit still fits in the canvas.
+    expect(editNeedsRefit(before, cameraBox(stretched(1.1), camera))).toBe(false);
+    // So does shortening it: a rocket getting smaller never needs the camera.
+    expect(editNeedsRefit(before, cameraBox(stretched(0.5), camera))).toBe(false);
+  });
+
+  it('re-frames when an edit pushes part of a fully visible rocket off screen', () => {
+    const camera = fittedCamera(flat);
+    const before = cameraBox(flat, camera);
+    expect(editNeedsRefit(before, cameraBox(stretched(1.5), camera))).toBe(true);
+    // With nothing to compare against (first layout), off screen means re-frame.
+    expect(editNeedsRefit(null, cameraBox(stretched(1.5), camera))).toBe(true);
+  });
+
+  it('keeps a view the user zoomed into, unless the rocket vanishes from it', () => {
+    // Zoomed in to 40% of the fit distance: the rocket already overflows.
+    const camera = fittedCamera(flat, 0.4);
+    const before = cameraBox(flat, camera);
+    expect(boxInside(before)).toBe(false);
+    expect(editNeedsRefit(before, cameraBox(stretched(1.05), camera))).toBe(false);
+    // An edit that leaves nothing of the rocket on screen still re-frames:
+    // moved far to the camera's right and deeper, so it stays in front of it.
+    const right = new THREE.Vector3();
+    const up = new THREE.Vector3();
+    const back = new THREE.Vector3();
+    camera.matrixWorld.extractBasis(right, up, back);
+    const gone = flat.map((p) => ({ x: p.x + right.x * 40 - back.x * 10, y: p.y + right.y * 40 - back.y * 10, z: p.z + right.z * 40 - back.z * 10 }));
+    const goneBox = cameraBox(gone, camera);
+    expect(Number.isFinite(goneBox.minX)).toBe(true);
+    expect(boxOverlaps(goneBox)).toBe(false);
+    expect(editNeedsRefit(before, goneBox)).toBe(true);
+    // Part of the rocket behind the camera (the user dollied inside it): the
+    // box is unbounded, never "inside", and a zoomed-in view keeps holding.
+    const wrapped = cameraBox([...flat, { x: camera.position.x * 2, y: camera.position.y * 2, z: camera.position.z * 2 }], camera);
+    expect(editNeedsRefit(before, wrapped)).toBe(false);
+  });
+
+  it('never counts a point behind the camera as in view', () => {
+    const camera = fittedCamera(flat);
+    const behind = [...flat, { x: camera.position.x * 2, y: camera.position.y * 2, z: camera.position.z * 2 }];
+    const box = cameraBox(behind, camera);
+    expect(boxInside(box)).toBe(false);
+    expect(editNeedsRefit(cameraBox(flat, camera), box)).toBe(true);
+  });
+
+  it('tests the Flight pose against the free region, not the whole canvas', () => {
+    const canvas = { width: 1000, height: 600 };
+    const region: Rect = { x0: 0, y0: 60, x1: 700, y1: 600 };
+    const view = pixelsToNdcBox(region, canvas);
+    // Round trip with ndcBoxToPixels.
+    const back = ndcBoxToPixels(view, canvas);
+    for (const key of ['x0', 'x1', 'y0', 'y1'] as const) expect(back[key]).toBeCloseTo(region[key], 9);
+    // On the canvas but under the pose card on the right: out of the free region.
+    const underCard = { minX: 0.3, maxX: 0.6, minY: -0.5, maxY: 0.5 };
+    expect(boxInside(underCard, FULL_VIEW)).toBe(true);
+    expect(editNeedsRefit({ minX: -0.5, maxX: 0, minY: -0.5, maxY: 0.5 }, underCard, view)).toBe(true);
+    expect(boxOverlaps(underCard, view)).toBe(true);
   });
 });
 

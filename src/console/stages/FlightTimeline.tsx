@@ -4,6 +4,7 @@ import { useSessionStore } from '../../state/session';
 import type { FlightRun } from '../data/contract';
 import { useWS } from '../store';
 import { Viewport } from '../viewport/Viewport';
+import { canopyAt } from '../viewport/canopy';
 import { EventStrip, TimeStack, type Pane } from '../kit/Charts';
 import { ValueUnit } from '../kit/Value';
 import { C } from '../kit/theme';
@@ -84,7 +85,7 @@ export function FlightPose({ run }: { run: FlightRun }) {
   const compactReadout = viewport.w > 0 && (viewport.w < 700 || viewport.h < 420);
   const scrubber = <label className="flex min-w-0 items-center gap-3 text-[11px]">Flight scrubber<Range ariaLabel="Flight scrubber" className="flex-1" min={0} max={end} step="0.01" value={Math.min(s.scrubT ?? 0, end)} onChange={(t) => set({ scrubT: t })} /></label>;
   return <div ref={frame} className="relative h-full min-h-0">
-    <Viewport vehicle={design.vehicle} aeroModel={design.aeroModel} motor={design.motors?.[design.motorId]} attitude={point?.q} look={{}} showGhost={false} toolbar={<>
+    <Viewport vehicle={design.vehicle} aeroModel={design.aeroModel} motor={design.motors?.[design.motorId]} attitude={point?.q} canopy={canopyAt(run.events, point?.time, design.vehicle.components)} look={{}} showGhost={false} toolbar={<>
       <button className="inline-flex items-center gap-1 rounded px-2 py-1" style={{ background: C.panel, border: `1px solid ${C.line}` }} disabled={!point} onClick={() => {
         if (!playing && (s.scrubT ?? 0) >= end) set({ scrubT: 0 });
         setPlaying(!playing);

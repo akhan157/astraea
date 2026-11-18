@@ -5,7 +5,7 @@
  */
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children?: React.ReactNode }) => <div data-testid="canvas">{children}</div>,
@@ -145,9 +145,9 @@ describe('Build stage export', () => {
     const firstId = `flight-${useAnalysisStore.getState().history[0].finishedAt}-${useAnalysisStore.getState().history[0].token}`;
     const { container } = render(<BuildStage />);
     // Save through the browser download: the Tauri save dialog is not part of
-    // this test, and the trace bundle is covered by io's own tests.
+    // this test, and the trace bundle is covered by io's own tests. A plain
+    // file is now the default, so no packaging switch is needed.
     teardown();
-    fireEvent.click(screen.getByRole('radio', { name: 'Off' }));
     const row = container.querySelector('[data-format="project"]');
     expect(row).not.toBeNull();
     fireEvent.click(row!.querySelector('button')!);
@@ -292,7 +292,6 @@ describe('Build stage export', () => {
     // Save through the browser download: the Tauri save dialog is not part of
     // this test, and a half-stubbed dialog would fail the export by design.
     teardown();
-    fireEvent.click(screen.getByRole('radio', { name: 'Off' }));
     const row = container.querySelector('[data-format="svg"]');
     fireEvent.click(row!.querySelector('button')!);
 
@@ -304,8 +303,63 @@ describe('Build stage export', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Confirm export' }));
     await waitFor(() => expect(downloads.length).toBeGreaterThan(0));
     const download = downloads[downloads.length - 1];
-    expect(await download.blob.text()).toBe(expected);
+    // The drawing is the reviewed vehicle's (its length labels), now in the
+    // user's units with the fin table and a local export time; the live edit
+    // never reaches it.
+    const text = await download.blob.text();
+    const reviewedLength = exportBlueprintSvg(reviewed, { units: 'metric' }).match(/Total Length: [^<]+/)?.[0];
+    expect(reviewedLength).toBeTruthy();
+    expect(text).toContain(reviewedLength!);
+    expect(text).not.toContain(exportBlueprintSvg(live, { units: 'metric' }).match(/Total Length: [^<]+/)?.[0]);
+    expect(text).toMatch(/: \d+ trapezoidal fins?; root /);
+    expect(text).toMatch(/Exported .+ from Astraea\./);
     expect(download.filename.endsWith('.svg')).toBe(true);
+    // A browser download is reported as handed over, not as a confirmed write.
+    expect(document.querySelector('[data-export-outcome="ok"]')?.textContent).toMatch(/^Downloaded .+\.svg: check your browser’s downloads folder\.$/);
+  });
+
+  it('puts the export actions before the checks and saved runs, and defaults to a plain file', () => {
+    const { container } = render(<BuildStage />);
+    const exportSection = screen.getByRole('region', { name: 'Export files' });
+    const check = screen.getByRole('region', { name: 'Pre-export check' });
+    const saved = screen.getByRole('region', { name: 'Saved runs' });
+    expect(exportSection.compareDocumentPosition(check) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(check.compareDocumentPosition(saved) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // The plain file is the default; the evidence bundle is opt-in.
+    expect(screen.getByRole('radio', { name: 'Plain file' }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('radio', { name: 'File + evidence (.zip)' }).getAttribute('aria-checked')).toBe('false');
+    // Grouped by purpose, the project file first.
+    const groups = Array.from(container.querySelectorAll('[role="group"]')).map((g) => g.getAttribute('aria-label'));
+    expect(groups[0]).toBe('Keep or share the project');
+    expect(groups).toEqual(expect.arrayContaining(['Drawing', '3D printing', 'CAD']));
+    // The Verify-checks row keeps counting gates (the lead's 'invalid' status included).
+    expect(check.textContent).toMatch(/Verify checks/);
+  });
+
+  it('packs the file with its trace only when File + evidence is chosen', async () => {
+    const { container } = render(<BuildStage />);
+    teardown();
+    fireEvent.click(screen.getByRole('radio', { name: 'File + evidence (.zip)' }));
+    fireEvent.click(container.querySelector('[data-format="svg"] button')!);
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm export' }));
+    await waitFor(() => expect(downloads.length).toBeGreaterThan(0));
+    expect(downloads[downloads.length - 1].filename.endsWith('.zip')).toBe(true);
+  });
+
+  it('exports a hollow nose cone with a shoulder in millimetres, with an editable shoulder length', async () => {
+    const { container } = render(<BuildStage />);
+    teardown();
+    const row = container.querySelector('[data-format="stl-nose"]')!;
+    expect(row.textContent).toMatch(/Shoulder length/);
+    expect(row.textContent).toMatch(/exactly the inside of “Main Body Tube \(BT-50\)”/);
+    expect(row.textContent).toMatch(/Hollow nose: 1\.5 mm wall/);
+    fireEvent.click(within(row as HTMLElement).getByRole('button', { name: /Review export/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm export' }));
+    await waitFor(() => expect(downloads.length).toBeGreaterThan(0));
+    const download = downloads[downloads.length - 1];
+    expect(download.filename).toMatch(/-nose-cone\.stl$/);
+    const bytes = new Uint8Array(await download.blob.arrayBuffer());
+    expect(String.fromCharCode(...bytes.slice(0, 40))).toContain('MILLIMETRES');
   });
 
   it('refuses a project export over the archive budget before any file write', async () => {

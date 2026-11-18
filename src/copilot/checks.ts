@@ -39,6 +39,18 @@ export interface CheckProfile {
   targetApogeeM?: number;
   /** Allowed apogee deviation from the target (percent). */
   apogeeTolerancePct: number;
+  /** Units for messages and thresholds; values stay SI. Absent = metric. */
+  units?: 'metric' | 'imperial';
+}
+
+const MPS_TO_FTS = 3.28084;
+/** A speed for a message, in the profile's units. */
+function speedText(mps: number, p: CheckProfile): string {
+  return p.units === 'imperial' ? `${(mps * MPS_TO_FTS).toFixed(1)} ft/s` : `${mps.toFixed(1)} m/s`;
+}
+/** An altitude for a message, in the profile's units. */
+function altitudeText(m: number, p: CheckProfile): string {
+  return p.units === 'imperial' ? `${(m * MPS_TO_FTS).toFixed(0)} ft` : `${m.toFixed(0)} m`;
 }
 
 /** Owner's starting values (docs/handoff/copilot-experimental.md). */
@@ -114,11 +126,11 @@ function stabilityChecks(analysis: StabilityAnalysis | null, reason: string, p: 
 }
 
 function flightChecks(flight: SixDofSimulationResult | null, reason: string, p: CheckProfile): CheckResult[] {
-  const railThreshold = `≥ ${p.minRailExitMps.toFixed(1)} m/s`;
-  const descentThreshold = `≤ ${p.maxDescentMps.toFixed(1)} m/s`;
+  const railThreshold = `≥ ${speedText(p.minRailExitMps, p)}`;
+  const descentThreshold = `≤ ${speedText(p.maxDescentMps, p)}`;
   const apogeeThreshold =
     p.targetApogeeM !== undefined
-      ? `${p.targetApogeeM.toFixed(0)} m ± ${p.apogeeTolerancePct}%`
+      ? `${altitudeText(p.targetApogeeM, p)} ± ${p.apogeeTolerancePct}%`
       : 'no target set';
   if (!flight) {
     return [
@@ -142,8 +154,8 @@ function flightChecks(flight: SixDofSimulationResult | null, reason: string, p: 
       value: flightQuantity(flight, rail, 'm/s'),
       threshold: railThreshold,
       message: ok
-        ? `Leaves the rail at ${rail.toFixed(1)} m/s.`
-        : `Leaves the rail at ${rail.toFixed(1)} m/s, below the ${p.minRailExitMps.toFixed(1)} m/s requirement.`,
+        ? `Leaves the rail at ${speedText(rail, p)}.`
+        : `Leaves the rail at ${speedText(rail, p)}, below the ${speedText(p.minRailExitMps, p)} requirement.`,
     });
   }
 
@@ -163,8 +175,8 @@ function flightChecks(flight: SixDofSimulationResult | null, reason: string, p: 
       value: flightQuantity(flight, v, 'm/s'),
       threshold: descentThreshold,
       message: ok
-        ? `Touches down at ${v.toFixed(1)} m/s.`
-        : `Touches down at ${v.toFixed(1)} m/s, above the ${p.maxDescentMps.toFixed(1)} m/s limit.`,
+        ? `Touches down at ${speedText(v, p)}.`
+        : `Touches down at ${speedText(v, p)}, above the ${speedText(p.maxDescentMps, p)} limit.`,
     });
   }
 
@@ -182,7 +194,7 @@ function flightChecks(flight: SixDofSimulationResult | null, reason: string, p: 
       status: ok ? 'pass' : 'fail',
       value: flightQuantity(flight, apogee, 'm'),
       threshold: apogeeThreshold,
-      message: `Apogee ${apogee.toFixed(0)} m is ${Math.abs(offPct).toFixed(1)}% ${direction} the ${target.toFixed(0)} m target.`,
+      message: `Apogee ${altitudeText(apogee, p)} is ${Math.abs(offPct).toFixed(1)}% ${direction} the ${altitudeText(target, p)} target.`,
     });
   }
 

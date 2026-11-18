@@ -13,7 +13,7 @@
  * through a dialog.
  */
 import { useMemo, useRef, useState } from 'react';
-import { Popover } from 'radix-ui';
+import { ContextMenu, Popover } from 'radix-ui';
 import { Plus, Trash2, ChevronUp, ChevronDown, LayoutTemplate, X, AlertTriangle } from 'lucide-react';
 import type { RocketComponent } from '../../core/types';
 import { useWS, PRESETS } from '../store';
@@ -33,6 +33,7 @@ import {
   type PickState
 } from '../../state/selection';
 import { PART_ICON } from './partsIcons';
+import { replaceDesign } from './StartChooser';
 
 /** Row tint by pick state: action-needed outranks selected. */
 const STATE_BG: Record<PickState, string> = {
@@ -76,10 +77,11 @@ export function PartsTree() {
   const selectedVisible = visible.some((c) => c.id === selectedId);
   const tabbableId = selectedVisible ? selectedId : (visible[0]?.id ?? null);
 
-  const select = (id: string) => {
-    const leaveStage = stage === 'flight' || stage === 'verify' || stage === 'build' || stage === 'mission';
-    set({ selectedId: id, ...(leaveStage ? { stage: 'airframe' as const } : {}) });
-  };
+  // Selecting a part never changes the stage: the part highlights where you
+  // are, and stages without a part inspector offer "Edit in Airframe".
+  const select = (id: string) => set({ selectedId: id });
+  const partInspectorStage = stage === 'airframe' || stage === 'aero' || stage === 'recovery';
+  const editInAirframe = (id: string) => set({ selectedId: id, stage: 'airframe', rightOpen: true });
 
   const runOp = (op: ComponentOpResult) => {
     if (!op.ok) setMessage(op.reason);
@@ -163,7 +165,9 @@ export function PartsTree() {
           const state = stateOf(c);
           const isSelected = c.id === selectedId;
           return (
-            <div key={c.id} role="treeitem" aria-label={c.name} aria-selected={isSelected} data-component-id={c.id} data-state={state}
+            <ContextMenu.Root key={c.id}>
+            <ContextMenu.Trigger asChild>
+            <div role="treeitem" aria-label={c.name} aria-selected={isSelected} data-component-id={c.id} data-state={state}
               tabIndex={c.id === tabbableId ? 0 : -1}
               ref={(el) => { if (el) rowRefs.current.set(c.id, el); else rowRefs.current.delete(c.id); }}
               onClick={() => select(c.id)}
@@ -174,6 +178,9 @@ export function PartsTree() {
               <I size={13} color={isSelected ? C.accent : C.dim} strokeWidth={1.6} />
               <span title={c.name} className="min-w-0 flex-1 truncate" style={{ color: isSelected ? C.fg : '#C9CDD2' }}>{c.name}</span>
               {state === 'action-needed' && <span title="Needs action — inspect the motor mount" className="rounded px-1 text-[9px]" style={{ background: 'rgba(245,180,60,0.2)', color: C.changed }}>needs action</span>}
+              {isSelected && !partInspectorStage && (
+                <button type="button" onClick={(e) => { e.stopPropagation(); editInAirframe(c.id); }} className="shrink-0 rounded px-1.5 text-[10.5px] hover:bg-white/5" style={{ border: `1px solid ${C.line}`, color: C.accent }} title={`Edit ${c.name} in the Airframe stage`}>Edit in Airframe</button>
+              )}
               {changed.has(c.id) && <span className="h-1.5 w-1.5 rounded-full" style={{ background: C.changed }} title="Changed since the committed run" />}
               <span className="w-12 text-right font-geist-mono text-[10.5px]" style={{ color: C.dim }}>{lay ? show(m, 'mass', units).text : 'N/A'}</span>
               <span className="pointer-events-none absolute inset-y-0 right-0.5 flex items-center gap-0.5 rounded px-1 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100" style={{ background: C.panel, boxShadow: `-8px 0 10px ${C.panel}` }}>
@@ -184,6 +191,18 @@ export function PartsTree() {
                 <button type="button" onClick={(e) => { e.stopPropagation(); runOp(removeComponent(c.id)); }} disabled={structuralLocked || vehicle.components.length <= 1} aria-label="Remove component" title={structuralLocked ? 'Switch the filter to All to remove parts' : 'Remove this part'} className="px-0.5" style={{ color: C.muted }}><Trash2 size={11} /></button>
               </span>
             </div>
+            </ContextMenu.Trigger>
+            <ContextMenu.Portal>
+              <ContextMenu.Content className="z-50 min-w-[180px] rounded-md p-1 text-[12.5px] shadow-2xl" style={{ background: C.panel, border: `1px solid ${C.lineStrong}`, color: C.fg }}>
+                <ContextMenu.Label className="px-2 py-1 text-[11px]" style={{ color: C.dim }}>{c.name}</ContextMenu.Label>
+                <ContextMenu.Item className={MENU_ITEM} onSelect={() => editInAirframe(c.id)}>Edit in Airframe</ContextMenu.Item>
+                <ContextMenu.Item className={MENU_ITEM} disabled={structuralLocked || idx === 0} onSelect={() => runOp(moveComponent(c.id, -1))}>Move toward the nose</ContextMenu.Item>
+                <ContextMenu.Item className={MENU_ITEM} disabled={structuralLocked || idx === byFamily.length - 1} onSelect={() => runOp(moveComponent(c.id, 1))}>Move toward the tail</ContextMenu.Item>
+                <ContextMenu.Separator className="my-1 h-px" style={{ background: C.line }} />
+                <ContextMenu.Item className={MENU_ITEM} disabled={structuralLocked || vehicle.components.length <= 1} onSelect={() => runOp(removeComponent(c.id))}>Remove</ContextMenu.Item>
+              </ContextMenu.Content>
+            </ContextMenu.Portal>
+            </ContextMenu.Root>
           );
         })}
       </div>
@@ -210,6 +229,8 @@ export function PartsTree() {
   );
 }
 
+const MENU_ITEM = 'cursor-pointer rounded px-2 py-1.5 outline-none data-[disabled]:cursor-default data-[disabled]:opacity-40 data-[highlighted]:bg-white/[0.06]';
+
 function TemplateMenu() {
   const loadPreset = useWS((s) => s.loadPreset);
   return (
@@ -221,12 +242,12 @@ function TemplateMenu() {
         <Popover.Content side="top" align="end" sideOffset={6} className="z-50 w-[260px] rounded-md p-1 shadow-2xl" style={{ background: C.panel, border: `1px solid ${C.lineStrong}`, color: C.fg }}>
           {PRESETS.map((p) => (
             <Popover.Close key={p.id} asChild>
-              <button onClick={() => loadPreset(p.id)} className="block w-full rounded px-2.5 py-2 text-left hover:bg-white/5">
+              <button onClick={() => replaceDesign(`the ${p.label} example`, () => loadPreset(p.id))} className="block w-full rounded px-2.5 py-2 text-left hover:bg-white/5">
                 <div className="text-[12.5px]">{p.label}</div>
               </button>
             </Popover.Close>
           ))}
-          <div className="px-2.5 py-1.5 text-[10.5px]" style={{ color: C.dim }}>Loading a template is undoable. Run to simulate the new design.</div>
+          <div className="px-2.5 py-1.5 text-[10.5px]" style={{ color: C.dim }}>Replaces your design with an editable copy of the example. It asks first if you have unsaved edits; Undo brings your design back.</div>
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

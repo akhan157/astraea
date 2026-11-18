@@ -8,7 +8,7 @@
  * parseRseXml. Fetch is fully mocked — no network in tests.
  */
 import { describe, it, expect, vi } from 'vitest';
-import { searchMotors, downloadMotorSimfile, ThrustCurveApiError } from './thrustcurveApi';
+import { searchMotors, searchMotorsByText, matchManufacturer, downloadMotorSimfile, ThrustCurveApiError } from './thrustcurveApi';
 import { parseRaspEng, parseRseXml } from '../formats/engParser';
 
 const SAMPLE_ENG = [
@@ -339,5 +339,98 @@ describe('downloadMotorSimfile', () => {
     expect(httpErr).toBeInstanceOf(ThrustCurveApiError);
     expect((httpErr as ThrustCurveApiError).status).toBe(404);
     expect((httpErr as ThrustCurveApiError).retryAfterSeconds).toBe(30);
+  });
+});
+describe('searchMotorsByText', () => {
+  const MANUFACTURERS = { manufacturers: [{ name: 'AeroTech', abbrev: 'AeroTech' }, { name: 'Estes Industries', abbrev: 'Estes' }, { name: 'Cesaroni Technology', abbrev: 'Cesaroni' }] };
+  const K550W = { ...C6_RESULT, motorId: 'k550w', manufacturer: 'AeroTech', manufacturerAbbrev: 'AeroTech', designation: 'K550W', commonName: 'K550' };
+  const SCR_C6 = { ...C6_RESULT, motorId: 'scr-c6', manufacturer: 'Southern Cross Rocketry', designation: 'SCR-C6' };
+
+  /** Routes like the live API (probed 2026-11-17): exact designation, patterned commonName, listed manufacturer only. */
+  function api(base: string) {
+    const bodies: Array<Record<string, unknown>> = [];
+    const fn = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>;
+      if (url === `${base}/metadata.json`) return jsonResponse(MANUFACTURERS);
+      bodies.push(body);
+      const all = [C6_RESULT, SCR_C6, K550W];
+      const results = all.filter((r) =>
+        (body.designation === undefined || r.designation.toLowerCase() === String(body.designation).toLowerCase()) &&
+        (body.commonName === undefined || r.commonName.toLowerCase() === String(body.commonName).toLowerCase()) &&
+        (body.manufacturer === undefined || r.manufacturerAbbrev === body.manufacturer));
+      return jsonResponse({ matches: body.manufacturer === 'AeroTech' && body.designation === undefined ? 307 : results.length, results });
+    });
+    return { fn, bodies };
+  }
+
+  it('finds a motor by common name when the designation differs (K550 → K550W)', async () => {
+    const { fn, bodies } = api('https://text1.test');
+    const out = await searchMotorsByText('k550', fn, { baseUrl: 'https://text1.test', minRequestIntervalMs: 0 });
+    expect(out.results.map((r) => r.designation)).toEqual(['K550W']);
+    expect(bodies.map((b) => Object.keys(b).filter((k) => k !== 'maxResults'))).toEqual([['designation'], ['commonName']]);
+    // A designation-only query never costs the metadata request.
+    expect(fn.mock.calls.some(([url]) => String(url).endsWith('/metadata.json'))).toBe(false);
+  });
+
+  it('merges designation and common-name hits by motor id', async () => {
+    const { fn } = api('https://text2.test');
+    const out = await searchMotorsByText('C6', fn, { baseUrl: 'https://text2.test', minRequestIntervalMs: 0 });
+    // The Estes C6 matches both searches but is listed once; SCR-C6 only matches by common name.
+    expect(out.results.map((r) => r.id)).toEqual([C6_RESULT.motorId, 'scr-c6']);
+  });
+
+  it('reads a manufacturer in any case, alone or before a designation', async () => {
+    const { fn, bodies } = api('https://text3.test');
+    const byMaker = await searchMotorsByText('aerotech', fn, { baseUrl: 'https://text3.test', minRequestIntervalMs: 0 });
+    expect(byMaker.manufacturer?.abbrev).toBe('AeroTech');
+    expect(bodies[0].manufacturer).toBe('AeroTech');
+    expect(byMaker.attempts[0]).toMatchObject({ field: 'manufacturer', matches: 307, shown: 1 });
+
+    const both = await searchMotorsByText('Aerotech K550W', fn, { baseUrl: 'https://text3.test', minRequestIntervalMs: 0 });
+    expect(both.results.map((r) => r.designation)).toEqual(['K550W']);
+    expect(bodies[bodies.length - 1]).toMatchObject({ manufacturer: 'AeroTech', designation: 'K550W' });
+  });
+
+  it('returns an empty result as a real "no matches", and throws when every request failed', async () => {
+    const { fn } = api('https://text4.test');
+    const none = await searchMotorsByText('Z9000', fn, { baseUrl: 'https://text4.test', minRequestIntervalMs: 0 });
+    expect(none.results).toEqual([]);
+    expect(none.failures).toEqual([]);
+
+    const down = vi.fn(async () => { throw new Error('ECONNREFUSED'); });
+    const err = await caught(searchMotorsByText('estes C6', down, { baseUrl: 'https://text5.test', minRequestIntervalMs: 0 }));
+    expect(err).toBeInstanceOf(ThrustCurveApiError);
+    expect((err as Error).message).toContain('ECONNREFUSED');
+  });
+
+  it('keeps results but reports a failed part of the search', async () => {
+    const fn = vi.fn(async (url: string) => {
+      if (url.endsWith('/metadata.json')) return new Response('down', { status: 503 });
+      return jsonResponse({ results: [C6_RESULT] });
+    });
+    const out = await searchMotorsByText('C6 estes', fn, { baseUrl: 'https://text6.test', minRequestIntervalMs: 0 });
+    expect(out.results).toHaveLength(1);
+    expect(out.failures).toEqual([{ field: 'manufacturer lookup', value: 'C6 estes', message: expect.stringContaining('HTTP 503') }]);
+  });
+
+  it('spaces its requests for the 2-per-second limit', async () => {
+    const { fn } = api('https://text7.test');
+    const started: number[] = [];
+    const timed = vi.fn(async (url: string, init?: RequestInit) => { started.push(Date.now()); return fn(url, init); });
+    await searchMotorsByText('C6', timed, { baseUrl: 'https://text7.test', minRequestIntervalMs: 120 });
+    expect(started).toHaveLength(2);
+    expect(started[1] - started[0]).toBeGreaterThanOrEqual(110);
+  });
+});
+
+describe('matchManufacturer', () => {
+  const list = [{ name: 'AeroTech', abbrev: 'AeroTech' }, { name: 'Cesaroni Technology', abbrev: 'Cesaroni' }, { name: 'Kosdon by AeroTech', abbrev: 'KBA' }];
+  it('matches names and abbreviations ignoring case and punctuation, and unique prefixes of four or more', () => {
+    expect(matchManufacturer('aerotech', list)?.abbrev).toBe('AeroTech');
+    expect(matchManufacturer('Aero Tech', list)?.abbrev).toBe('AeroTech');
+    expect(matchManufacturer('cesar', list)?.abbrev).toBe('Cesaroni');
+    expect(matchManufacturer('kba', list)?.abbrev).toBe('KBA');
+    expect(matchManufacturer('ces', list)).toBeNull();
+    expect(matchManufacturer('C6', list)).toBeNull();
   });
 });

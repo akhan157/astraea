@@ -30,6 +30,7 @@ import {
   resetProjectSlot,
   saveProjectToFile,
   saveProjectToSlot,
+  undoImport,
   useProjectIo,
 } from './projectIo';
 
@@ -147,10 +148,42 @@ describe('importProjectFile', () => {
     expect(project.vehicle.components.map((c) => c.type)).toEqual(expect.arrayContaining(['nosecone', 'bodytube']));
     expect(project.workspace.motorId).toBe(boundMotor);
     // The importer reports what it did; the report's wording is product copy.
-    expect(report()).not.toBeNull();
+    expect(report()?.kind).toBe('ok');
+    // The motor was not in the file: the report says it carried over from the previous design.
+    expect(report()?.motorNote).toMatch(/^Motor: still .+ from your previous design; the file didn’t specify one\.$/);
+    expect(report()?.undoLabel).toBe('Import test.rkt');
 
     useProjectStore.getState().undo();
     expect(useProjectStore.getState().project.vehicle).toBe(before);
+  });
+
+  it('names the parts, stages and motor a RockSim file carried that the import left behind', async () => {
+    const rkt = SAMPLE_RKT
+      .replace('<BodyTube>', '<BodyTube><MotorMount><Motor>aerotech_h128w</Motor></MotorMount>')
+      .replace('<ID>27.0</ID>', '<ID>27.0</ID><AttachedParts><Ring><PartName>Centering ring A</PartName></Ring><LaunchLug><PartName>Lug</PartName></LaunchLug></AttachedParts>')
+      .replace('</Stage3Parts>', '</Stage3Parts><Stage2Parts><BodyTube><PartName>Booster tube</PartName><Len>100</Len><OD>29</OD><ID>27</ID></BodyTube></Stage2Parts>');
+    await importProjectFile(new File([rkt], 'parts.rkt', { type: 'application/xml' }));
+    const details = (report()?.details ?? []).join('\n');
+    expect(details).toMatch(/centering ring “Centering ring A”/);
+    expect(details).toMatch(/launch lug “Lug”/);
+    expect(details).toMatch(/Stages merged into one airframe: “Stage 3 \(sustainer\)”, “Stage 2”/);
+    expect(details).toMatch(/Motor named in the file, not applied: aerotech_h128w/);
+    expect(details).toMatch(/Materials set to defaults/);
+    expect(report()?.motorNote).toMatch(/the file names aerotech_h128w, which was not applied/);
+  });
+
+  it('offers Undo for a geometry import only while it is the latest edit', async () => {
+    const before = useProjectStore.getState().project.vehicle;
+    await importProjectFile(new File([SAMPLE_RKT], 'test.rkt', { type: 'application/xml' }));
+    undoImport();
+    expect(useProjectStore.getState().project.vehicle).toBe(before);
+    expect(report()?.title).toBe('Import undone');
+
+    await importProjectFile(new File([SAMPLE_RKT], 'test.rkt', { type: 'application/xml' }));
+    const imported = useProjectStore.getState().project;
+    useProjectStore.getState().editProject({ label: 'Rename', key: 'name', project: { ...imported, vehicle: { ...imported.vehicle, name: 'Later edit' } } });
+    undoImport(); // the import is no longer the latest edit: nothing is undone
+    expect(useProjectStore.getState().project.vehicle.name).toBe('Later edit');
   });
 
   it('refuses a malformed .rkt file and leaves the project untouched', async () => {
@@ -192,7 +225,11 @@ describe('importProjectFile', () => {
     expect(useProjectStore.getState().project.workspace.launch.railLengthM).toBe(4.5);
     expect(useProjectStore.getState().motors['imported_c6']?.motor.designation).toBe('Imported C6');
     expect(useProjectIo.getState().status?.message).toMatch(/Opened project "Adopted Project"/);
-    expect(report()).toBeNull();
+    // A successful open is reported as a success (it was silent before), and
+    // says the replacement cannot be undone; the file named its own motor.
+    expect(report()?.kind).toBe('ok');
+    expect(report()?.message).toMatch(/replaced the open project\. Undo can’t bring the previous one back\./);
+    expect(report()?.motorNote).toBeUndefined();
   });
 
   it('refuses an unknown file type and leaves the project untouched', async () => {
@@ -208,13 +245,14 @@ describe('importProjectFile', () => {
 
 describe('durable browser slot', () => {
   it('reports an empty slot as a message, not an error', async () => {
-    expect(await openProjectFromSlot()).toEqual({ kind: 'ok', message: 'No project saved in this browser yet' });
-    expect(useProjectIo.getState().status?.kind).toBe('ok');
+    // Neither a success nor an error: a neutral 'info' outcome.
+    expect(await openProjectFromSlot()).toEqual({ kind: 'info', message: 'No project saved in this browser yet; nothing was opened.' });
+    expect(useProjectIo.getState().status?.kind).toBe('info');
   });
 
   it('commits a revision and restores it after later edits', async () => {
     const committed = await saveProjectToSlot();
-    expect(committed.message).toMatch(/Saved locally \(revision 1\)/);
+    expect(committed.message).toMatch(/Saved in this browser \(revision 1\)/);
     const stored = JSON.parse(localStorage.getItem(PROJECT_STORAGE_KEY) as string);
     expect(stored.schemaVersion).toBe(PROJECT_SCHEMA_VERSION);
     expect(stored.revision).toBe(1);
@@ -229,7 +267,7 @@ describe('durable browser slot', () => {
     expect(useProjectStore.getState().project.vehicle.name).toBe('Edited After Save');
 
     const opened = await openProjectFromSlot();
-    expect(opened.message).toMatch(/Opened saved project \(revision 1\)/);
+    expect(opened.message).toMatch(/Opened the copy saved in this browser \(revision 1\)/);
     expect(useProjectStore.getState().project.vehicle.name).toBe(stored.vehicle.name);
   });
 
@@ -276,13 +314,13 @@ describe('failed saves and opens leave a recoverable, explained state', () => {
     const quota = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota exceeded'); });
     const failed = await saveProjectToSlot();
     expect(failed.kind).toBe('error');
-    expect(failed.message).toMatch(/^Save failed: .*quota exceeded\. Nothing in this browser was changed and your design is still open\. Use Save project file… to keep a copy\.$/);
+    expect(failed.message).toMatch(/^Save failed: .*quota exceeded\. Nothing in this browser was changed and your design is still open\. Use Save a copy as a file… to keep a copy\.$/);
     expect(useProjectIo.getState().status).toEqual(failed);
     expect(localStorage.getItem(PROJECT_STORAGE_KEY)).toBe(storedBefore);
     expect(writeProject(exportableProject())).toBe(before);
     expect(useProjectStore.getState().file.kind).toBe('dirty-unsaved');
     quota.mockRestore();
-    expect((await saveProjectToSlot()).message).toBe('Saved locally (revision 2)');
+    expect((await saveProjectToSlot()).message).toBe('Saved in this browser (revision 2)');
     expect(JSON.parse(localStorage.getItem(PROJECT_STORAGE_KEY) as string).vehicle.name).toBe('Edited before quota');
   });
 
@@ -292,7 +330,7 @@ describe('failed saves and opens leave a recoverable, explained state', () => {
     localStorage.setItem(PROJECT_STORAGE_KEY, newer);
     rename('Mine');
     const refused = await saveProjectToSlot();
-    expect(refused.message).toMatch(/^Save failed: .+\. Another tab or window saved a newer revision\. Your design is still open: use Save project file… to keep it, or Open saved project to load the newer one\.$/);
+    expect(refused.message).toMatch(/^Save failed: .+\. Another tab or window saved a newer revision\. Your design is still open: use Save a copy as a file… to keep it, or Open the copy in this browser to load the newer one\.$/);
     expect(useProjectStore.getState().project.vehicle.name).toBe('Mine');
     expect(localStorage.getItem(PROJECT_STORAGE_KEY)).toBe(newer);
   });
@@ -326,7 +364,7 @@ describe('failed saves and opens leave a recoverable, explained state', () => {
     const opened = await openProjectFromSlot();
     expect(opened.message).toMatch(/^Open failed: Invalid project.*\. Your current design was not replaced\.$/);
     const saved = await saveProjectToSlot();
-    expect(saved.message).toMatch(/^Save failed: Invalid project.*\. The copy stored in this browser is unreadable and was left untouched\. Your design is still open: use Save project file… to keep a copy\.$/);
+    expect(saved.message).toMatch(/^Save failed: Invalid project.*\. The copy stored in this browser is unreadable and was left untouched\. Your design is still open: use Save a copy as a file… to keep a copy\.$/);
     expect(useProjectStore.getState().project.vehicle.name).toBe('Current design');
   });
 
@@ -336,7 +374,7 @@ describe('failed saves and opens leave a recoverable, explained state', () => {
     try {
       const status = await saveProjectToFile();
       expect(status.kind).toBe('error');
-      expect(status.message).toMatch(/^Save failed: .*disk full\. Your design is still open; try again, or use Save to this browser \(a separate quota-bound option, not a guaranteed backup\)\.$/);
+      expect(status.message).toMatch(/^Save failed: .*disk full\. Your design is still open; try again, or use Save in this browser \(one copy in this browser’s storage, quota-bound, not a backup\)\.$/);
     } finally {
       delete scope.showSaveFilePicker;
     }
@@ -368,7 +406,7 @@ describe('native project archive budget', () => {
       expect(status.message).toMatch(/Save failed: .*64 MB/);
       expect(status.message).toMatch(/no file was written/);
       expect(status.message).toMatch(/current design remains open/);
-      expect(status.message).toMatch(/quota-bound option, not a guaranteed backup/);
+      expect(status.message).toMatch(/quota-bound, not a backup/);
       expect(picker).not.toHaveBeenCalled();
       expect(createObjectURL).not.toHaveBeenCalled();
       expect(useProjectStore.getState().project.cases).toHaveLength(18);
@@ -397,8 +435,9 @@ describe('native project files', () => {
     await importProjectFile(new File([SAMPLE_ENG], 'estes-c6.eng', { type: 'text/plain' }));
     const status = await saveProjectToFile();
 
+    // A download is only handed to the browser: it says so instead of "Saved".
     expect(status.kind).toBe('ok');
-    expect(status.message).toMatch(/to your downloads/);
+    expect(status.message).toMatch(/^Downloaded .+\.astraea\.json: check your browser’s downloads folder\.$/);
     const download = downloads[downloads.length - 1];
     expect(download.filename.endsWith('.astraea.json')).toBe(true);
     const doc = JSON.parse(await download.blob.text());
@@ -423,7 +462,7 @@ describe('native project files', () => {
     };
     try {
       const status = await saveProjectToFile();
-      expect(status).toEqual({ kind: 'ok', message: `Saved ${suggested}` });
+      expect(status).toEqual({ kind: 'ok', message: `Saved a copy as ${suggested}` });
       expect(suggested.endsWith('.astraea.json')).toBe(true);
       expect(JSON.parse(written[0] as string).schemaVersion).toBe(PROJECT_SCHEMA_VERSION);
     } finally {
@@ -437,14 +476,15 @@ describe('native project files', () => {
       throw Object.assign(new Error('user cancelled'), { name: 'AbortError' });
     };
     try {
-      expect((await saveProjectToFile()).message).toMatch(/Save cancelled/);
+      // A dismissed dialog is neither "Saved" nor an error.
+      expect(await saveProjectToFile()).toEqual({ kind: 'cancelled', message: 'Save cancelled — no file was written. Your design is still open.' });
       vi.spyOn(URL, 'createObjectURL').mockImplementation(() => 'blob:test');
       vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
       vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
       scope.showSaveFilePicker = async () => {
         throw Object.assign(new Error('needs a user gesture'), { name: 'SecurityError' });
       };
-      expect((await saveProjectToFile()).message).toMatch(/to your downloads/);
+      expect((await saveProjectToFile()).message).toMatch(/^Downloaded /);
     } finally {
       delete scope.showSaveFilePicker;
     }
@@ -457,7 +497,7 @@ describe('native project files', () => {
     input.dispatchEvent(new Event('cancel'));
     await picking;
 
-    expect(useProjectIo.getState().status).toEqual({ kind: 'ok', message: 'Open cancelled — nothing was loaded.' });
+    expect(useProjectIo.getState().status).toEqual({ kind: 'cancelled', message: 'Open cancelled — nothing was loaded.' });
     expect(report()).toBeNull();
   });
 
@@ -516,7 +556,9 @@ describe('desktop save then open', () => {
     useProjectStore.getState().newProject();
     await importProjectFile(new File([text], 'p1.astraea'));
 
-    expect(report()).toBeNull();
+    // Opening is now reported as a success; the file chose its own motor.
+    expect(report()?.kind).toBe('ok');
+    expect(report()?.motorNote).toBeUndefined();
     expect(useProjectStore.getState().project.vehicle.name).toBe(JSON.parse(text).vehicle.name);
     expect(useProjectIo.getState().status?.message).toMatch(/^Opened project/);
   });
@@ -524,7 +566,7 @@ describe('desktop save then open', () => {
   it('names the file the user chose in the dialog, not the suggestion', async () => {
     installTauri('C:\\acc\\files\\p1.astraea');
     const status = await saveProjectToFile();
-    expect(status.message).toBe('Saved p1.astraea');
+    expect(status.message).toBe('Saved a copy as p1.astraea');
   });
 
   it('offers a project file type that covers both project extensions in the native dialog', async () => {
@@ -565,7 +607,7 @@ describe('desktop save then open', () => {
     delete doc.mission;
     doc.schemaVersion = '1.2.0';
     await importProjectFile(new File([JSON.stringify(doc)], 'old.astraea.json'));
-    expect(report()).toBeNull();
+    expect(report()?.kind).toBe('ok');
     expect(useProjectStore.getState().mission).toEqual({ name: 'Untitled mission', site: 'Unspecified site', targetApogeeM: 1000 });
   });
 });
@@ -701,7 +743,7 @@ for (const outcome of ['success', 'error'] as const) {
     const saving = saveProjectToSlot();
     const opening = openProjectFromSlot();
     await Promise.all([saving, opening]);
-    expect(useProjectIo.getState().status?.message).toMatch(/Opened saved project|No project saved/);
+    expect(useProjectIo.getState().status?.message).toMatch(/Opened the copy saved in this browser|No project saved/);
   });
 }
 
@@ -710,7 +752,7 @@ it('saving a prior snapshot reports later edits as still unsaved', async () => {
   const store = useProjectStore.getState();
   store.editProject({ label: 'Mission', key: 'mission', project: store.project, mission: { ...store.mission, name: 'Unsaved mission' } });
   const status = await saving;
-  expect(status.message).toMatch(/earlier snapshot.*current changes remain unsaved/);
+  expect(status.message).toMatch(/earlier snapshot.*current changes are not saved yet/);
   expect(useProjectStore.getState().file.kind).toBe('dirty-unsaved');
 });
 
@@ -783,5 +825,5 @@ it('a completed run after Save remains unsaved in the current exported snapshot'
   expect(JSON.parse(localStorage.getItem(PROJECT_STORAGE_KEY)!).cases).toEqual([]);
   expect(exportableProject().cases).toHaveLength(1);
   expect(useProjectStore.getState().file.kind).toBe('dirty-unsaved');
-  expect(status.message).toMatch(/earlier snapshot.*current changes remain unsaved/);
+  expect(status.message).toMatch(/earlier snapshot.*current changes are not saved yet/);
 });

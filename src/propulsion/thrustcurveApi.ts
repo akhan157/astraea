@@ -15,7 +15,18 @@
  *   - Cache API responses for at least 24 hours: this module keeps an
  *     in-memory cache with a default TTL of 86,400,000 ms
  *     (`cacheTtlMs` overrides, e.g. for tests).
- *   - Do not exceed 2 requests/second against the API.
+ *   - Do not exceed 2 requests/second against the API. The text search
+ *     (`searchMotorsByText`) fires several requests for one query, so it
+ *     spaces them at least 500 ms apart; a request that never got a response
+ *     does not hold its slot.
+ *
+ * Text search: the API matches `designation` exactly (case-insensitive),
+ * `commonName` only for the letter-and-number pattern (K550 finds the K550W),
+ * and `manufacturer` only for a listed name or abbreviation ("Aerotech" is an
+ * error, "AeroTech" is not). `searchMotorsByText` therefore resolves the
+ * manufacturer against /metadata.json, queries each field that can match,
+ * merges by motorId, and reports which searches failed so "no matches" is
+ * never confused with "request failed".
  *
  * Fail-closed contract:
  *   - HTTP errors (4xx/5xx) throw ThrustCurveApiError carrying the status and,
@@ -66,6 +77,11 @@ export interface ThrustCurveApiOptions {
   cacheTtlMs?: number;
   /** API base URL (default https://www.thrustcurve.org/api/v1). */
   baseUrl?: string;
+  /**
+   * Minimum spacing between network requests of a multi-request search, ms.
+   * Default 500 (the API's 2 requests/second). Tests pass 0.
+   */
+  minRequestIntervalMs?: number;
 }
 
 export type FetchImpl = (url: string, init: RequestInit) => Promise<Response>;
@@ -126,21 +142,45 @@ function pruneCache(): void {
   }
 }
 
+/** Earliest time the next spaced request may start (ms epoch). */
+let nextRequestAt = 0;
+
+/**
+ * Reserves the next request slot `intervalMs` after the previous one and
+ * waits for it. Reserving before waiting serialises concurrent searches.
+ * Returns a release for a request that never got a response.
+ */
+async function waitForSlot(intervalMs: number): Promise<() => void> {
+  if (intervalMs <= 0) return () => undefined;
+  const now = Date.now();
+  const start = Math.max(now, nextRequestAt);
+  const reserved = start + intervalMs;
+  const previous = nextRequestAt;
+  nextRequestAt = reserved;
+  if (start > now) await new Promise((resolve) => setTimeout(resolve, start - now));
+  return () => {
+    if (nextRequestAt === reserved) nextRequestAt = Math.max(previous, Date.now());
+  };
+}
+
 /**
  * POSTs a JSON body, serving and storing through the TTL cache. Throws
  * ThrustCurveApiError on transport failure, non-2xx (surfacing Retry-After),
- * and non-JSON bodies.
+ * and non-JSON bodies. With `minIntervalMs`, a request that misses the cache
+ * waits for its rate-limit slot first.
  */
 async function postJson(
   url: string,
   body: unknown,
   fetchImpl: FetchImpl,
   cacheTtlMs: number,
+  minIntervalMs = 0,
 ): Promise<unknown> {
   const key = `${url} ${JSON.stringify(body)}`;
   const cached = responseCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached.value;
 
+  const release = await waitForSlot(minIntervalMs);
   let res: Response;
   try {
     res = await fetchImpl(url, {
@@ -149,6 +189,7 @@ async function postJson(
       body: JSON.stringify(body),
     });
   } catch (err) {
+    release();
     const why = err instanceof Error ? err.message : String(err);
     throw new ThrustCurveApiError(`ThrustCurve API request failed: ${why}`);
   }
@@ -231,6 +272,16 @@ export async function searchMotors(
   fetchImpl: FetchImpl,
   options: ThrustCurveApiOptions = {},
 ): Promise<MotorSummary[]> {
+  return (await searchMotorsPage(query, fetchImpl, options, 0)).results;
+}
+
+/** One search request: the validated summaries plus the server's total match count, when it sends one. */
+async function searchMotorsPage(
+  query: ThrustCurveSearchQuery,
+  fetchImpl: FetchImpl,
+  options: ThrustCurveApiOptions,
+  minIntervalMs: number,
+): Promise<{ results: MotorSummary[]; matches: number | null }> {
   const body = buildSearchBody(query);
   const base = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
   const json = await postJson(
@@ -238,6 +289,7 @@ export async function searchMotors(
     body,
     fetchImpl,
     options.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS,
+    minIntervalMs,
   );
   if (typeof json !== 'object' || json === null || Array.isArray(json)) {
     throw new ThrustCurveApiError('ThrustCurve search response is not an object');
@@ -260,9 +312,142 @@ export async function searchMotors(
         return typeof count === 'number' && Number.isFinite(count) && count > 0;
       })
     : results;
-  return records
-    .map(toMotorSummary)
-    .filter((summary): summary is MotorSummary => summary !== null);
+  const matches = (json as { matches?: unknown }).matches;
+  return {
+    results: records.map(toMotorSummary).filter((summary): summary is MotorSummary => summary !== null),
+    matches: typeof matches === 'number' && Number.isInteger(matches) && matches >= 0 ? matches : null,
+  };
+}
+
+/** A manufacturer as /metadata.json lists it: the name and the abbreviation searches accept. */
+export interface ManufacturerName {
+  name: string;
+  abbrev: string;
+}
+
+/** The manufacturer list (cached 24 h like every response). Throws on a failed or malformed reply. */
+export async function fetchManufacturers(
+  fetchImpl: FetchImpl,
+  options: ThrustCurveApiOptions = {},
+  minIntervalMs = 0,
+): Promise<ManufacturerName[]> {
+  const base = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
+  const json = await postJson(`${base}/metadata.json`, {}, fetchImpl, options.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS, minIntervalMs);
+  const list = (json as { manufacturers?: unknown } | null)?.manufacturers;
+  if (!Array.isArray(list)) throw new ThrustCurveApiError('ThrustCurve metadata response has no manufacturers list');
+  return list
+    .filter((m): m is ManufacturerName => m !== null && typeof m === 'object' && nonEmptyString((m as ManufacturerName).name) && nonEmptyString((m as ManufacturerName).abbrev));
+}
+
+const squash = (text: string): string => text.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+/**
+ * The listed manufacturer a typed word means: an exact match on the name or
+ * abbreviation ignoring case, spaces and punctuation ("aerotech", "Estes
+ * Industries"), else the only one whose name or abbreviation starts with it
+ * (four characters or more, so "cesar" is Cesaroni but "a" is nothing).
+ */
+export function matchManufacturer(text: string, list: readonly ManufacturerName[]): ManufacturerName | null {
+  const key = squash(text);
+  if (key.length < 2) return null;
+  const exact = list.find((m) => squash(m.name) === key || squash(m.abbrev) === key);
+  if (exact) return exact;
+  if (key.length < 4) return null;
+  const prefixed = list.filter((m) => squash(m.name).startsWith(key) || squash(m.abbrev).startsWith(key));
+  return prefixed.length === 1 ? prefixed[0] : null;
+}
+
+/** The API's commonName pattern (letter class and average thrust), case-insensitive. */
+const COMMON_NAME = /^(1\/8A|1\/4A|1\/2A|[A-O])[0-9]+$/i;
+
+export interface TextSearchAttempt {
+  /** What was searched, in plain words: "designation", "common name", "manufacturer"… */
+  field: string;
+  value: string;
+  /** Server-side match count for this search, when reported (before the curve-file filter). */
+  matches: number | null;
+  /** Results shown from this search (after the curve-file filter). */
+  shown: number;
+}
+
+export interface TextSearchOutcome {
+  /** Merged by motorId, in search order. */
+  results: MotorSummary[];
+  attempts: TextSearchAttempt[];
+  /** Searches that failed (network, HTTP or a malformed reply); results may be incomplete. */
+  failures: Array<{ field: string; value: string; message: string }>;
+  /** The manufacturer the text was read as, when one matched. */
+  manufacturer: ManufacturerName | null;
+}
+
+/**
+ * Searches by whatever the user typed: a designation (C6-5, K550W), a common
+ * name (C6, K550), a manufacturer (AeroTech, estes), or a manufacturer plus a
+ * designation (AeroTech K550W). Fires one request per field that can match,
+ * spaced for the rate limit, and merges by motorId. Throws only when every
+ * request failed, so an empty result is a real "no matches".
+ */
+export async function searchMotorsByText(
+  text: string,
+  fetchImpl: FetchImpl,
+  options: ThrustCurveApiOptions & { maxResults?: number } = {},
+): Promise<TextSearchOutcome> {
+  const trimmed = text.trim().replace(/\s+/g, ' ');
+  if (trimmed.length === 0) throw new ThrustCurveApiError('ThrustCurve search requires at least one search criterion');
+  const interval = options.minRequestIntervalMs ?? 500;
+  const maxResults = options.maxResults ?? 25;
+  const failures: TextSearchOutcome['failures'] = [];
+  const reason = (err: unknown) => (err instanceof Error ? err.message : String(err));
+  const tokens = trimmed.split(' ');
+
+  // Only a word without digits can name a manufacturer; designations carry
+  // digits, so "C6" or "K550W" never costs the metadata request.
+  let manufacturer: ManufacturerName | null = null;
+  let rest = trimmed;
+  if (tokens.some((t) => /^[^0-9]{2,}$/.test(t))) {
+    try {
+      const list = await fetchManufacturers(fetchImpl, options, interval);
+      for (let n = tokens.length; n >= 1 && manufacturer === null; n--) {
+        const m = matchManufacturer(tokens.slice(0, n).join(' '), list);
+        if (m) { manufacturer = m; rest = tokens.slice(n).join(' '); }
+      }
+      for (let n = tokens.length - 1; n >= 1 && manufacturer === null; n--) {
+        const m = matchManufacturer(tokens.slice(tokens.length - n).join(' '), list);
+        if (m) { manufacturer = m; rest = tokens.slice(0, tokens.length - n).join(' '); }
+      }
+    } catch (err) {
+      failures.push({ field: 'manufacturer lookup', value: trimmed, message: reason(err) });
+    }
+  }
+
+  const plans: Array<{ field: string; value: string; query: ThrustCurveSearchQuery }> = [];
+  const base = { hasDataFiles: true, maxResults } as const;
+  if (manufacturer !== null && rest === '') {
+    plans.push({ field: 'manufacturer', value: manufacturer.name, query: { ...base, manufacturer: manufacturer.abbrev } });
+  } else if (manufacturer !== null) {
+    plans.push({ field: 'manufacturer and designation', value: `${manufacturer.name} ${rest}`, query: { ...base, manufacturer: manufacturer.abbrev, designation: rest } });
+    if (COMMON_NAME.test(rest)) plans.push({ field: 'manufacturer and common name', value: `${manufacturer.name} ${rest}`, query: { ...base, manufacturer: manufacturer.abbrev, commonName: rest } });
+  } else {
+    plans.push({ field: 'designation', value: trimmed, query: { ...base, designation: trimmed } });
+    if (COMMON_NAME.test(trimmed)) plans.push({ field: 'common name', value: trimmed, query: { ...base, commonName: trimmed } });
+  }
+
+  const merged = new Map<string, MotorSummary>();
+  const attempts: TextSearchAttempt[] = [];
+  let lastError: unknown = null;
+  for (const plan of plans) {
+    try {
+      const page = await searchMotorsPage(plan.query, fetchImpl, options, interval);
+      for (const motor of page.results) if (!merged.has(motor.id)) merged.set(motor.id, motor);
+      attempts.push({ field: plan.field, value: plan.value, matches: page.matches, shown: page.results.length });
+    } catch (err) {
+      lastError = err;
+      failures.push({ field: plan.field, value: plan.value, message: reason(err) });
+    }
+  }
+  // Every search failed: rethrow (keeping any HTTP status), never "no matches".
+  if (attempts.length === 0) throw lastError instanceof Error ? lastError : new ThrustCurveApiError('ThrustCurve search failed');
+  return { results: [...merged.values()], attempts, failures, manufacturer };
 }
 
 /** Simfile source preference: certified data beats manufacturer, beats user. */

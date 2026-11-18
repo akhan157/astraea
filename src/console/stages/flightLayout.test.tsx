@@ -113,8 +113,8 @@ describe('Flight chrome on short windows', () => {
     render(<FlightStage />);
     const row = document.querySelector('[data-flight-chrome="row"]');
     expect(row).not.toBeNull();
-    expect(within(row as HTMLElement).getByLabelText('Run readiness')).toBeTruthy();
-    expect(row?.textContent).toContain('Whole-design readiness');
+    expect(within(row as HTMLElement).getByLabelText('Run inputs')).toBeTruthy();
+    expect(row?.textContent).toContain('Inputs complete');
     expect(row?.textContent).not.toContain('Flight model: Legacy (supported)');
     // The disclosure is still a real control inside the row.
     expect(within(row as HTMLElement).getByText('Change flight model…').closest('summary')?.textContent).toBe('Change flight model…');
@@ -127,7 +127,7 @@ describe('Flight chrome on short windows', () => {
     stubMatchMedia(false);
     render(<FlightStage />);
     expect(document.querySelector('[data-flight-chrome="row"]')).toBeNull();
-    expect(screen.getByLabelText('Run readiness')).toBeTruthy();
+    expect(screen.getByLabelText('Run inputs')).toBeTruthy();
     expect(screen.queryByText('Flight model: Legacy (supported)')).toBeNull();
   });
 });

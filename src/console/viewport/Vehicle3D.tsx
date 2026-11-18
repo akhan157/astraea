@@ -238,13 +238,26 @@ export function noseLatheGeometry(c: NoseconeComponent, x0: number, len: number,
 
 export interface Look { selected?: string | null; hovered?: string | null; ghost?: boolean; xray?: boolean; changedParts?: Set<string>; opacity?: number }
 
-export function VehicleModel({ vehicle, layout, motor, look = {}, cg, cp, onPick, onHover }: { vehicle: RocketVehicle; layout: Layout; motor?: MotorSpec; look?: Look; cg?: number; cp?: number; onPick?: (id: string) => void; onHover?: (id: string | null) => void }) {
+export function VehicleModel({ vehicle, layout, motor, look = {}, cg, cp, onPick, onHover, onContext }: {
+  vehicle: RocketVehicle; layout: Layout; motor?: MotorSpec; look?: Look; cg?: number; cp?: number; onPick?: (id: string) => void; onHover?: (id: string | null) => void;
+  /**
+   * Right-button release over a part, with the pointer's client position. The
+   * nearest part under the pointer gets it (propagation stops there). Whether
+   * it was a click or the end of a right-drag pan is the caller's call.
+   */
+  onContext?: (id: string, at: { x: number; y: number }) => void;
+}) {
   const L = layout.length;
   const Y = (x: number) => L - x;
   const ev = (id: string) => ({
     onClick: (e: { stopPropagation: () => void }) => { e.stopPropagation(); onPick?.(id); },
     onPointerOver: (e: { stopPropagation: () => void }) => { e.stopPropagation(); onHover?.(id); },
-    onPointerOut: () => onHover?.(null)
+    onPointerOut: () => onHover?.(null),
+    onPointerUp: (e: { button: number; stopPropagation: () => void; nativeEvent: { clientX: number; clientY: number } }) => {
+      if (e.button !== 2 || !onContext) return;
+      e.stopPropagation();
+      onContext(id, { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY });
+    },
   });
   /**
    * Part colour and finish come from the design (`component.color`), then the

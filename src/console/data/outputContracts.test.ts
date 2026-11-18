@@ -13,7 +13,7 @@ describe('console output scope and provenance', () => {
     expect(sixDofOptions(options).railLength).toBe(3.66);
     const run = convert(flightResult({ railExitVelocity: 27.5, isRailExitSafe: false }));
     expect(run.summary.railExitSpeed.value).toBe(27.5);
-    expect(run.gates.find((g) => g.id === 'rail_exit')).toMatchObject({ status: 'fail', threshold: '>= 15 m/s' });
+    expect(run.gates.find((g) => g.id === 'rail_exit')).toMatchObject({ status: 'fail', threshold: '≥ 15 m/s' });
     expect(run.manifest.railTravel).toContain('3.66 m');
     expect(run.manifest.railTravel).toContain('provenance unavailable');
     expect(run.summary.railExitSpeed.reason).toContain('Ground-speed');
@@ -36,7 +36,7 @@ describe('console output scope and provenance', () => {
     expect(pass.gates.find((g) => g.id === 'landing_energy')).toBeUndefined();
 
     const speed = pass.gates.find((g) => g.id === 'landing_speed')!;
-    expect(speed).toMatchObject({ status: 'pass', threshold: '<= 10.67 m/s (35 ft/s)' });
+    expect(speed).toMatchObject({ status: 'pass', threshold: '≤ 10.67 m/s (35 ft/s)' });
     expect(speed.reason).toMatch(/Tripoli Level 1 certification limit is 35 ft\/s \(10\.67 m\/s\)/);
     expect(speed.reason).toContain('https://www.tripoli.org/Level1');
     expect(speed.reason).toMatch(/no standard threshold/);
@@ -47,10 +47,10 @@ describe('console output scope and provenance', () => {
     // internal 6 m/s / 20 J convenience flags.
     const fast = convert(flightResult({ landingVelocity: 12, isLandingVelocitySafe: true, isLandingSafe: true }));
     expect(fast.gates.find((g) => g.id === 'landing_speed')?.status).toBe('fail');
-    expect(fast.gates.find((g) => g.id === 'landing_speed')?.reason).toContain('use a larger main');
+    expect(fast.gates.find((g) => g.id === 'landing_speed')?.advice).toContain('Use a larger main');
     const noChutes = { ...vehicle, components: vehicle.components.filter((c) => c.type !== 'parachute') };
     const unprotected = toFlightRun(flightResult({ landingVelocity: 12 }), noChutes, undefined, 'key', 1, 0);
-    expect(unprotected.gates.find((g) => g.id === 'landing_speed')?.reason).toContain('add a parachute');
+    expect(unprotected.gates.find((g) => g.id === 'landing_speed')?.advice).toContain('Add a parachute');
     const slow = convert(flightResult({ landingVelocity: 10.6, isLandingVelocitySafe: false, isLandingSafe: false }));
     expect(slow.gates.find((g) => g.id === 'landing_speed')?.status).toBe('pass');
     // Kept for the energy value itself: it still reaches the summary and trace.

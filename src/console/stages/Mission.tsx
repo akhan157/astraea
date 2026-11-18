@@ -1,8 +1,9 @@
-import { PRESETS, presetKeyOf, useWS } from '../store';
+import { PRESETS, presetKeyOf, runName, useWS } from '../store';
+import { replaceDesign } from '../shell/StartChooser';
 import { useStability } from '../hooks';
 import { C } from '../kit/theme';
 import { ResultValue, ValueUnit } from '../kit/Value';
-import { Button, FieldRow, InspectorSection, NumberField } from '../kit/Fields';
+import { Button, FieldRow, InlineText, InspectorSection, NumberField } from '../kit/Fields';
 import { Stat } from '../kit/Table';
 import { LaunchInspector } from './Flight';
 import { StageHeader } from './common';
@@ -39,7 +40,7 @@ export function MissionStage() {
                   <span className="absolute -top-[4px] h-[14px] w-[2px]" style={{ left: '50%', background: C.muted }} title="Target" />
                   <span className="absolute -top-[4px] h-[14px] w-[3px] rounded" style={{ left: `${Math.max(0, Math.min(100, 50 + pct))}%`, background: C.accent }} title="Predicted" />
                 </div>
-                <div className="mt-2 flex items-baseline justify-between text-[12px]"><span style={{ color: C.muted }}>Predicted, run r{run.rev}</span><ResultValue r={run.summary.apogee} label="Predicted apogee" /></div>
+                <div className="mt-2 flex items-baseline justify-between text-[12px]"><span style={{ color: C.muted }}>Predicted, {runName(run)}</span><ResultValue r={run.summary.apogee} label="Predicted apogee" /></div>
                 <div className="text-right font-geist-mono text-[11.5px]" style={{ color: Math.abs(pct) <= 5 ? C.ok : C.muted }}>{delta}</div>
               </div>
             )}
@@ -49,6 +50,7 @@ export function MissionStage() {
           </Card>
           <Card title="Vehicle">
             <div className="text-[14px]">{s.design.vehicle.name}</div>
+            {presetKeyOf(s.design.vehicle) && <div className="text-[11px]" style={{ color: C.dim }}>Editing a copy of the {PRESETS.find((p) => p.id === presetKeyOf(s.design.vehicle))?.label} example</div>}
             <div className="mt-1 text-[12px]" style={{ color: C.muted }}>{s.design.vehicle.notes}</div>
             {stab && <div className="mt-3 grid grid-cols-2 gap-3"><Stat label="Length"><ValueUnit value={stab.length} kind="len" /></Stat><Stat label="Dry mass"><ResultValue r={stab.totalMass} label="Dry mass" /></Stat></div>}
           </Card>
@@ -68,7 +70,7 @@ export function MissionStage() {
           <div className="mb-2 text-[10.5px] tracking-[0.12em] uppercase" style={{ color: C.dim }}>Start from a popular example</div>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
             {PRESETS.map((p) => (
-              <button key={p.id} onClick={() => s.loadPreset(p.id)} className="rounded-md p-3 text-left hover:bg-white/[0.03]" style={{ border: `1px solid ${presetKeyOf(s.design.vehicle) === p.id ? 'rgba(110,231,247,.4)' : C.line}`, background: C.panel }}>
+              <button key={p.id} onClick={() => replaceDesign(`the ${p.label} example`, () => s.loadPreset(p.id))} className="rounded-md p-3 text-left hover:bg-white/[0.03]" style={{ border: `1px solid ${presetKeyOf(s.design.vehicle) === p.id ? 'rgba(110,231,247,.4)' : C.line}`, background: C.panel }}>
                 <div className="text-[13px]">{p.label}</div>
                 <div className="mt-1 text-[11.5px] leading-snug" style={{ color: C.muted }}>{p.mission.name}</div>
                 <div className="mt-2 font-geist-mono text-[11px]" style={{ color: C.dim }}>{s.motors[p.motorId]?.designation} · {p.mission.site}</div>
@@ -76,7 +78,7 @@ export function MissionStage() {
             ))}
           </div>
           <div className="mt-2 text-[11.5px]" style={{ color: C.dim }}>The bundled motor catalog is a small certified set; import a motor file (.eng or .rse) to fly other motors.</div>
-          <div className="mt-1 text-[11.5px]" style={{ color: C.dim }}>Loading a template is undoable. Drop an OpenRocket (.ork), RockSim (.rkt) or Astraea project file anywhere in the window to import it.</div>
+          <div className="mt-1 text-[11.5px]" style={{ color: C.dim }}>Loading an example replaces your design with an editable copy; it asks first if you have unsaved edits, and Undo brings your design back. Drop an OpenRocket (.ork), RockSim (.rkt) or Astraea project file anywhere in the window to import it.</div>
         </section>
 
         <SiteEditor />
@@ -92,9 +94,22 @@ function Card({ title, children, ...rest }: { title: string; children: React.Rea
 export function MissionInspector() {
   const s = useWS();
   const m = s.design.mission;
+  const presetKey = presetKeyOf(s.design.vehicle);
+  const copyOf = presetKey === null ? null : PRESETS.find((p) => p.id === presetKey)?.label ?? null;
   return (
     <div className="flex h-full flex-col overflow-auto thin-scroll" style={{ background: C.panel }}>
-      <div className="px-4 py-3" style={{ borderBottom: `1px solid ${C.line}` }}><div className="text-[11px]" style={{ color: C.dim }}>Mission</div><div className="text-[14px] font-medium">{m.name}</div></div>
+      <div className="px-4 py-3" style={{ borderBottom: `1px solid ${C.line}` }}>
+        <div className="text-[11px]" style={{ color: C.dim }}>Mission</div>
+        <InlineText value={m.name} ariaLabel="Mission name" onCommit={(name) => s.setMission({ name }, 'Rename mission')} className="-mx-1 w-full text-[14px] font-medium" />
+        {copyOf && <div className="mt-0.5 text-[11px]" style={{ color: C.dim }}>Editing a copy of the {copyOf} example</div>}
+      </div>
+      <InspectorSection title="Rocket">
+        <FieldRow label="Name"><InlineText value={s.design.vehicle.name} ariaLabel="Rocket name" onCommit={(name) => s.setVehicle({ name }, 'Rename rocket')} className="w-[170px] py-1 text-right text-[12.5px]" style={{ background: C.sunken, border: `1px solid ${C.line}` }} /></FieldRow>
+        <label className="mt-1 block text-[12.5px]" style={{ color: C.muted }}>Description
+          <textarea aria-label="Rocket description" value={s.design.vehicle.notes ?? ''} rows={3} onChange={(e) => s.setVehicle({ notes: e.target.value }, 'Edit description')}
+            className="mt-1 block w-full resize-y rounded px-2 py-1 text-[12.5px] outline-none" style={{ background: C.sunken, border: `1px solid ${C.line}`, color: C.fg }} placeholder="What is this rocket for?" />
+        </label>
+      </InspectorSection>
       <InspectorSection title="Goal">
         <FieldRow label="Target apogee"><NumberField value={m.targetApogeeM} kind="dist" min={10} max={50000} onChange={(v) => s.setMission({ targetApogeeM: v }, 'Target apogee')} /></FieldRow>
         <FieldRow label="Site"><input aria-label="Mission site" value={m.site} onChange={(e) => s.setMission({ site: e.target.value }, 'Site')} className="w-[150px] rounded px-2 py-1 text-[12.5px] outline-none" style={{ background: C.sunken, border: `1px solid ${C.line}`, color: C.fg }} /></FieldRow>

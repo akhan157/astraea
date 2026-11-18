@@ -25,6 +25,7 @@ import type { DragCalibration } from './dragCalibration';
 import { aeroModelKey, type AeroModelSelection } from './aeroModel';
 import type { MotorSpec } from '../propulsion/motorDatabase';
 import { CERTIFIED_MOTORS, validateMotorSpec } from '../propulsion/motorDatabase';
+import { resolveRecoveryChutes } from '../sim/parachuteRoles';
 
 /** Launch options carried by a case (mirror of the FlightSim run inputs). */
 export interface LaunchOptions {
@@ -294,7 +295,8 @@ export interface PreflightIssue {
     | 'mount-ambiguous'
     | 'mount-solid'
     | 'motor-excluded'
-    | 'input-nonfinite';
+    | 'input-nonfinite'
+    | 'parachute-roles';
   severity: 'error';
   message: string;
   /** Where the user repairs this: studio surface + target description. */
@@ -477,6 +479,20 @@ export function preflight(
         repair: { studio: 'propulsion', target: 'motor assignment' },
       });
     }
+  }
+
+  // Two chutes declaring one role: the engine refuses to choose between them
+  // (`recovery_chutes`), so say so before dispatch instead of after a failed run.
+  const chutes = resolveRecoveryChutes(launchCase.vehicle.components);
+  if (!chutes.ok) {
+    issues.push({
+      code: 'parachute-roles',
+      severity: 'error',
+      message: chutes.clash === undefined
+        ? chutes.reason
+        : `${chutes.clash.chutes[0].name} and ${chutes.clash.chutes[1].name} are both set as the ${chutes.clash.role} parachute; a flight opens one ${chutes.clash.role}. Set one of them to the other role or to Automatic`,
+      repair: { studio: 'airframe', target: 'parachute roles' },
+    });
   }
 
   for (const { key, label } of OPTION_FIELDS) {

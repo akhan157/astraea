@@ -24,10 +24,10 @@ export function hasToured(): boolean {
 const STEPS: { stage: StageId; title: string; body: string; select?: (ids: string[]) => string | undefined }[] = [
   { stage: 'mission', title: 'Start from an example', body: 'Pick a template close to what you want to fly, and set a target altitude. Everything after this is a tweak.' },
   { stage: 'airframe', title: 'Shape the airframe', body: 'Select a part in the tree or the 3D view and change its numbers in the inspector. Changed fields turn amber until you re-run.', select: (ids) => ids.find((i) => i.includes('fin')) },
-  { stage: 'motor', title: 'Choose a motor', body: 'Compare thrust curves and check that the motor fits the mount. You can import any .eng or .rse file.' },
-  { stage: 'aero', title: 'Check stability', body: 'The static margin updates live. Aim for 1 to 3 calibers. The breakdown shows which parts move the centre of pressure.' },
-  { stage: 'flight', title: 'Fly it', get body() { return `Press Run (${shortcutLabel('run')}) for a full 6-DOF flight: events, apogee, validity and every gate come from the engine. Monte Carlo re-flies the design for a landing spread.`; } },
-  { stage: 'verify', title: 'Verify, then export', body: 'Every gate should pass before you build. Build exports the design with a trace of what was checked.' }
+  { stage: 'motor', title: 'Choose a motor', body: 'Compare thrust curves and check the motor diameter against your mount. You can import any .eng or .rse file.' },
+  { stage: 'aero', title: 'Check stability', body: 'Stability at liftoff (with the motor loaded) updates live as you edit. Aim for 1 to 3 calibers: lower may not fly straight, higher turns into the wind. The breakdown shows which parts move the centre of pressure.' },
+  { stage: 'flight', title: 'Fly it', get body() { return `Press Run (${shortcutLabel('run')}) for a full 6-DOF flight: events, apogee, validity and every check come from the engine. Monte Carlo re-flies the design for a landing spread.`; } },
+  { stage: 'verify', title: 'Verify, then export', body: 'Every check should pass before you build; a check that is unknown needs an input, not a guess. Build exports the design with a record of what was checked.' }
 ];
 
 export function Onboarding() {

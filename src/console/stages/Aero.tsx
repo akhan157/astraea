@@ -42,7 +42,7 @@ export function AeroStage() {
           : aeroModelDefect(s.design.aeroModel) !== null
             ? 'Built-up aero model selection is defective; choose a current model in Aerodynamic inputs.'
             : `Built-up aero model ${s.design.aeroModel.modelId} ${s.design.aeroModel.modelVersion} (hybrid: Astraea legacy drag override Mach 0.80-1.20).`}
-        right={stab && <ConfidenceSummary results={[stab.margin, stab.cp, stab.cg]} />}
+        right={stab && <ConfidenceSummary results={[stab.margin, stab.cp, stab.cg]} labels={['Airframe-only margin', 'CP', 'CG']} />}
       />
       {candidateSelected && <div className="px-3 py-2"><CandidateRefusalNotice title="Legacy aero preview not evaluated" message={CANDIDATE_REFUSAL.legacyAero} /></div>}
       <WithDock storageKey="aero" initial={320}
@@ -74,6 +74,13 @@ function Breakdown() {
   ];
   return (
     <div>
+      <div className="px-3 pt-2 pb-2" data-aero-plain-words style={{ borderBottom: `1px solid ${C.line}` }}>
+        <div className="mb-1.5 text-[10.5px] tracking-wide uppercase" style={{ color: C.dim }}>What this means · from the engine</div>
+        <ul className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-x-6 gap-y-1.5 text-[12.5px] leading-relaxed">
+          {stab.notes.map((n) => <li key={n} className="flex gap-2"><span className="mt-[7px] h-1 w-1 shrink-0 rounded-full" style={{ background: n.startsWith('Overstable') || n.startsWith('Understable') ? C.warn : C.dim }} />{n}</li>)}
+        </ul>
+        <p className="mt-1.5 text-[11.5px]" style={{ color: C.dim }}>These describe the airframe without the motor. Stability at liftoff, with the motor loaded, is in the card on the right and in Verify.</p>
+      </div>
       <div>
         <OverflowFold
           className="px-3 py-2 text-[12px]"
@@ -91,12 +98,6 @@ function Breakdown() {
           ]} />
         {secondary.length > 0 && <p data-non-lifting-footnote className="px-3 py-2 text-[11.5px]" style={{ color: C.dim }}>{NON_LIFTING_FOOTNOTE}</p>}
         {groups.warnings.map((row) => <p key={row.partId} data-unknown-row className="px-3 py-1 text-[12px]" style={{ color: C.muted }}>{unknownRowSentence(row)}</p>)}
-      </div>
-      <div className="px-3 pt-1 pb-3" style={{ borderTop: `1px solid ${C.line}` }}>
-        <div className="mt-2 mb-2 text-[10.5px] tracking-wide uppercase" style={{ color: C.dim }}>In plain words · from the engine</div>
-        <ul className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-x-6 gap-y-1.5 text-[12.5px] leading-relaxed">
-          {stab.notes.map((n) => <li key={n} className="flex gap-2"><span className="mt-[7px] h-1 w-1 shrink-0 rounded-full" style={{ background: n.startsWith('Overstable') || n.startsWith('Understable') ? C.warn : C.dim }} />{n}</li>)}
-        </ul>
       </div>
     </div>
   );

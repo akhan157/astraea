@@ -191,17 +191,20 @@ describe('Motor stage — mount fit', () => {
     const use = screen.getByRole('button', { name: new RegExp(`Use ${CESARONI}`) }) as HTMLButtonElement;
     expect(use.disabled).toBe(true);
     expect(use.getAttribute('title')).toMatch(/exceeds mount|bore/);
-    expect(rowOf(CESARONI).textContent).toMatch(/too wide/);
+    expect(rowOf(CESARONI).textContent).toMatch(/Too wide/);
   });
 
-  it('offers a motor that fits the bore', () => {
+  it('offers a motor whose diameter clears the bore, without claiming the mount is verified', () => {
     setBore(0.145);
     render(<MotorStage />);
     // Estes C6 is not the seed motor, so its pane carries the Use button.
     fireEvent.click(screen.getAllByText(ESTES)[0]);
     const use = screen.getByRole('button', { name: /Use Estes C6/ }) as HTMLButtonElement;
     expect(use.disabled).toBe(false);
-    expect(rowOf(ESTES).textContent).toMatch(/fits/);
+    // Only the diameter (and 50% retention) is checked, so it never reads "fits".
+    expect(rowOf(ESTES).textContent).toMatch(/Diameter clears/);
+    expect(rowOf(ESTES).textContent).toMatch(/mount unverified/);
+    expect(rowOf(ESTES).textContent).not.toMatch(/\bfits\b/);
   });
 });
 

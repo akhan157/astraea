@@ -72,7 +72,8 @@ describe('CopilotPanel console integration', () => {
     useProjectStore.getState().loadPreset('estesAlpha');
     const vehicle = structuredClone(useProjectStore.getState().project.vehicle);
     const fins = vehicle.components.find((c) => c.type === 'trapezoidfinset') as TrapezoidFinSetComponent;
-    fins.span *= 1.8;
+    // Understable with the C6 loaded: Copilot judges stability at liftoff, as Verify does.
+    fins.span *= 0.4;
     useProjectStore.setState({ project: { ...useProjectStore.getState().project, vehicle }, past: [] });
 
     render(<CopilotPanel />);
@@ -105,7 +106,8 @@ describe('CopilotPanel console integration', () => {
     useProjectStore.getState().loadPreset('estesAlpha');
     const vehicle = structuredClone(useProjectStore.getState().project.vehicle);
     const fins = vehicle.components.find((c) => c.type === 'trapezoidfinset') as TrapezoidFinSetComponent;
-    fins.span *= 1.8;
+    // Understable with the C6 loaded: Copilot judges stability at liftoff, as Verify does.
+    fins.span *= 0.4;
     useProjectStore.setState({ project: { ...useProjectStore.getState().project, vehicle }, past: [] });
 
     render(<CopilotPanel />);

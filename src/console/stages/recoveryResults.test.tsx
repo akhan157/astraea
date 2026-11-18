@@ -77,7 +77,7 @@ describe('recorded recovery outputs', () => {
     (which === 'current' ? current : previous).summary.landingNominal = false;
     install(current, previous); render(<Tooltip.Provider><ResultsTable run={current} /></Tooltip.Provider>);
     for (const label of ['Landing speed', 'Landing energy']) {
-      expect(landingRow(label).querySelector('[title="Change since the committed run"]')).toBeNull();
+      expect(landingRow(label).querySelector('[title="Change since the last run"]')).toBeNull();
       expect(within(landingRow(label)).getAllByRole('cell')[2].textContent).toBe('N/A');
     }
   });
@@ -99,7 +99,7 @@ describe('recorded recovery outputs', () => {
       expect(cells[2].textContent).toBe('N/A');
     }
     const apogee = screen.getByText('Apogee', { selector: '[role="cell"]' }).closest('[role="row"]')!;
-    expect(apogee.querySelector('[title="Change since the committed run"]')).not.toBeNull();
+    expect(apogee.querySelector('[title="Change since the last run"]')).not.toBeNull();
   });
   it('still renders actual landing deltas when both records report nominal touchdown', () => {
     const current = run(), previous = run(); previous.rev = 1;
@@ -107,7 +107,7 @@ describe('recorded recovery outputs', () => {
     previous.summary.landingEnergy.value = 30;
     install(current, previous); render(<Tooltip.Provider><ResultsTable run={current} /></Tooltip.Provider>);
     for (const label of ['Landing speed', 'Landing energy']) {
-      expect(landingRow(label).querySelector('[title="Change since the committed run"]')).not.toBeNull();
+      expect(landingRow(label).querySelector('[title="Change since the last run"]')).not.toBeNull();
     }
   });
   it('exports the same recovery value, SI unit and confidence shown by the readout', () => {

@@ -125,10 +125,11 @@ pub fn prepare_native_candidate(
     // takes the motor station as an explicit mechanical declaration and only
     // validates it against length/forward-end/diameter in the core preparation.
     // A real mount-resolution adapter remains an identified later extension.
-    // Legacy recovery mapping (first parachute = drogue, second-or-first = main).
+    // Recovery mapping shared with the legacy preparation: declared roles first,
+    // else list order (first parachute = drogue, second-or-first = main).
     // Declared recovery is part of the mechanical carrier; RMP07 owns migration.
-    let chutes: Vec<&crate::models::FrontendComponent> = vehicle.components.iter()
-        .filter(|c| c.kind == "parachute").collect();
+    let (drogue_component, main_component) = models::recovery_chutes(&vehicle.components)
+        .map_err(|e| error(format!("native candidate: {e}")))?;
     // A declared parachute component must carry complete finite recovery data.
     // Returning `None` for a partially declared chute would silently leave the
     // airframe active after deployment flags change.
@@ -141,8 +142,8 @@ pub fn prepare_native_candidate(
                 c.id))),
         }
     };
-    let drogue = chutes.first().map(|c| to_chute(c)).transpose()?;
-    let main_chute = if chutes.len() > 1 { chutes.get(1).map(|c| to_chute(c)).transpose()? } else { drogue.clone() };
+    let drogue = drogue_component.map(to_chute).transpose()?;
+    let main_chute = main_component.map(to_chute).transpose()?;
 
     let carrier = Vehicle {
         dry_mass: rollup.total_mass,
@@ -1272,6 +1273,47 @@ mod tests {
         let native = prepare_native_candidate(&request.vehicle, &request.motor, &inputs)
             .expect("prepared candidate");
         native.prepared
+    }
+
+    /// Plan #9: the candidate carrier picks chutes with the same rule as the
+    /// legacy preparation: list order without roles, declared roles otherwise.
+    #[test]
+    fn carrier_recovery_follows_declared_roles() {
+        let carrier = |request: &NativeCandidateRequest| {
+            let inputs = NativeCandidateInputs {
+                adapter: map_adapter(&request.adapter).expect("adapter"),
+                mechanical_source_id: request.mechanical_source_id.clone(),
+                environment_source_id: request.environment_source_id.clone(),
+                axial_provider_id: request.axial.provider_id.clone(),
+                axial_input_identity: request.axial.input_identity.clone(),
+                axial_ca0: request.axial.ca0,
+                environment: CandidateEnvironment {
+                    launch_altitude_asl_m: request.environment.launch_altitude_asl_m,
+                    wind_speed_surface_mps: request.environment.wind_speed_surface_mps,
+                    wind_azimuth_deg: request.environment.wind_azimuth_deg,
+                },
+                motor_aft_station_from_nose_m: request.motor_aft_station_from_nose_m,
+            };
+            prepare_native_candidate(&request.vehicle, &request.motor, &inputs).map(|n| n.carrier)
+        };
+        let plain = request();
+        let unchanged = carrier(&plain).expect("prepared");
+        assert_eq!(unchanged.drogue, Some((0.3, 0.8)));
+        assert_eq!(unchanged.main, Some((0.45, 0.8)));
+
+        let mut swapped = request();
+        let chutes: Vec<usize> = swapped.vehicle.components.iter().enumerate()
+            .filter(|(_, c)| c.kind == "parachute").map(|(i, _)| i).collect();
+        swapped.vehicle.components[chutes[0]].deploy_role = Some("main".to_string());
+        swapped.vehicle.components[chutes[1]].deploy_role = Some("drogue".to_string());
+        let roles = carrier(&swapped).expect("prepared");
+        assert_eq!(roles.drogue, Some((0.45, 0.8)));
+        assert_eq!(roles.main, Some((0.3, 0.8)));
+
+        let mut duplicate = request();
+        for i in &chutes { duplicate.vehicle.components[*i].deploy_role = Some("drogue".to_string()); }
+        let err = carrier(&duplicate).err().expect("refused");
+        assert!(err.starts_with("native candidate: parachutes 'syn-drogue' and 'syn-main' are both set as the drogue"), "{err}");
     }
 
     /// A motor the shared validator refuses keeps the candidate's typed refusal:

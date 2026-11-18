@@ -30,7 +30,15 @@ export interface Result<T = number> {
   reason?: string;
 }
 
-export type GateStatus = 'pass' | 'fail' | 'unknown' | 'n/a';
+/**
+ * One rule, four outcomes: `pass`, `fail`, `unknown` (an input or the engine's
+ * own qualification is missing) and `invalid` (the engine marked the run
+ * itself as failed, so the check cannot be judged). `caution` meets the
+ * requirement but is worth a look (more stability than needed: safe, but the
+ * rocket turns into the wind). `n/a` is a check that does not apply to this
+ * vehicle (no fins, say).
+ */
+export type GateStatus = 'pass' | 'caution' | 'fail' | 'unknown' | 'invalid' | 'n/a';
 export interface Gate {
   id: string;
   label: string;
@@ -39,6 +47,12 @@ export interface Gate {
   value: Result;
   threshold: string;
   reason: string;
+  /** What to change, pointing the same way as the result; absent when nothing needs changing. */
+  advice?: string;
+  /** Stage to fix it in, when it differs from the check's default. */
+  fixStage?: 'mission' | 'airframe' | 'motor' | 'aero' | 'flight' | 'recovery';
+  /** Verdict text shown in place of the number (run validity reads "Valid", not a duration). */
+  display?: string;
 }
 
 export type FlightEventKind = 'ignition' | 'rail_exit' | 'burnout' | 'max_q' | 'apogee_drogue' | 'main' | 'touchdown';
@@ -181,7 +195,10 @@ export interface Job<T> {
 export interface FlightRun {
   /** Invocation-bound runtime metadata; absent on legacy records. */
   engineIdentity?: EngineIdentity;
+  /** Design (project) revision the run flew; a save counter, not a run count. */
   rev: number;
+  /** Run number in this document ("Run #3"), separate from the design revision; absent on older records. */
+  runNumber?: number;
   at: number;
   /** Content key of the inputs this run was issued against. */
   inputKey: string;

@@ -13,7 +13,9 @@ import { qualifyResult, type GateOutcome, type QualifiedResult } from '../applic
 import { useProjectStore } from '../state/project';
 import { useSessionStore, type SessionConsolePatch } from '../state/session';
 import { diffDesigns, staleReasons, type Change } from './diff';
-import { candidateInvocationMatches, contentKeyOf, currentRunKey, engineIsAvailable, useCommittedRun, type Design, type StageId } from './store';
+import { candidateInvocationMatches, contentKeyOf, currentRunKey, engineIsAvailable, motorOfId, useCommittedRun, type Design, type StageId } from './store';
+import { liftoffStability, type LiftoffStability } from './data/liftoffStability';
+import { normalizeMotorId, type MotorSpec } from '../propulsion/motorDatabase';
 import { designOf } from './design';
 import { stabilityOfVehicle } from './data/adapter';
 import { aggregateMassOf } from '../tauri/bridge';
@@ -260,6 +262,32 @@ export function useStability(): StabilityBreakdown | null {
   return useStabilityOf(design.vehicle, design.aeroModel).breakdown;
 }
 
+/** The motor a design would fly: its own resolved catalog first, then the project/library lookup. */
+export function designMotor(design: Design): MotorSpec | null {
+  return design.motors?.[normalizeMotorId(design.motorId)] ?? motorOfId(design.motorId);
+}
+
+function useLiftoffOf(design: Design | null): LiftoffStability | null {
+  const { breakdown, geometry } = useStabilityOf(design?.vehicle ?? null, design?.aeroModel);
+  return useMemo(
+    () => (design === null || breakdown === null ? null : liftoffStability(breakdown, design.vehicle, designMotor(design), geometry)),
+    [design, breakdown, geometry],
+  );
+}
+
+/**
+ * Live stability at liftoff for the current preview design: the loaded-motor
+ * margin is the headline, the airframe-only margin rides along as `geometry`.
+ */
+export function useLiftoffStability(): LiftoffStability | null {
+  return useLiftoffOf(usePreviewDesign());
+}
+
+/** Liftoff stability of the design the committed run flew, for deltas. */
+export function useCommittedLiftoffStability(): LiftoffStability | null {
+  return useLiftoffOf(useCommittedRun()?.design ?? null);
+}
+
 /** Stability at the committed run, for deltas. */
 export function useCommittedStability(): StabilityBreakdown | null {
   const committed = useCommittedRun();
@@ -400,7 +428,7 @@ export function useFlightQualification(): QualifiedResult {
     }
     const gates = payload?.run?.gates ?? [];
     const gate: GateOutcome =
-      gates.length === 0 ? 'unknown' : gates.some((g) => g.status === 'fail') ? 'fail' : gates.every((g) => g.status === 'pass') ? 'pass' : 'unknown';
+      gates.length === 0 ? 'unknown' : gates.some((g) => g.status === 'fail') ? 'fail' : gates.every((g) => g.status === 'pass' || g.status === 'caution') ? 'pass' : 'unknown';
     return qualifyResult({
       valid: currentKey !== null,
       current: record !== null && currentKey !== null && record.inputKey === currentKey,

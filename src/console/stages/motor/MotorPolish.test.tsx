@@ -9,7 +9,8 @@ import type { MountAssessment } from '../../../application/caseResolver';
 
 vi.mock('../../../io/backend', () => ({ isNetworkOnline: () => true }));
 vi.mock('../../../io/net', () => ({
-  searchThrustCurve: async () => ({ results: [{ id: 'a8', designation: 'A8', manufacturer: 'Estes', totalImpulseNs: 2, diameterMm: 18 }], cacheNote: '' }),
+  // The panel searches by free text now (designation, common name or manufacturer).
+  searchThrustCurveText: async () => ({ results: [{ id: 'a8', designation: 'A8', manufacturer: 'Estes', totalImpulseNs: 2, diameterMm: 18 }], attempts: [{ field: 'designation', value: 'A8', matches: 1, shown: 1 }], failures: [], manufacturer: null }),
   downloadThrustCurveFile: async () => 'A8 18 70 0 0.003 0.014 Estes\n0 0\n0.1 10\n0.4 0\n',
 }));
 

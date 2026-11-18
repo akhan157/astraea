@@ -1,17 +1,18 @@
-import { useRef, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { RocketComponent } from '../../core/types';
 import { STANDARD_MATERIALS, AIRFOIL_SECTION_NAMES } from '../../core/types';
-import { useWS } from '../store';
+import { applyEditsLabel, stagedAirframeEdits, useWS } from '../store';
 import { useProjectStore } from '../../state/project';
-import { useChanges, useStability, usePreviewDesign, useUnits } from '../hooks';
+import { useChanges, useCommittedStability, useStability, usePreviewDesign, useUnits } from '../hooks';
 import { C } from '../kit/theme';
 import { show, type Kind } from '../kit/units';
-import { FieldRow, InspectorSection, NumberField, Segmented, SelectField, SliderField } from '../kit/Fields';
+import { FieldRow, InspectorSection, NumberField, OptionalNumberField, Segmented, SelectField, SliderField } from '../kit/Fields';
 import { captureTubeAnchor, parentAxialBounds, tubeChildEnds, tubeLengthFloor, tubeLengthPatches, type TubeAnchor } from './partBounds';
 import { ResultValue } from '../kit/Value';
 import { PART_ICON } from './Shell';
 import { FlutterInspector } from '../stages/Aero';
 import { FreeformPointsEditor } from './FreeformPointsEditor';
+import { ParachuteRole } from './ParachuteRole';
 
 type Spec = {
   field: string; label: string; kind: Kind; min?: number; max?: number; digits?: number;
@@ -62,15 +63,21 @@ export function PartInspector({ extra }: { extra?: ReactNode }) {
   const c = s.design.vehicle.components.find((x) => x.id === s.selectedId);
   const changes = useChanges();
   const stab = useStability();
+  const committedStab = useCommittedStability();
   const units = useUnits();
   const lengthAnchor = useRef<TubeAnchor | null>(null);
   // Staged edits stay actionable even when the part selection is gone, so the
   // banner is part of the inspector's content and lives above the empty state.
+  const [applyError, setApplyError] = useState<string | null>(null);
+  const staged = pending > 0 ? stagedAirframeEdits() : [];
   const stagedBanner = pending > 0 && (
     <div className="flex flex-wrap items-center gap-2 px-4 py-2 text-[11.5px]" style={{ borderBottom: `1px solid ${C.line}`, color: C.changed }}>
-      <span role="status">{pending} part{pending === 1 ? '' : 's'} with staged edits · runs use committed inputs</span>
-      <button className="rounded border px-2 py-1" onClick={() => useProjectStore.getState().applyStudio('airframe')}>Apply staged edits</button>
-      <button className="rounded border px-2 py-1" onClick={() => useProjectStore.getState().revertStudio('airframe')}>Discard staged edits</button>
+      <span role="status" className="min-w-0 basis-full" title={staged.join(', ')}>
+        {staged.length} staged edit{staged.length === 1 ? '' : 's'}: {staged.slice(0, 3).join(', ')}{staged.length > 3 ? `, +${staged.length - 3} more` : ''}. Run applies them first.
+      </span>
+      <button className="rounded border px-2 py-1" onClick={() => { setApplyError(null); useProjectStore.getState().applyStudio('airframe', applyEditsLabel(stagedAirframeEdits())); }}>Apply staged edits</button>
+      <button className="rounded border px-2 py-1" onClick={() => { setApplyError(null); useProjectStore.getState().revertStudio('airframe'); }}>Discard staged edits</button>
+      {applyError && <span role="alert" className="basis-full" style={{ color: C.bad }}>{applyError}</span>}
     </div>
   );
   if (!c) return (
@@ -104,6 +111,25 @@ export function PartInspector({ extra }: { extra?: ReactNode }) {
     if (f.field === 'axialOffset' && axialBounds !== null) return Math.min(f.max ?? axialBounds.offsetMax, axialBounds.offsetMax);
     return f.max;
   };
+  const len = (v: number): string => { const d = show(v, 'len', units); return `${d.text} ${d.unit}`; };
+  /** Why a bound exists, said beside the field when a typed value is limited. */
+  const minReasonFor = (f: Spec): string | undefined => {
+    if (c.type === 'bodytube' && f.field === 'outerDiameter' && c.innerDiameter > 0) return `the outer diameter must be larger than the inner diameter (${len(c.innerDiameter)})`;
+    if (c.type === 'bodytube' && f.field === 'length' && tubeLengthMin > (f.min ?? 0)) return `parts attached to this tube reach ${len(tubeLengthMin)} from its front`;
+    return f.min === undefined ? undefined : `the smallest allowed is ${f.kind === 'len' ? len(f.min) : String(f.min)}`;
+  };
+  const maxReasonFor = (f: Spec): string | undefined => {
+    if (c.type === 'bodytube' && f.field === 'innerDiameter') return `the inner diameter must be smaller than the outer diameter (${len(c.outerDiameter)})`;
+    if (f.field === 'axialOffset' && axialBounds !== null) return `further aft, the part would stick out past the end of ${axialBounds.parent.name}`;
+    return f.max === undefined ? undefined : `the largest allowed is ${f.kind === 'len' ? len(f.max) : String(f.max)}`;
+  };
+  /**
+   * Values that are allowed but probably a units slip (mm vs in, g vs kg):
+   * said beside the field, never changed.
+   */
+  const radius = c.type === 'nosecone' ? c.baseDiameter / 2 : c.type === 'transition' ? Math.max(c.foreDiameter, c.aftDiameter) / 2 : c.type === 'bodytube' ? c.outerDiameter / 2 : 0;
+  const wall = c.type === 'nosecone' || c.type === 'transition' ? c.wallThickness : c.type === 'bodytube' && c.innerDiameter > 0 ? (c.outerDiameter - c.innerDiameter) / 2 : undefined;
+  const thickWall = wall !== undefined && radius > 0 && wall > 0.25 * radius;
   const sliderStepFor = (f: Spec): number => {
     const metric = f.sliderStepMetric ?? (f.kind === 'len' ? 1 : f.kind === 'mass' ? 0.005 : 0.01);
     const imperial = f.sliderStepImperial ?? (f.kind === 'len' ? 0.05 : f.kind === 'mass' ? 0.01 : 0.01);
@@ -213,6 +239,9 @@ export function PartInspector({ extra }: { extra?: ReactNode }) {
     );
   };
   const row = stab?.rows.find((r) => r.partId === c.id);
+  // The material-and-size mass, from the committed run's stability when the part had no override there.
+  const committedRow = committedStab?.rows.find((r) => r.partId === c.id);
+  const modeledMass = committedRow && committedRow.mass.confidence !== 'measured' ? committedRow.mass.value : null;
   const I = PART_ICON[c.type];
 
   return (
@@ -295,10 +324,13 @@ export function PartInspector({ extra }: { extra?: ReactNode }) {
                 onRevert={() => revert(f.field)}
                 below={<SliderField value={Number(rec[f.field] ?? 0)} kind={f.kind} min={min} max={max} step={sliderStepFor(f)} digits={f.digits} ariaLabel={`${f.label} slider`} onChange={stage} {...(anchored ? lengthGesture : {})} />}
               >
-                <NumberField value={Number(rec[f.field] ?? 0)} kind={f.kind} min={min} max={max} digits={f.digits} step={f.step} onChange={stage} {...(anchored ? lengthGesture : {})} />
+                <NumberField value={Number(rec[f.field] ?? 0)} kind={f.kind} min={min} max={max} digits={f.digits} step={f.step} onChange={stage} minReason={minReasonFor(f)} maxReason={maxReasonFor(f)} {...(anchored ? lengthGesture : {})} />
               </FieldRow>
             );
           })}
+          {thickWall && sec.fields.some((f) => f.field === 'wallThickness' || f.field === 'innerDiameter') && warning(
+            `The wall is ${len(wall!)} thick, over a quarter of the ${len(radius)} radius. That is unusual for a rocket; check the units.`,
+          )}
           {sec.fields.some((f) => f.field === 'axialOffset') && axialBounds && axialOverrun && warning(
             `The part extends ${axialOverrun.text} ${axialOverrun.unit} past the end of ${axialBounds.parent.name}. Move it forward or lengthen the tube.`,
           )}
@@ -308,6 +340,19 @@ export function PartInspector({ extra }: { extra?: ReactNode }) {
           )}
         </InspectorSection>
       ))}
+
+      {c.type === 'parachute' && <ParachuteRole chute={c} components={s.design.vehicle.components} mainDeployAltitudeM={s.design.options.mainDeployAltitudeAGL} units={units} changed={isChanged('deployRole')} onRevert={() => revert('deployRole')} onRoleChange={(role) => s.setComponent(c.id, { deployRole: role } as Partial<RocketComponent>, `${c.name} · Role`)} />}
+      {c.type === 'parachute' && (
+        <InspectorSection title="Packing">
+          <FieldRow label="Packed length" changed={isChanged('packedLengthM')} onRevert={() => revert('packedLengthM')} hint="Length of the folded, packed chute. Recovery uses it to check that everything fits in the bay; without it the fit is unknown.">
+            <OptionalNumberField value={c.packedLengthM} kind="len" min={0.001} max={3} ariaLabel="Packed length" onChange={(v) => s.setComponent(c.id, { packedLengthM: v } as Partial<RocketComponent>, `${c.name} · Packed length`)} onClear={() => s.clearComponentField(c.id, 'packedLengthM', `${c.name} · Clear packed length`)} />
+          </FieldRow>
+          <FieldRow label="Packed diameter" changed={isChanged('packedDiameterM')} onRevert={() => revert('packedDiameterM')} hint="Diameter of the packed chute; used for the bay drawing.">
+            <OptionalNumberField value={c.packedDiameterM} kind="len" min={0.001} max={1} ariaLabel="Packed diameter" onChange={(v) => s.setComponent(c.id, { packedDiameterM: v } as Partial<RocketComponent>, `${c.name} · Packed diameter`)} onClear={() => s.clearComponentField(c.id, 'packedDiameterM', `${c.name} · Clear packed diameter`)} />
+          </FieldRow>
+          {c.packedLengthM === undefined && <p className="mt-1 text-[11px]" style={{ color: C.muted }}>Measure the packed chute and enter its length; until then Recovery cannot say whether the bay fits.</p>}
+        </InspectorSection>
+      )}
 
       {c.type === 'bodytube' && (
         <InspectorSection title="Motor mount">
@@ -373,6 +418,9 @@ export function PartInspector({ extra }: { extra?: ReactNode }) {
             ? <button onClick={() => s.setComponent(c.id, { massOverride: row?.mass.value ?? 0.1 } as Partial<RocketComponent>, `${c.name} · Weighed mass`)} className="rounded px-2 py-1 text-[11.5px] hover:bg-white/5" style={{ border: `1px solid ${C.line}`, color: C.muted }}>Enter weighed</button>
             : <span className="flex items-center gap-1"><NumberField value={c.massOverride} kind="mass" min={0} max={200} onChange={(v) => s.setComponent(c.id, { massOverride: v } as Partial<RocketComponent>, `${c.name} · Weighed mass`)} /><button onClick={() => s.clearComponentField(c.id, 'massOverride', `${c.name} · Clear weighed mass`)} className="text-[11px]" style={{ color: C.dim }} title="Use computed mass">×</button></span>}
         </FieldRow>
+        {row && c.massOverride !== undefined && row.mass.confidence === 'measured' && modeledMass !== null && modeledMass > 0 && (c.massOverride > 5 * modeledMass || c.massOverride < 0.2 * modeledMass) && warning(
+          `The weighed mass is ${(c.massOverride / modeledMass).toFixed(1)}× what the material and size give (${show(modeledMass, 'mass', units).text} ${show(modeledMass, 'mass', units).unit}). Check the units (g vs kg).`,
+        )}
         {row && (
           <div className="mt-2 grid grid-cols-2 gap-3 rounded-md p-2.5" style={{ background: C.sunken }}>
             <div><div className="text-[10.5px]" style={{ color: C.dim }}>Mass</div><ResultValue r={row.mass} label={`${c.name} mass`} /></div>

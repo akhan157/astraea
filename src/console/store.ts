@@ -33,7 +33,7 @@ import { candidateResultFromReport, type CandidateResultArchive } from '../appli
 import type { EngineIdentity } from '../engine/identity';
 import { aggregateMassOf, simulateCandidateRecorded } from '../tauri/bridge';
 import { useAnalysisStore } from '../state/analysis';
-import { PRESET_DESIGNS, useProjectStore, type Mission, type PresetDesign } from '../state/project';
+import { PRESET_DESIGNS, pushUndoToast, useProjectStore, type Mission, type PresetDesign } from '../state/project';
 import { useSessionStore, type ConsoleStage, type SessionConsolePatch, type Units } from '../state/session';
 import { addComponentOp, moveComponentOp, removeComponentOp, type ComponentOpResult } from '../state/componentOps';
 import type { ComponentType } from '../core/types';
@@ -56,6 +56,12 @@ export const STAGES: { id: StageId; label: string; key: string }[] = [
   { id: 'build', label: 'Build', key: '8' },
 ];
 
+/** Plain names of part types, for History entries and menus. */
+export const PART_TYPE_LABEL: Record<ComponentType, string> = {
+  nosecone: 'Nose cone', bodytube: 'Body tube', transition: 'Transition', trapezoidfinset: 'Trapezoidal fin set',
+  ellipticalfinset: 'Elliptical fin set', freeformfinset: 'Freeform fin set', masscomponent: 'Mass item', parachute: 'Parachute',
+};
+
 /** Starting templates offered in the rail, the palette and the Mission stage. */
 export const PRESETS: ({ id: string; label: string } & Pick<PresetDesign, 'motorId' | 'mission'>)[] = Object.entries(PRESET_DESIGNS).map(
   ([id, preset]) => ({ id, label: preset.label, motorId: preset.motorId, mission: preset.mission }),
@@ -72,7 +78,19 @@ export interface CommittedRun {
   engineIdentity?: EngineIdentity;
 }
 
-export type PreviousFlightSummary = Pick<FlightRun, 'summary' | 'rev' | 'terminationReason'>;
+export type PreviousFlightSummary = Pick<FlightRun, 'summary' | 'rev' | 'terminationReason'> & Partial<Pick<FlightRun, 'runNumber'>>;
+
+/** "Run #3" for runs that carry a run number; older records fall back to their design revision. */
+export function runName(run: Pick<FlightRun, 'rev'> & Partial<Pick<FlightRun, 'runNumber'>>): string {
+  return run.runNumber !== undefined ? `Run #${run.runNumber}` : `Run r${run.rev}`;
+}
+
+/** Runs started in the current document; restarts when the document is replaced. */
+let runSequence = 0;
+export function nextRunNumber(): number {
+  runSequence += 1;
+  return runSequence;
+}
 
 /** Payload of the committed flight record in `useAnalysisStore`. */
 export interface LegacyFlightPayload {
@@ -232,6 +250,76 @@ export function airframeDraftPending(): boolean {
   return Object.keys(draft.components).length > 0 || draft.added.length > 0 || draft.removed.length > 0;
 }
 
+/** Plain name of a component field for History and the staged-edit list: `outerDiameter` → "outer diameter". */
+export function fieldLabel(field: string): string {
+  const special: Record<string, string> = {
+    axialOffset: 'position', massOverride: 'weighed mass', cd: 'drag coefficient', finCount: 'fin count',
+    packedLengthM: 'packed length', packedDiameterM: 'packed diameter', isMotorMount: 'motor mount', materialId: 'material',
+    sweepLength: 'sweep', rootChord: 'root chord', tipChord: 'tip chord',
+  };
+  return special[field] ?? field.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+}
+
+/** The staged airframe edits, named: one entry per changed field, added part or removed part. */
+export function stagedAirframeEdits(): string[] {
+  const { project, drafts } = useProjectStore.getState();
+  const draft = drafts.airframe;
+  const nameOf = (id: string): string => project.vehicle.components.find((c) => c.id === id)?.name ?? draft.added.find((c) => c.id === id)?.name ?? id;
+  const edits: string[] = [];
+  for (const [id, patch] of Object.entries(draft.components)) {
+    if (draft.added.some((c) => c.id === id)) continue;
+    for (const field of Object.keys(patch)) edits.push(`${nameOf(id)} ${fieldLabel(field)}`);
+  }
+  for (const c of draft.added) edits.push(`add ${c.name}`);
+  for (const id of draft.removed) edits.push(`remove ${nameOf(id)}`);
+  return edits;
+}
+
+/** The vehicle with the staged airframe edits applied (what Run will fly after applying them). */
+export function previewVehicle(): Design['vehicle'] {
+  const { project, drafts } = useProjectStore.getState();
+  const draft = drafts.airframe;
+  const removed = new Set(draft.removed);
+  const components = project.vehicle.components
+    .filter((c) => !removed.has(c.id))
+    .map((c) => {
+      const patch = draft.components[c.id];
+      return patch === undefined ? c : ({ ...c, ...patch } as RocketComponent);
+    });
+  return { ...project.vehicle, components: [...components, ...draft.added] };
+}
+
+/** Readiness of the design Run would fly: the committed inputs with the staged airframe edits applied. */
+export function runPreflight(): ResolvedCase {
+  const store = useProjectStore.getState();
+  if (!airframeDraftPending()) return currentPreflight();
+  const design = designOf(store.project, store.mission, store.shearPa, previewVehicle(), store.motors);
+  return preflight(launchCaseInput(store.project, design), customMotorsOf(store.motors));
+}
+
+/** History label for applying staged edits: names up to three of them. */
+export function applyEditsLabel(edits: readonly string[]): string {
+  if (edits.length === 0) return 'Apply staged edits';
+  const shown = edits.slice(0, 3).join(', ');
+  return `Apply ${edits.length} edit${edits.length === 1 ? '' : 's'}: ${shown}${edits.length > 3 ? `, +${edits.length - 3} more` : ''}`;
+}
+
+/**
+ * Apply the staged airframe edits as one undoable step, unless the design
+ * they produce cannot run: then nothing is applied and the first problem is
+ * returned so the caller can take the user to it.
+ */
+export function applyStagedAirframeEdits(): { ok: true } | { ok: false; message: string } {
+  if (!airframeDraftPending()) return { ok: true };
+  const readiness = runPreflight();
+  if (!readiness.runnable) {
+    const issue = readiness.issues[0];
+    return { ok: false, message: issue ? `The staged edits leave the design unable to run: ${issue.message}` : 'The staged edits leave the design unable to run.' };
+  }
+  useProjectStore.getState().applyStudio('airframe', applyEditsLabel(stagedAirframeEdits()));
+  return { ok: true };
+}
+
 /** Read the current run resolution outside React, or null when not runnable. */
 export function currentResolution(): RunResolution | null {
   const store = useProjectStore.getState();
@@ -350,7 +438,8 @@ export const consoleActions = {
     const store = useProjectStore.getState();
     const op = addComponentOp(store.project.vehicle.components, type, referenceDiameterM);
     if (!op.ok) return op;
-    editProject(`Add ${type}`, structuralKey('add'), (project) => ({
+    const added = op.components.find((c) => c.id === op.selectId);
+    editProject(`Add ${added?.name ?? PART_TYPE_LABEL[type].toLowerCase()}`, structuralKey('add'), (project) => ({
       ...project,
       vehicle: { ...project.vehicle, components: op.components },
     }));
@@ -363,11 +452,14 @@ export const consoleActions = {
     const store = useProjectStore.getState();
     const op = removeComponentOp(store.project.vehicle.components, id, useSessionStore.getState().selectedId);
     if (!op.ok) return op;
-    editProject(`Remove part`, structuralKey('remove'), (project) => ({
+    const name = store.project.vehicle.components.find((c) => c.id === id)?.name ?? 'part';
+    editProject(`Remove ${name}`, structuralKey('remove'), (project) => ({
       ...project,
       vehicle: { ...project.vehicle, components: op.components },
     }));
     useSessionStore.getState().setSelectedId(op.selectId);
+    // A deletion is never silent: say what went, with Undo one click away.
+    pushUndoToast(`Removed ${name}`);
     return op;
   },
 
@@ -376,7 +468,8 @@ export const consoleActions = {
     const store = useProjectStore.getState();
     const op = moveComponentOp(store.project.vehicle.components, id, delta);
     if (!op.ok) return op;
-    editProject(`${delta < 0 ? 'Move part forward' : 'Move part aft'}`, structuralKey('move'), (project) => ({
+    const name = store.project.vehicle.components.find((c) => c.id === id)?.name ?? 'part';
+    editProject(`${delta < 0 ? `Move ${name} forward` : `Move ${name} aft`}`, structuralKey('move'), (project) => ({
       ...project,
       vehicle: { ...project.vehicle, components: op.components },
     }));
@@ -588,8 +681,16 @@ export const useConsoleJobs = create<ConsoleJobState>((set, get) => ({
   run: async () => {
     if (get().jobs.running) return;
     if (airframeDraftPending()) {
-      set({ jobs: { ...get().jobs, runError: 'Apply or discard staged airframe edits before running.' } });
-      return;
+      // Run applies the staged edits first, as one named undo step. If they
+      // leave the design unable to run, nothing is applied and the user is
+      // taken to the part to fix.
+      const applied = applyStagedAirframeEdits();
+      if (!applied.ok) {
+        const mount = currentPreflight().mounts.mounts[0];
+        useSessionStore.getState().setConsole({ stage: 'airframe', rightOpen: true, ...(mount ? { selectedId: mount.id } : {}) });
+        set({ jobs: { ...get().jobs, runError: applied.message } });
+        return;
+      }
     }
     const store = useProjectStore.getState();
     const epoch = store.projectEpoch;
@@ -730,7 +831,14 @@ export const useConsoleJobs = create<ConsoleJobState>((set, get) => ({
         design.aeroModel,
       );
       if (superseded()) return;
-      useAnalysisStore.getState().resolve('flight', token, { design, run, previous: previousRun() } satisfies FlightPayload);
+      // The run this one replaces becomes its "previous", so the results
+      // table can show the change run to run.
+      const replaced = committedRun()?.run;
+      const numbered: FlightRun = { ...run, runNumber: nextRunNumber() };
+      const previous: PreviousFlightSummary | null = replaced
+        ? { summary: replaced.summary, rev: replaced.rev, terminationReason: replaced.terminationReason, ...(replaced.runNumber === undefined ? {} : { runNumber: replaced.runNumber }) }
+        : null;
+      useAnalysisStore.getState().resolve('flight', token, { design, run: numbered, previous } satisfies FlightPayload);
       finish();
     } catch (err) {
       if (superseded()) return;
@@ -834,6 +942,7 @@ export const useConsoleJobs = create<ConsoleJobState>((set, get) => ({
 // epoch-guarded above, and an ensemble's engine work is cancelled where supported.
 useProjectStore.subscribe((state, previous) => {
   if (state.projectEpoch === previous.projectEpoch) return;
+  if (useAnalysisStore.getState().completed.flight === null) runSequence = 0;
   const abort = useConsoleJobs.getState().mcAbort;
   const candidate = useConsoleJobs.getState().candidateAbort;
   useConsoleJobs.setState({ jobs: { running: false, runError: null, mc: null }, mcAbort: null, candidateAbort: null, runToken: null });

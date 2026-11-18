@@ -14,7 +14,7 @@ export const FIELD_LABELS: Record<string, string> = {
   foreDiameter: 'Fore diameter', aftDiameter: 'Aft diameter', finCount: 'Fin count', rootChord: 'Root chord', tipChord: 'Tip chord', span: 'Span', sweepLength: 'Sweep',
   thickness: 'Thickness', crossSection: 'Cross-section', axialOffset: 'Position', materialId: 'Material', massOverride: 'Weighed mass', mass: 'Mass', diameter: 'Diameter', cd: 'Cd',
   railLength: 'Rail length', railElevationDeg: 'Rail angle', railAzimuthDeg: 'Rail azimuth', launchAltitudeASL: 'Site elevation', windSpeedSurface: 'Wind', windAzimuthDeg: 'Wind from',
-  mainDeployAltitudeAGL: 'Main deploy', motorId: 'Motor', motorCurve: 'Motor curve', shearPa: 'Fin shear modulus', dragCalibration: 'Drag calibration',
+  mainDeployAltitudeAGL: 'Main deploy', deployRole: 'Parachute role', packedLengthM: 'Packed length', packedDiameterM: 'Packed diameter', motorId: 'Motor', motorCurve: 'Motor curve', shearPa: 'Fin shear modulus', dragCalibration: 'Drag calibration',
   altitudeM: 'Site elevation', temperatureC: 'Site temperature', nozzleExitDiameter: 'Nozzle exit diameter',
   nozzleBackPressureThrust: 'Nozzle back-pressure thrust', flightDragSource: 'Built-up flight drag',
   tipRadius: 'Nose tip radius',

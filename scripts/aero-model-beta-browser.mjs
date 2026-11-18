@@ -53,12 +53,12 @@ try {
 
   // Save to the browser slot, reload, reopen: the selection survives.
   await page.getByRole('button', { name: 'Project menu', exact: true }).click();
-  await page.getByRole('button', { name: /^Save to this browser/ }).click();
-  await page.locator('[data-project-status]').filter({ hasText: /Saved locally \(revision \d+\)/ }).waitFor({ timeout: 30_000 });
+  await page.getByRole('button', { name: /^Save in this browser/ }).click();
+  await page.locator('[data-project-status]').filter({ hasText: /Saved in this browser \(revision \d+\)/ }).waitFor({ timeout: 30_000 });
   await page.keyboard.press('Escape');
   await page.reload();
   await page.getByRole('button', { name: 'Project menu', exact: true }).click();
-  await page.getByRole('button', { name: /Open saved project/ }).click();
+  await page.getByRole('button', { name: /Open the copy in this browser/ }).click();
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Aero', exact: true }).click({ timeout: 60_000 });
   await page.getByRole('tab', { name: 'Aerodynamic inputs' }).click({ timeout: 60_000 });

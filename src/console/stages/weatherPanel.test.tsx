@@ -27,7 +27,10 @@ beforeEach(() => {
   useProjectStore.getState().loadPreset('estesAlpha');
   useAnalysisStore.getState().reset();
   const site = useProjectStore.getState().project.workspace.site;
-  consoleActions.setWorkspace({ site: { ...site, launchTimeISO: LAUNCH } }, 'Launch time');
+  // The Estes example's "Local field" has no coordinates, and the panel now
+  // refuses to fetch for the never-set placeholder: these transaction tests
+  // set a real place first.
+  consoleActions.setWorkspace({ site: { ...site, latDeg: 40.0, lonDeg: -105.0, launchTimeISO: LAUNCH } }, 'Launch time');
   consoleActions.setWeatherProfile('manual', [MANUAL], 'manual', 'Manual winds');
   consoleActions.setWeatherProfile('forecast', [PRIOR_FORECAST], 'prior forecast', 'Prior forecast');
 });
@@ -70,5 +73,45 @@ describe('forecast result transaction', () => {
     expect(weatherSnapshot(after, 'forecast')).toEqual(weatherSnapshot(before, 'forecast'));
     expect(weatherSnapshot(after, 'manual')).toEqual(weatherSnapshot(before, 'manual'));
     expect(screen.queryByRole('alert')).not.toBeNull();
+  });
+});
+
+describe('weather location', () => {
+  it('blocks the fetch while the coordinates are the never-set placeholder and offers the named site', () => {
+    useProjectStore.getState().loadPreset('estesAlpha');
+    render(<WeatherPanel />);
+    const place = document.querySelector('[data-weather-place]');
+    expect(place?.getAttribute('data-weather-place')).toBe('warn');
+    expect(place?.textContent).toMatch(/Coordinates never set: 47\.6062° N, 122\.3321° W is Astraea’s placeholder \(Seattle, WA\), not your launch site, “Local field”/);
+    expect(screen.getByRole('button', { name: 'Fetch sounding' }).hasAttribute('disabled')).toBe(true);
+  });
+
+  it('fetches for the example mission’s own site, named', () => {
+    useProjectStore.getState().loadPreset('nasaStudent');
+    expect(useProjectStore.getState().project.workspace.site).toMatchObject({ latDeg: 34.7304, lonDeg: -86.5861 });
+    render(<WeatherPanel />);
+    const place = document.querySelector('[data-weather-place]');
+    expect(place?.getAttribute('data-weather-place')).toBe('ok');
+    expect(place?.textContent).toBe('Weather for Huntsville, AL (34.7304° N, 86.5861° W), the mission’s launch site.');
+  });
+
+  it('warns when the coordinates name another place than the mission site, and one click fixes it with Undo', () => {
+    useProjectStore.getState().loadPreset('spaceport');
+    useProjectStore.setState({ mission: { ...useProjectStore.getState().mission, site: 'Huntsville, AL' } });
+    render(<WeatherPanel />);
+    const place = () => document.querySelector('[data-weather-place]');
+    expect(place()?.textContent).toMatch(/These coordinates are Spaceport America, NM \(32\.9903° N, 106\.9697° W\), but the mission’s site is “Huntsville, AL”/);
+    fireEvent.click(screen.getByRole('button', { name: /Use Huntsville, AL/ }));
+    expect(useProjectStore.getState().project.workspace.site).toMatchObject({ latDeg: 34.7304, lonDeg: -86.5861 });
+    expect(place()?.getAttribute('data-weather-place')).toBe('ok');
+    act(() => useProjectStore.getState().undo());
+    expect(useProjectStore.getState().project.workspace.site).toMatchObject({ latDeg: 32.9903, lonDeg: -106.9697 });
+  });
+
+  it('says when it cannot name the coordinates', () => {
+    const site = useProjectStore.getState().project.workspace.site;
+    act(() => consoleActions.setWorkspace({ site: { ...site, latDeg: -33.5, lonDeg: 151.2 } }, 'Weather location'));
+    render(<WeatherPanel />);
+    expect(document.querySelector('[data-weather-place]')?.textContent).toBe('Weather for 33.5000° S, 151.2000° E. Astraea can’t name this place, so check it is “Local field”.');
   });
 });

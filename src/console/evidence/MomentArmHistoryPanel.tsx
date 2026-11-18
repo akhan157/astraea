@@ -4,6 +4,8 @@ import { describeEngineIdentity, type EngineIdentity } from '../../engine/identi
 import { C } from '../kit/theme';
 import { Range } from '../kit/Controls';
 import { Disclosure } from '../kit/Disclosure';
+import { show } from '../kit/units';
+import { useSessionStore } from '../../state/session';
 
 const display = (v: number) => v.toPrecision(8);
 /** Raw retained data only. No live geometry, coefficient API, or result rerun. */
@@ -13,23 +15,29 @@ export function MomentArmHistoryPanel({ history, engineIdentity, inputKey, stale
   stale?: boolean; historical?: boolean; label?: string;
 }) {
   const [index, setIndex] = useState(0);
+  const units = useSessionStore((st) => st.units);
   useEffect(() => setIndex(0), [history]);
   if (!history) return <section aria-label={label} className="p-3 text-[12px]">
     <h3>Flight-model history unavailable</h3><p>History unavailable — not recorded for this run. Complete a new flight to record it; opening this view does not rerun a result.</p>
   </section>;
   const point = history.points[Math.min(index, history.points.length - 1)];
   const normal = point.normal;
-  const values: [string, string][] = [
-    ['Time since ignition', `${display(point.timeS)} s`], ['Modeled mass', `${display(point.massKg)} kg`],
-    ['CG from nose', `${display(point.cgFromNoseM)} m`], ['Mach', display(point.mach)],
-    ['Actual incidence', `${display(point.incidenceDeg)}°`], ['Dynamic pressure', `${display(point.dynamicPressurePa)} Pa`],
-    ['Computational domain', `${point.domain} — not accuracy qualification`],
-    ['State flags', `Rail bound: ${point.railBound}; canopy active: ${point.recovery}; before declared burnout: ${point.powered}`],
-    ['Normal CP from nose', normal ? `${display(normal.cpFromNoseM)} m` : 'N/A — live canopy'],
-    ['Normal arm (CP − CG)', normal ? `${display(normal.armM)} m · ${display(normal.armCalibers)} cal · ${display(normal.armPercentLength)}% length` : 'N/A — live canopy'],
-    ['Normal slope C', normal ? `${display(normal.cPerRad)} /rad` : 'N/A — live canopy'],
-    ['Nose first moment J', normal ? `${display(normal.jMPerRad)} m/rad` : 'N/A — live canopy'],
-    ['C-weighted arm J − C·CG', normal ? `${display(normal.cnaWeightedArmMPerRad)} m/rad` : 'N/A — live canopy'],
+  // Shown in the user's units at decision precision; the full recorded value
+  // is on hover and in the project and export trace.
+  const len = (m: number) => { const v = show(m, 'len', units); return `${v.text} ${v.unit}`; };
+  const sig = (v: number) => String(Number(v.toPrecision(3)));
+  const values: [string, string, string][] = [
+    ['Time since ignition', `${sig(point.timeS)} s`, `${display(point.timeS)} s`],
+    ['Modeled mass', (() => { const v = show(point.massKg, 'mass', units); return `${v.text} ${v.unit}`; })(), `${display(point.massKg)} kg`],
+    ['CG from nose', len(point.cgFromNoseM), `${display(point.cgFromNoseM)} m`], ['Mach', sig(point.mach), display(point.mach)],
+    ['Actual incidence', `${sig(point.incidenceDeg)}°`, `${display(point.incidenceDeg)}°`], ['Dynamic pressure', `${sig(point.dynamicPressurePa)} Pa`, `${display(point.dynamicPressurePa)} Pa`],
+    ['Computational domain', `${point.domain} — not accuracy qualification`, ''],
+    ['State flags', `Rail bound: ${point.railBound}; canopy active: ${point.recovery}; before declared burnout: ${point.powered}`, ''],
+    ['Normal CP from nose', normal ? len(normal.cpFromNoseM) : 'N/A — live canopy', normal ? `${display(normal.cpFromNoseM)} m` : ''],
+    ['Normal arm (CP − CG)', normal ? `${len(normal.armM)} · ${sig(normal.armCalibers)} cal · ${sig(normal.armPercentLength)}% length` : 'N/A — live canopy', normal ? `${display(normal.armM)} m · ${display(normal.armCalibers)} cal · ${display(normal.armPercentLength)}% length` : ''],
+    ['Normal slope C', normal ? `${sig(normal.cPerRad)} /rad` : 'N/A — live canopy', normal ? `${display(normal.cPerRad)} /rad` : ''],
+    ['Nose first moment J', normal ? `${sig(normal.jMPerRad)} m/rad` : 'N/A — live canopy', normal ? `${display(normal.jMPerRad)} m/rad` : ''],
+    ['C-weighted arm J − C·CG', normal ? `${sig(normal.cnaWeightedArmMPerRad)} m/rad` : 'N/A — live canopy', normal ? `${display(normal.cnaWeightedArmMPerRad)} m/rad` : ''],
   ];
   return <section aria-label={label} data-moment-arm-history className="space-y-2 p-3 text-[11.5px]">
     <h3 className="text-[13px] font-medium">Sampled flight-model normal moment arm</h3>
@@ -45,7 +53,7 @@ export function MomentArmHistoryPanel({ history, engineIdentity, inputKey, stale
         onChange={setIndex} className="min-w-24 flex-1" />
     </label>
     <dl data-history-selected-time={point.timeS} className="grid grid-cols-[minmax(130px,1fr)_2fr] gap-x-3 gap-y-1">
-      {values.map(([name,value])=><div key={name} className="contents"><dt style={{color:C.muted}}>{name}</dt><dd className="font-geist-mono">{value}</dd></div>)}
+      {values.map(([name,value,raw])=><div key={name} className="contents"><dt style={{color:C.muted}}>{name}</dt><dd className="font-geist-mono" title={raw ? `Recorded: ${raw}` : undefined} data-raw={raw || undefined}>{value}</dd></div>)}
     </dl>
     <Disclosure summary="Recorded model, units and moment definitions">
       <div className="space-y-1 break-words pt-2">

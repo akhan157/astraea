@@ -7,15 +7,40 @@ import type { MotorSpec } from '../../propulsion/motorDatabase';
 import { attitudeToThree, useLayoutSnapshot, VehicleModel, type LayoutSnapshot, type Look } from './Vehicle3D';
 import { vehicleBounds, type Bounds } from './appearance';
 import {
-  FIT_FRACTION, convexHull, envelopePoints, envelopeRadius, fitDistance, framePoints, ndcBoxToPixels, projectedBox, projectedFraction,
-  projectedPoints, rotatePoints, silhouettePoints, upFor, type Rect, type Vector,
+  FIT_FRACTION, FULL_VIEW, cameraBox, convexHull, editNeedsRefit, envelopePoints, envelopeRadius, fitDistance, framePoints, ndcBoxToPixels,
+  pixelsToNdcBox, projectedBox, projectedFraction, projectedPoints, rotatePoints, silhouettePoints, upFor, type Rect, type Vector,
 } from './framing';
-import { canvasOverlayRects, VIEWCUBE_MARGIN, viewcubeRect } from './overlays';
+import { canvasOverlayRects, VIEWCUBE_MARGIN, VIEWCUBE_SIZE, viewcubeRect } from './overlays';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+interface CubeSize { margin: number; size: number; scale: number }
+const FULL_CUBE: CubeSize = { margin: VIEWCUBE_MARGIN, size: VIEWCUBE_SIZE, scale: 1 };
+/** 70% cube at laptop width; the reserved box and margin scale with it. */
+const COMPACT_CUBE: CubeSize = { margin: Math.round(VIEWCUBE_MARGIN * 0.7), size: Math.round(VIEWCUBE_SIZE * 0.7), scale: 0.7 };
+
+/** matchMedia, false where it is unavailable (jsdom keeps the full layout). */
+function useMediaQueryLocal(query: string): boolean {
+  const [matches, setMatches] = useState(() => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(query).matches);
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const mql = window.matchMedia(query);
+    setMatches(mql.matches);
+    const onChange = (e: MediaQueryListEvent) => setMatches(e.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, [query]);
+  return matches;
+}
 import type { AeroModelSelection } from '../../application/aeroModel';
 import { WEBGL_FALLBACK_TITLE, canUseWebGL, useWebGLLoss } from './webgl';
 import { ensureViewportRenderer, releaseViewportRenderer } from './viewportRenderer';
 import { C } from '../kit/theme';
 import { Segmented } from '../kit/Fields';
+import { ContextMenu } from 'radix-ui';
+import { CANOPY_LINES, canopyGeometry, canopyPoints, type CanopyGeometry, type OpenCanopy } from './canopy';
+import { consoleActions } from '../store';
+import { useProjectStore } from '../../state/project';
+import { moveComponentOp, removeComponentOp } from '../../state/componentOps';
 
 export type ViewPreset = 'iso' | 'side' | 'top' | 'aft';
 
@@ -197,14 +222,20 @@ function QualityMonitor({ level, onChange }: { level: number; onChange: (level: 
 }
 
 /**
- * Frames the model at 80% of the canvas's limiting dimension and keeps it
- * framed while the vehicle length or the canvas size changes.
+ * Frames the model at 80% of the canvas's limiting dimension, and moves the
+ * camera again only when it has to.
  *
- * Rule: a preset click (or the reset button) snaps to that preset's direction
- * and re-frames from scratch. A length or size change keeps the camera's
- * *current* direction — so a refit never fights a rotation — and only moves the
- * distance, preserving whatever zoom the user dialled in. No tween: every
- * change is instant, so there is no motion to reduce.
+ * Rule: a preset click snaps to that preset's direction and re-frames from
+ * scratch; so does a different vehicle (another project or example). "Fit to
+ * view" re-frames in the camera's *current* direction at the default zoom and
+ * re-centres. A canvas size or chrome change keeps the current direction and
+ * only moves the distance, preserving whatever zoom the user dialled in.
+ *
+ * An edit to the rocket does not move the camera while the edited rocket is
+ * still entirely on screen (plan #8): re-centring or re-zooming on every
+ * slider tick made the part being edited jump around. Only an edit that pushes
+ * the rocket out of view re-frames, keeping the direction (`editNeedsRefit`).
+ * No tween: every change is instant, so there is no motion to reduce.
  *
  * The Flight stage draws the same model rotated by an attitude quaternion that
  * changes every frame, under a toolbar, a pose card and a scrubber. There the
@@ -213,11 +244,24 @@ function QualityMonitor({ level, onChange }: { level: number; onChange: (level: 
  * those overlays plus the viewcube, centring the model in it rather than in the
  * canvas.
  */
-function CameraFit({ preset, nonce, bounds, points, upright, overlays, chromeReady, reserveGizmo, frame, attitude, probe }: {
-  preset: ViewPreset; nonce: number; bounds: Bounds; points: readonly Vector[]; upright: boolean;
+function CameraFit({ preset, nonce, fitNonce, vehicleKey, bounds, points, extra, upright, overlays, chromeReady, reserveGizmo, cube = FULL_CUBE, frame, attitude, probe }: {
+  preset: ViewPreset; nonce: number;
+  /**
+   * Flight only: world-axis points drawn beside the posed rocket (an open
+   * canopy), relative to its middle. Framed with the envelope, so a canopy
+   * that would leave the view re-frames like any other content.
+   */
+  extra: readonly Vector[];
+  /** Bumped by the explicit "Fit to view" action. */
+  fitNonce: number;
+  /** Identity of the drawn vehicle: a different vehicle is framed from scratch. */
+  vehicleKey: string;
+  bounds: Bounds; points: readonly Vector[]; upright: boolean;
   overlays: readonly Rect[]; chromeReady: boolean;
   /** Flight also keeps the viewcube's bottom-right footprint clear. */
   reserveGizmo: boolean;
+  /** The viewcube's margin and reserved box, which shrink at laptop width. */
+  cube?: CubeSize;
   frame: RefObject<FitFrame | null>;
   /** Live engine attitude, read without making the fit depend on the pose. */
   attitude: RefObject<{ w: number; x: number; y: number; z: number } | null>;
@@ -230,6 +274,14 @@ function CameraFit({ preset, nonce, bounds, points, upright, overlays, chromeRea
   };
   const invalidate = useThree((state) => state.invalidate);
   const lastKey = useRef<string | null>(null);
+  const lastFitNonce = useRef(fitNonce);
+  /** The canvas and chrome the last fit was for; a change here is a resize, not an edit. */
+  const lastContext = useRef<{ width: number; height: number; overlays: readonly Rect[]; chromeReady: boolean; reserveGizmo: boolean; controls: OrbitLike | null } | null>(null);
+  /** World-space points of the rocket the camera last framed or held for. */
+  const lastWorld = useRef<Vector[] | null>(null);
+  /** Free region of the last fit (Flight); the rocket must stay inside it to count as in view. */
+  const lastRegion = useRef<Rect | null>(null);
+  const refits = useRef(0);
   const lastFit = useRef(0);
   const zoom = useRef(1);
   const writing = useRef(false);
@@ -290,26 +342,88 @@ function CameraFit({ preset, nonce, bounds, points, upright, overlays, chromeRea
     const aspect = size.width / size.height;
     if (camera.aspect !== aspect) { camera.aspect = aspect; camera.updateProjectionMatrix(); }
 
-    const key = `${preset}|${nonce}|${upright ? 'upright' : 'horizontal'}`;
+    const key = `${preset}|${nonce}|${upright ? 'upright' : 'horizontal'}|${vehicleKey}`;
     const snap = lastKey.current !== key;
-    const target = new THREE.Vector3(0, upright ? bounds.halfLength : 0, 0);
+    const fitRequested = !snap && lastFitNonce.current !== fitNonce;
+    const previous = lastContext.current;
+    const resized = previous === null || previous.width !== size.width || previous.height !== size.height
+      || previous.overlays !== overlays || previous.chromeReady !== chromeReady || previous.reserveGizmo !== reserveGizmo
+      || previous.controls !== controls;
+    const base = new THREE.Vector3(0, upright ? bounds.halfLength : 0, 0);
+    // The points the screen test uses, in world space. Flight tests the
+    // pose-invariant envelope, so a pose can never count as leaving the view.
+    const envelope = upright ? [...envelopePoints(envelopeRadius(bounds.halfLength, bounds.radius)), ...extra] : [];
+    const world: Vector[] = upright
+      ? envelope.map((p) => ({ x: p.x + base.x, y: p.y + base.y, z: p.z + base.z }))
+      : [...points];
+    const target = base.clone();
     const direction = new THREE.Vector3(...DIRECTIONS[upright ? 'upright' : 'horizontal'][preset]).normalize();
-    const current = camera.position.clone().sub(target);
+    const orbitTarget = controls?.target ?? base;
+    const current = camera.position.clone().sub(orbitTarget);
     // Read the distance before normalising anything: the fit below needs the
     // distance the camera actually had.
     const currentDistance = current.length();
     if (!snap && currentDistance > 1e-4) direction.copy(current).normalize();
 
-    if (snap) zoom.current = 1;
+    // Nothing but the rocket changed: an edit. Hold the camera unless the
+    // edited rocket left the view (`editNeedsRefit`).
+    const reason: 'snap' | 'fit' | 'resize' | 'edit' = snap ? 'snap' : fitRequested ? 'fit' : resized ? 'resize' : 'edit';
+    if (reason === 'edit') {
+      const view = upright && lastRegion.current ? pixelsToNdcBox(lastRegion.current, size) : FULL_VIEW;
+      const before = lastWorld.current === null ? null : cameraBox(lastWorld.current, camera);
+      const after = cameraBox(world, camera);
+      if (!editNeedsRefit(before, after, view)) {
+        lastWorld.current = world;
+        // The zoom is measured against the fit for the geometry on screen, so a
+        // later resize keeps what the user sees now, not what they saw before.
+        const fit = upright
+          ? framePoints(envelope, direction, camera.fov, size, reserveGizmo ? [...overlays, viewcubeRect(size.width, size.height, cube.margin, cube.size)] : overlays, FIT_FRACTION).distance
+          : fitDistance(points, direction, camera.fov, aspect, FIT_FRACTION);
+        if (fit > 1e-6 && currentDistance > 1e-4) {
+          lastFit.current = fit;
+          zoom.current = clamp(currentDistance / fit, 0.4, 3);
+        }
+        const shift = orbitTarget.clone().sub(base);
+        frame.current = {
+          direction: { x: direction.x, y: direction.y, z: direction.z },
+          distance: currentDistance,
+          shift: { x: shift.x, y: shift.y, z: shift.z },
+          fov: camera.fov,
+          aspect,
+          width: size.width,
+          height: size.height,
+        };
+        const live = attitude.current;
+        const scene = live ? attitudeToThree(live) : null;
+        writeFrameReport(
+          probe.current, frame.current, points,
+          scene ? { w: scene.w, x: scene.x, y: scene.y, z: scene.z } : null,
+          live ? `${live.w.toFixed(6)},${live.x.toFixed(6)},${live.y.toFixed(6)},${live.z.toFixed(6)}` : '',
+        );
+        const el = probe.current;
+        if (el) {
+          el.setAttribute('data-camera-refit', 'hold');
+          el.setAttribute('data-camera-length', (bounds.halfLength * 2).toFixed(4));
+          const span = projectedFraction(points, direction, camera.fov, aspect, currentDistance);
+          el.setAttribute('data-fit-fraction', Math.max(span.x, span.y).toFixed(4));
+        }
+        // The model itself changed, so the frame still has to be drawn.
+        invalidate();
+        return;
+      }
+    }
+
+    // A new view (preset, vehicle), an explicit fit, or an edit that left the
+    // view starts from the default zoom; a resize keeps the user's zoom.
+    if (reason !== 'resize') zoom.current = 1;
     let distance: number;
     let region: Rect = { x0: 0, y0: 0, x1: size.width, y1: size.height };
     const shift = new THREE.Vector3();
     let achieved: { x: number; y: number };
     if (upright) {
-      const envelope = envelopePoints(envelopeRadius(bounds.halfLength, bounds.radius));
       // The viewcube is drawn in the HUD, not the DOM, so the measured chrome
       // cannot see it: reserve its footprint explicitly.
-      const free = reserveGizmo ? [...overlays, viewcubeRect(size.width, size.height)] : overlays;
+      const free = reserveGizmo ? [...overlays, viewcubeRect(size.width, size.height, cube.margin, cube.size)] : overlays;
       const framed = framePoints(envelope, direction, camera.fov, size, free, FIT_FRACTION);
       lastFit.current = framed.distance;
       // The envelope's projected centre sits on the view axis, so the centring
@@ -343,6 +457,11 @@ function CameraFit({ preset, nonce, bounds, points, upright, overlays, chromeRea
     // change, so this covers it too.
     invalidate();
     lastKey.current = key;
+    lastFitNonce.current = fitNonce;
+    lastContext.current = { width: size.width, height: size.height, overlays, chromeReady, reserveGizmo, controls };
+    lastWorld.current = world;
+    lastRegion.current = region;
+    refits.current += 1;
 
     // The fitted camera, for the frame report and for re-projecting a new pose
     // without a refit.
@@ -381,8 +500,12 @@ function CameraFit({ preset, nonce, bounds, points, upright, overlays, chromeRea
       el.setAttribute('data-fit-fraction', Math.max(achieved.x, achieved.y).toFixed(4));
       el.setAttribute('data-safe-region', `${region.x0.toFixed(1)},${region.y0.toFixed(1)},${region.x1.toFixed(1)},${region.y1.toFixed(1)}`);
       el.setAttribute('data-viewport-size', `${size.width.toFixed(1)},${size.height.toFixed(1)}`);
+      // Why the camera last moved, and how often: an edit that kept the rocket
+      // in view reads 'hold' and leaves the count alone.
+      el.setAttribute('data-camera-refit', reason);
+      el.setAttribute('data-camera-refits', String(refits.current));
     }
-  }, [preset, nonce, bounds.halfLength, bounds.radius, points, upright, overlays, chromeReady, reserveGizmo, frame, attitude, camera, controls, size, size.width, size.height, probe, invalidate]);
+  }, [preset, nonce, fitNonce, vehicleKey, bounds.halfLength, bounds.radius, points, extra, upright, overlays, chromeReady, reserveGizmo, frame, attitude, camera, controls, size, size.width, size.height, probe, invalidate]);
 
   return null;
 }
@@ -439,26 +562,149 @@ function RocketFrameProbe({ frame, points, attitude, probe }: {
   return null;
 }
 
+/**
+ * An open parachute during Flight playback: a dome to the chute's diameter
+ * above the rocket, on lines to the rocket's middle. Drawn in world axes (it
+ * hangs above whatever the attitude is); the placement is schematic, only the
+ * diameter is to scale (`canopy.ts`).
+ */
+function CanopyModel({ geometry }: { geometry: CanopyGeometry }) {
+  const lines = useMemo(() => {
+    const array = new Float32Array(CANOPY_LINES * 6);
+    for (let i = 0; i < CANOPY_LINES; i++) {
+      const a = (i / CANOPY_LINES) * Math.PI * 2;
+      array.set([0, 0, 0, Math.cos(a) * geometry.radius, geometry.rimY, Math.sin(a) * geometry.radius], i * 6);
+    }
+    return array;
+  }, [geometry.radius, geometry.rimY]);
+  return (
+    <group>
+      <mesh position={[0, geometry.rimY, 0]}>
+        <sphereGeometry args={[geometry.radius, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color={C.s3} side={THREE.DoubleSide} roughness={0.8} metalness={0} transparent opacity={0.9} />
+      </mesh>
+      <lineSegments>
+        <bufferGeometry key={`${geometry.radius}|${geometry.rimY}`}>
+          <bufferAttribute attach="attributes-position" args={[lines, 3]} />
+        </bufferGeometry>
+        <lineBasicMaterial color={C.muted} />
+      </lineSegments>
+    </group>
+  );
+}
+
+/**
+ * The 3D view's right-click menu for one part: Select, Move forward / aft and
+ * Remove, through the same store actions as the parts tree (one undo step
+ * each, and the store announces a removal with Undo). Items an action would
+ * refuse are disabled up front; a refusal that still happens (the parts changed
+ * under the open menu) is shown with its reason instead of being dropped.
+ */
+export function PartContextMenu({ trigger, partId, vehicle, onPick, onNotice }: {
+  trigger: RefObject<HTMLSpanElement | null>;
+  partId: string | null;
+  vehicle: RocketVehicle;
+  onPick?: (id: string) => void;
+  onNotice: (notice: string | null) => void;
+}) {
+  // Structural edits act on the project's parts (the store's own list), so
+  // the refusal checks read the same list the actions will.
+  const components = useProjectStore((state) => state.project.vehicle.components);
+  const part = partId === null ? undefined : vehicle.components.find((c) => c.id === partId);
+  const name = part?.name ?? 'Part';
+  const exists = partId !== null && components.some((c) => c.id === partId);
+  const canMove = (delta: -1 | 1) => exists && partId !== null && moveComponentOp(components, partId, delta).ok;
+  const canRemove = exists && partId !== null && removeComponentOp(components, partId, null).ok;
+  const refused = (op: { ok: true } | { ok: false; reason: string }) => onNotice(op.ok ? null : op.reason);
+  return (
+    <ContextMenu.Root modal={false}>
+      <ContextMenu.Trigger asChild>
+        <span ref={trigger} aria-hidden className="pointer-events-none absolute inset-0" />
+      </ContextMenu.Trigger>
+      <ContextMenu.Portal>
+        <ContextMenu.Content aria-label={`${name} actions`} className="z-50 min-w-[180px] rounded-md p-1 text-[12.5px] shadow-2xl" style={{ background: C.panel, border: `1px solid ${C.lineStrong}`, color: C.fg }}>
+          <ContextMenu.Label className="px-2 py-1 text-[11px]" style={{ color: C.dim }}>{name}</ContextMenu.Label>
+          <ContextMenu.Item className={MENU_ITEM} disabled={partId === null} onSelect={() => { if (partId !== null) onPick?.(partId); }}>Select</ContextMenu.Item>
+          <ContextMenu.Item className={MENU_ITEM} disabled={!canMove(-1)} onSelect={() => { if (partId !== null) refused(consoleActions.moveComponent(partId, -1)); }}>Move forward (toward the nose)</ContextMenu.Item>
+          <ContextMenu.Item className={MENU_ITEM} disabled={!canMove(1)} onSelect={() => { if (partId !== null) refused(consoleActions.moveComponent(partId, 1)); }}>Move aft (toward the tail)</ContextMenu.Item>
+          <ContextMenu.Separator className="my-1 h-px" style={{ background: C.line }} />
+          <ContextMenu.Item className={MENU_ITEM} disabled={!canRemove} onSelect={() => { if (partId !== null) refused(consoleActions.removeComponent(partId)); }}>Remove</ContextMenu.Item>
+        </ContextMenu.Content>
+      </ContextMenu.Portal>
+    </ContextMenu.Root>
+  );
+}
+
+/** Menu item style shared with the parts tree's context menu. */
+const MENU_ITEM = 'cursor-pointer rounded px-2 py-1.5 outline-none data-[disabled]:cursor-default data-[disabled]:opacity-40 data-[highlighted]:bg-white/[0.06]';
+/** A right press that travels further than this (px) is a pan, not a click. */
+const CONTEXT_CLICK_SLOP = 4;
+
 function GhostVehicleModel({ vehicle, aeroModel, look }: { vehicle: RocketVehicle; aeroModel?: AeroModelSelection; look: Look }) {
   const snapshot: LayoutSnapshot | null = useLayoutSnapshot(vehicle, aeroModel);
   if (snapshot === null) return null;
   return <VehicleModel vehicle={snapshot.vehicle} layout={snapshot.layout} look={look} />;
 }
 
-export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, look, markers = false, attitude, onPick, onHover, readout, toolbar, showGhost = true, ghostOpacity, ghostLabel = 'committed run' }: {
+export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, look, markers = false, attitude, canopy = null, onPick, onHover, readout, toolbar, showGhost = true, ghostOpacity, ghostLabel = 'committed run' }: {
   vehicle: RocketVehicle; aeroModel?: AeroModelSelection; ghostAeroModel?: AeroModelSelection; motor?: MotorSpec; ghost?: RocketVehicle | null; look?: Look; markers?: boolean;
   /** Pose the rocket with an engine attitude quaternion (flight scrubber). */
   attitude?: { w: number; x: number; y: number; z: number } | null;
+  /** Flight playback: the parachute open at the scrubbed moment (`canopyAt`), drawn above the posed rocket. */
+  canopy?: OpenCanopy | null;
   onPick?: (id: string) => void; onHover?: (id: string | null) => void; readout?: ReactNode; toolbar?: ReactNode; showGhost?: boolean;
   ghostOpacity?: number; ghostLabel?: string;
 }) {
   const [preset, setPreset] = useState<ViewPreset>('iso');
   const [nonce, setNonce] = useState(0);
+  // Laptop width: a smaller view cube, and the readout card can fold away, so
+  // the rocket gets the room.
+  const laptop = useMediaQueryLocal('(max-width: 1439px)');
+  const cubeSize = laptop ? COMPACT_CUBE : FULL_CUBE;
+  const [readoutOpen, setReadoutOpen] = useState(() => { try { return localStorage.getItem('ws.viewport.readout') !== 'closed'; } catch { return true; } });
+  const toggleReadout = () => setReadoutOpen((open) => { try { localStorage.setItem('ws.viewport.readout', open ? 'closed' : 'open'); } catch { /* storage unavailable */ } return !open; });
+  // "Fit to view": the one explicit way to re-frame without changing the angle.
+  // Edits no longer move the camera while the rocket stays on screen.
+  const [fitNonce, setFitNonce] = useState(0);
   const snapshot = useLayoutSnapshot(vehicle, aeroModel);
   const length = snapshot?.layout.length ?? 1;
   const bounds = snapshot === null ? { halfLength: 0.5, radius: 0.1 } : vehicleBounds(snapshot.vehicle, snapshot.layout);
   const upright = attitude !== undefined && attitude !== null;
   const points = useMemo(() => (snapshot === null ? [] : silhouettePoints(snapshot.vehicle, snapshot.layout, upright)), [snapshot, upright]);
+  // An open canopy exists only in the posed (Flight) view; its size is fixed
+  // by the chute and the pose-invariant envelope, so it never pulses with the pose.
+  // Keyed on the diameter, not the object: playback re-renders every frame and
+  // a caller may build a fresh `canopy` each time; the camera effect must not.
+  const canopyDiameter = upright && canopy ? canopy.diameterM : null;
+  const canopyGeom = useMemo(
+    () => (canopyDiameter === null ? null : canopyGeometry(canopyDiameter, envelopeRadius(bounds.halfLength, bounds.radius))),
+    [canopyDiameter, bounds.halfLength, bounds.radius],
+  );
+  const extra = useMemo(() => (canopyGeom === null ? [] : canopyPoints(canopyGeom)), [canopyGeom]);
+  // Right-click menu on parts (3D view only, horizontal pose, and only where a
+  // part can be picked). It opens on a right *click*: a right drag is the orbit
+  // pan, and Linux browsers fire `contextmenu` on press, which would steal it.
+  const menuEnabled = !upright && onPick !== undefined;
+  const rightDown = useRef<{ x: number; y: number } | null>(null);
+  const menuTrigger = useRef<HTMLSpanElement | null>(null);
+  const [menuPart, setMenuPart] = useState<string | null>(null);
+  /** A refused part action's reason, shown until it times out or the next action. */
+  const [notice, setNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (notice === null) return;
+    const timer = setTimeout(() => setNotice(null), 8000);
+    return () => clearTimeout(timer);
+  }, [notice]);
+  const openPartMenu = useCallback((id: string, at: { x: number; y: number }) => {
+    const down = rightDown.current;
+    rightDown.current = null;
+    if (down === null || Math.hypot(at.x - down.x, at.y - down.y) > CONTEXT_CLICK_SLOP) return;
+    setMenuPart(id);
+    // Radix opens a context menu from a contextmenu event on its trigger, at the
+    // event's point. The real event is spent on the press (and suppressed by the
+    // orbit controls), so hand the trigger a fresh one at the click.
+    menuTrigger.current?.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: at.x, clientY: at.y, button: 2 }));
+  }, []);
   // Markers are an explicit per-view choice and always come from the breakdown
   // that produced the drawn shape, so the stale window keeps them visible and a
   // project/vehicle switch cannot carry them over.
@@ -568,7 +814,7 @@ export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, loo
       setCssArea(shellEl.clientWidth * shellEl.clientHeight);
       // The viewcube is painted in the HUD, so report the footprint the fit
       // reserves for it. Same helper, same numbers: the two cannot drift.
-      const cube = viewcubeRect(shellEl.clientWidth, shellEl.clientHeight);
+      const cube = viewcubeRect(shellEl.clientWidth, shellEl.clientHeight, cubeSize.margin, cubeSize.size);
       shellEl.setAttribute('data-gizmo-rect', `${Math.round(cube.x0)},${Math.round(cube.y0)},${Math.round(cube.x1)},${Math.round(cube.y1)}`);
       const rects = canvasOverlayRects(shellEl);
       setChrome((prev) => (sameRects(prev.rects, rects) ? (prev.ready ? prev : { rects: prev.rects, ready: true }) : { rects, ready: true }));
@@ -593,7 +839,9 @@ export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, loo
 
   return (
     <div className="flex h-full w-full" style={{ background: 'radial-gradient(ellipse at 50% 40%, #14171B 0%, #0B0C0E 70%)' }}>
-      <div ref={shell} className="relative min-w-0 flex-1" data-layout-state={layoutState} data-layout-length={snapshot?.layout.length ?? ''} data-layout-parts={snapshot === null ? '' : Object.keys(snapshot.layout.parts).length} data-markers={markerState} data-marker-cg={shownCg ?? ''} data-marker-cp={shownCp ?? ''} data-look-selected={look?.selected ?? ''} data-look-hovered={look?.hovered ?? ''}>
+      <div ref={shell} className="relative min-w-0 flex-1" data-layout-state={layoutState} data-layout-length={snapshot?.layout.length ?? ''} data-layout-parts={snapshot === null ? '' : Object.keys(snapshot.layout.parts).length} data-markers={markerState} data-marker-cg={shownCg ?? ''} data-marker-cp={shownCp ?? ''} data-look-selected={look?.selected ?? ''} data-look-hovered={look?.hovered ?? ''}
+        data-canopy={canopyGeom && canopy ? canopy.role : ''} data-canopy-diameter={canopyGeom && canopy ? canopy.diameterM : ''}
+        onPointerDownCapture={(e) => { rightDown.current = e.button === 2 ? { x: e.clientX, y: e.clientY } : null; }}>
         <div ref={canvasHost} className="absolute inset-0">
           {!fallback && shared ? (
             <Canvas key={epoch} gl={shared.renderer} eventSource={canvasHost} style={{ position: 'absolute', inset: 0 }} camera={{ fov: FIT_FOV, near: 0.01, far: 200, position: [2, 1.5, 2] }}
@@ -614,6 +862,7 @@ export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, loo
               <Suspense fallback={null}>
                 {attitude ? (
                   <group position={[0, length / 2, 0]}>
+                    {canopyGeom && <CanopyModel geometry={canopyGeom} />}
                     <group ref={pose}>
                       <group position={[0, -length / 2, 0]}>
                         {snapshot && <VehicleModel vehicle={snapshot.vehicle} layout={snapshot.layout} motor={motor} look={look} cg={shownCg} cp={shownCp} onPick={onPick} onHover={onHover} />}
@@ -623,7 +872,7 @@ export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, loo
                 ) : (
                   // Lay the +Y-nose model on its side: nose toward +X, centred on the origin.
                   <group rotation={[0, 0, -Math.PI / 2]} position={[-length / 2, 0, 0]}>
-                    {snapshot && <VehicleModel vehicle={snapshot.vehicle} layout={snapshot.layout} motor={motor} look={look} cg={shownCg} cp={shownCp} onPick={onPick} onHover={onHover} />}
+                    {snapshot && <VehicleModel vehicle={snapshot.vehicle} layout={snapshot.layout} motor={motor} look={look} cg={shownCg} cp={shownCp} onPick={onPick} onHover={onHover} onContext={menuEnabled ? openPartMenu : undefined} />}
                     {showGhost && ghost && <GhostVehicleModel vehicle={ghost} aeroModel={ghostAeroModel ?? aeroModel} look={{ ghost: true, opacity: ghostOpacity }} />}
                   </group>
                 )}
@@ -632,10 +881,12 @@ export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, loo
                   mapping (for the rocket) would otherwise darken these near-black lines. */}
               <Grid ref={untoneMapped} position={[0, groundY, 0]} args={[10, 10]} cellSize={0.1} cellThickness={0.5} cellColor="#1C2025" sectionSize={0.5} sectionThickness={0.8} sectionColor="#262B31" fadeDistance={length * 4 + 4} infiniteGrid />
               <OrbitControls makeDefault enableDamping dampingFactor={0.12} />
-              <CameraFit preset={preset} nonce={nonce} bounds={bounds} points={points} upright={upright} overlays={chrome.rects} chromeReady={chrome.ready} reserveGizmo={upright} frame={frame} attitude={attitudeRef} probe={shell} />
+              <CameraFit preset={preset} nonce={nonce} fitNonce={fitNonce} vehicleKey={snapshot?.vehicle.id ?? ''} bounds={bounds} points={points} extra={extra} upright={upright} overlays={chrome.rects} chromeReady={chrome.ready} reserveGizmo={upright} cube={cubeSize} frame={frame} attitude={attitudeRef} probe={shell} />
               <RocketFrameProbe frame={frame} points={points} attitude={attitude} probe={shell} />
-              <GizmoHelper alignment="bottom-right" margin={[VIEWCUBE_MARGIN, VIEWCUBE_MARGIN]}>
-                <GizmoViewcube color="#16191D" textColor="#8B9199" strokeColor="#3D4249" hoverColor="#22414A" opacity={0.95} />
+              <GizmoHelper alignment="bottom-right" margin={[cubeSize.margin, cubeSize.margin]}>
+                <group scale={cubeSize.scale}>
+                  <GizmoViewcube color="#16191D" textColor="#8B9199" strokeColor="#3D4249" hoverColor="#22414A" opacity={0.95} />
+                </group>
               </GizmoHelper>
             </Canvas>
           ) : (
@@ -654,10 +905,37 @@ export function Viewport({ vehicle, aeroModel, ghostAeroModel, motor, ghost, loo
         <div className="absolute top-2 left-2 flex items-center gap-2" data-canvas-overlay="" data-viewport-toolbar="">
           {toolbar}
           {!fallback && <Segmented size="sm" value={preset} onChange={(v) => { setPreset(v); setNonce((n) => n + 1); }} options={[{ value: 'iso', label: 'ISO' }, { value: 'side', label: 'SIDE' }, { value: 'top', label: 'NOSE' }, { value: 'aft', label: 'AFT' }]} />}
+          {!fallback && (
+            <button type="button" onClick={() => setFitNonce((n) => n + 1)} aria-label="Fit to view" title="Fit to view: frame the whole rocket from the current angle"
+              className="rounded px-1.5 py-0.5 font-geist-mono text-[10.5px] hover:bg-white/5" style={{ background: C.sunken, border: `1px solid ${C.line}`, color: C.muted }}>
+              FIT
+            </button>
+          )}
         </div>
         {!fallback && showGhost && ghost && !attitude && <div data-canvas-overlay="" className="pointer-events-none absolute bottom-2 left-3 font-geist-mono text-[11px]" style={{ color: C.changed }}>- - - ghost = {ghostLabel}</div>}
+        {canopyGeom && canopy && (
+          <span role="status" className="sr-only">
+            {canopy.role === 'main' ? 'Main' : 'Drogue'} parachute open: {canopy.name}, drawn to its diameter; its position above the rocket is schematic.
+          </span>
+        )}
+        {menuEnabled && !fallback && (
+          <PartContextMenu trigger={menuTrigger} partId={menuPart} vehicle={vehicle} onPick={onPick} onNotice={setNotice} />
+        )}
+        {notice && (
+          <div role="status" className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded px-2.5 py-1 text-[11.5px]" style={{ background: C.panel, border: `1px solid ${C.lineStrong}`, color: C.warn }}>
+            {notice}
+          </div>
+        )}
       </div>
-      {readout && <div className="w-[250px] shrink-0 overflow-y-auto p-2">{readout}</div>}
+      {readout && (readoutOpen
+        ? <div className="relative w-[250px] shrink-0 overflow-y-auto p-2" data-viewport-readout="open">
+            <button type="button" onClick={toggleReadout} aria-expanded="true" aria-label="Hide the readout card" title="Hide the readout card" className="absolute top-3 right-3 z-10 rounded p-0.5 hover:bg-white/5"><ChevronRight size={12} color={C.dim} /></button>
+            {readout}
+          </div>
+        : <button type="button" onClick={toggleReadout} aria-expanded="false" aria-label="Show the readout card" title="Show the readout card" data-viewport-readout="closed"
+            className="flex w-7 shrink-0 flex-col items-center gap-2 py-3 text-[10.5px] hover:bg-white/5" style={{ borderLeft: `1px solid ${C.line}`, color: C.dim }}>
+            <ChevronLeft size={12} /><span style={{ writingMode: 'vertical-rl' }}>Readout</span>
+          </button>)}
     </div>
   );
 }

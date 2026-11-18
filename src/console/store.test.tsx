@@ -200,17 +200,35 @@ describe('console store mapping', () => {
     expect(useAnalysisStore.getState().completed.flight).toBeNull();
   });
 
-  it('refuses to run while airframe drafts are staged and sends no invoke', async () => {
+  it('applies staged airframe edits as one named undo step, then runs on them', async () => {
     act(() => {
       useProjectStore.getState().stageComponents('airframe', 'nsl-bt1', { length: 0.5 });
+    });
+    const pastBefore = useProjectStore.getState().past.length;
+    await act(async () => {
+      await useConsoleJobs.getState().run();
+    });
+    // The edit is committed as one undo step that names it, and the run flies it.
+    expect(useProjectStore.getState().drafts.airframe.components).toEqual({});
+    expect(useProjectStore.getState().past).toHaveLength(pastBefore + 1);
+    expect(useProjectStore.getState().past.at(-1)!.label).toBe('Apply 1 edit: Payload & Avionics Bay length');
+    expect(useProjectStore.getState().project.vehicle.components.find((c) => c.id === 'nsl-bt1')).toMatchObject({ length: 0.5 });
+    const sim = calls.filter((c) => c.cmd === 'simulate_flight');
+    expect(sim).toHaveLength(1);
+    expect((sim[0].args?.vehicle as { components: { id: string; length?: number }[] }).components.find((c) => c.id === 'nsl-bt1')?.length).toBe(0.5);
+  });
+
+  it('applies nothing and runs nothing when the staged edits leave the design unable to run', async () => {
+    act(() => {
+      useProjectStore.getState().stageComponents('airframe', 'nsl-bt1', { isMotorMount: true } as Partial<BodyTubeComponent>);
     });
     await act(async () => {
       await useConsoleJobs.getState().run();
     });
     expect(calls.filter((c) => c.cmd === 'simulate_flight')).toHaveLength(0);
-    expect(useConsoleJobs.getState().jobs.runError).toBe('Apply or discard staged airframe edits before running.');
-    expect(useAnalysisStore.getState().records.flight).toBeNull();
-    expect(useAnalysisStore.getState().completed.flight).toBeNull();
+    expect(useConsoleJobs.getState().jobs.runError).toMatch(/^The staged edits leave the design unable to run/);
+    expect(Object.keys(useProjectStore.getState().drafts.airframe.components)).toEqual(['nsl-bt1']);
+    expect(useSessionStore.getState().stage).toBe('airframe');
   });
 
   it('disables the TopBar run button while the case fails preflight', () => {

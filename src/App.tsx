@@ -3,7 +3,9 @@
  *
  * Import (a drop anywhere, or the TopBar project menu) is one seam in
  * `state/projectIo` over `src/io/files.ts`, so every entry point discloses its
- * outcome through the same inline `role="alert"` banner — never a modal.
+ * outcome through the same inline banner — `role="status"` for a success
+ * (with Undo while the import is the latest edit), `role="alert"` for a
+ * failure — never a modal. Replacing a design with unsaved edits asks first.
  * Routine simulation runs live in the Flight stage; the WebAssembly engine is
  * the only compute path and fails closed where it cannot run, which the
  * engine notice states up front. The desktop app also offers updates.

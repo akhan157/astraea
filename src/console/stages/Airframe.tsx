@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Columns2, ScanEye, Box } from 'lucide-react';
 import { useWS, undoHistory } from '../store';
-import { useChangedParts, useCommittedStability, useStability, useChanges, usePreviewVehicle } from '../hooks';
+import { useChangedParts, useCommittedStability, useCommittedLiftoffStability, useLiftoffStability, useStability, useChanges, usePreviewVehicle } from '../hooks';
+import { stabilityAdvice } from '../data/liftoffStability';
+import { MARGIN_MAX, MARGIN_MIN } from '../data/adapter';
 import { Viewport } from '../viewport/Viewport';
 import { Drawing2D } from '../viewport/Drawing2D';
 import { useLayout } from '../viewport/Vehicle3D';
 import { C } from '../kit/theme';
-import { OverflowFold } from '../kit/Caveat';
 import { Segmented } from '../kit/Fields';
 import { ResultValue, DeltaChip, ValueUnit } from '../kit/Value';
 import { DataTable } from '../kit/Table';
@@ -20,32 +21,40 @@ import { shortcutLabel } from '../../lib/platform';
 
 export function StabilityStrip() {
   const stab = useStability();
-  const cStab = useCommittedStability();
-  if (!stab) return null;
-  const m = stab.margin.value;
+  const liftoff = useLiftoffStability();
+  const cLiftoff = useCommittedLiftoffStability();
+  if (!stab || !liftoff) return null;
+  const m = liftoff.margin.value;
+  const known = Number.isFinite(m);
+  const was = cLiftoff?.margin.value;
   const pct = (v: number) => `${Math.max(0, Math.min(100, (v / 5) * 100))}%`;
-  const overStable = m > 3;
-  const amber = 'Above generic geometry band (>3 cal). Weathercocking requires flight analysis.';
-  const rollup = 'Component rollup only; selected motor and powered-flight margin history unavailable.';
+  const advice = stabilityAdvice(m);
+  const verdict = !known ? 'Not checked' : m < MARGIN_MIN ? 'Too little stability' : m > MARGIN_MAX ? 'More stability than needed' : 'Stable';
+  const verdictColor = !known ? C.unknown : m < MARGIN_MIN ? C.bad : m > MARGIN_MAX ? C.changed : C.ok;
   return (
     <div role="region" aria-label="Live stability and flight preview" className="rounded-md p-3 text-[11px]" style={{ background: C.panel, border: `1px solid ${C.line}` }}>
-      <div className="flex items-baseline justify-between"><span style={{ color: C.muted }}>Geometry margin <span style={{ color: C.dim }}>· live</span></span><span className="flex items-baseline gap-2">{cStab && <DeltaChip now={m} was={cStab.margin.value} kind="cal" />}<ResultValue r={stab.margin} size="lg" label="Geometry static margin" /></span></div>
-      <div className="relative mt-2 h-[6px] rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
-        <span className="absolute inset-y-0 rounded-full" style={{ left: pct(1), width: `${(2 / 5) * 100}%`, background: 'rgba(61,214,140,0.35)' }} />
-        {cStab && <span className="absolute -top-[3px] h-[12px] w-[2px] rounded" style={{ left: pct(cStab.margin.value), background: C.changed, opacity: 0.7 }} title="Committed run" />}
-        {Number.isFinite(m) && <span className="absolute -top-[4px] h-[14px] w-[3px] rounded" style={{ left: pct(m), background: m < 1 || m > 3 ? C.bad : C.fg }} />}
+      <div className="flex items-baseline justify-between gap-2">
+        <span style={{ color: C.muted }}>Stability at liftoff <span style={{ color: C.dim }}>· {liftoff.motorDesignation ?? 'no motor'} loaded · live</span></span>
+        <span className="flex items-baseline gap-2">{was !== undefined && Number.isFinite(was) && <DeltaChip now={m} was={was} kind="cal" />}<ResultValue r={liftoff.margin} size="lg" label="Stability margin at liftoff" /></span>
       </div>
-      <div className="mt-1 flex justify-between font-geist-mono text-[10px]" style={{ color: C.dim }}><span>0</span><span>1</span><span>3</span><span>5 cal</span></div>
-      <div className="mt-2 flex justify-between"><span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: C.cg }} />CG <ResultValue r={stab.cg} kind="len" size="sm" label="CG from nose" /></span><span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: C.cp }} />CP <ResultValue r={stab.cp} kind="len" size="sm" label="CP from nose" /></span></div>
-      {!Number.isFinite(m) && stab.margin.confidence === 'unknown' && <div className="mt-1.5 text-[10.5px]" style={{ color: C.unknown }} data-margin-unavailable="true">No geometry margin or verdict: {stab.margin.reason}</div>}
-      {overStable
-        ? <OverflowFold
-          always
-          className="mt-1.5 text-[10.5px]"
-          text={<><span data-fold-part="amber" data-over-stable="true" style={{ color: C.changed }}>{amber}</span>{' '}<span data-fold-part="grey" style={{ color: C.dim }}>{rollup}</span></>}
-          expanded={<><span data-fold-part="amber" data-over-stable="true" className="block" style={{ color: C.changed }}>{amber}</span><span data-fold-part="grey" className="block" style={{ color: C.dim }}>{rollup}</span></>}
-        />
-        : <div className="mt-1.5 text-[10.5px]" style={{ color: C.dim }}>{rollup}</div>}
+      <div className="mt-0.5 text-[11px] font-medium" data-stability-verdict style={{ color: verdictColor }}>{verdict}{known && <span className="font-normal" style={{ color: C.dim }}> · target {MARGIN_MIN}–{MARGIN_MAX} cal</span>}</div>
+      <div className="relative mt-2 h-[6px] rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
+        <span className="absolute inset-y-0 rounded-full" style={{ left: pct(MARGIN_MIN), width: `${((MARGIN_MAX - MARGIN_MIN) / 5) * 100}%`, background: 'rgba(61,214,140,0.35)' }} />
+        {was !== undefined && Number.isFinite(was) && <span className="absolute -top-[3px] h-[12px] w-[2px] rounded" style={{ left: pct(was), background: C.changed, opacity: 0.7 }} title="Last run" />}
+        {known && <span className="absolute -top-[4px] h-[14px] w-[3px] rounded" style={{ left: pct(m), background: m < MARGIN_MIN ? C.bad : m > MARGIN_MAX ? C.warn : C.fg }} />}
+      </div>
+      <div className="mt-1 flex justify-between font-geist-mono text-[10px]" style={{ color: C.dim }}><span>0</span><span>{MARGIN_MIN}</span><span>{MARGIN_MAX}</span><span>5 cal</span></div>
+      {advice && <div className="mt-1.5 text-[10.5px]" style={{ color: C.fg }} data-stability-advice>{advice}</div>}
+      {!known && <div className="mt-1.5 text-[10.5px]" style={{ color: C.unknown }} data-margin-unavailable="true">Not checked: {liftoff.margin.reason}</div>}
+      <div className="mt-2 flex flex-wrap justify-between gap-x-3 gap-y-1">
+        <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: C.cg }} />CG with motor <ResultValue r={liftoff.loadedCg} kind="len" size="sm" label="CG with motor loaded, from nose" /></span>
+        <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: C.cp }} />CP <ResultValue r={stab.cp} kind="len" size="sm" label="CP from nose" /></span>
+      </div>
+      <div className="mt-1.5 flex items-center justify-between text-[10.5px]" style={{ color: C.dim }}>
+        <span>Airframe only, without the motor</span>
+        <ResultValue r={stab.margin} size="sm" label="Airframe-only stability margin" />
+      </div>
+      <div className="mt-1 text-[10.5px]" style={{ color: C.dim }}>Margin at ignition, before propellant burns; powered-flight margins come from a flight run.</div>
       <LivePreview />
     </div>
   );

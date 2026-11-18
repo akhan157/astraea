@@ -107,7 +107,7 @@ const dropFile = (file: File): void => {
   fireEvent.drop(window, { dataTransfer: { files: [file] } });
 };
 
-const banner = (): HTMLElement | null => document.querySelector('[data-drop-import-error]');
+const banner = (): HTMLElement | null => document.querySelector('[data-import-report]');
 
 beforeEach(() => {
   // Mark the guided tour as seen so the coach card does not open over the
@@ -196,7 +196,10 @@ describe('App root', () => {
 
     await waitFor(() => expect(useProjectStore.getState().project.vehicle.name).toBe('Envelope Dropped'));
     expect(useProjectStore.getState().project.vehicle.id).toBe('dropped-1');
-    expect(banner()).toBeNull();
+    // A dropped project used to replace the design silently; it is now
+    // announced as a success (role=status), never as the red error alert.
+    expect(banner()?.getAttribute('data-import-report')).toBe('ok');
+    expect(banner()?.getAttribute('role')).toBe('status');
   });
 
   it('migrates a legacy bare-vehicle JSON dropped on the app', async () => {
@@ -223,7 +226,9 @@ describe('App root', () => {
     dropFile(new File([JSON.stringify(legacy)], 'legacy.json', { type: 'application/json' }));
 
     await waitFor(() => expect(useProjectStore.getState().project.vehicle.name).toBe('Legacy Dropped'));
-    expect(banner()).toBeNull();
+    // A legacy bare vehicle names no motor: the success report says the motor is Astraea's default.
+    expect(banner()?.getAttribute('data-import-report')).toBe('ok');
+    expect(banner()?.textContent).toMatch(/Astraea’s default; the file didn’t specify one/);
   });
 
   it('fails closed on a JSON document the envelope reader rejects (unknown schema version)', async () => {

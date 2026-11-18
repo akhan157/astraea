@@ -63,10 +63,10 @@ try{
   page.on('response',r=>{if(new URL(r.url()).pathname.endsWith('.wasm'))fetchedWasm.push(r.body().then(sha));});
   const response=await page.goto(new URL('app/',origin).href);assert.equal(response.status(),200);assert.ok(response.headers()['content-security-policy']);
   const stage=name=>page.getByRole('navigation',{name:'Pipeline stages'}).getByRole('button',{name,exact:true}).click();
-  const menu=async name=>{await page.getByRole('button',{name:'Project menu',exact:true}).click();await page.getByRole('button',{name:new RegExp(`^${name}`)}).click();};
+  const menu=async name=>{await page.getByRole('button',{name:'Project menu',exact:true}).click();await page.getByRole('button',{name:new RegExp(`^${name}`)}).click();await page.getByRole('button',{name:'Replace',exact:true}).waitFor({state:'visible',timeout:400}).then(()=>page.getByRole('button',{name:'Replace',exact:true}).click(),()=>undefined);};
   const save=async()=>{
     const status=page.locator('[data-project-status]');const before=await status.count()?await status.first().textContent():null;
-    await menu('Save to this browser');await expect(status).toContainText(/Saved locally \(revision \d+\)/);
+    await menu('Save in this browser');await expect(status).toContainText(/Saved in this browser \(revision \d+\)/);
     if(before)await expect(status).not.toHaveText(before);await page.keyboard.press('Escape');
   };
   const stored=()=>page.evaluate(()=>new Promise((resolve,reject)=>{
@@ -173,7 +173,7 @@ try{
   checks.push('Actual browser-downloaded project/trace ZIP retains exact history including signed zero and same invocation identity');
   checks.push('Meaningful motor/mass alternative; stale baseline retains original samples/identity and explicit variant run updates trace without rewriting baseline');
 
-  await page.reload();await bootstrap();await menu('Open saved project');await expect(page.locator('[data-project-status]')).toContainText('Opened saved project');await page.keyboard.press('Escape');
+  await page.reload();await bootstrap();await menu('Open the copy in this browser');await expect(page.locator('[data-project-status]')).toContainText('Opened the copy saved in this browser');await page.keyboard.press('Escape');
   await stage('Build');const cards=page.locator('[data-saved-run-id]');assert.equal(await cards.count(),second.cases.length);
   const baselineCard=page.locator(`[data-saved-run-id="${baseline.id}"]`);
   await baselineCard.getByText('Recorded flight-model history',{exact:true}).click();

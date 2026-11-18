@@ -93,6 +93,72 @@ pub struct FrontendComponent {
     /// Leading-edge radius (m; trapezoidal fin sets).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub leading_edge_radius: Option<f64>,
+    /// Parachute deployment role, `"drogue"` or `"main"`. Absent keeps the
+    /// list-order rule (see `recovery_chutes`), so existing files fly as before.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub deploy_role: Option<String>,
+}
+
+/// The parachute a flight opens at apogee and the one it opens at the main
+/// deploy altitude, as `(drogue, main)`. Shared by the legacy preparation and
+/// the native candidate so the two can never pick different chutes.
+///
+/// No chute declares a role: the long-standing rule by list order: the first
+/// parachute is the drogue, the second the main, and a single parachute serves
+/// as both. This is exactly the selection before roles existed.
+///
+/// A declared role wins over position, so reordering parts cannot swap the two.
+/// A slot no chute declares is filled from the chutes without a role, in list
+/// order, the drogue slot first. A role says when a chute opens, so a declared
+/// main is never also flown as the drogue: with no other chute, the slot stays
+/// empty (no canopy from apogee until the main opens; a lone declared drogue
+/// stays open to the ground). Two chutes declaring the same role, or a role
+/// other than drogue/main, are refused: the engine flies one of each and must
+/// not choose silently.
+///
+/// Mirrored by TS `src/sim/parachuteRoles.ts` (`recoveryChutes`).
+pub fn recovery_chutes(
+    components: &[FrontendComponent],
+) -> Result<(Option<&FrontendComponent>, Option<&FrontendComponent>), String> {
+    let chutes: Vec<&FrontendComponent> =
+        components.iter().filter(|c| c.kind == "parachute").collect();
+    let mut drogue: Option<&FrontendComponent> = None;
+    let mut main: Option<&FrontendComponent> = None;
+    let mut automatic: Vec<&FrontendComponent> = Vec::new();
+    for chute in &chutes {
+        let role = match chute.deploy_role.as_deref() {
+            None => {
+                automatic.push(chute);
+                continue;
+            }
+            Some(role @ ("drogue" | "main")) => role,
+            Some(other) => {
+                return Err(format!(
+                    "parachute '{}': deployRole '{other}' is not 'drogue' or 'main'",
+                    chute.id
+                ))
+            }
+        };
+        let slot = if role == "drogue" { &mut drogue } else { &mut main };
+        if let Some(previous) = slot {
+            return Err(format!(
+                "parachutes '{}' and '{}' are both set as the {role}; a flight opens one {role} -- set one of them to the other role or to automatic",
+                previous.id, chute.id
+            ));
+        }
+        *slot = Some(chute);
+    }
+    let mut pool = automatic.into_iter();
+    match (drogue, main) {
+        (None, None) => {
+            let first = pool.next();
+            let second = pool.next();
+            Ok((first, second.or(first)))
+        }
+        (None, Some(m)) => Ok((pool.next(), Some(m))),
+        (Some(d), None) => Ok((Some(d), pool.next())),
+        (Some(d), Some(m)) => Ok((Some(d), Some(m))),
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -882,25 +948,19 @@ pub fn prepare_flight_vehicle(
     let powered = drag_table(&aero_v, true)?;
     let coasting = drag_table(&aero_v, false)?;
 
-    // Parachutes in axial order: first = drogue, second-or-first = main
-    // (mirrors TS `parachutes[0]` / `parachutes[len>1?1:0]`).
-    let chutes: Vec<&FrontendComponent> = fv
-        .components
-        .iter()
-        .filter(|c| c.kind == "parachute")
-        .collect();
+    // Drogue and main: declared roles first, else list order (first = drogue,
+    // second-or-first = main). See `recovery_chutes`; mirrored by TS
+    // `src/sim/parachuteRoles.ts`.
+    let (drogue_component, main_component) =
+        recovery_chutes(&fv.components).map_err(|e| format!("prepareVehicle: {e}"))?;
     let to_chute = |c: &FrontendComponent| {
         Some(astraea_core::six_dof::Parachute {
             diameter: c.diameter?,
             cd: c.cd?,
         })
     };
-    let drogue = chutes.first().and_then(|c| to_chute(c));
-    let main_chute = if chutes.len() > 1 {
-        chutes.get(1).and_then(|c| to_chute(c))
-    } else {
-        drogue.clone()
-    };
+    let drogue = drogue_component.and_then(to_chute);
+    let main_chute = main_component.and_then(to_chute);
 
     Ok(astraea_core::six_dof::Vehicle {
         dry_mass: rollup.total_mass,
@@ -2184,6 +2244,101 @@ mod dto_tests {
         }
     }
 
+    /// Plan #9: explicit parachute roles. Two chutes with distinct canopies so
+    /// the prepared vehicle shows which one each event opens.
+    fn two_chute_vehicle(first_role: Option<&str>, second_role: Option<&str>) -> FrontendVehicle {
+        let mut value = alpha_vehicle_json();
+        let components = value["components"].as_array_mut().unwrap();
+        components[3]["id"] = serde_json::json!("small");
+        components[3]["diameter"] = serde_json::json!(0.305);
+        components.push(serde_json::json!({"id":"large","name":"Large","type":"parachute",
+            "mass":0.02,"diameter":0.9,"cd":1.5,"axialOffset":0.1,"materialId":"cardboard"}));
+        if let Some(role) = first_role { components[3]["deployRole"] = serde_json::json!(role); }
+        if let Some(role) = second_role { components[4]["deployRole"] = serde_json::json!(role); }
+        serde_json::from_value(value).unwrap()
+    }
+
+    fn picked(fv: &FrontendVehicle) -> (Option<String>, Option<String>) {
+        let (d, m) = recovery_chutes(&fv.components).unwrap();
+        (d.map(|c| c.id.clone()), m.map(|c| c.id.clone()))
+    }
+
+    fn ids(d: Option<&str>, m: Option<&str>) -> (Option<String>, Option<String>) {
+        (d.map(str::to_string), m.map(str::to_string))
+    }
+
+    #[test]
+    fn absent_roles_keep_the_list_order_rule() {
+        // Two chutes: first = drogue, second = main.
+        assert_eq!(picked(&two_chute_vehicle(None, None)), ids(Some("small"), Some("large")));
+        // One chute serves as both; none leaves both empty.
+        let one: FrontendVehicle = serde_json::from_value(alpha_vehicle_json()).unwrap();
+        assert_eq!(picked(&one), ids(Some("alpha-chute"), Some("alpha-chute")));
+        let mut none = one.clone();
+        none.components.retain(|c| c.kind != "parachute");
+        assert_eq!(picked(&none), (None, None));
+        // A third chute is still not flown, exactly as before.
+        let mut three = two_chute_vehicle(None, None);
+        let mut extra = three.components[4].clone();
+        extra.id = "third".to_string();
+        three.components.push(extra);
+        assert_eq!(picked(&three), ids(Some("small"), Some("large")));
+        // The prepared vehicle is the pre-role preparation, field for field.
+        let v = prepare_flight_vehicle(&two_chute_vehicle(None, None), &c6_motor()).unwrap();
+        assert_eq!(v.drogue.as_ref().map(|c| (c.diameter, c.cd)), Some((0.305, 0.8)));
+        assert_eq!(v.main_chute.as_ref().map(|c| (c.diameter, c.cd)), Some((0.9, 1.5)));
+        let single = prepare_flight_vehicle(&one, &c6_motor()).unwrap();
+        assert_eq!(single.drogue.as_ref().map(|c| c.diameter), Some(0.305));
+        assert_eq!(single.main_chute.as_ref().map(|c| c.diameter), Some(0.305));
+    }
+
+    #[test]
+    fn a_declared_role_overrides_list_order() {
+        // Reordered parts: the big chute listed first but declared the main.
+        let swapped = two_chute_vehicle(Some("main"), Some("drogue"));
+        assert_eq!(picked(&swapped), ids(Some("large"), Some("small")));
+        let v = prepare_flight_vehicle(&swapped, &c6_motor()).unwrap();
+        assert_eq!(v.drogue.as_ref().map(|c| (c.diameter, c.cd)), Some((0.9, 1.5)));
+        assert_eq!(v.main_chute.as_ref().map(|c| (c.diameter, c.cd)), Some((0.305, 0.8)));
+        // One declared role: the other slot takes the automatic chute.
+        assert_eq!(picked(&two_chute_vehicle(None, Some("drogue"))), ids(Some("large"), Some("small")));
+        assert_eq!(picked(&two_chute_vehicle(Some("main"), None)), ids(Some("large"), Some("small")));
+        assert_eq!(picked(&two_chute_vehicle(Some("drogue"), None)), ids(Some("small"), Some("large")));
+    }
+
+    #[test]
+    fn a_lone_declared_chute_opens_only_at_its_own_event() {
+        let lone = |role: &str| {
+            let mut value = alpha_vehicle_json();
+            value["components"][3]["deployRole"] = serde_json::json!(role);
+            serde_json::from_value::<FrontendVehicle>(value).unwrap()
+        };
+        assert_eq!(picked(&lone("main")), ids(None, Some("alpha-chute")));
+        assert_eq!(picked(&lone("drogue")), ids(Some("alpha-chute"), None));
+        let v = prepare_flight_vehicle(&lone("main"), &c6_motor()).unwrap();
+        assert!(v.drogue.is_none());
+        assert_eq!(v.main_chute.as_ref().map(|c| c.diameter), Some(0.305));
+    }
+
+    #[test]
+    fn duplicate_or_unknown_roles_are_refused() {
+        let both_main = two_chute_vehicle(Some("main"), Some("main"));
+        let err = recovery_chutes(&both_main.components).unwrap_err();
+        assert!(err.contains("'small' and 'large' are both set as the main"), "{err}");
+        let err = prepare_flight_vehicle(&both_main, &c6_motor()).unwrap_err();
+        assert!(err.starts_with("prepareVehicle: parachutes"), "{err}");
+        let err = recovery_chutes(&two_chute_vehicle(Some("reserve"), None).components).unwrap_err();
+        assert!(err.contains("deployRole 'reserve'"), "{err}");
+    }
+
+    #[test]
+    fn deploy_role_round_trips_on_the_wire() {
+        let fv = two_chute_vehicle(Some("main"), None);
+        let wire = serde_json::to_value(&fv).unwrap();
+        assert_eq!(wire["components"][3]["deployRole"], "main");
+        assert!(wire["components"][4].get("deployRole").is_none());
+    }
+
     #[test]
     fn alpha_mass_oracle() {
         let fv: FrontendVehicle = serde_json::from_value(alpha_vehicle_json()).unwrap();
@@ -2394,6 +2549,7 @@ mod dto_tests {
                 trailing_edge_bevel: None,
                 leading_edge_radius: None,
                 tip_radius: None,
+                deploy_role: None,
             }],
             surface_finish: None,
             force_turbulent_flow: None,

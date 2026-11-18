@@ -26,6 +26,7 @@ vi.mock('@react-three/drei', () => ({
   GizmoViewcube: () => null,
 }));
 
+import { useStartChooser } from './StartChooser';
 import { App } from '../../App';
 import { createProjectEnvelope, writeProject, PROJECT_SCHEMA_VERSION } from '../../formats/projectJson';
 import { PROJECT_STORAGE_KEY } from '../../formats/projectStorage';
@@ -72,18 +73,26 @@ const openMenu = (): void => {
 async function clickItem(hook: string): Promise<void> {
   await waitFor(() => expect(document.querySelector(`[data-project="${hook}"]`)).toBeTruthy());
   fireEvent.click(document.querySelector(`[data-project="${hook}"]`) as HTMLElement);
+  confirmReplaceIfAsked();
+}
+
+/** Replacing a design with unsaved edits asks first; these tests mean to replace it. */
+function confirmReplaceIfAsked(): void {
+  const replace = screen.queryByRole('button', { name: 'Replace' });
+  if (replace) fireEvent.click(replace);
 }
 
 const statusEl = (): HTMLElement | null => document.querySelector('[data-project-status]');
 const statusText = (): string => statusEl()?.textContent ?? '';
 const statusKind = (): string | null => statusEl()?.getAttribute('data-project-status') ?? null;
-const banner = (): HTMLElement | null => document.querySelector('[data-drop-import-error]');
+const banner = (): HTMLElement | null => document.querySelector('[data-import-report]');
 const fileInput = (): HTMLInputElement => document.querySelector('[data-project-input]') as HTMLInputElement;
 const vehicleNameField = (): HTMLInputElement => screen.getByLabelText('Vehicle name') as HTMLInputElement;
 
 let teardown: (() => void) | null = null;
 
 beforeEach(() => {
+  useStartChooser.setState({ open: false, pending: null });
   localStorage.clear();
   localStorage.setItem('astraea.workstation.toured', '1');
   // jsdom's default width would auto-collapse the parts panel (the shell does
@@ -105,6 +114,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  useStartChooser.setState({ open: false, pending: null });
   cleanup();
   teardown?.();
   teardown = null;
@@ -117,7 +127,7 @@ describe('project menu durable slot', () => {
     openMenu();
     await clickItem('save');
 
-    await waitFor(() => expect(statusText()).toMatch(/Saved locally \(revision 1\)/));
+    await waitFor(() => expect(statusText()).toMatch(/Saved in this browser \(revision 1\)/));
     expect(statusKind()).toBe('ok');
     const stored = JSON.parse(localStorage.getItem(PROJECT_STORAGE_KEY) as string);
     expect(stored.schemaVersion).toBe(PROJECT_SCHEMA_VERSION);
@@ -130,7 +140,7 @@ describe('project menu durable slot', () => {
     render(<App />);
     openMenu();
     await clickItem('save');
-    await waitFor(() => expect(statusText()).toMatch(/Saved locally/));
+    await waitFor(() => expect(statusText()).toMatch(/Saved in this browser/));
 
     // Edit away from the saved state, then restore it from the durable slot.
     fireEvent.change(vehicleNameField(), { target: { value: 'Edited After Save' } });
@@ -138,7 +148,7 @@ describe('project menu durable slot', () => {
 
     await clickItem('open');
     await waitFor(() => expect(useProjectStore.getState().project.vehicle.name).toBe(OTHER_NAME));
-    expect(statusText()).toMatch(/Opened saved project \(revision 1\)/);
+    expect(statusText()).toMatch(/Opened the copy saved in this browser \(revision 1\)/);
   });
 
   it('says the slot is empty instead of failing when nothing was saved', async () => {
@@ -147,7 +157,8 @@ describe('project menu durable slot', () => {
     await clickItem('open');
 
     await waitFor(() => expect(statusText()).toMatch(/No project saved in this browser yet/));
-    expect(statusKind()).toBe('ok');
+    // Nothing was opened, so it is neutral information, not a green success.
+    expect(statusKind()).toBe('info');
     expect(document.querySelector('[data-project-status="error"]')).toBeNull();
   });
 
@@ -205,6 +216,7 @@ describe('project menu import', () => {
     expect(fileInput().accept).not.toContain('.cdx1');
 
     fireEvent.change(fileInput(), { target: { files: [new File([SAMPLE_RKT], 'test.rkt', { type: 'application/xml' })] } });
+    confirmReplaceIfAsked();
 
     await waitFor(() => expect(useProjectStore.getState().project.vehicle.name).toBe('Imported Test Rocket'));
     expect(banner()).not.toBeNull();
@@ -214,7 +226,7 @@ describe('project menu import', () => {
 
     openMenu();
     await clickItem('save');
-    await waitFor(() => expect(statusText()).toMatch(/Saved locally/));
+    await waitFor(() => expect(statusText()).toMatch(/Saved in this browser/));
 
     fireEvent.change(vehicleNameField(), { target: { value: 'Renamed After Import' } });
     await clickItem('open');
@@ -232,11 +244,61 @@ describe('project menu import', () => {
     const before = useProjectStore.getState().project.vehicle;
 
     fireEvent.change(fileInput(), { target: { files: [new File(['1, 2\n'], 'fake.rkt')] } });
+    confirmReplaceIfAsked();
 
     await waitFor(() => expect(banner()).toBeTruthy());
     expect(useProjectStore.getState().project.vehicle).toBe(before);
     expect(alertSpy).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+describe('import outcome styling', () => {
+  it('shows a successful import as a status (not the red alert) with the motor source and Undo', async () => {
+    render(<App />);
+    const before = useProjectStore.getState().project.vehicle;
+    fireEvent.change(fileInput(), { target: { files: [new File([SAMPLE_RKT], 'test.rkt', { type: 'application/xml' })] } });
+    confirmReplaceIfAsked();
+
+    await waitFor(() => expect(banner()?.getAttribute('data-import-report')).toBe('ok'));
+    expect(banner()?.getAttribute('role')).toBe('status');
+    expect(document.querySelector('[data-import-motor-note]')?.textContent).toMatch(/^Motor: still .+ from your previous design; the file didn’t specify one\.$/);
+
+    fireEvent.click(screen.getByRole('button', { name: /Undo import/ }));
+    await waitFor(() => expect(useProjectStore.getState().project.vehicle).toBe(before));
+    expect(banner()?.textContent).toMatch(/Import undone/);
+    expect(screen.queryByRole('button', { name: /Undo import/ })).toBeNull();
+  });
+
+  it('keeps a refused import a red alert', async () => {
+    render(<App />);
+    fireEvent.change(fileInput(), { target: { files: [new File(['1, 2\n'], 'fake.rkt')] } });
+    confirmReplaceIfAsked();
+    await waitFor(() => expect(banner()?.getAttribute('data-import-report')).toBe('error'));
+    expect(banner()?.getAttribute('role')).toBe('alert');
+    expect(screen.queryByRole('button', { name: /Undo import/ })).toBeNull();
+  });
+});
+
+describe('project menu file save', () => {
+  it('names the two save places separately and shows a cancelled picker as neutral, not saved or failed', async () => {
+    const scope = window as unknown as { showSaveFilePicker?: unknown };
+    scope.showSaveFilePicker = async () => {
+      throw Object.assign(new Error('user cancelled'), { name: 'AbortError' });
+    };
+    try {
+      render(<App />);
+      openMenu();
+      await waitFor(() => expect(document.querySelector('[data-project="save"]')?.textContent).toMatch(/Save in this browser/));
+      expect(document.querySelector('[data-project="save-file"]')?.textContent).toMatch(/Save a copy as a file…/);
+
+      await clickItem('save-file');
+      await waitFor(() => expect(statusKind()).toBe('cancelled'));
+      expect(statusText()).toBe('Save cancelled — no file was written. Your design is still open.');
+      expect(statusText()).not.toMatch(/Saved/);
+    } finally {
+      delete scope.showSaveFilePicker;
+    }
   });
 });
 
@@ -249,6 +311,7 @@ describe('window drop target', () => {
     expect(document.querySelector('[data-drop-overlay="true"]')).toBeTruthy();
 
     fireEvent.drop(window, { dataTransfer: { files: [new File([SAMPLE_RKT], 'test.rkt')] } });
+    confirmReplaceIfAsked();
     await waitFor(() => expect(useProjectStore.getState().project.vehicle.name).toBe('Imported Test Rocket'));
     expect(document.querySelector('[data-drop-overlay="true"]')).toBeNull();
     expect(banner()?.textContent).toMatch(/geometry.only/i);

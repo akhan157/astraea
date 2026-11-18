@@ -7,9 +7,10 @@
  * triangle (3 x float32 facet normal + 3 x float32 vertex + 2 attribute
  * bytes, which are zero).
  *
- * Units: STL has no unit declaration. Astraea exports SI metres — the
- * header text and this module document the convention, and all coordinates
- * are metres.
+ * Units: STL has no unit declaration. By default Astraea writes SI metres
+ * (the header says so). A print file asks for millimetres instead, because
+ * slicers read a unitless STL as millimetres and would otherwise shrink the
+ * part a thousandfold; the header then says MILLIMETRES.
  *
  * Normals: each facet normal is the normalized right-hand-rule cross
  * product of the edge vectors (b-a) x (c-a), so it is by construction
@@ -72,7 +73,15 @@ function flattenTriangle(t: Triangle, name: string): [number, number, number, nu
  * @throws {RangeError} on non-finite vertices, degenerate triangles, or
  *   normal overflow.
  */
-export function exportStlBinary(solids: TessellatedSolid[]): ArrayBuffer {
+export interface StlOptions {
+  /** Coordinate unit written to the file. Default 'm' (SI metres). */
+  units?: 'm' | 'mm';
+}
+
+export function exportStlBinary(solids: TessellatedSolid[], options: StlOptions = {}): ArrayBuffer {
+  const units = options.units ?? 'm';
+  if (units !== 'm' && units !== 'mm') throw new RangeError(`exportStlBinary: units must be 'm' or 'mm' (got ${String(units)})`);
+  const k = units === 'mm' ? 1000 : 1;
   if (!Array.isArray(solids) || solids.length === 0) {
     throw new Error('exportStlBinary: at least one solid is required');
   }
@@ -84,7 +93,7 @@ export function exportStlBinary(solids: TessellatedSolid[]): ArrayBuffer {
       throw new Error(`exportStlBinary: solid '${s?.name ?? '?'}' has no triangles`);
     }
     for (const t of s.meshTriangles) {
-      flat.push(flattenTriangle(t, s.name));
+      flat.push(flattenTriangle(t, s.name).map((v) => v * k) as ReturnType<typeof flattenTriangle>);
     }
   }
 
@@ -92,7 +101,7 @@ export function exportStlBinary(solids: TessellatedSolid[]): ArrayBuffer {
   const buffer = new ArrayBuffer(HEADER_BYTES + 4 + PER_TRIANGLE_BYTES * count);
   const view = new DataView(buffer);
 
-  const header = 'ASTRAEA CAD EXPORT - OML SOLID, SI METRES (M)'.padEnd(HEADER_BYTES, ' ');
+  const header = (units === 'mm' ? 'ASTRAEA CAD EXPORT - MILLIMETRES (MM)' : 'ASTRAEA CAD EXPORT - OML SOLID, SI METRES (M)').padEnd(HEADER_BYTES, ' ');
   for (let i = 0; i < HEADER_BYTES; i++) view.setUint8(i, header.charCodeAt(i));
   view.setUint32(HEADER_BYTES, count, true);
 

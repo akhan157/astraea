@@ -1,5 +1,5 @@
 import { ChevronDown, RotateCcw } from 'lucide-react';
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useSessionStore } from '../../state/session';
 import { C } from './theme';
 import { cn, show, toSI, type Kind } from './units';
@@ -25,8 +25,12 @@ export function InspectorSection({ title, children, defaultOpen = true, right }:
 
 /* ───────────── field row ───────────── */
 
+/** The label of the enclosing FieldRow, so every input inside it gets an accessible name. */
+const FieldLabel = createContext<string | null>(null);
+
 export function FieldRow({ label, changed, onRevert, children, hint, below }: { label: string; changed?: boolean; onRevert?: () => void; children: ReactNode; hint?: string; below?: ReactNode }) {
   return (
+    <FieldLabel.Provider value={label}>
     <div className="group flex min-h-[30px] flex-col gap-1 py-0.5" title={hint}>
       <div className="flex min-w-0 items-center gap-2">
         <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[12.5px]" style={{ color: changed ? C.fg : C.muted }}>
@@ -38,6 +42,7 @@ export function FieldRow({ label, changed, onRevert, children, hint, below }: { 
       </div>
       {below}
     </div>
+    </FieldLabel.Provider>
   );
 }
 
@@ -45,8 +50,16 @@ export function FieldRow({ label, changed, onRevert, children, hint, below }: { 
  * Numeric input in display units. Drag the unit label to scrub; type to set;
  * ↑/↓ nudge (shift = ×10). Values round-trip through SI.
  */
-export function NumberField({ value, kind, onChange, min, max, step, digits, width = 92, onGestureStart, onGestureEnd }: { value: number; kind: Kind; onChange: (si: number) => void; min?: number; max?: number; step?: number; digits?: number; width?: number; onGestureStart?: () => void; onGestureEnd?: () => void }) {
+export function NumberField({ value, kind, onChange, min, max, step, digits, width = 92, onGestureStart, onGestureEnd, ariaLabel, minReason, maxReason }: {
+  value: number; kind: Kind; onChange: (si: number) => void; min?: number; max?: number; step?: number; digits?: number; width?: number;
+  onGestureStart?: () => void; onGestureEnd?: () => void;
+  /** Accessible name; defaults to the enclosing FieldRow's label. The unit is appended. */
+  ariaLabel?: string;
+  /** Why the lower or upper limit exists, said beside the field when a typed value is limited. */
+  minReason?: string; maxReason?: string;
+}) {
   const units = useSessionStore((s) => s.units);
+  const rowLabel = useContext(FieldLabel);
   const shown = show(value, kind, units, digits);
   const [text, setText] = useState(shown.text);
   const [focus, setFocus] = useState(false);
@@ -63,8 +76,10 @@ export function NumberField({ value, kind, onChange, min, max, step, digits, wid
     const requested = toSI(n, kind, units);
     const next = clamp(requested);
     if (next !== requested) {
+      // Never a silent change: say what was used and why, beside the field.
       const limited = show(next, kind, units, digits);
-      setFeedback(`Limited to ${limited.text} ${limited.unit}`.trim());
+      const reason = requested < next ? minReason : maxReason;
+      setFeedback(`Limited to ${limited.text} ${limited.unit}`.trim() + (reason ? `: ${reason}` : requested < next ? ' (the smallest allowed)' : ' (the largest allowed)'));
     }
     setText(show(next, kind, units, digits).text);
     if (next !== value) onChange(next);
@@ -76,6 +91,7 @@ export function NumberField({ value, kind, onChange, min, max, step, digits, wid
       <input
         value={text}
         inputMode="decimal"
+        aria-label={(ariaLabel ?? rowLabel) ? `${ariaLabel ?? rowLabel}${shown.unit ? ` (${shown.unit})` : ''}` : undefined}
         onFocus={(e) => { setFocus(true); e.target.select(); }}
         onBlur={() => { setFocus(false); if (cancelBlur.current) { cancelBlur.current = false; return; } commit(text); }}
         onChange={(e) => { setFeedback(null); setText(e.target.value); }}
@@ -96,7 +112,7 @@ export function NumberField({ value, kind, onChange, min, max, step, digits, wid
         className="w-full min-w-0 bg-transparent px-2 py-1 text-right font-geist-mono tnum text-[12.5px] outline-none"
         style={{ color: C.fg }}
       />
-      {feedback && <span role="status" className="pointer-events-none absolute right-0 bottom-full z-10 whitespace-nowrap rounded px-2 py-1 text-[10.5px]" style={{ background: C.raised, color: C.fg, border: `1px solid ${C.lineStrong}` }}>{feedback}</span>}
+      {feedback && <span role="status" className="pointer-events-none absolute right-0 bottom-full z-10 max-w-[260px] rounded px-2 py-1 text-[10.5px] leading-snug" style={{ background: C.raised, color: C.fg, border: `1px solid ${C.lineStrong}` }}>{feedback}</span>}
       {shown.unit && (
         <span
           className="cursor-ew-resize select-none pr-2 text-[10.5px]"
@@ -108,6 +124,58 @@ export function NumberField({ value, kind, onChange, min, max, step, digits, wid
           onPointerCancel={() => { if (!drag.current) return; drag.current = null; onGestureEnd?.(); }}
         >{shown.unit}</span>
       )}
+    </span>
+  );
+}
+
+/**
+ * A number the user may leave unset. Empty means "not entered" (never a
+ * guessed default); typing a value sets it, clearing the box removes it. A
+ * typed value outside the allowed range is kept in the box with the reason
+ * beside it instead of being silently replaced.
+ */
+export function OptionalNumberField({ value, kind, onChange, onClear, min, max, digits, width = 92, ariaLabel, placeholder = '—' }: {
+  value: number | undefined; kind: Kind; onChange: (si: number) => void; onClear: () => void;
+  min?: number; max?: number; digits?: number; width?: number; ariaLabel: string; placeholder?: string;
+}) {
+  const units = useSessionStore((s) => s.units);
+  const shown = value === undefined ? null : show(value, kind, units, digits);
+  const unit = show(1, kind, units, digits).unit;
+  const [text, setText] = useState(shown?.text ?? '');
+  const [focus, setFocus] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { if (!focus && error === null) setText(shown?.text ?? ''); }, [shown?.text, focus, error]);
+  const commit = (t: string) => {
+    if (t.trim() === '') { setError(null); if (value !== undefined) onClear(); return; }
+    const n = parseNumberInput(t);
+    if (n === null) { setError('Not a number'); return; }
+    const si = toSI(n, kind, units);
+    if ((min !== undefined && si < min) || (max !== undefined && si > max)) {
+      const lo = min === undefined ? null : show(min, kind, units, digits);
+      const hi = max === undefined ? null : show(max, kind, units, digits);
+      setError(lo && hi ? `Must be ${lo.text}–${hi.text} ${unit}`.trim() : lo ? `Must be at least ${lo.text} ${unit}`.trim() : `Must be at most ${hi!.text} ${unit}`.trim());
+      return;
+    }
+    setError(null);
+    if (si !== value) onChange(si);
+  };
+  return (
+    <span className="relative flex items-center rounded" style={{ background: C.sunken, border: `1px solid ${error ? C.bad : focus ? 'rgba(110,231,247,.5)' : C.line}`, width }}>
+      <input
+        value={text}
+        inputMode="decimal"
+        placeholder={placeholder}
+        aria-label={`${ariaLabel}${unit ? ` (${unit})` : ''}`}
+        aria-invalid={error !== null || undefined}
+        onFocus={(e) => { setFocus(true); e.target.select(); }}
+        onBlur={() => { setFocus(false); commit(text); }}
+        onChange={(e) => { setError(null); setText(e.target.value); }}
+        onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+        className="w-full min-w-0 bg-transparent px-2 py-1 text-right font-geist-mono tnum text-[12.5px] outline-none placeholder:text-[#5E646D]"
+        style={{ color: C.fg }}
+      />
+      {unit && <span className="select-none pr-2 text-[10.5px]" style={{ color: C.dim }}>{unit}</span>}
+      {error && <span role="alert" className="pointer-events-none absolute right-0 top-full z-10 mt-0.5 whitespace-nowrap rounded px-2 py-1 text-[10.5px]" style={{ background: C.raised, color: C.bad, border: `1px solid ${C.lineStrong}` }}>{error}</span>}
     </span>
   );
 }
@@ -206,9 +274,10 @@ export function SliderField({ value, kind, min, max, step, digits, onChange, ari
   );
 }
 
-export function Segmented<T extends string | number>({ value, options, onChange, size = 'md' }: { value: T; options: { value: T; label: ReactNode; title?: string }[]; onChange: (v: T) => void; size?: 'sm' | 'md' }) {
+export function Segmented<T extends string | number>({ value, options, onChange, size = 'md', ariaLabel }: { value: T; options: { value: T; label: ReactNode; title?: string }[]; onChange: (v: T) => void; size?: 'sm' | 'md'; ariaLabel?: string }) {
+  const rowLabel = useContext(FieldLabel);
   return (
-    <span role="radiogroup" className="inline-flex rounded p-0.5" style={{ background: C.sunken, border: `1px solid ${C.line}` }}>
+    <span role="radiogroup" aria-label={ariaLabel ?? rowLabel ?? undefined} className="inline-flex rounded p-0.5" style={{ background: C.sunken, border: `1px solid ${C.line}` }}>
       {options.map((o) => (
         <button key={String(o.value)} role="radio" aria-checked={o.value === value} title={o.title} onClick={() => onChange(o.value)}
           className={cn('rounded-[3px] font-geist-mono', size === 'sm' ? 'px-1.5 py-0 text-[10.5px]' : 'px-2 py-0.5 text-[11.5px]')}
@@ -221,8 +290,9 @@ export function Segmented<T extends string | number>({ value, options, onChange,
 }
 
 export function SelectField({ value, options, onChange, width = 160, ariaLabel }: { value: string; options: { value: string; label: string }[]; onChange: (v: string) => void; width?: number; ariaLabel?: string }) {
+  const rowLabel = useContext(FieldLabel);
   return (
-    <Select value={value} ariaLabel={ariaLabel} onChange={onChange} width={width}>
+    <Select value={value} ariaLabel={ariaLabel ?? rowLabel ?? undefined} onChange={onChange} width={width}>
       {options.map((o) => <option key={o.value} value={o.value} style={{ background: C.panel }}>{o.label}</option>)}
     </Select>
   );
@@ -258,6 +328,32 @@ export function TextField({ value, onChange, ariaLabel, id, width = 120, inputMo
         style={{ color: C.fg }}
       />
     </span>
+  );
+}
+
+/**
+ * Text that reads as a label but edits in place: commits on blur or Enter,
+ * Escape restores the stored value. An empty name is refused (the stored
+ * value comes back) rather than saved.
+ */
+export function InlineText({ value, onCommit, ariaLabel, className, style, placeholder }: { value: string; onCommit: (next: string) => void; ariaLabel: string; className?: string; style?: React.CSSProperties; placeholder?: string }) {
+  const [text, setText] = useState(value);
+  const [focus, setFocus] = useState(false);
+  useEffect(() => { if (!focus) setText(value); }, [value, focus]);
+  const commit = () => { const next = text.trim(); if (next === '' || next === value) { setText(value); return; } onCommit(next); };
+  return (
+    <input
+      value={text}
+      aria-label={ariaLabel}
+      placeholder={placeholder}
+      title={`${ariaLabel}: click to rename`}
+      onFocus={(e) => { setFocus(true); e.target.select(); }}
+      onBlur={() => { setFocus(false); commit(); }}
+      onChange={(e) => setText(e.target.value)}
+      onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); if (e.key === 'Escape') { setText(value); setTimeout(() => (e.target as HTMLInputElement).blur()); } }}
+      className={cn('min-w-0 rounded bg-transparent px-1 outline-none hover:bg-white/5 focus:bg-white/5 focus-visible:ring-1 focus-visible:ring-[rgba(110,231,247,.5)]', className)}
+      style={style}
+    />
   );
 }
 

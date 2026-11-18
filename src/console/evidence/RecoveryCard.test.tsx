@@ -48,16 +48,17 @@ describe('RecoveryCard', () => {
     expect(screen.getByText(/under-packed/)).toBeTruthy();
     const bp = Number.parseFloat(readKvValue('BP mass'));
     expect(bp).toBeGreaterThan(0);
-    // Chute has no packed length: clearance covers the empty stack and the
-    // exclusion is explicit.
-    expect(readKvValue('Clearance')).toBe('FITS · 311 mm spare');
-    expect(screen.getByText(/1 item excluded from clearance — packed length missing/)).toBeTruthy();
+    // Chute has no packed length: the fit is unknown, never "FITS" on an
+    // empty stack, and the missing input is named with a way to enter it.
+    expect(readKvValue('Clearance')).toBe('UNKNOWN · 1 packed length missing');
+    expect(screen.getByText(/has no packed length, so whether everything fits is unknown/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Enter packed length for/ })).toBeTruthy();
   });
 
   it('renders the dimensioned strip with entered/assumed/missing provenance', () => {
     // Strip SVG is present and labeled with its construction. The default
-    // chute has no packed length, so 0 of 1 items are placed (fits vacuous).
-    expect(screen.getByRole('img', { name: /Bay strip: .*311\.0 mm.*0 placed.*fits/ })).toBeTruthy();
+    // chute has no packed length, so 0 of 1 items are placed and the fit is unknown.
+    expect(screen.getByRole('img', { name: /Bay strip: .*311\.0 mm.*0 placed.*fit unknown/ })).toBeTruthy();
     // Bay dims entered from the tree; chute diameter assumed bore; chute
     // length missing (never guessed).
     expect(screen.getAllByText('ENTERED').length).toBeGreaterThanOrEqual(3);

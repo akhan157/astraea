@@ -31,7 +31,8 @@
  *    the enclosing tube's front station); otherwise export throws. Hollow
  *    interiors, wall thickness, body-tube inner diameter, motor mounts and
  *    fin cross-section shaping are not modeled — this is the outer mold line
- *    only.
+ *    only. The printable hollow nose cone with its shoulder lives in
+ *    ./printableNose.ts.
  *
  * 2. `exportStep` — serializes the solids as one AP203 MANIFOLD_SOLID_BREP
  *    per solid: closed shells of planar FACE / EDGE_LOOP / EDGE_CURVE /
@@ -113,7 +114,7 @@ const POLE_EPS = 1e-9;
  * verbatim from src/viewport/geometry/proceduralNosecone.ts so the exported
  * geometry and the viewport lathe coincide; length > 0 is enforced upstream.
  */
-function noseconeRadius(shape: NoseconeShape, length: number, baseRadius: number, x: number): number {
+export function noseconeRadius(shape: NoseconeShape, length: number, baseRadius: number, x: number): number {
   const t = x / length; // 0 at tip, 1 at base
   switch (shape) {
     case 'conical':

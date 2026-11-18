@@ -99,14 +99,23 @@ export function ResultValue({ r, kind, digits, size = 'md', label, className, ch
 }
 
 /** One line for a panel header: "2 extrapolated · 1 unknown". Silent when everything is modeled or better. */
-export function ConfidenceSummary({ results }: { results: Result<unknown>[] }) {
-  const ex = results.filter((r) => r.confidence === 'extrapolated').length;
-  const un = results.filter((r) => r.confidence === 'unknown').length;
-  if (!ex && !un) return null;
+/**
+ * How many shown values are extrapolated or unknown, naming them when
+ * `labels` is given ("Drift extrapolated"), so the count is never a riddle.
+ */
+export function ConfidenceSummary({ results, labels }: { results: Result<unknown>[]; labels?: string[] }) {
+  const named = (c: Result['confidence']) => results.map((r, i) => (r.confidence === c ? labels?.[i] ?? null : undefined)).filter((x): x is string | null => x !== undefined);
+  const ex = named('extrapolated');
+  const un = named('unknown');
+  if (!ex.length && !un.length) return null;
+  const say = (list: (string | null)[], word: string) => {
+    const names = list.filter((n): n is string => n !== null);
+    return names.length === list.length && names.length > 0 && names.length <= 2 ? `${names.join(' and ')} ${word}` : `${list.length} ${word}${names.length ? `: ${names.join(', ')}` : ''}`;
+  };
   return (
     <span className="inline-flex items-center gap-2 text-[11px]" style={{ color: C.muted }}>
-      {ex > 0 && <span className="inline-flex items-center gap-1"><ConfidenceGlyph c="extrapolated" />{ex} extrapolated</span>}
-      {un > 0 && <span className="inline-flex items-center gap-1"><ConfidenceGlyph c="unknown" />{un} unknown</span>}
+      {ex.length > 0 && <span className="inline-flex items-center gap-1" title="Extrapolated: computed outside the range the model was built for."><ConfidenceGlyph c="extrapolated" />{say(ex, 'extrapolated')}</span>}
+      {un.length > 0 && <span className="inline-flex items-center gap-1" title="Unknown: the engine cannot vouch for these values."><ConfidenceGlyph c="unknown" />{say(un, 'unknown')}</span>}
     </span>
   );
 }
@@ -114,12 +123,12 @@ export function ConfidenceSummary({ results }: { results: Result<unknown>[] }) {
 /* ───────────── delta vs committed run ───────────── */
 
 /** Change against the last committed run. `better` says which direction is good (or 'none' for neutral). */
-export function DeltaChip({ now, was, kind, better = 'none', digits, pct }: { now: number; was: number; kind: Kind; better?: 'up' | 'down' | 'none'; digits?: number; pct?: boolean }) {
+export function DeltaChip({ now, was, kind, better = 'none', digits, pct, prefix }: { now: number; was: number; kind: Kind; better?: 'up' | 'down' | 'none'; digits?: number; pct?: boolean; prefix?: string }) {
   const units = useSessionStore((s) => s.units);
   const d = now - was;
   if (!Number.isFinite(d) || Math.abs(d) < 1e-9 || (was !== 0 && Math.abs(d / was) < 0.0005)) return null;
   const good = better === 'none' ? null : (better === 'up') === d > 0;
   const color = good === null ? C.changed : good ? C.ok : C.bad;
   const text = pct && was ? `${d > 0 ? '+' : ''}${((d / was) * 100).toFixed(1)}%` : (() => { const v = show(Math.abs(d), kind, units, digits); return `${d > 0 ? '+' : '−'}${v.text}${v.unit ? ' ' + v.unit : ''}`; })();
-  return <span className="font-geist-mono tnum text-[11px] whitespace-nowrap" style={{ color }} title="Change since the committed run">{text}</span>;
+  return <span className="font-geist-mono tnum text-[11px] whitespace-nowrap" style={{ color }} title="Change since the last run">{prefix}{text}</span>;
 }

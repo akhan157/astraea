@@ -1,7 +1,7 @@
 import { expectedErrorLine } from '../data/expectedError';
 import { useMemo, type ReactNode } from 'react';
 import { Activity, ChevronDown } from 'lucide-react';
-import { useWS } from '../store';
+import { runName, useWS } from '../store';
 import { useFreshness, useMediaQuery } from '../hooks';
 import type { FlightEvent, FlightRun, Result } from '../data/contract';
 import { C } from '../kit/theme';
@@ -19,7 +19,8 @@ import { FlightPose, FlightTimeline } from './FlightTimeline';
 import { WeatherPanel } from './WeatherPanel';
 import { useProjectStore } from '../../state/project';
 import { useAnalysisStore } from '../../state/analysis';
-import { consoleActions, currentRunKey, currentPreflight, airframeDraftPending, currentCandidateReadiness } from '../store';
+import { consoleActions, currentRunKey, runPreflight, airframeDraftPending, currentCandidateReadiness } from '../store';
+import { RunSummaryStrip } from './RunSummary';
 import { stableStringify } from '../../application/caseResolver';
 import { RunReadiness } from '../shell/RunReadiness';
 import { DragCalibrationChip } from '../evidence/CalibrationChip';
@@ -76,15 +77,22 @@ export function flightDockDefault(available: number): number {
  * 34 px of canvas; on a tall one they keep their own rows. Both are the same
  * components either way, so nothing is hidden or renamed.
  */
-function FlightChrome({ compact }: { compact: boolean }) {
-  if (!compact) return <><FlightModelChooser /><RunReadiness /></>;
+function FlightChrome({ compact, findings = true }: { compact: boolean; findings?: boolean }) {
+  if (!compact) return <><FlightModelChooser /><RunReadiness findings={findings} /></>;
   return (
     <div data-flight-chrome="row" className="flex shrink-0 items-stretch">
       <div className="min-w-max flex-1 has-[details[open]]:min-w-0"><FlightModelChooser /></div>
-      <RunReadiness inline />
+      <RunReadiness inline findings={findings} />
     </div>
   );
 }
+
+/** Plain names of the run-summary results, for the confidence summary. */
+const RESULT_LABEL: Record<string, string> = {
+  apogee: 'Apogee', apogeeTime: 'Time to apogee', maxSpeed: 'Max speed', maxMach: 'Max Mach', maxAccelG: 'Max acceleration', maxQ: 'Sampled Max-Q',
+  railExitSpeed: 'Rail exit speed', burnoutAltitude: 'Burnout altitude', landingSpeed: 'Landing speed', landingEnergy: 'Landing energy',
+  drift: 'Drift', flightTime: 'Flight time', weathercockAngleDeg: 'Incidence at rail exit',
+};
 
 export function FlightStage() {
   const s = useWS();
@@ -132,20 +140,23 @@ export function FlightStage() {
         <EmptyState
           icon={<Activity size={22} />}
           title={s.running ? 'Running the 6-DOF simulation…' : 'No flight yet'}
-          body={s.native ? 'Run the simulation to see the events, the result summary and every gate.' : 'The flight run needs the Astraea engine, and this browser cannot run it (it needs WebAssembly and Web Workers). There is no substitute engine.'}
-          action={<Button primary disabled={!s.native || !currentPreflight().runnable || airframeDraftPending() || s.running} onClick={() => void s.run()}>Run simulation</Button>}
+          body={s.native ? 'Run the simulation to see the events, the result summary and every check.' : 'The flight run needs the Astraea engine, and this browser cannot run it (it needs WebAssembly and Web Workers). There is no substitute engine.'}
+          action={<Button primary disabled={!s.native || !runPreflight().runnable || s.running} onClick={() => void s.run()}>{airframeDraftPending() ? 'Apply staged edits and run' : 'Run simulation'}</Button>}
         />
         } tabs={[{ id: 'weather', label: 'Weather', body: <WeatherPanel /> }, { id: 'mc', label: 'Monte Carlo', body: <MonteCarlo /> }]} />
       </div>
     );
   }
 
-  const allResults = Object.values(run.summary).filter((v): v is Result => typeof v === 'object' && v !== null);
+  const resultEntries = Object.entries(run.summary).filter((e): e is [string, Result] => typeof e[1] === 'object' && e[1] !== null);
+  const allResults = resultEntries.map(([, r]) => r);
+  const resultLabels = resultEntries.map(([key]) => RESULT_LABEL[key] ?? key);
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <StageHeader stage="flight" title="Flight" inlineSub={fresh.state === 'current'} sub={fresh.state === 'current' ? <ValidityBadge v={run.summary.validity} enveloped={run.summary.enveloped} /> : <span style={{ color: C.changed }}>Stored validity: {run.summary.validity} · {fresh.state} — not a current result</span>}
-        right={<ConfidenceSummary results={allResults} />} />
-      <FlightChrome compact={compactChrome} />
+      <StageHeader stage="flight" title="Flight" inlineSub sub={fresh.state === 'current' ? <ValidityBadge v={run.summary.validity} enveloped={run.summary.enveloped} /> : <span style={{ color: C.changed }}>Stored validity: {run.summary.validity} · not current</span>}
+        fill={<RunSummaryStrip run={run} stale={fresh.state === 'stale'} />}
+        right={<ConfidenceSummary results={allResults} labels={resultLabels} />} />
+      <FlightChrome compact={compactChrome} findings={false} />
       <WithDock storageKey="flight" initial={flightDockDefault}
         main={
           <div className="relative h-full" style={{ opacity: fresh.state === 'stale' ? 0.85 : 1 }}>
@@ -236,10 +247,10 @@ export function ResultsTable({ run }: { run: FlightRun }) {
       <DataTable rows={rows} rowKey={(r) => r.id} dense
         columns={[
           { key: 'l', label: 'Result', width: '1.2fr', render: (r) => r.label },
-          { key: 'v', label: `Run r${run.rev}`, align: 'right', width: '1fr', render: (r) => !landing.available && (r.id === 'landingSpeed' || r.id === 'landingEnergy') ? `N/A — ${landing.reason}` : <ResultValue r={run.summary[r.id] as Result} label={r.label} /> },
+          { key: 'v', label: runName(run), align: 'right', width: '1fr', render: (r) => !landing.available && (r.id === 'landingSpeed' || r.id === 'landingEnergy') ? `N/A — ${landing.reason}` : <ResultValue r={run.summary[r.id] as Result} label={r.label} /> },
           {
             key: 'd',
-            label: prev ? `Δ vs r${prev.rev}` : 'Δ previous run',
+            label: prev ? `Δ vs ${runName(prev).replace(/^Run /, 'run ')}` : 'Δ previous run',
             align: 'right',
             width: '120px',
             render: (r) => {
@@ -250,7 +261,7 @@ export function ResultsTable({ run }: { run: FlightRun }) {
               }
               const now = run.summary[r.id] as Result;
               const was = prev?.summary[r.id] as Result | undefined;
-              return was ? <DeltaChip now={now.value} was={was.value} kind={kindOf(now.unit)} better={r.better} /> : null;
+              return was ? <DeltaChip now={now.value} was={was.value} kind={kindOf(now.unit)} better={r.better} /> : <span style={{ color: C.dim }} title="This is the first run of this design, so there is nothing to compare with yet.">first run</span>;
             },
           },
           { key: 'c', label: 'Basis', width: '1.6fr', render: (r) => { const res = run.summary[r.id] as Result; return <span data-result-basis className="block break-words text-[11.5px] leading-snug" style={{ color: C.dim }} title={res.reason}>{res.reason}</span>; } },
@@ -365,14 +376,14 @@ export function LaunchInspector() {
   return (
     <>
       <InspectorSection title="Launch rail">
-        <Field k="railLength" label="Effective guide travel" kind="dist" min={0.5} max={20} digits={2} />
+        <Field k="railLength" label="Rail length (guide travel)" kind="dist" min={0.5} max={20} digits={2} />
         <div className="mt-1">
-          <Caveat summary="Distance to modeled full release.">
+          <Caveat summary="How far the rocket slides along the rail before it is free.">
             Displacement from the initial position to modeled full release. Existing rail-length values are retained; review this value against your guide geometry. Physical rail length alone does not establish travel to first rotational freedom. Partial guide constraints and tip-off are not modeled.
           </Caveat>
         </div>
         <Field k="railElevationDeg" label="Rail angle from horizontal" kind="angle" min={70} max={90} />
-        <Field k="railAzimuthDeg" label="Rail azimuth" kind="angle" min={0} max={359} />
+        <Field k="railAzimuthDeg" label="Rail direction (azimuth)" kind="angle" min={0} max={359} />
       </InspectorSection>
       <InspectorSection title="Site and wind">
         <Field k="windSpeedSurface" label="Surface wind" kind="speed" min={0} max={15} />
@@ -403,7 +414,7 @@ function LaunchSummary({ s }: { s: WSView }) {
   return (
     <div data-launch-summary>
       <div className="mb-1 text-[10.5px] tracking-[0.12em] uppercase" style={{ color: C.dim }}>Rail</div>
-      <ReadOnlyRow label="Effective guide travel"><ValueUnit value={o.railLength} kind="dist" digits={2} /></ReadOnlyRow>
+      <ReadOnlyRow label="Rail length (guide travel)"><ValueUnit value={o.railLength} kind="dist" digits={2} /></ReadOnlyRow>
       <ReadOnlyRow label="Rail angle"><ValueUnit value={o.railElevationDeg} kind="angle" /></ReadOnlyRow>
       <ReadOnlyRow label="Rail azimuth"><ValueUnit value={o.railAzimuthDeg} kind="angle" /></ReadOnlyRow>
       <div className="mt-3 mb-1 text-[10.5px] tracking-[0.12em] uppercase" style={{ color: C.dim }}>Site and wind</div>
@@ -437,7 +448,7 @@ export function FlightInspector() {
         <div className="text-[14px] font-medium">Launch conditions</div>
       </div>
       {run && (
-        <InspectorSection title={`Run r${run.rev}`}>
+        <InspectorSection title={runName(run)}>
           <div className="grid grid-cols-2 gap-3">
             <Stat label="Apogee"><ResultValue r={run.summary.apogee} size="lg" label="Apogee" /></Stat>
             <Stat label="Max Mach"><ResultValue r={run.summary.maxMach} size="lg" label="Max Mach" /></Stat>
