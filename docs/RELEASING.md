@@ -1,10 +1,11 @@
 # Releasing Astraea
 
-Work happens in the private `astraea-dev` repository. The public
-`akhan157/astraea` repository receives one export commit per change and is
-where tags, releases and the update feed live.
+All work happens in this repository, `akhan157/astraea`: branches, pull
+requests, tags, releases, the update feed and the website deploy. (Until
+2026-11-18 development ran in a private `astraea-dev` repository and was exported
+here; that repository is archived.)
 
-## 1. Prepare the version (in astraea-dev)
+## 1. Prepare the version
 
 ```sh
 node scripts/bump-version.mjs 0.11.2            # package.json, Cargo.toml, Cargo.lock, README links, CHANGELOG heading
@@ -12,20 +13,15 @@ $EDITOR CHANGELOG.md                            # replace the placeholder with t
 node scripts/release-preflight.mjs --tag v0.11.2
 ```
 
-Open a PR, merge it, and wait for the **Website** run on `main` (build, browser
-acceptance, deploy) to pass.
+Open a PR, merge it, and wait for **CI** and the **Website** run on `main`
+(build, browser acceptance, deploy) to pass.
 
 The CHANGELOG section becomes the GitHub release notes word for word. Put
 anything users must do before updating at the top of it.
 
-## 2. Export and tag (public repo)
+## 2. Tag
 
-```sh
-scripts/export-public.sh "Astraea 0.11.2: <summary>"          # dry run: check the file list
-scripts/export-public.sh "Astraea 0.11.2: <summary>" --push
-```
-
-Wait for public **CI** on that commit, then tag it:
+Tag the merged commit on `main`:
 
 ```sh
 git fetch https://github.com/akhan157/astraea.git main
@@ -47,7 +43,7 @@ nothing. The tag also runs the Windows and macOS packaged smoke tests.
 - `latest.json`: `version` is the new version, every URL is under the new tag,
   every signature's key id is the app's updater key.
 
-Publish the draft right after the export: README download links already point at the new tag and 404 until it is published (`gh release edit v0.11.2 -R akhan157/astraea --draft=false`).
+Publish the draft right after checking it: README download links already point at the new tag and 404 until it is published (`gh release edit v0.11.2 -R akhan157/astraea --draft=false`).
 **Update feed** then copies its `latest.json` to the `update-feed` release that
 installed apps poll, and installed apps offer the update on their next launch. Check that
 `https://github.com/akhan157/astraea/releases/download/update-feed/latest.json` now names the new version.
@@ -55,7 +51,7 @@ installed apps poll, and installed apps offer the update on their next launch. C
 ## 4. Prove the update path
 
 ```sh
-gh workflow run updater-e2e.yml -R akhan157/astraea-dev -f from=0.11.1 -f to=0.11.2
+gh workflow run updater-e2e.yml -R akhan157/astraea -f from=0.11.1 -f to=0.11.2
 ```
 
 On Linux, Windows and macOS this installs the previous published release,
