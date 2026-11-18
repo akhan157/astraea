@@ -1018,3 +1018,16 @@ Owner instruction: test the "needs a person" items ourselves, and check that upd
 - **Update banner** shows download percent (PR #7).
 - **Report a problem…** in the Project menu opens the GitHub bug form pre-filled with version and platform; desktop `target=_blank` links go to the system browser through `tauri-plugin-opener`, scoped to `https://github.com/akhan157/astraea/*` (PR #8). Windows smoke run 44192077289 on the branch: success.
 - **Still open:** native Save/Open/export dialogs, hardware GPU, keyboard/accessibility and 1280×800 rows of the desktop checklist on Windows and macOS; a person has not used the app on either OS. Picomatch alert 20 has no fixed release.
+
+### 0.11.1 released and the update path proven, 2026-11-18
+
+Owner instruction: finalize the update work, ship it so everyone has it, warn 0.10.x users to save first, then run the automated update tests.
+
+- **0.11.1** (PR #9, plus #7 and #8): the update offer says "Save your project first" and links "What's new"; the release notes open with a save-first note for 0.10.x users, whose shipped banner cannot show one. Report a problem; download progress; desktop links via the opener plugin. Engine unchanged from 0.11.0.
+- **Before merge**, a real Linux build of the 0.11.1 tree (run 44204700907): `__TAURI__.opener.openUrl` present; bug-report URL allowed; `https://example.com/` refused ("Not allowed to open url"); an unsaved Vehicle name restored after quit and relaunch.
+- **Release** v0.11.1, first run of the new gate (run 44208237855): preflight, full CI, four bundles, all success; Windows and macOS smoke on the tag success. Draft check: 17 assets (same set as v0.11.0), `latest.json` 0.11.1 with 11 platforms all under v0.11.1, every signature key id `D20343727B047CFA` (= the app's updater key). Tagged `a20e092` with the no-reply tagger; published 2026-11-18T01:04:43Z; update-feed run 44212980517 success; live feed serves 0.11.1.
+- **Updater e2e, all green:**
+  - 0.11.0 → 0.11.1 (run 44213040875): Linux, Windows, macOS. Linux also proved an unsaved Vehicle name typed before "Install and restart" was restored after the update.
+  - 0.10.1 → 0.11.1 (run 44213035880): Linux and macOS on attempt 1. Windows saw no offer within 120 s on attempt 1, then passed on attempt 2 (registry and exe 0.11.1, relaunched). The Windows offer wait is now 180 s.
+- **Release time:** bundles now build in one wave (`max-parallel: 4`, PR #10), about 20 min per release including the CI gate.
+- **Still open:** native dialogs, exports, hardware GPU, keyboard/accessibility and 1280×800 rows on Windows and macOS; the dead `releases/latest` fallback endpoint; unsigned installers; picomatch alert 20.

@@ -129,9 +129,9 @@ jobs:
           $exe = Join-Path $env:LOCALAPPDATA 'Astraea Workstation\astraea-workstation.exe'
           $log = 'drive-windows.log'
           Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe)
-          $later = & scripts/updater-e2e/win-click.ps1 -Label 'Later' -TimeoutSec 120
+          $later = & scripts/updater-e2e/win-click.ps1 -Label 'Later' -TimeoutSec 180
           "Later: $later" | Tee-Object -FilePath $log -Append
-          if ($later -ne 'clicked') { throw 'no update offer (Later) within 120 s' }
+          if ($later -ne 'clicked') { throw 'no update offer (Later) within 180 s' }
           Start-Sleep -Seconds 2
           $again = & scripts/updater-e2e/win-click.ps1 -Label 'Install and restart' -TimeoutSec 3
           "after Later, offer still visible: $again" | Tee-Object -FilePath $log -Append
@@ -140,7 +140,7 @@ jobs:
           Start-Sleep -Seconds 3
           "installed version still: $((Get-Item $exe).VersionInfo.ProductVersion)" | Tee-Object -FilePath $log -Append
           Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe)
-          $install = & scripts/updater-e2e/win-click.ps1 -Label 'Install and restart' -TimeoutSec 120
+          $install = & scripts/updater-e2e/win-click.ps1 -Label 'Install and restart' -TimeoutSec 180
           "Install and restart: $install" | Tee-Object -FilePath $log -Append
           if ($install -ne 'clicked') { throw 'no update offer after relaunch' }
       - name: Prove the installed version is the target
